@@ -1,0 +1,21 @@
+version: '3'
+
+dotenv: ['./.env']
+
+vars:
+  IMAGE_REPO: "{{.USER}}/stackstate-openlit-ext"
+  VERSION: 0.0.1
+
+includes:
+  dev:
+    taskfile: ./stackpack
+    dir: ./stackpack
+
+tasks:
+  docker-build:
+    cmds:
+      - docker build . -t {{.IMAGE_REPO}}:{{.VERSION}}
+  docker-push:
+    cmds:
+      - echo $PASSWORD | docker login -u {{.USER}} --password-stdin
+      - docker push {{.IMAGE_REPO}}:{{.VERSION}}

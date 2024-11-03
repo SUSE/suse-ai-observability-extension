@@ -1,0 +1,55 @@
+func traces2Topology(conf *config.Configuration, client *api.Client, factory *receiver.Factory) error {
+	appComps := factory.GetComponentsOfType(CTypeGenAiApp)
+	offset, err := time.ParseDuration(conf.Kubernetes.QueryTimeInterval)
+	if err != nil {
+		return err
+	}
+	offset = -1 * offset
+
+	for _, appComp := range appComps {
+		traceId, err := getTraceId(appComp, offset, client)
+		if err != nil {
+			slog.Error("failed to query traces", "error", err, "app", appComp.Data.Name)
+			continue
+		}
+		if traceId != "" {
+			trace, err := client.GetTrace(traceId)
+			if err != nil {
+				slog.Error("failed to get trace", "error", err, "app", appComp.Data.Name, "traceId", traceId)
+				continue
+			}
+
+			for _, span := range trace.Spans {
+				span.SpanAttributes
+			}
+		}
+	}
+	return nil
+}
+
+func getTraceId(appComp *receiver.Component, offset time.Duration, client *api.Client) (string, error) {
+	req := api.TraceQueryRequest{
+		TraceQuery: api.TraceQuery{
+			SpanFilter: api.SpanFilter{
+				ServiceName: []string{appComp.Data.Name},
+				Attributes: api.FilterAttributes{
+					"gen_ai.system": []string{"langchain"},
+				},
+				SpanParentType: []api.SpanParentType{api.SpanParentTypeExternal, api.SpanParentTypeRoot},
+			},
+		},
+		Start:    time.Now().Add(offset),
+		End:      time.Now(),
+		Page:     0,
+		PageSize: 1,
+	}
+	resp, err := client.QueryTraces(&req)
+	if err != nil {
+		return "", err
+	}
+
+	if len(resp.Traces) > 0 {
+		return resp.Traces[0].TraceID, nil
+	}
+	return "", nil
+}
