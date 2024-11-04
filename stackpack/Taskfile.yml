@@ -1,0 +1,47 @@
+version: '3'
+
+dotenv:
+  - ../.env
+
+vars:
+  STS_CONTEXT: "susecon"
+
+  GENAI_SYSTEMS_QUERY_VIEW: "139375054936892"
+  GENAI_SYSTEMS_VIEW_TYPE: "137437609282659"
+
+  GENAI_MODEL_QUERY_VIEW: "107033024541792"
+
+  VECTOR_DB_QUERY_VIEW: "251130129034951"
+
+  MAIN_MENU_GROUP_ID: "95957927950476"
+
+tasks:
+
+  upload-menu:
+    silent: false
+    cmds:
+      - http POST {{.STS_URL}}/api/node/sync/{{.MAIN_MENU_GROUP_ID}}/unlock X-API-Token:{{.STS_TOKEN}}
+      - http POST {{.STS_URL}}/api/node/sync/{{.GENAI_SYSTEMS_QUERY_VIEW}}/unlock X-API-Token:{{.STS_TOKEN}}
+      - http POST {{.STS_URL}}/api/node/sync/{{.GENAI_MODEL_QUERY_VIEW}}/unlock X-API-Token:{{.STS_TOKEN}}
+      - http POST {{.STS_URL}}/api/node/sync/{{.VECTOR_DB_QUERY_VIEW}}/unlock X-API-Token:{{.STS_TOKEN}}
+      - sts settings apply -f ./menu/llm.yaml --context {{.STS_CONTEXT}}
+  upload-overviews:
+    silent: true
+    cmds:
+      - http POST {{.STS_URL}}/api/node/sync/{{.GENAI_SYSTEMS_VIEW_TYPE}}/unlock X-API-Token:{{.STS_TOKEN}}
+      - sts settings apply -f ./overview/genai_system.yaml --context {{.STS_CONTEXT}}
+
+  upload-highlights:
+    silent: true
+    cmds:
+      - sts settings apply -f ./components/genai_system.yaml --context {{.STS_CONTEXT}}
+
+  upload-metric-bindings:
+    silent: true
+    cmds:
+      - sts settings apply -f ./metrics/genai_system.yaml --context {{.STS_CONTEXT}}
+
+  upload-monitors:
+    silent: true
+    cmds:
+      - sts monitor apply -f ./monitors/monitors.yaml --context {{.STS_CONTEXT}}

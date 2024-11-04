@@ -39,6 +39,7 @@ func mapGenAiSystem(appComp *receiver.Component, labels map[string]string, f *re
 		c.AddLabelKey(toLabelKey(ServiceNamespace), labels[ServiceNamespace])
 		c.AddLabelKey(toLabelKey(GenAiEnvironment), labels[GenAiEnvironment])
 		c.AddProperty("identifier", id)
+		c.AddProperty("genai_environment", labels[GenAiEnvironment])
 	}
 	if !f.RelationExists(appComp.ID, c.ID) {
 		f.MustNewRelation(appComp.ID, c.ID, "uses")
