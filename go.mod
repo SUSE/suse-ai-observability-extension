@@ -2,13 +2,13 @@ module github.com/ravan/stackstate-openlit
 
 go 1.23.0
 
-replace github.com/ravan/stackstate-client => ../stackstate-client
+//replace github.com/ravan/stackstate-client => ../stackstate-client
 
 require (
 	github.com/alecthomas/kingpin v2.2.6+incompatible
 	github.com/go-playground/validator/v10 v10.22.1
 	github.com/joho/godotenv v1.5.1
-	github.com/ravan/stackstate-client v0.0.0-20240913114608-1aef054e9ebf
+	github.com/ravan/stackstate-client v0.0.0-20241103140810-3e875c91a0a3
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
 )

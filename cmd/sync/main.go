@@ -16,7 +16,7 @@ func main() {
 		os.Exit(1)
 	}
 	var factory *receiver.Factory
-	factory, err = sync.Sync(&conf.Kubernetes)
+	factory, err = sync.Sync(conf)
 
 	if err != nil {
 		slog.Error("failed sync with kubernetes", "error", err)

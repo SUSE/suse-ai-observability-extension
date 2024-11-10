@@ -8,7 +8,7 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -trimpath -o /app/k8sync ./cmd/sync/main.go
+RUN go build -trimpath -o /app/openlitsync ./cmd/sync/main.go
 
 FROM alpine:3.20.3
 
@@ -17,6 +17,6 @@ RUN apk --no-cache update && apk --no-cache add stress-ng
 USER 1001
 WORKDIR /app
 
-COPY --from=builder /app/k8sync .
+COPY --from=builder /app/openlitsync .
 
-CMD ["/app/k8sync"]
+CMD ["/app/openlitsync"]
