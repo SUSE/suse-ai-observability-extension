@@ -60,7 +60,7 @@ nodes:
       urnTemplate: urn:openlit:genai:${gen_ai_system}:model/${gen_ai_request_model}
     description: Indicates if Open Telemetry is sending data to component
     function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
-    id: -20
+    id: -25
     identifier: urn:custom:monitor:llm-genai-system-model-metric-stream-active
     intervalSeconds: 60
     name: LLM GenAI Model Metric Stream Active

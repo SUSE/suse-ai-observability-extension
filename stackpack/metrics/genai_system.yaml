@@ -78,7 +78,7 @@ nodes:
       componentSummary:
         weight: 3
     _type: MetricBinding
-  - id: -130
+  - id: -125
     name: Average Usage Cost
     queries:
       - expression: avg(gen_ai_usage_cost_USD_bucket{gen_ai_system="${name}"})

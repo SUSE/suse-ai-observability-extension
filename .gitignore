@@ -6,3 +6,8 @@
 conf_ravsts.yaml
 /kubeconfig
 /*.iml
+/stackpack/component_types.yaml
+/stackpack/grafana_dashboard.json
+/stackpack/main.json
+/stackpack/metricbindings.yaml
+/stackpack/view_types.yaml
