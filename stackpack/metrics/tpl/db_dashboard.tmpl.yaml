@@ -1,0 +1,43 @@
+nodes:
+  - id: -105
+    name: DB Request Rate
+    queries:
+      - expression: sum(rate(db_requests_total{ {{.Filter}} }[${__rate_interval}]))
+        alias: Request Rate
+        primary: true
+    scope:  {{.Scope}} 
+    identifier: urn:stackpack:openlit:shared:metric-binding:{{.Prefix}}-request-rate
+    unit: reqps
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Utilization
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -150
+    name: Total Successful DB Requests
+    queries:
+      - expression: sum by() (db_requests_total{ {{.Filter}} })
+        alias: Requests
+        primary: true
+    scope:  {{.Scope}} 
+    identifier: urn:stackpack:openlit:shared:metric-binding:{{.Prefix}}-request-total-success
+    unit: short
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Utilization
+      componentSummary:
+        weight: 3
+    _type: MetricBinding

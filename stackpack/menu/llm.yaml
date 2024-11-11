@@ -6,11 +6,13 @@ nodes:
     identifier: urn:stackpack:openlit:shared:main-menu-group:genai
     items:
       - _type: MainMenuViewItem
+        viewIdentifier: urn:stackpack:openlit:shared:query-view:genai-components
+      - _type: MainMenuViewItem
         viewIdentifier: urn:stackpack:openlit:shared:query-view:genai-systems
       - _type: MainMenuViewItem
-        viewIdentifier: urn:stackpack:openlit:shared:query-view:genai-models
-      - _type: MainMenuViewItem
         viewIdentifier: urn:stackpack:openlit:shared:query-view:vector-databases
+      - _type: MainMenuViewItem
+        viewIdentifier: urn:stackpack:openlit:shared:query-view:gpu-nodes
     name: GenAI Observability
 
   - _type: QueryView
@@ -27,7 +29,7 @@ nodes:
     id: -200
     identifier: urn:stackpack:openlit:shared:query-view:genai-systems
     minimumGroupSize: 3
-    name: Systems
+    name: LLM Systems
     neighboringComponents: false
     query: (label IN ("gen_ai_system"))
     queryVersion: 0.0.1
@@ -79,30 +81,50 @@ nodes:
     showCause: NONE
     showIndirectRelations: false
     tags: [ ]
+    viewType: urn:stackpack:openlit:shared:view-type:vector-db-systems
 
+  - _type: QueryView
+    autoGrouping: true
+    connectedComponents: true
+    description: Components
+    flags:
+      - DisableEventHandlers
+      - HideFromViewsOverview
+    groupedByDomains: true
+    groupedByLayers: true
+    groupedByRelations: true
+    groupingEnabled: true
+    id: -240
+    identifier: urn:stackpack:openlit:shared:query-view:genai-components
+    minimumGroupSize: 3
+    name: Components
+    neighboringComponents: false
+    query: (label IN ("gen_vectordb_system", "gen_ai_system", "gen_ai_app") OR type IN ("genai.model", "genai.dboperation", "genai.operation"))
+    queryVersion: 0.0.1
+    showCause: NONE
+    showIndirectRelations: false
+    tags: [ ]
 
-#  - _type: QueryView
-#    autoGrouping: true
-#    connectedComponents: true
-#    description: CRD Instances
-#    flags:
-#      - DisableEventHandlers
-#      - HideFromViewsOverview
-#    groupedByDomains: true
-#    groupedByLayers: true
-#    groupedByRelations: true
-#    groupingEnabled: true
-#    id: -161
-#    identifier: urn:stackpack:crd:shared:query-view:crd-instances
-#    minimumGroupSize: 3
-#    name: Instances
-#    neighboringComponents: true
-#    ownedBy: urn:stackpack:crd:shared
-#    query: (label IN ("crd-instance:true"))
-#    queryVersion: 0.0.1
-#    showCause: NONE
-#    showIndirectRelations: false
-#    tags: [ ]
-#    viewType: urn:stackpack:harvester:shared:view-type:virtual-machine
-
+  - _type: QueryView
+    autoGrouping: true
+    connectedComponents: true
+    description: Gpu Nodes
+    flags:
+      - DisableEventHandlers
+      - HideFromViewsOverview
+    groupedByDomains: true
+    groupedByLayers: true
+    groupedByRelations: true
+    groupingEnabled: true
+    id: -250
+    identifier: urn:stackpack:openlit:shared:query-view:gpu-nodes
+    minimumGroupSize: 3
+    name: Gpu Nodes
+    neighboringComponents: false
+    query: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+    queryVersion: 0.0.1
+    showCause: NONE
+    showIndirectRelations: false
+    tags: [ ]
+    viewType: urn:stackpack:dcgm:shared:view-type:node
 

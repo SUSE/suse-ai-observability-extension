@@ -1,0 +1,72 @@
+nodes:
+  - id: -100
+    name: K8s gpu nodes view definition
+    iconbase64: data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMi4xNzQgMS40MzgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjIwIiBoZWlnaHQ9IjEzLjIyNCI+PHBhdGggZD0iTTAuODEgMC40MjlWMC4yOTlxMC4wMTkgLTAuMDAxIDAuMDM4IC0wLjAwMkMxLjIwNCAwLjI4NiAxLjQzNyAwLjYwMyAxLjQzNyAwLjYwM3MtMC4yNTEgMC4zNDkgLTAuNTIxIDAuMzQ5cS0wLjA1NCAwIC0wLjEwNSAtMC4wMTdWMC41NDJjMC4xMzggMC4wMTcgMC4xNjYgMC4wNzggMC4yNDkgMC4yMTZsMC4xODUgLTAuMTU1cy0wLjEzNSAtMC4xNzcgLTAuMzYyIC0wLjE3N2EwLjY2NyAwLjY2NyAwIDAgMCAtMC4wNzIgMC4wMDNtMCAtMC40Mjl2MC4xOTRsMC4wMzggLTAuMDAyYzAuNDk0IC0wLjAxNyAwLjgxNiAwLjQwNSAwLjgxNiAwLjQwNVMxLjI5NSAxLjA0NiAwLjkxIDEuMDQ2cS0wLjA1IDAgLTAuMDk5IC0wLjAwOXYwLjEycTAuMDQxIDAuMDA1IDAuMDgyIDAuMDA2YzAuMzU4IDAgMC42MTggLTAuMTgzIDAuODY5IC0wLjM5OSAwLjA0MiAwLjAzNCAwLjIxMiAwLjExNCAwLjI0NyAwLjE1IC0wLjIzOCAwLjIgLTAuNzk0IDAuMzYxIC0xLjExIDAuMzYxYTEgMSAwIDAgMSAtMC4wODggLTAuMDA1djAuMTY5SDIuMTczVjB6bTAgMC45MzV2MC4xMDJjLTAuMzMxIC0wLjA1OSAtMC40MjMgLTAuNDA0IC0wLjQyMyAtMC40MDRzMC4xNTkgLTAuMTc2IDAuNDIzIC0wLjIwNXYwLjExMmgtMC4wMDFjLTAuMTM4IC0wLjAxNyAtMC4yNDcgMC4xMTMgLTAuMjQ3IDAuMTEzczAuMDYyIDAuMjE4IDAuMjQ4IDAuMjgyTTAuMjIyIDAuNjE5czAuMTk2IC0wLjI5IDAuNTg5IC0wLjMyVjAuMTk0QzAuMzc2IDAuMjI5IDAgMC41OTcgMCAwLjU5N3MwLjIxMyAwLjYxNiAwLjgxIDAuNjcyVjEuMTU3QzAuMzcyIDEuMTAyIDAuMjIyIDAuNjE5IDAuMjIyIDAuNjE5IiBmaWxsPSIjNzZiOTAwIi8+PC9zdmc+
+    overview:
+      columns:
+        - _type: ViewTypeTableColHealth
+        - title: Node
+          _type: ViewTypeTableColName
+        - title: Status
+          path:
+            - properties
+            - status
+          width: 100
+          _type: ViewTypeTableColText
+        - title: GPU count
+          labelPrefix: nvidia.com/gpu.count
+          pathToIdentifier:
+            - properties
+            - internalIP
+          width: 120
+          _type: ViewTypeTableColComponentLink
+        - title: GPU product
+          labelPrefix: nvidia.com/gpu.product
+          pathToIdentifier:
+            - properties
+            - internalIP
+          width: 160
+          _type: ViewTypeTableColComponentLink
+        - title: GPU Family
+          labelPrefix: nvidia.com/gpu.family
+          pathToIdentifier:
+            - properties
+            - internalIP
+          width: 160
+          _type: ViewTypeTableColComponentLink
+        - title: GPU Memory
+          labelPrefix: nvidia.com/gpu.memory
+          pathToIdentifier:
+            - properties
+            - internalIP
+          width: 160
+          _type: ViewTypeTableColComponentLink
+        - title: CPU Usage
+          metricBindingIdentifier: urn:stackpack:stackstate-k8s-agent-v2:shared:metric-binding:host-cpu-time-summary
+          width: 160
+          _type: ViewTypeTableColMetricBinding
+        - title: Usable Memory
+          metricBindingIdentifier: urn:stackpack:stackstate-k8s-agent-v2:shared:metric-binding:host-memory
+          width: 150
+          _type: ViewTypeTableColMetricBinding
+        - title: Cluster
+          labelPrefix: cluster-name
+          pathToIdentifier:
+            - properties
+            - clusterNameIdentifier
+          width: 200
+          _type: ViewTypeTableColComponentLink
+      _type: ViewTypeOverview
+    flags:
+      - NoTopologyFilters
+    filters:
+      - prefix: cluster-name
+        name: cluster-name
+        _type: LabelPrefixedFilter
+      - tabs:
+          - EVENTS
+          - TRACES
+        _type: TopologyFilters
+    identifier: urn:stackpack:dcgm:shared:view-type:node
+    _type: ViewType
+# sum( DCGM_FI_DEV_GPU_UTIL {k8s_node_name = "ip-172-31-1-86"}) by (gpu)

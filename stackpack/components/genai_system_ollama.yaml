@@ -62,31 +62,33 @@ nodes:
           _type: ComponentTypeRelatedResources
 
       metrics:
-        - name: Requests
-          description: Request Stats
-          bindings:
-            - urn:stackpack:openlit:shared:metric-binding:genai-system-total-requests
-            - urn:stackpack:openlit:shared:metric-binding:genai-system-request-rate
-          defaultExpanded: true
-          _type: ComponentTypeMetricCategory
-        - name: Models
-          description: Model Stats
-          bindings:
-            - urn:stackpack:openlit:shared:metric-binding:genai-system-top-models
-          defaultExpanded: true
-          _type: ComponentTypeMetricCategory
-        - name: Tokens
-          description: Token Stats
-          bindings:
-            - urn:stackpack:openlit:shared:metric-binding:genai-system-total-usage-tokens
-          defaultExpanded: true
-          _type: ComponentTypeMetricCategory
         - name: Cost
           description: Cost Stats
           bindings:
             - urn:stackpack:openlit:shared:metric-binding:genai-system-avg-usage-cost
             - urn:stackpack:openlit:shared:metric-binding:genai-system-avg-total-usage-cost
             - urn:stackpack:openlit:shared:metric-binding:genai-system-avg-tokens-per-total-requests
+          defaultExpanded: true
+          _type: ComponentTypeMetricCategory
+        - name: Tokens
+          description: Token Stats
+          bindings:
+          - urn:stackpack:openlit:shared:metric-binding:genai-system-total-usage-tokens
+          - urn:stackpack:openlit:shared:metric-binding:genai-system-total-usage-tokens-line
+          defaultExpanded: true
+          _type: ComponentTypeMetricCategory
+        - name: Requests
+          description: Request Stats
+          bindings:
+          - urn:stackpack:openlit:shared:metric-binding:genai-system-request-total-success
+          - urn:stackpack:openlit:shared:metric-binding:genai-system-total-requests
+          - urn:stackpack:openlit:shared:metric-binding:genai-system-request-rate
+          defaultExpanded: true
+          _type: ComponentTypeMetricCategory
+        - name: Models
+          description: Model Stats
+          bindings:
+          - urn:stackpack:openlit:shared:metric-binding:genai-system-top-models
           defaultExpanded: true
           _type: ComponentTypeMetricCategory
       _type: ComponentTypeHighlights

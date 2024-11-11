@@ -1,0 +1,74 @@
+nodes:
+  - id: -100
+    name: genai.dbsystem.milvus
+    iconbase64: data:image/svg+xml;base64,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNjAgMzYwIj48ZGVmcz48c3R5bGU+LmNscy0xe2ZpbGw6IzMzYjVmMTt9PC9zdHlsZT48L2RlZnM+PHRpdGxlPm1pbHZ1cy1pY29uLWNvbG9yPC90aXRsZT48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xNjguNTA5ODMsNjMuMzI5M2MzMS45NTY3MS41MDcsNTkuOTM1NTksMTEuMTEyODYsODMuMjc2ODYsMzMuMTg1MzUsMTguNzAwNiwxNy42ODQwNywzMC4yMjY2NywzOS4zMjUxMiwzNC44MTMyOCw2NC42NDQ1MkExMDUuMzIxMTUsMTA1LjMyMTE1LDAsMCwxLDI4OC4zMDk0OCwxODIuMDVjLS41Njk2NywyOC40NzAzOS05Ljk0MTUzLDUzLjY2NjY3LTI4LjY1MzQzLDc1LjE5NzEzLTE4LjEzNjY3LDIwLjg2ODcyLTQwLjkwODg4LDM0LjExNDkzLTY4LjA1NDY5LDM5LjEwMjIyLTM2LjYxMDY2LDYuNzI2My02OS44MjYxNC0xLjQ0NjEzLTk5LjIyNjU2LTI0LjQ3MzM3LTYuMTA3MzUtNC43ODM0MS0xMS40MDY2Ny0xMC40NDkyNy0xNi45MjkxOC0xNS44NjU2OHEtMTcuODMzNTktMTcuNDkwNjktMzUuNjI1LTM1LjAyNDZRMjMuNjgxNTIsMjA1LjEyNTU3LDcuNTM1MzUsMTg5LjI3Mjg3Yy00Ljk5ODExLTQuOTI2NDMtNS4wMDE2Ni0xMS43NjE3Ny0uMDA2MTgtMTYuNjg3NzVxMTYuNTgyMzktMTYuMzUxOTMsMzMuMjIyLTMyLjY0NTc5YzEwLjQxNS0xMC4yMjUxMywyMC43NzgyLTIwLjUwNDE3LDMxLjI3MzgxLTMwLjY0NjA2LDYuOTY4LTYuNzMzMDgsMTMuNTYyMS0xMy44NjY3LDIxLjIwNTE1LTE5Ljg4ODc4YTExOS42ODk3NiwxMTkuNjg5NzYsMCwwLDEsNTEuMzQ1MTctMjMuNjg2NjcsMTIxLjE2MiwxMjEuMTYyLDAsMCwxLDIzLjkzNDU5LTIuMzg4NjlabTkyLjM3MSwxMTcuNjkwODVhOTEuOTk4MjIsOTEuOTk4MjIsMCwwLDAtMS40ODkwNi0xNS4wOTA3MWMtNC42NTg5LTI0LjQyMTMyLTE3LjQ4OTQ0LTQzLjQ5NTQ0LTM4LjIzOTM4LTU2Ljk4NjY0LTIwLjAxMjgzLTEzLjAxMTg4LTQyLjAwNzkyLTE3LjA1NTY4LTY1LjQ2NjI4LTEyLjYxNDI4YTg1LjYxOTUyLDg1LjYxOTUyLDAsMCwwLTQ0LjAxODYyLDIyLjY0NjhjLTguMjE1ODIsNy44NDcyNi0xNi4yNjksMTUuODY1MDUtMjQuMzgxNjMsMjMuODIwMTNxLTE2LjMxMzMyLDE1Ljk5NjY2LTMyLjU5ODM3LDMyLjAyMTljLTMuNzUsMy42OTc0OS0zLjczMzk0LDguNTI5MDgtLjAxMjY2LDEyLjIwOTg5LDUuMzI3NTgsNS4yNjk1LDEwLjY5Mjg1LDEwLjUwMDg1LDE2LjAzNjM1LDE1Ljc1NDI5cTE5LjU0MTM4LDE5LjIxMTg5LDM5LjA4MjQ2LDM4LjQyNCwyOC4zMzQzMSwyNy43NTMzNiw2Ny45OCwyNS45NDAzNWE4My4wMzI3OSw4My4wMzI3OSwwLDAsMCwzOS4xNzQyMS0xMS41MjcyOWMyOC4yMzcyOS0xNi44MTUxOSw0Mi42NjAzOS00MS44Nzk1Nyw0My45MzMwNS03NC41OTg0MVptNTguMjM2MTItLjA3NTIyYTE3MS4zNzU2NiwxNzEuMzc1NjYsMCwwLDAtNC4wOTA3NS0zOC4xMTQyNSwxMS43MzcyMywxMS43MzcyMywwLDAsMS0uMjAxMTEtMS4xNTY1LDIuNjM0NzgsMi42MzQ3OCwwLDAsMSwxLjI3NDgxLTIuNzQ3NTIsMi42NzA5MiwyLjY3MDkyLDAsMCwxLDMuMTYxOTQuMDIxNDcsOS4xMzcxMSw5LjEzNzExLDAsMCwxLDEuMTg4NjQsMS4wODU2cTE2LjE1NTEyLDE2LjE0ODM0LDMyLjMwNSwzMi4zMDIyNmM1LjMwNjU4LDUuMzA3NSw1LjI5NjcsMTIuMDY1MTUtLjAyMjU1LDE3LjM4NDU1cS0xNi4wOTk1NywxNi4xMDAxNi0zMi4xOTk3LDMyLjE5OTg1Yy0uMjc3LjI3Njk1LS41NDY4Mi41NjE3OS0uODM0NDUuODI3MTdhMi43MzA4NSwyLjczMDg1LDAsMCwxLTMuNTAxOTIuNDQwMjMsMi42ODM0LDIuNjgzNCwwLDAsMS0xLjM1MS0zLjExNTc3YzEuMTMxOTItNS4yMDU4NywyLjEwMjMyLTEwLjQzOTY5LDIuNzk4LTE1LjcyNTczYTE2NC4yMjM4OCwxNjQuMjIzODgsMCwwLDAsMS40Njk0NC0xOC44NTU4NmMuMDIzOC0xLjUxNDcuMDAzNTUtMy4wMzAzNC4wMDM1NS00LjU0NTUxWiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTIzMi4yMDYyNSwxODAuOTY1YTcwLjQ4OTMxLDcwLjQ4OTMxLDAsMSwwLS4wMDAxNSwwWiIvPjwvc3ZnPg==
+    identifier: urn:system:auto:component-type:genai.dbsystem.milvus
+    highlights:
+      namePlural: db_systems
+      fields:
+        - fieldId: type
+          label:
+            title: Type
+          valueExtractor:
+            _type: ComponentTypeSource
+          display:
+            _type: TagDisplay
+          _type: ComponentTypeField
+        - fieldId: health
+          label:
+            title: Health
+          valueExtractor:
+            _type: HealthSource
+          display:
+            _type: HealthBadgeDisplay
+          _type: ComponentTypeField
+        - fieldId: labels
+          label:
+            title: Labels
+          valueExtractor:
+            _type: TagsSource
+          display:
+            singular: label
+            _type: TagDisplay
+          _type: ComponentTypeField
+      about:
+        fields:
+          - type
+          - health
+          - labels
+        _type: ComponentTypeAbout
+      events:
+        showEvents: false
+        _type: ComponentTypeEvents
+      showLogs: false
+      showLastChange: false
+      externalComponent:
+        showConfiguration: false
+        showStatus: false
+        externalIdSelector: "^openlit:urn:open-telemetry:"
+        _type: ComponentTypeExternalComponent
+      relatedResources:
+        - resourceType: genai.dboperation
+          title: Operations
+          stql: (withNeighborsOf(direction = "down", components = (id = "{COMPONENT_ID}"),
+            levels = "1")) and type = "genai.dboperation"
+#          viewTypeIdentifier: urn:stackpack:open-telemetry:shared:view-type:service-instance
+          _type: ComponentTypeRelatedResources
+        - resourceType: otel service
+          title: Related Open Telemetry services
+          stql: (withNeighborsOf(direction = "up", components = (id = "{COMPONENT_ID}"),
+            levels = "1")) and type = "otel service"
+          viewTypeIdentifier: urn:stackpack:open-telemetry:shared:view-type:service
+          _type: ComponentTypeRelatedResources
+
+      metrics:
+        - name: Requests
+          description: Request Stats
+          bindings:
+          - urn:stackpack:openlit:shared:metric-binding:vectordb-system-request-total-success
+          - urn:stackpack:openlit:shared:metric-binding:vectordb-system-total-requests
+          - urn:stackpack:openlit:shared:metric-binding:vectordb-system-request-rate
+          defaultExpanded: true
+          _type: ComponentTypeMetricCategory
+      _type: ComponentTypeHighlights
+    _type: ComponentType
