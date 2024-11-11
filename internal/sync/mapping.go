@@ -20,7 +20,8 @@ func mapGenAiApp(labels map[string]string, f *receiver.Factory) *receiver.Compon
 		c.AddLabelKey(toLabelKey(ServiceNamespace), labels[ServiceNamespace])
 		c.AddLabelKey(toLabelKey(GenAiEnvironment), labels[GenAiEnvironment])
 		c.AddLabelKey(toLabelKey(TelemetrySdkLanguage), labels[TelemetrySdkLanguage])
-		c.AddProperty(" namespaceIdentifier", UrnServiceNamespace(labels[ServiceNamespace]))
+		c.AddProperty("namespaceIdentifier", UrnServiceNamespace(labels[ServiceNamespace]))
+		c.AddProperty("clusterIdentifier", UrnCluster(f.Cluster))
 	}
 	return c
 }

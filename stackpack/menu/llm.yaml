@@ -8,6 +8,8 @@ nodes:
       - _type: MainMenuViewItem
         viewIdentifier: urn:stackpack:openlit:shared:query-view:genai-components
       - _type: MainMenuViewItem
+        viewIdentifier: urn:stackpack:openlit:shared:query-view:genai-apps
+      - _type: MainMenuViewItem
         viewIdentifier: urn:stackpack:openlit:shared:query-view:genai-systems
       - _type: MainMenuViewItem
         viewIdentifier: urn:stackpack:openlit:shared:query-view:vector-databases
@@ -108,7 +110,7 @@ nodes:
   - _type: QueryView
     autoGrouping: true
     connectedComponents: true
-    description: Gpu Nodes
+    description: Applications
     flags:
       - DisableEventHandlers
       - HideFromViewsOverview
@@ -116,15 +118,17 @@ nodes:
     groupedByLayers: true
     groupedByRelations: true
     groupingEnabled: true
-    id: -250
-    identifier: urn:stackpack:openlit:shared:query-view:gpu-nodes
+    id: -260
+    identifier: urn:stackpack:openlit:shared:query-view:genai-apps
     minimumGroupSize: 3
-    name: Gpu Nodes
+    name: Applications
     neighboringComponents: false
-    query: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+    query: (label IN ("gen_ai_app") AND type IN ("otel service", "genai.app"))
     queryVersion: 0.0.1
     showCause: NONE
     showIndirectRelations: false
     tags: [ ]
-    viewType: urn:stackpack:dcgm:shared:view-type:node
+    viewType: urn:stackpack:openlit:shared:view-type:genai-apps
+
+
 

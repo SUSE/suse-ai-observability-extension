@@ -43,6 +43,7 @@ tasks:
       - sts settings apply -f ./overview/genai_system.yaml --context {{.STS_CONTEXT}}
       - sts settings apply -f ./overview/gpu_nodes.yaml --context {{.STS_CONTEXT}}
       - sts settings apply -f ./overview/vector_db_system.yaml --context {{.STS_CONTEXT}}
+      - sts settings apply -f ./overview/genai_apps.yaml --context {{.STS_CONTEXT}}
 
   upload-highlights:
     silent: true

@@ -154,3 +154,7 @@ func UrnVectorDbOperation(name string, genAiSystem string) string {
 func UrnServiceNamespace(namespace string) string {
 	return fmt.Sprintf("urn:opentelemetry:namespace/%s", namespace)
 }
+
+func UrnCluster(cluster string) string {
+	return fmt.Sprintf("urn:cluster:/kubernetes:%s", cluster)
+}
