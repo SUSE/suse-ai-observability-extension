@@ -96,7 +96,7 @@ nodes:
     groupedByLayers: true
     groupedByRelations: true
     groupingEnabled: true
-    id: -240
+    id: -250
     identifier: urn:stackpack:openlit:shared:query-view:genai-components
     minimumGroupSize: 3
     name: Components
@@ -130,5 +130,25 @@ nodes:
     tags: [ ]
     viewType: urn:stackpack:openlit:shared:view-type:genai-apps
 
-
+  - id: -270
+    name: Gpu Nodes
+    description: Gpu Nodes
+    groupedByDomains: true
+    groupedByLayers: true
+    groupedByRelations: true
+    showIndirectRelations: false
+    groupingEnabled: true
+    minimumGroupSize: 3
+    query: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+    queryVersion: 0.0.1
+    identifier: urn:stackpack:openlit:shared:query-view:gpu-nodes
+    tags: []
+    autoGrouping: true
+    connectedComponents: true
+    neighboringComponents: false
+    viewType: urn:stackpack:dcgm:shared:view-type:node
+    flags:
+    - HideFromViewsOverview
+    - DisableEventHandlers
+    _type: QueryView
 
