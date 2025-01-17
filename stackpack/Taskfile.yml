@@ -60,6 +60,7 @@ tasks:
     cmds:
       - echo "Uploading metric bindings"
       - sts settings apply -f ./metrics/gpu_nodes.yaml --context {{.STS_CONTEXT}}
+      - sts settings apply -f ./metrics/gpu_pods.yaml --context {{.STS_CONTEXT}}
       - sts settings apply -f ./metrics/genai_systems.yaml --context {{.STS_CONTEXT}}
       - sts settings apply -f ./metrics/db_systems.yaml --context {{.STS_CONTEXT}}
       - sts settings apply -f ./metrics/genai_apps.yaml --context {{.STS_CONTEXT}}
@@ -130,7 +131,7 @@ tasks:
             {
             "Prefix": "pod",
             "Filter": "k8s_node_name=\"${tags.node-name}\", pod_name=\"${name}\"",
-            "Scope": "type IN (\"pod\"))"
+            "Scope": "type IN (\"pod\")"
             }
           TEMPLATE: ./metrics/tpl/gpu.tmpl.yaml
           OUTPUT: ./metrics/gpu_pods.yaml
