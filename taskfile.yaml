@@ -8,8 +8,8 @@ vars:
 
 includes:
   dev:
-    taskfile: ./stackpack
-    dir: ./stackpack
+    taskfile: ./setup
+    dir: ./setup
 
 tasks:
   docker-build:

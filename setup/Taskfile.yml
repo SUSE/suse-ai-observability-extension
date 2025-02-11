@@ -1,0 +1,103 @@
+version: '3'
+
+dotenv: ['./.env']
+
+vars:
+  IMAGE_REPO: "{{.USER}}/stackstate-openlit-ext"
+  VERSION: 0.0.1
+
+  KUBECONFIG_FILE: '{{.KUBECONFIG_FILE_PATH}}/{{.KUBECONFIG_FILE_NAME}}'
+  KUBECONFIG: '--kubeconfig {{.KUBECONFIG_FILE}}'
+  CLI: 'sts --url {{.STS_URL}} --api-token {{.STS_TOKEN}}'
+
+includes:
+  stackpack:
+    taskfile: ./stackpack
+    dir: ./stackpack
+
+tasks:
+
+  # -- Installation Tasks --
+  install-k8s-stackpack-instance:
+    silent: true
+    cmds:
+      - echo "Creating kubernetes stackpack instance for '{{.CLUSTER_NAME}}'"
+      - "{{.CLI}} stackpack install -n kubernetes-v2 -p kubernetes_cluster_name={{.CLUSTER_NAME}}"
+
+  upload-autosync-stackpack-instance:
+    silent: true
+    cmds:
+      - echo "Uploading auto-sync stackpack"
+      - "{{.CLI}} stackpack upload --file ./deps/autosync-3.2.1-stac-0-bump-1037-203fef5-SNAPSHOT.sts"
+
+  install-autosync-stackpack-instance:
+    silent: true
+    cmds:
+      - echo "Creating autosync stackpack instance for openlit '{{.CLUSTER_NAME}}'"
+      - "{{.CLI}} stackpack install -n autosync -p sts_instance_type=openlit -p sts_instance_url={{.CLUSTER_NAME}}"
+
+  trigger-openlit-ext-job:
+    cmds:
+      - kubectl create job --from=cronjob/openlit-stackstate-openlit-ext "sync-openlit-ext-$(date +%s)" -n stackstate-extensions {{.KUBECONFIG}}
+
+  deploy-observability-agent:
+    silent: true
+    cmds:
+      - echo "Update helm repo"
+      - helm repo add suse-observability https://charts.rancher.com/server-charts/prime/suse-observability
+      - helm repo update
+      - echo "Installed agent will sent data to '{{.CLUSTER_NAME}}' pipeline on server '{{.STS_URL}}'"
+      - helm upgrade --install {{.KUBECONFIG}} --namespace monitoring --create-namespace --set-string 'stackstate.apiKey'="{{.STS_API_KEY}}" --set-string 'stackstate.cluster.name'="{{.CLUSTER_NAME}}" --set-string 'stackstate.url'="{{.STS_URL}}/receiver/stsAgent" --set 'nodeAgent.skipKubeletTLSVerify'=true suse-observability-agent suse-observability/suse-observability-agent
+
+  deploy-openlit-ext:
+    cmds:
+      - |-
+        cat <<EOF |  helm upgrade --install --create-namespace {{.KUBECONFIG}} --namespace stackstate-extensions openlit -f - {{.HELM_REPO}}/stackstate-openlit-ext
+        apiToken: {{.STS_TOKEN}}
+        apiKey: {{.STS_API_KEY}}
+        serverUrl: {{.STS_URL}}
+        clusterName: {{.CLUSTER_NAME}}
+        EOF
+
+  deploy-otel-collector:
+    silent: true
+    cmds:
+      - |-
+        kubectl apply {{.KUBECONFIG}} -n gpu-operator -f ./stackpack/otel/suseai-gpuoperator-rbac.yaml
+        cat <<EOF | helm upgrade --install --create-namespace {{.KUBECONFIG}} --namespace monitoring -f - suse {{.HELM_REPO}}/suse-observability-otel-collector 
+        apiKey: {{.STS_API_KEY}}
+        otlpHost: {{.STS_OTLP}}
+        clusterName: {{.CLUSTER_NAME}}
+        opentelemetry-collector:
+          config:
+            receivers:
+              prometheus:
+                config:
+                  scrape_configs:
+                  - job_name: 'gpu-metrics'
+                    scrape_interval: 10s
+                    scheme: http
+                    kubernetes_sd_configs:
+                      - role: endpoints
+                        namespaces:
+                          names:
+                          - gpu-operator
+        EOF
+
+  deploy-genai-apps:
+    cmds:
+      - |-
+        cat <<EOF | helm upgrade --install --create-namespace {{.KUBECONFIG}} --namespace genai-apps genai -f - {{.HELM_REPO}}/genai-observability-demo
+        ollamaEndpoint: http://appco-ollama.geeko-insurance.svc.cluster.local:11434
+        otlpEndpoint: http://suse-opentelemetry-collector.monitoring.svc.cluster.local:4318
+        collectGpuStats: "false"
+        model: "llama3.1:8b"
+        schedule: '*/5 * * * *'
+        resources:
+          requests:
+            memory: '1200Mi'
+            cpu: '3000m'
+          limits:
+            memory: '2000Mi'
+            cpu: '4000m'
+        EOF
