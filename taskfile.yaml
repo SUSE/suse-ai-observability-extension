@@ -6,11 +6,6 @@ vars:
   IMAGE_REPO: "{{.USER}}/stackstate-openlit-ext"
   VERSION: 0.0.1
 
-includes:
-  dev:
-    taskfile: ./setup
-    dir: ./setup
-
 tasks:
   docker-build:
     cmds:

@@ -53,6 +53,11 @@ STS_TOKEN=tRa6xxxxx
 HELM_REPO=stackstate-addons
 ```
 
+Now change directory to the `setup` directory to continue setting up the various components.
+
+```bash
+cd setup
+```
 
 ## Setup SUSE Observability
 
@@ -76,13 +81,13 @@ You most probably do not have the AutoSync StackPack installed by default.
 Upload the stackpack using,
 
 ```bash
-task dev:upload-autosync-stackpack-instance
+task upload-autosync-stackpack-instance
 ```
 
 Next create an instance to receive data from our extension that will be installed on the downstream observed cluster.
 
 ```bash
-task dev:install-autosync-stackpack-instance
+task install-autosync-stackpack-instance
 ```
 
 ### GenAI StackPack Elements
@@ -92,11 +97,7 @@ need to be uploaded individually. Run,
 
 ```bash
 
-task dev:stackpack:upload-overviews
-task dev:stackpack:upload-menu
-task dev:stackpack:upload-highlights
-task dev:stackpack:upload-metric-bindings
-task dev:stackpack:upload-monitors
+task stackpack:install
 ```
 
 
@@ -107,7 +108,7 @@ task dev:stackpack:upload-monitors
 If you have not already installed the agent on the downstream cluster, you can run:
 
 ```bash
-task dev:deploy-observability-agent
+task deploy-observability-agent
 ```
 
 ### SUSE Observability OpenTelemetry Collector
@@ -122,12 +123,12 @@ to configure additional jobs.
 
 ```bash
 helm add stackstate-addons https://ravan.github.io/helm-charts/
-helm repo updage
+helm repo update
 ```
 
 Deploy the collector, 
 ```bash
-task dev:deploy-otel-collector
+task deploy-otel-collector
 ```
 
 ### Deploy GenAI Extension
@@ -136,7 +137,7 @@ The GenAI extension analyses the OpenLit metrics that was sent to SUSE Observabi
 It will generate topology for those metrics.
 
 ```bash
-task dev:deploy-openlit-ext
+task deploy-openlit-ext
 ```
 
 ### Deploy Demo Apps.
@@ -146,5 +147,5 @@ OpenLit, then adjust the `model` and `ollamaEndpoint` in the task `deploy-genai-
 environment.
 
 ```bash
-task dev:deploy-genai-apps
+task deploy-genai-apps
 ```
