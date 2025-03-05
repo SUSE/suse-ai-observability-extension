@@ -162,6 +162,16 @@ tasks:
           TEMPLATE: ./metrics/tpl/genai_dashboard.tmpl.yaml
           OUTPUT: ./metrics/genai_apps.yaml
 
+  convert-svg-to-datauri:
+    silent: true
+    desc: "Convert svg to base64 data uri. Please supply svg file by executing 'convert-svg-todatauri -- <file>'"
+    requires:
+      var: [SVG]
+    vars:
+      SVG: "{{.CLI_ARGS}}"
+    cmds:
+      - echo "data:image/svg+xml;base64,$(base64 -i {{.SVG}})" | pbcopy
+      - echo "Base64 Data URI copied to clipboard"
 
   render:
     silent: true

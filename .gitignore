@@ -4,7 +4,7 @@
 /conf.yaml
 /**/http_dump
 conf_ravsts.yaml
-/kubeconfig
+*kubeconfig
 /*.iml
 /stackpack/component_types.yaml
 /stackpack/grafana_dashboard.json

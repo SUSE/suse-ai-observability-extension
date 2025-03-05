@@ -38,7 +38,7 @@ tasks:
 
   trigger-openlit-ext-job:
     cmds:
-      - kubectl create job --from=cronjob/openlit-stackstate-openlit-ext "sync-openlit-ext-$(date +%s)" -n so-extensions {{.KUBECONFIG}}
+      - kubectl create job --from=cronjob/openlit-stackstate-openlit-ext "sync-openlit-ext-$(date +%s)" -n stackstate-extensions {{.KUBECONFIG}}
 
   deploy-observability-agent:
     silent: true
