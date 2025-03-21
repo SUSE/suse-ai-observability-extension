@@ -53,12 +53,6 @@ STS_TOKEN=tRa6xxxxx
 HELM_REPO=stackstate-addons
 ```
 
-Now change directory to the `setup` directory to continue setting up the various components.
-
-```bash
-cd setup
-```
-
 ## Setup SUSE Observability
 
 ### Stack Instances
@@ -92,8 +86,8 @@ task install-autosync-stackpack-instance
 
 ### GenAI StackPack Elements
 
-I did not package the GenAI extension into a stackpack. Instead the elements like menu, overview page, highlight page, etc. 
-need to be uploaded individually. Run,
+Elements like menu, overview page, highlight page, etc are installed by a post-install helm hook, in the helm chart.
+To run everything individually, try:
 
 ```bash
 

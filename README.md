@@ -74,19 +74,13 @@ instance:
 Set up a `.env` file for configuring the env.
 
 ```
-USER="<my dockerhub user name>"
-PWD="<my dockerhub password>"
 STS_URL=https://myinstance.stackstate.io
 STS_API_KEY=xxxx
 ```
 ### Build
 
+There are two containers. One, is the runtime (for data sync) and the other one is the setup (for UI).
 ```shell
-task docker-build
-```
-
-### Push
-
-```shell
-task docker-push
+task docker-build-runtime
+task docker-build-setup
 ```

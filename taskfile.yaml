@@ -3,14 +3,13 @@ version: '3'
 dotenv: ['./.env']
 
 vars:
-  IMAGE_REPO: "{{.USER}}/stackstate-openlit-ext"
+  IMAGE: "genai-observability"
   VERSION: 0.0.1
 
 tasks:
-  docker-build:
+  docker-build-runtime:
     cmds:
-      - docker build . -t {{.IMAGE_REPO}}:{{.VERSION}}
-  docker-push:
+      - docker build -f Dockerfile.runtime -t {{.IMAGE}}-runtime:{{.VERSION}} .
+  docker-build-setup:
     cmds:
-      - echo $PASSWORD | docker login -u {{.USER}} --password-stdin
-      - docker push {{.IMAGE_REPO}}:{{.VERSION}}
+      - docker build -f Dockerfile.setup -t {{.IMAGE}}-setup:{{.VERSION}} .

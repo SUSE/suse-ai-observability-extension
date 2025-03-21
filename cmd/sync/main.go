@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/ravan/stackstate-client/stackstate/receiver"
-	"genai-stackpack/internal/config"
-	"genai-stackpack/internal/sync"
+	"genai-observability/stackstate/receiver"
+	"genai-observability/internal/config"
+	"genai-observability/internal/sync"
 	"log/slog"
 	"os"
 )
