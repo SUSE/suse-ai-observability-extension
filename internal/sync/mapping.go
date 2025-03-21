@@ -2,7 +2,7 @@ package sync
 
 import (
 	"fmt"
-	"github.com/ravan/stackstate-client/stackstate/receiver"
+	"genai-observability/stackstate/receiver"
 	"strings"
 )
 

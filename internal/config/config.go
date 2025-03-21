@@ -3,8 +3,8 @@ package config
 import (
 	"github.com/alecthomas/kingpin"
 	"github.com/go-playground/validator/v10"
-	"github.com/ravan/stackstate-client/stackstate"
-	"github.com/ravan/stackstate-client/stackstate/receiver"
+	"genai-observability/stackstate"
+	"genai-observability/stackstate/receiver"
 	"github.com/spf13/viper"
 	"log/slog"
 	"os"

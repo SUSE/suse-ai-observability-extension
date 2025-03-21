@@ -2,8 +2,8 @@ package sync
 
 import (
 	"github.com/joho/godotenv"
-	"github.com/ravan/stackstate-client/stackstate/receiver"
-	"genai-stackpack/internal/config"
+	"genai-observability/stackstate/receiver"
+	"genai-observability/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"os"

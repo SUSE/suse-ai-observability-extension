@@ -2,9 +2,9 @@ package sync
 
 import (
 	"fmt"
-	"github.com/ravan/stackstate-client/stackstate/api"
-	"github.com/ravan/stackstate-client/stackstate/receiver"
-	"genai-stackpack/internal/config"
+	"genai-observability/stackstate/api"
+	"genai-observability/stackstate/receiver"
+	"genai-observability/internal/config"
 	"time"
 
 	"log/slog"
