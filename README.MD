@@ -9,19 +9,19 @@
 
 ## Helm Deployment
 
-Setup a basic values.yaml containing connectivity information about your StackState instance. 
+Setup a basic genai-values.yaml containing connectivity information about your StackState instance.
 
 ```yaml
-serverUrl:  https://xxxx.    # Suse Observability Url
-apiKey: xxx                  # Suse Observability Api Key
-clusterName: lab             # Cluster name as defined for the Kubernetes StackPack instance in Suse Observability
+serverUrl:  https://xxxx.    # SUSE Observability URL. Installing this Chart along SUSE Observability allows you to use http://suse-observability-router.suse-observability.svc.cluster.local:8080
+apiKey: xxx                  # SUSE Observability API Key
+apiToken: xxx                # SUSE Observability StackState CLI Token
+clusterName: lab             # Cluster name as defined for the Kubernetes StackPack instance in SUSE Observability
 ```
 
 Then run the following Helm commands,
 
 ```bash
-helm repo add sts-ext https://ravan.github.io/helm-charts
-helm upgrade --install --namespace stackstate-extensions --create-namespace -f values.yaml sts sts-ext/stackstate-openlit-ext                            
+helm upgrade --install --namespace stackstate-extensions --create-namespace -f genai_values.yaml sts ./helm
 
 ```
 
@@ -33,12 +33,12 @@ Environment variables can be used to set up the scanner.
 
 | Variable                     | Required | Default | Description                                      |
 |------------------------------|----------|---------|--------------------------------------------------|
-| STACKSTATE_API_URL           | yes      |         | The url to the StackState server                 |
-| STACKSTATE_API_KEY           | yes      |         | The api key used by the StackState server        |
+| STACKSTATE_API_URL           | yes      |         | The URL to the StackState server                 |
+| STACKSTATE_API_KEY           | yes      |         | The API key used by the StackState server        |
 | KUBERNETES_CLUSTER           | yes      |         | Kubernetes Cluster name as defined in StackState |
 | KUBERNETES_QUERYTIMEINTERVAL | yes      | 1h      | Promql interval query over.                      |
-| INSTANCE_TYPE                | yes      | openlit | The Custom Syn StackPack instance type.          |
-| INSTANCE_URL                 | yes      |         | The Custom Syn StackPack instance url            |
+| INSTANCE_TYPE                | yes      | openlit | The Custom Sync StackPack instance type.          |
+| INSTANCE_URL                 | yes      |         | The Custom Sync StackPack instance url            |
 
 
 ### Config File
@@ -90,4 +90,3 @@ task docker-build
 ```shell
 task docker-push
 ```
-

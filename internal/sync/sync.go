@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/ravan/stackstate-client/stackstate/api"
 	"github.com/ravan/stackstate-client/stackstate/receiver"
-	"github.com/ravan/stackstate-openlit/internal/config"
+	"genai-stackpack/internal/config"
 	"time"
 
 	"log/slog"

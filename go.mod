@@ -1,4 +1,4 @@
-module github.com/ravan/stackstate-openlit
+module genai-stackpack
 
 go 1.23.0
 
