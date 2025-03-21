@@ -3,7 +3,7 @@ package sync
 import (
 	"github.com/joho/godotenv"
 	"github.com/ravan/stackstate-client/stackstate/receiver"
-	"github.com/ravan/stackstate-openlit/internal/config"
+	"genai-stackpack/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"os"

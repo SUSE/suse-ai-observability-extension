@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/ravan/stackstate-client/stackstate/receiver"
-	"github.com/ravan/stackstate-openlit/internal/config"
-	"github.com/ravan/stackstate-openlit/internal/sync"
+	"genai-stackpack/internal/config"
+	"genai-stackpack/internal/sync"
 	"log/slog"
 	"os"
 )

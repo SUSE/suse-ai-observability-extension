@@ -1,0 +1,67 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "stackstate-openlit-ext.fullname" . }}-role
+  labels:
+    {{- include "stackstate-openlit-ext.labels" . | nindent 4 }}
+rules:
+- apiGroups: [""]
+  resources: ["*"]
+  verbs: ["get", "list"]
+- apiGroups: ["storage.k8s.io"]
+  resources: ["storageclasses"]
+  verbs: ["get", "list"]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "stackstate-openlit-ext.fullname" . }}-binding
+  labels:
+    {{- include "stackstate-openlit-ext.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "stackstate-openlit-ext.fullname" . }}-role
+subjects:
+- kind: ServiceAccount
+  name: {{ include "stackstate-openlit-ext.serviceAccountName" . }}
+  namespace: {{ .Release.Namespace }}
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "stackstate-openlit-ext.fullname" . }}-clusterrole
+  labels:
+    {{- include "stackstate-openlit-ext.labels" . | nindent 4 }}
+rules:
+- apiGroups: [""]
+  resources:
+  - persistentvolumeclaims
+  - persistentvolumeclaims/status
+  - persistentvolumes
+  verbs: ["list", "get"]
+- apiGroups: ["storage.k8s.io"]
+  resources:
+  - storageclasses
+  verbs: ["list", "get"]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "stackstate-openlit-ext.fullname" . }}-clusterrolebinding
+  labels:
+    {{- include "stackstate-openlit-ext.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "stackstate-openlit-ext.fullname" . }}-clusterrole
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "stackstate-openlit-ext.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
