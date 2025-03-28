@@ -86,18 +86,4 @@ tasks:
 
   deploy-genai-apps:
     cmds:
-      - |-
-        cat <<EOF | helm upgrade --install --create-namespace --namespace genai-apps genai -f - stackstate-addons/genai-observability-demo
-        ollamaEndpoint: http://ollama.suse-ai.svc.cluster.local:11434
-        otlpEndpoint: http://opentelemetry-collector.observability.svc.cluster.local:4318
-        collectGpuStats: "false"
-        model: "gemma:2b"
-        schedule: '*/5 * * * *'
-        resources:
-          requests:
-            memory: '1200Mi'
-            cpu: '3000m'
-          limits:
-            memory: '2000Mi'
-            cpu: '4000m'
-        EOF
+      - helm upgrade --install --create-namespace --namespace genai-apps genai ./genai-observability-demo
