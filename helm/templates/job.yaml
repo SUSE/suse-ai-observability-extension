@@ -14,8 +14,8 @@ spec:
   template:
     spec:
       containers:
-      - name: install-components
-        image: ghcr.io/thbertoldi/genai-init
+      - name: setup
+        image: ghcr.io/thbertoldi/genai-observability-setup
         env:
         - name: STACKSTATE_API_URL
           value: {{$serverUrl}}
