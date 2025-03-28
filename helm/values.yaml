@@ -11,11 +11,11 @@ schedule: '*/5 * * * *'
 
 # This sets the container image
 image:
-  repository: ravan/stackstate-openlit-ext
+  repository: ghcr.io/thbertoldi/genai-observability-runtime
   # This sets the pull policy for images.
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: ''
+  tag: 'latest'
 
 # This is to override the chart name.
 nameOverride: ''

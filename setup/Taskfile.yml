@@ -87,11 +87,11 @@ tasks:
   deploy-genai-apps:
     cmds:
       - |-
-        cat <<EOF | helm upgrade --install --create-namespace {{.KUBECONFIG}} --namespace genai-apps genai -f - {{.HELM_REPO}}/genai-observability-demo
-        ollamaEndpoint: http://appco-ollama.geeko-insurance.svc.cluster.local:11434
-        otlpEndpoint: http://suse-opentelemetry-collector.monitoring.svc.cluster.local:4318
+        cat <<EOF | helm upgrade --install --create-namespace --namespace genai-apps genai -f - stackstate-addons/genai-observability-demo
+        ollamaEndpoint: http://ollama.suse-ai.svc.cluster.local:11434
+        otlpEndpoint: http://opentelemetry-collector.observability.svc.cluster.local:4318
         collectGpuStats: "false"
-        model: "llama3.1:8b"
+        model: "gemma:2b"
         schedule: '*/5 * * * *'
         resources:
           requests:
