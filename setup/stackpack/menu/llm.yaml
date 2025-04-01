@@ -131,8 +131,8 @@ nodes:
     viewType: urn:stackpack:openlit:shared:view-type:genai-apps
 
   - id: -270
-    name: Gpu Nodes
-    description: Gpu Nodes
+    name: GPU Nodes
+    description: GPU Nodes
     groupedByDomains: true
     groupedByLayers: true
     groupedByRelations: true

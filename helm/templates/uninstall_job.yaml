@@ -1,0 +1,43 @@
+{{- $serverUrl := .Values.serverUrl | required ".Values.serverUrl is required." -}}
+{{- $clusterName := .Values.clusterName | required ".Values.clusterName is required." -}}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "stackstate-openlit-ext.fullname" . }}-clean
+  labels:
+    app: {{ include "stackstate-openlit-ext.name" . }}
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-weight": "1"
+spec:
+  template:
+    spec:
+      containers:
+      - name: uninstall
+        image: ghcr.io/thbertoldi/genai-observability-setup
+        env:
+        - name: STACKSTATE_API_URL
+          value: {{$serverUrl}}
+        - name: STACKSTATE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: API_KEY
+              name: {{ include "stackstate-openlit-ext.fullname" . }}-secret
+        - name: STACKSTATE_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: API_TOKEN
+              name: {{ include "stackstate-openlit-ext.fullname" . }}-secret
+        - name: KUBERNETES_IN_CLUSTER
+          value: "true"
+        - name: KUBERNETES_CLUSTER
+          value: {{ $clusterName }}
+        - name: INSTANCE_TYPE
+          value: openlit
+        - name: INSTANCE_URL
+          value: {{ $clusterName }}
+        - name: UNINSTALL
+          value: "true"
+      restartPolicy: Never
+  backoffLimit: 4
