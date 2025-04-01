@@ -7,13 +7,13 @@ vars:
   VERSION: latest
 
 tasks:
-  docker-build-runtime:
+  podman-build-runtime:
     cmds:
-      - docker build -f Dockerfile.runtime -t {{.IMAGE}}-runtime:{{.VERSION}} .
-  docker-build-setup:
+      - podman build -f Dockerfile.runtime -t {{.IMAGE}}-runtime:{{.VERSION}} .
+  podman-build-setup:
     cmds:
-      - docker build -f Dockerfile.setup -t {{.IMAGE}}-setup:{{.VERSION}} .
+      - podman build -f Dockerfile.setup -t {{.IMAGE}}-setup:{{.VERSION}} .
   push-images:
     cmds:
-      - docker push {{.IMAGE}}-runtime:{{.VERSION}}
-      - docker push {{.IMAGE}}-setup:{{.VERSION}}
+      - podman push {{.IMAGE}}-runtime:{{.VERSION}}
+      - podman push {{.IMAGE}}-setup:{{.VERSION}}

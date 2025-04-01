@@ -1,4 +1,5 @@
 /.env
+/*.tgz
 /.idea/
 /docker
 /conf.yaml

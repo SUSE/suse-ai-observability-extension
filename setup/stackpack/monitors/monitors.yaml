@@ -34,7 +34,7 @@ nodes:
         unit: short
       threshold: 1.0
       urnTemplate: urn:openlit:genai:system/${gen_ai_system}
-    description: Indicates if Open Telemetry is sending data to component
+    description: "Indicates if Open Telemetry is sending data to component.\n"
     function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
     id: -20
     identifier: urn:custom:monitor:llm-genai-system-metric-stream-active
