@@ -17,7 +17,7 @@ if [ "${UNINSTALL:-}" = "true" ]; then
         echo "Removing GenAI Observability menu..."
         sts settings delete --ids "$MENU_ID" --url "$STACKSTATE_API_URL" --api-token "$STACKSTATE_API_TOKEN"
     fi
-    STACKPACK_ID=$(sts stackpack list-instances --name autosync -o json --url "$STACKSTATE_API_URL" --api-token "$STACKSTATE_API_TOKEN"  | jq --arg URL "$KUBERNETES_CLUSTER" '.instances | map(select(.config.sts_instance_url == $URL and .status == "INSTALLED"))[0].id')
+    STACKPACK_ID=$(sts stackpack list-instances --name autosync -o json --url "$STACKSTATE_API_URL" --api-token "$STACKSTATE_API_TOKEN"  | jq --arg URL "$KUBERNETES_CLUSTER" '.instances | map(select(.config.sts_instance_url == $URL and .status == "INSTALLED"))[0].id // empty')
     if [ -z "$STACKPACK_ID" ]; then
         echo "No autosync stackpack instance to clean"
     else
