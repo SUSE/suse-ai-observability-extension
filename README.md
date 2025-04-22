@@ -1,14 +1,25 @@
 # SUSE AI Observability Extension
 
-[SUSE Observability](https://docs.stackstate.com) is full-stack observability platform with tons of extension and integration possibilities.
+This extension expands the capabilities of [SUSE Observability](https://docs.stackstate.com) regarding GenAI applications. Applications instrumented with the [OpenLIT SDK](https://github.com/openlit/openlit/tree/main/sdk/python) generate metrics and traces, that are handled by the extension to generate topology views and observability over time.
 
-[OpenLIT SDK](https://github.com/openlit/openlit/tree/main/sdk/python) is a monitoring framework built on top of OpenTelemetry that gives you complete Observability for your AI stack, from LLMs to vector databases and GPUs, with just one line of code with tracing and metrics.
+## High-level Overview
 
-This extension expands the capabilities of SUSE Observability regarding GenAI applications. Applications instrumented with the OpenLIT SDK generate metrics and traces, that are handle by the extension to generate topology views and observability over time.
+SUSE AI Observability Extension requires a working instance of SUSE Observability.
 
-## Helm Deployment
+![Deployment](./setup/img/how-to-install.png)
 
-Setup a basic genai-values.yaml containing basic information about your SUSE Observability instance.
+## About
+
+The extension has two main components:
+
+* The SUSE AI Observability Setup, which handles the install/uninstall process for the extension.
+* The SUSE AI Observability Runtime, which is responsible for calculating topology views and metrics.
+
+Those components are distributed as a Helm Chart.
+
+### Helm Chart Installation
+
+You can use a genai-values.yaml containing basic information about your SUSE Observability.
 
 ```yaml
 serverUrl:  https://xxxx.    # SUSE Observability URL. Installing this Chart within the same cluster from SUSE Observability allows you to use http://suse-observability-router.suse-observability.svc.cluster.local:8080
@@ -23,6 +34,16 @@ Then run the following Helm commands,
 helm upgrade --install --namespace so-extensions --create-namespace -f genai_values.yaml suse-ai-observability ./helm
 
 ```
+
+### Project Content
+
+In the cmd directory you will find the program responsible for the runtime execution of the extension.
+
+The helm directory contains a simple chart for deploying the extension with minimal manual interventions.
+
+The setup directory contains some static assets needed by the extension, and also, the scripts for the extension setup.
+
+The internal and stackpack directories contain most of the Go code.
 
 ## Configuration
 

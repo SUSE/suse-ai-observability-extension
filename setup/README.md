@@ -1,12 +1,6 @@
-# Setup Guide
+## Setup Assets
 
-This guide contains instructions on how to setup the SUSE AI Observability Extension for SUSE Observability.
-
-![Deployment](./img/how-to-install.png)
-
-## Prerequisites
-
-Ensure you have the following tools installed and properly configured:
+To manipulate the assets on this directory, make sure you have the following tools installed and properly configured:
 
 - **[SUSE Observability CLI](https://docs.stackstate.com/cli/cli-sts)** – Command-line interface for SUSE Observability.
 - **[Taskfile](https://taskfile.dev/installation/)** – A task runner for automating commands.
