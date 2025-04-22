@@ -28,7 +28,7 @@ apiToken: xxx                # SUSE Observability CLI Token
 clusterName: lab             # Cluster name as defined for the Kubernetes StackPack instance in SUSE Observability
 ```
 
-Then run the following Helm commands,
+Then run the following command:
 
 ```bash
 helm upgrade --install --namespace so-extensions --create-namespace -f genai_values.yaml suse-ai-observability ./helm
