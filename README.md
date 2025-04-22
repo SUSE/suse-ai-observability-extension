@@ -4,12 +4,14 @@
 
 [OpenLIT SDK](https://github.com/openlit/openlit/tree/main/sdk/python) is a monitoring framework built on top of OpenTelemetry that gives you complete Observability for your AI stack, from LLMs to vector databases and GPUs, with just one line of code with tracing and metrics.
 
+This extension expands the capabilities of SUSE Observability regarding GenAI applications. Applications instrumented with the OpenLIT SDK generate metrics and traces, that are handle by the extension to generate topology views and observability over time.
+
 ## Helm Deployment
 
-Setup a basic genai-values.yaml containing connectivity information about your SUSE Observability instance.
+Setup a basic genai-values.yaml containing basic information about your SUSE Observability instance.
 
 ```yaml
-serverUrl:  https://xxxx.    # SUSE Observability URL. Installing this Chart along SUSE Observability allows you to use http://suse-observability-router.suse-observability.svc.cluster.local:8080
+serverUrl:  https://xxxx.    # SUSE Observability URL. Installing this Chart within the same cluster from SUSE Observability allows you to use http://suse-observability-router.suse-observability.svc.cluster.local:8080
 apiKey: xxx                  # SUSE Observability API Key
 apiToken: xxx                # SUSE Observability CLI Token
 clusterName: lab             # Cluster name as defined for the Kubernetes StackPack instance in SUSE Observability
@@ -40,22 +42,14 @@ Environment variables can be used to set up the scanner.
 
 ## Development
 
-### Prerequisites
+### Requirements
 
 - [Taskfile](https://taskfile.dev/installation/)
 
-
-### Setup environment variables
-
-Set up a `.env` file for configuring the env.
-
-```
-STS_URL=https://myinstance.stackstate.io
-STS_API_KEY=xxxx
-```
 ### Build
 
-There are two containers. One, is the runtime (for data sync) and the other one is the setup (for UI).
+There are two main containers in the application. One, is the runtime that handles data synchronization, while the other manages the extension's lifecycle.
+
 ```shell
 task podman-build-runtime
 task podman-build-setup

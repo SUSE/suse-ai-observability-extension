@@ -2,7 +2,7 @@
 
 This guide contains instructions on how to setup the SUSE AI Observability Extension for SUSE Observability.
 
-![Deployment](./img/openlit-deployment.png)
+![Deployment](./img/how-to-install.png)
 
 ## Prerequisites
 
