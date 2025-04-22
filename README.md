@@ -1,27 +1,24 @@
-# StackState Openlit Integration
+# SUSE AI Observability Extension
 
-[StackState](https://stackstate.com) is full-stack observability platform with tons of extension and integration possibilities.
+[SUSE Observability](https://docs.stackstate.com) is full-stack observability platform with tons of extension and integration possibilities.
 
 [OpenLIT SDK](https://github.com/openlit/openlit/tree/main/sdk/python) is a monitoring framework built on top of OpenTelemetry that gives you complete Observability for your AI stack, from LLMs to vector databases and GPUs, with just one line of code with tracing and metrics.
 
-
-
-
 ## Helm Deployment
 
-Setup a basic genai-values.yaml containing connectivity information about your StackState instance.
+Setup a basic genai-values.yaml containing connectivity information about your SUSE Observability instance.
 
 ```yaml
 serverUrl:  https://xxxx.    # SUSE Observability URL. Installing this Chart along SUSE Observability allows you to use http://suse-observability-router.suse-observability.svc.cluster.local:8080
 apiKey: xxx                  # SUSE Observability API Key
-apiToken: xxx                # SUSE Observability StackState CLI Token
+apiToken: xxx                # SUSE Observability CLI Token
 clusterName: lab             # Cluster name as defined for the Kubernetes StackPack instance in SUSE Observability
 ```
 
 Then run the following Helm commands,
 
 ```bash
-helm upgrade --install --namespace stackstate-extensions --create-namespace -f genai_values.yaml sts ./helm
+helm upgrade --install --namespace so-extensions --create-namespace -f genai_values.yaml suse-ai-observability ./helm
 
 ```
 
@@ -39,27 +36,6 @@ Environment variables can be used to set up the scanner.
 | KUBERNETES_QUERYTIMEINTERVAL | yes      | 1h      | Promql interval query over.                      |
 | INSTANCE_TYPE                | yes      | openlit | The Custom Sync StackPack instance type.          |
 | INSTANCE_URL                 | yes      |         | The Custom Sync StackPack instance url            |
-
-
-### Config File
-
-Configuration could also be in a yaml file.
-The location of the config file can be set in the `CONFIG_FILE`environment variable
-
-```yaml
-stackstate:
-  api_url: "https://xxx.stackstate.io"
-  api_key: "5385xxxx"
-  
-kubernetes:
-  cluster: retailstore
-  queryTimeInterval: 1h
-
-instance:
-  type: openlit
-  url: retailstore
-
-```
 
 
 ## Development
@@ -81,6 +57,6 @@ STS_API_KEY=xxxx
 
 There are two containers. One, is the runtime (for data sync) and the other one is the setup (for UI).
 ```shell
-task docker-build-runtime
-task docker-build-setup
+task podman-build-runtime
+task podman-build-setup
 ```

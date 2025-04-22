@@ -3,7 +3,7 @@ version: '3'
 dotenv: ['./.env']
 
 vars:
-  IMAGE: "ghcr.io/thbertoldi/genai-observability"
+  IMAGE: "genai-observability"
   VERSION: latest
 
 tasks:
