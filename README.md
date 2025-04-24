@@ -1,29 +1,49 @@
-# StackState Openlit Integration
+# SUSE AI Observability Extension
 
-[StackState](https://stackstate.com) is full-stack observability platform with tons of extension and integration possibilities.
+This extension expands the capabilities of [SUSE Observability](https://docs.stackstate.com) regarding GenAI applications. Applications instrumented with the [OpenLIT SDK](https://github.com/openlit/openlit/tree/main/sdk/python) generate metrics and traces, that are handled by the extension to generate topology views and observability over time.
 
-[OpenLIT SDK](https://github.com/openlit/openlit/tree/main/sdk/python) is a monitoring framework built on top of OpenTelemetry that gives you complete Observability for your AI stack, from LLMs to vector databases and GPUs, with just one line of code with tracing and metrics.
+## High-level Overview
 
+SUSE AI Observability Extension requires a working instance of SUSE Observability.
 
+![Deployment](./setup/img/how-to-install.png)
 
+## About
 
-## Helm Deployment
+The extension has two main components:
 
-Setup a basic genai-values.yaml containing connectivity information about your StackState instance.
+* The SUSE AI Observability Setup, which handles the install/uninstall process for the extension.
+* The SUSE AI Observability Runtime, which is responsible for calculating topology views and metrics.
+
+Those components are distributed as a Helm Chart.
+
+### Helm Chart Installation
+
+You can use a genai-values.yaml containing basic information about your SUSE Observability.
 
 ```yaml
-serverUrl:  https://xxxx.    # SUSE Observability URL. Installing this Chart along SUSE Observability allows you to use http://suse-observability-router.suse-observability.svc.cluster.local:8080
+serverUrl:  https://xxxx.    # SUSE Observability URL. Installing this Chart within the same cluster from SUSE Observability allows you to use http://suse-observability-router.suse-observability.svc.cluster.local:8080
 apiKey: xxx                  # SUSE Observability API Key
-apiToken: xxx                # SUSE Observability StackState CLI Token
+apiToken: xxx                # SUSE Observability CLI Token
 clusterName: lab             # Cluster name as defined for the Kubernetes StackPack instance in SUSE Observability
 ```
 
-Then run the following Helm commands,
+Then run the following command:
 
 ```bash
-helm upgrade --install --namespace stackstate-extensions --create-namespace -f genai_values.yaml sts ./helm
+helm upgrade --install --namespace so-extensions --create-namespace -f genai_values.yaml suse-ai-observability ./helm
 
 ```
+
+### Project Content
+
+In the cmd directory you will find the program responsible for the runtime execution of the extension.
+
+The helm directory contains a simple chart for deploying the extension with minimal manual interventions.
+
+The setup directory contains some static assets needed by the extension, and also, the scripts for the extension setup.
+
+The internal and stackpack directories contain most of the Go code.
 
 ## Configuration
 
@@ -41,46 +61,17 @@ Environment variables can be used to set up the scanner.
 | INSTANCE_URL                 | yes      |         | The Custom Sync StackPack instance url            |
 
 
-### Config File
-
-Configuration could also be in a yaml file.
-The location of the config file can be set in the `CONFIG_FILE`environment variable
-
-```yaml
-stackstate:
-  api_url: "https://xxx.stackstate.io"
-  api_key: "5385xxxx"
-  
-kubernetes:
-  cluster: retailstore
-  queryTimeInterval: 1h
-
-instance:
-  type: openlit
-  url: retailstore
-
-```
-
-
 ## Development
 
-### Prerequisites
+### Requirements
 
 - [Taskfile](https://taskfile.dev/installation/)
 
-
-### Setup environment variables
-
-Set up a `.env` file for configuring the env.
-
-```
-STS_URL=https://myinstance.stackstate.io
-STS_API_KEY=xxxx
-```
 ### Build
 
-There are two containers. One, is the runtime (for data sync) and the other one is the setup (for UI).
+There are two main containers in the application. One, is the runtime that handles data synchronization, while the other manages the extension's lifecycle.
+
 ```shell
-task docker-build-runtime
-task docker-build-setup
+task podman-build-runtime
+task podman-build-setup
 ```

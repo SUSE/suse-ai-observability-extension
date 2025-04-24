@@ -17,7 +17,6 @@ includes:
 
 tasks:
 
-  # -- Installation Tasks --
   install-k8s-stackpack-instance:
     silent: true
     cmds:
@@ -36,10 +35,6 @@ tasks:
       - echo "Creating autosync stackpack instance for openlit '{{.CLUSTER_NAME}}'"
       - "{{.CLI}} stackpack install -n autosync -p sts_instance_type=openlit -p sts_instance_url={{.CLUSTER_NAME}}"
 
-  trigger-openlit-ext-job:
-    cmds:
-      - kubectl create job --from=cronjob/openlit-stackstate-openlit-ext "sync-openlit-ext-$(date +%s)" -n stackstate-extensions {{.KUBECONFIG}}
-
   deploy-observability-agent:
     silent: true
     cmds:
@@ -49,7 +44,7 @@ tasks:
       - echo "Installed agent will sent data to '{{.CLUSTER_NAME}}' pipeline on server '{{.STS_URL}}'"
       - helm upgrade --install {{.KUBECONFIG}} --namespace monitoring --create-namespace --set-string 'stackstate.apiKey'="{{.STS_API_KEY}}" --set-string 'stackstate.cluster.name'="{{.CLUSTER_NAME}}" --set-string 'stackstate.url'="{{.STS_URL}}/receiver/stsAgent" --set 'nodeAgent.skipKubeletTLSVerify'=true suse-observability-agent suse-observability/suse-observability-agent
 
-  deploy-openlit-ext:
+  deploy-suse-ai-observability-ext:
     cmds:
       - |-
         cat <<EOF |  helm upgrade --install --create-namespace {{.KUBECONFIG}} --namespace stackstate-extensions openlit -f - {{.HELM_REPO}}/stackstate-openlit-ext

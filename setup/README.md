@@ -1,12 +1,6 @@
-# Setup Guide
+## Setup Assets
 
-This guide contains instructions on how to setup the OpenLit Extension for SUSE Observability.
-
-![Deployment](./img/openlit-deployment.png)
-
-## Prerequisites
-
-Ensure you have the following tools installed and properly configured:
+To manipulate the assets on this directory, make sure you have the following tools installed and properly configured:
 
 - **[SUSE Observability CLI](https://docs.stackstate.com/cli/cli-sts)** – Command-line interface for SUSE Observability.
 - **[Taskfile](https://taskfile.dev/installation/)** – A task runner for automating commands.
@@ -17,8 +11,8 @@ Ensure you have the following tools installed and properly configured:
 Check out this repository and execute all commands from its root.
 
 ```bash
-git clone https://github.com/ravan/genai-observability-extension.git
-cd genai-observability-extension
+git clone https://github.com/SUSE/suse-ai-observability-extension.git
+cd suse-ai-observability-extension
 ```
 
 Setup your `.env` with correct values for
@@ -57,8 +51,7 @@ HELM_REPO=stackstate-addons
 
 ### Stack Instances
 
-Create stackpack instances on SUSE Observability to prepare topology ingestion pipelines
-to receive data from the observed cluster
+Create stackpack instances on SUSE Observability to prepare topology ingestion pipelines to receive data from the observed cluster
 
 #### Kubernetes StackPack Instance
 
@@ -131,14 +124,12 @@ The GenAI extension analyses the OpenLit metrics that was sent to SUSE Observabi
 It will generate topology for those metrics.
 
 ```bash
-task deploy-openlit-ext
+task deploy-suse-ai-observability-ext
 ```
 
 ### Deploy Demo Apps.
 
-If you wish to deploy the demo apps Rag101, Rag102 and PirateJoke that were instrumented with
-OpenLit, then adjust the `model` and `ollamaEndpoint` in the task `deploy-genai-apps` to match your
-environment.
+If you wish to deploy the demo apps Rag101, Rag102 and PirateJoke (instrumented with OpenLIT SDK) adjust the `model` and `ollamaEndpoint` in the task `deploy-genai-apps` to match your environment.
 
 ```bash
 task deploy-genai-apps
