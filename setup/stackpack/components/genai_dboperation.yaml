@@ -1,0 +1,67 @@
+nodes:
+  - id: -100
+    name: genai.dboperation
+    iconbase64: data:image/svg+xml;base64,PCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAxLjEvL0VOIiAiaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkIj4KDTwhLS0gVXBsb2FkZWQgdG86IFNWRyBSZXBvLCB3d3cuc3ZncmVwby5jb20sIFRyYW5zZm9ybWVkIGJ5OiBTVkcgUmVwbyBNaXhlciBUb29scyAtLT4KPHN2ZyB3aWR0aD0iODAwcHgiIGhlaWdodD0iODAwcHgiIHZpZXdCb3g9IjAgMCA2NCA2NCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBmaWxsPSIjMDAwMDAwIj4KDTxnIGlkPSJTVkdSZXBvX2JnQ2FycmllciIgc3Ryb2tlLXdpZHRoPSIwIi8+Cg08ZyBpZD0iU1ZHUmVwb190cmFjZXJDYXJyaWVyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KDTxnIGlkPSJTVkdSZXBvX2ljb25DYXJyaWVyIj4gPGRlZnM+IDxzdHlsZT4uY2xzLTF7ZmlsbDojMDA4YmY1O30uY2xzLTJ7ZmlsbDojOTk5O30uY2xzLTN7ZmlsbDojNjY2O308L3N0eWxlPiA8L2RlZnM+IDx0aXRsZS8+IDxnIGRhdGEtbmFtZT0ib3V0bGluZSBjb2xvciIgaWQ9Im91dGxpbmVfY29sb3IiPiA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik00NSw0NmMtNy4yMiwwLTE1LTEuNTYtMTUtNXM3Ljc4LTUsMTUtNSwxNSwxLjU2LDE1LDVTNTIuMjIsNDYsNDUsNDZabTAtOGMtOC41OCwwLTEzLDIuMS0xMywzczQuNDIsMywxMywzLDEzLTIuMSwxMy0zUzUzLjU4LDM4LDQ1LDM4WiIvPiA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik00NSw1MGMtNy4yMiwwLTE1LTEuNTYtMTUtNSwwLTEuMTIuODItMi4xLDIuNDUtMi45YTEsMSwwLDEsMSwuODgsMS44Yy0xLC41Mi0xLjMzLjk0LTEuMzMsMS4xLDAsLjksNC40MiwzLDEzLDNzMTMtMi4xLDEzLTNjMC0uMTYtLjI4LS41OC0xLjMzLTEuMWExLDEsMCwxLDEsLjg4LTEuOEM1OS4xOCw0Mi45LDYwLDQzLjg4LDYwLDQ1LDYwLDQ4LjQ0LDUyLjIyLDUwLDQ1LDUwWiIvPiA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik00NSw1NGMtNy4yMiwwLTE1LTEuNTYtMTUtNSwwLTEuMTIuODItMi4xLDIuNDUtMi45YTEsMSwwLDEsMSwuODgsMS44Yy0xLC41Mi0xLjMzLjk0LTEuMzMsMS4xLDAsLjksNC40MiwzLDEzLDNzMTMtMi4xLDEzLTNjMC0uMTYtLjI4LS41OC0xLjMzLTEuMWExLDEsMCwxLDEsLjg4LTEuOEM1OS4xOCw0Ni45LDYwLDQ3Ljg4LDYwLDQ5LDYwLDUyLjQ0LDUyLjIyLDU0LDQ1LDU0WiIvPiA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik00NSw1OGMtNy4yMiwwLTE1LTEuNTYtMTUtNSwwLTEuMTIuODItMi4xLDIuNDUtMi45YTEsMSwwLDEsMSwuODgsMS44Yy0xLC41Mi0xLjMzLjk0LTEuMzMsMS4xLDAsLjksNC40MiwzLDEzLDNzMTMtMi4xLDEzLTNjMC0uMTYtLjI4LS41OC0xLjMzLTEuMWExLDEsMCwxLDEsLjg4LTEuOEM1OS4xOCw1MC45LDYwLDUxLjg4LDYwLDUzLDYwLDU2LjQ0LDUyLjIyLDU4LDQ1LDU4WiIvPiA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik01MCw0Mkg0MGExLDEsMCwwLDEsMC0ySDUwYTEsMSwwLDAsMSwwLDJaIi8+IDxwYXRoIGNsYXNzPSJjbHMtMiIgZD0iTTIxLjY3LDU1LjFhNS4wNiw1LjA2LDAsMCwxLTEuNzktLjMzLDUsNSwwLDAsMS0yLjc3LTIuNjNMNC40NiwyMy44NEE1LDUsMCwwLDEsNywxNy4yNGwyMS05LjRhMSwxLDAsMCwxLC44MiwxLjgybC0yMSw5LjRhMywzLDAsMCwwLTEuNTgsMS42N0EzLDMsMCwwLDAsNi4yOCwyM2wxMi42NSwyOC4zYTMsMywwLDAsMCw0LDEuNTJsMy43OS0xLjdBMSwxLDAsMSwxLDI3LjUsNTNsLTMuNzksMS43QTUsNSwwLDAsMSwyMS42Nyw1NS4xWiIvPiA8cGF0aCBjbGFzcz0iY2xzLTMiIGQ9Ik0xOCwzNC40MWEzLjUsMy41LDAsMSwxLDMuMTktNC45My4zNi4zNiwwLDAsMSwwLC4xMSwxLDEsMCwwLDEsLjA2LjMzLDEsMSwwLDAsMS0xLjk0LjM0LDEuNSwxLjUsMCwxLDAtLjgsMi4wNSwxLDEsMCwxLDEsLjg2LDEuOGgwQTMuMzksMy4zOSwwLDAsMSwxOCwzNC40MVoiLz4gPHBhdGggY2xhc3M9ImNscy0zIiBkPSJNMjIuODQsMjQuMzFhMSwxLDAsMCwxLS45MS0uNTlsLTIuMDUtNC41OWExLDEsMCwwLDEsMC0uNzcuOTQuOTQsMCwwLDEsLjUyLS41NWw0LjU5LTJhMSwxLDAsMCwxLC44MiwxLjgybC0zLjY4LDEuNjQsMS42NCwzLjY3YTEsMSwwLDAsMS0uNSwxLjMyQTEsMSwwLDAsMSwyMi44NCwyNC4zMVoiLz4gPHBhdGggY2xhc3M9ImNscy0yIiBkPSJNMjAuMzEsMzAuODlhMSwxLDAsMCwxLS45NS0uNjdBMSwxLDAsMCwxLDIwLDI4Ljk0YTEsMSwwLDAsMSwxLjI5LjYyLDEsMSwwLDAsMS0uNiwxLjI3aDBBMS4yNiwxLjI2LDAsMCwxLDIwLjMxLDMwLjg5WiIvPiA8cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0yNyw0NS4zOWEuOTIuOTIsMCwwLDEtLjM2LS4wN2wtNi45NS0yLjY2YTUsNSwwLDAsMS0yLjg4LTYuNDVsMi41My02LjYzYS4zNy4zNywwLDAsMSwuMDUtLjExTDI3LjkxLDcuMjVhNSw1LDAsMCwxLDYuNDYtMi44OGwyMi40Miw4LjU3YTUsNSwwLDAsMSwyLjg5LDYuNDRMNTQuMDcsMzRhMSwxLDAsMSwxLTEuODYtLjcybDUuNi0xNC42NWEzLDMsMCwwLDAtMS43NC0zLjg3TDMzLjY1LDYuMjNBMywzLDAsMCwwLDI5Ljc3LDhsLTguNSwyMi4yNywwLC4wOC0yLjUzLDYuNjFhMywzLDAsMCwwLDEuNzQsMy44N2w3LDIuNjZBMSwxLDAsMCwxLDI3LDQ1LjM5WiIvPiA8cGF0aCBjbGFzcz0iY2xzLTMiIGQ9Ik0zMSwyOC4xN2EzLjQzLDMuNDMsMCwwLDEtMS4yNS0uMjQsMy41LDMuNSwwLDEsMSw0LjUyLTJoMGEzLjQ2LDMuNDYsMCwwLDEtMS44NCwxLjk1QTMuNTcsMy41NywwLDAsMSwzMSwyOC4xN1ptMC01YTEuNSwxLjUsMCwwLDAtLjUzLDIuOTEsMS41MSwxLjUxLDAsMCwwLDEuOTMtLjg3aDBhMS40OCwxLjQ4LDAsMCwwLDAtMS4xNSwxLjUzLDEuNTMsMCwwLDAtLjgzLS43OUExLjcxLDEuNzEsMCwwLDAsMzEsMjMuMTZaIi8+IDxwYXRoIGNsYXNzPSJjbHMtMyIgZD0iTTQ5LDIzLjg2YTMuMDcsMy4wNywwLDAsMS0xLjA3LS4yLDMsMywwLDAsMS0xLjY3LTEuNTgsMywzLDAsMCwxLDEuNTEtNCwzLDMsMCwwLDEsNCwxLjUxLDMsMywwLDAsMSwuMDYsMi4zaDBBMywzLDAsMCwxLDQ5LDIzLjg2Wm0wLTRhMSwxLDAsMCwwLS45My42NSwxLDEsMCwwLDAsMCwuNzYsMSwxLDAsMCwwLC41NS41MywxLDEsMCwwLDAsLjc3LDAsMSwxLDAsMCwwLC41Mi0uNTZoMGExLDEsMCwwLDAsMC0uNzYsMSwxLDAsMCwwLS41NS0uNTNBMS4xNSwxLjE1LDAsMCwwLDQ5LDE5Ljg1WiIvPiA8cGF0aCBjbGFzcz0iY2xzLTMiIGQ9Ik00NS40MywzMy4yYTMuMDcsMy4wNywwLDAsMS0xLjA3LS4yLDMsMywwLDAsMS0xLjczLTMuODcsMywzLDAsMCwxLDEuNTgtMS42NywzLDMsMCwwLDEsNCwzLjgxaDBBMywzLDAsMCwxLDQ1LjQzLDMzLjJabTAtNGExLjE1LDEuMTUsMCwwLDAtLjQxLjA4LDEsMSwwLDAsMC0uNTIuNTYsMSwxLDAsMCwwLC41NywxLjI5LDEsMSwwLDAsMCwxLjI5LS41OGgwYTEsMSwwLDAsMCwwLS43NiwxLDEsMCwwLDAtLjU1LS41M0ExLjEzLDEuMTMsMCwwLDAsNDUuNDMsMjkuMloiLz4gPHBhdGggY2xhc3M9ImNscy0zIiBkPSJNNDMuNTYsMzAuNDhhMSwxLDAsMCwxLS4zNS0uMDZMMzcuNiwyOC4yOGExLDEsMCwwLDEtLjU2LS41M0ExLjA4LDEuMDgsMCwwLDEsMzcsMjdsMy41Ny05LjM0YTEsMSwwLDAsMSwxLjI5LS41N2w1LjYxLDIuMTRhMSwxLDAsMCwxLC41OCwxLjI5LDEsMSwwLDAsMS0xLjMuNThMNDIuMSwxOS4yOWwtMi44NSw3LjQ3LDQuNjcsMS43OWExLDEsMCwwLDEsLjU4LDEuMjlBMSwxLDAsMCwxLDQzLjU2LDMwLjQ4WiIvPiA8cGF0aCBjbGFzcz0iY2xzLTMiIGQ9Ik0zOCwyOC4zNGExLjEzLDEuMTMsMCwwLDEtLjM2LS4wNmwtNC42Ny0xLjc5YTEsMSwwLDAsMSwuNzEtMS44N2w0LjY3LDEuNzlBMSwxLDAsMCwxLDM4LDI4LjM0WiIvPiA8L2c+IDwvZz4KDTwvc3ZnPg==
+    identifier: urn:system:auto:component-type:genai.dboperation
+    highlights:
+      namePlural: db_operations
+      fields:
+        - fieldId: type
+          label:
+            title: Type
+          valueExtractor:
+            _type: ComponentTypeSource
+          display:
+            _type: TagDisplay
+          _type: ComponentTypeField
+        - fieldId: health
+          label:
+            title: Health
+          valueExtractor:
+            _type: HealthSource
+          display:
+            _type: HealthBadgeDisplay
+          _type: ComponentTypeField
+        - fieldId: labels
+          label:
+            title: Labels
+          valueExtractor:
+            _type: TagsSource
+          display:
+            singular: label
+            _type: TagDisplay
+          _type: ComponentTypeField
+      about:
+        fields:
+          - type
+          - health
+          - labels
+        _type: ComponentTypeAbout
+      events:
+        showEvents: false
+        _type: ComponentTypeEvents
+      showLogs: false
+      showLastChange: false
+      externalComponent:
+        showConfiguration: false
+        showStatus: false
+        externalIdSelector: "^openlit:urn:open-telemetry:"
+        _type: ComponentTypeExternalComponent
+      relatedResources:
+        - resourceType: genai.dbsystem
+          title: DB Systems
+          stql: (withNeighborsOf(direction = "up", components = (id = "{COMPONENT_ID}"),
+            levels = "1")) and type = "genai.dbsystem.milvus"
+          #viewTypeIdentifier: urn:stackpack:open-telemetry:shared:view-type:service
+          _type: ComponentTypeRelatedResources
+
+      # TODO: Create My Metric
+      metrics:
+        - name: Total Calls
+          description: Total calls to DB Operation
+          bindings:
+          - urn:stackpack:openlit:shared:metric-binding:vectordb-operation-total
+          defaultExpanded: true
+          _type: ComponentTypeMetricCategory
+      _type: ComponentTypeHighlights
+    _type: ComponentType

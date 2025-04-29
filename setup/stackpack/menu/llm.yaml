@@ -106,6 +106,7 @@ nodes:
     showCause: NONE
     showIndirectRelations: false
     tags: [ ]
+    viewType: urn:stackpack:openlit:shared:view-type:genai-components
 
   - _type: QueryView
     autoGrouping: true
