@@ -36,7 +36,18 @@ if [ "${AUTOSYNC_AVAILABLE:-}" != "true" ]; then
 fi
 echo "Installing autosync stackpack..."
 sts stackpack install -n autosync -p sts_instance_type=openlit -p sts_instance_url="$KUBERNETES_CLUSTER" --url "$STACKSTATE_API_URL" --api-token "$STACKSTATE_API_TOKEN"
-
+echo "Ensuring open-telemetry stackpack is installed..."
+OTEL_AVAILABLE=$(sts stackpack list-instances --name open-telemetry -o json --url "$STACKSTATE_API_URL" --api-token "$STACKSTATE_API_TOKEN" | jq '.instances | length != 0')
+if [ "${OTEL_AVAILABLE:-}" != "true" ]; then
+    echo "Installing open-telemetry stackpack..."
+    sts stackpack install --name open-telemetry --url "$STACKSTATE_API_URL" --api-token "$STACKSTATE_API_TOKEN"
+fi
+echo "Ensuring kubernetes-v2 stackpack is installed..."
+K8S_AVAILABLE=$(sts stackpack list-instances --name kubernetes-v2 -o json --url "$STACKSTATE_API_URL" --api-token "$STACKSTATE_API_TOKEN" | jq --arg CLUSTER_NAME "$KUBERNETES_CLUSTER" 'any(.instances[]; .config.kubernetes_cluster_name == $CLUSTER_NAME)')
+if [ "${K8S_AVAILABLE:-}" != "true" ]; then
+    echo "Installing kubernetes-v2 stackpack..."
+    sts stackpack install --name kubernetes-v2 -p kubernetes_cluster_name="$KUBERNETES_CLUSTER" --url "$STACKSTATE_API_URL" --api-token "$STACKSTATE_API_TOKEN"
+fi
 echo "Applying settings..."
 declare -a SETTING_FILES=(
     "/mnt/menu/llm.yaml"
