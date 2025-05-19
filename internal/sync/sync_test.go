@@ -27,6 +27,7 @@ func getConfig(t *testing.T) *config.Configuration {
 	require.NoError(t, os.Setenv("stackstate.api_url", os.Getenv("STS_URL")))
 	require.NoError(t, os.Setenv("stackstate.api_key", os.Getenv("STS_API_KEY")))
 	require.NoError(t, os.Setenv("stackstate.api_token", os.Getenv("STS_API_TOKEN")))
+	require.NoError(t, os.Setenv("stackstate.api_token_type", os.Getenv("STS_API_TOKEN_TYPE")))
 	require.NoError(t, os.Setenv("stackstate.legacy_api", os.Getenv("STS_LEGACY_API")))
 
 	c, err := config.GetConfig()

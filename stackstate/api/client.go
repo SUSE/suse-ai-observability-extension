@@ -281,7 +281,14 @@ func (c *Client) executeTopoScript(req scriptRequest) (*TopoQueryResponse, error
 func (c *Client) apiRequests(endpoint string) *rq.Builder {
 	uri := fmt.Sprintf("%s/api/%s", c.url, endpoint)
 	return request(uri).
-		Header("X-API-Token", c.conf.ApiToken)
+		Header(c.GetXHeader(), c.conf.ApiToken)
+}
+
+func (c Client) GetXHeader() string {
+	if c.conf.ApiTokenType != "api" {
+		return "X-API-Key"
+	}
+	return "X-API-Token"
 }
 
 func request(uri string) *rq.Builder {
