@@ -39,6 +39,7 @@ func GetConfig() (*Configuration, error) {
 	v.SetDefault("stackstate.api_url", "")
 	v.SetDefault("stackstate.api_key", "")
 	v.SetDefault("stackstate.api_token", "")
+	v.SetDefault("stackstate.api_token_type", "api")
 	v.SetDefault("stackstate.legacy_api", false)
 	v.SetDefault("instance.type", "openlit")
 	v.SetDefault("instance.url", "local")
