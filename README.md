@@ -23,6 +23,8 @@ The setup directory contains some static assets needed by the extension, and als
 
 The internal and stackpack directories contain most of the Go code.
 
+The "integrations" directory contains working examples on how to send data to the extension.
+
 ## Installation
 
 You can install it from SUSE Application Colletion. Search for SUSE AI Observability Extension.
