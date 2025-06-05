@@ -5,12 +5,12 @@ date: 2025-05-30
 version: 1.0
 license: Apache 2.0
 description: A pipeline for monitoring Open WebUI with OpenLIT
-requirements: openlit==1.33.8, openai==1.61.1
+requirements: openlit==1.33.8, ollama==0.3.3
 """
 
 from typing import List, Union, Generator, Iterator
 from pydantic import Field, BaseModel
-from openai import OpenAI
+from ollama import Client
 import openlit
 
 
@@ -25,12 +25,8 @@ class Pipeline:
             description="Sets service.name resource attribute for OpenTelemetry"
         )
         OLLAMA_ENDPOINT: str = Field(
-            default="http://ollama.suse-private-ai.svc.cluster.local:11434/v1",
+            default="http://ollama.suse-private-ai.svc.cluster.local:11434",
             description="Endpoint for Ollama API"
-        )
-        OLLAMA_API_KEY: str = Field(
-            default="ignored",
-            description="Key for OpenAI compatible API"
         )
         MODEL: str = Field(
             default="gemma:2b",
@@ -67,17 +63,14 @@ class Pipeline:
     ) -> Union[str, Generator, Iterator]:
         print(f"pipe:{__name__}")
 
-        client = OpenAI(
-            base_url=self.valves.OLLAMA_ENDPOINT,
-            api_key=self.valves.OLLAMA_API_KEY
+        client = Client(
+            host=self.valves.OLLAMA_ENDPOINT,
         )
 
         #TODO: Handle model memory
-        completion = client.chat.completions.create(
+        completion = client.chat(
             model=self.valves.MODEL,
             messages=[{"role": "user", "content": user_message}],
         )
 
-        print(completion.choices[0].message.content)
-
-        return completion.choices[0].message.content
+        return completion['message']['content']
