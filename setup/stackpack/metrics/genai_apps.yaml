@@ -44,7 +44,7 @@ nodes:
         alias: Prompt Tokens
       - expression: avg(gen_ai_usage_output_tokens_total{ service_name="${name}" })
         alias: Completion Tokens
-      - expression: avg(gen_ai_usage_cost_USD_bucket{ service_name="${name}" })
+      - expression: avg(gen_ai_usage_cost_USD_sum{ service_name="${name}" })
         alias: Usage Dollar Cost
     scope:  type in ("otel service", "genai.app") AND label in ("gen_ai_app") 
     identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-avg-tokens-per-total-requests

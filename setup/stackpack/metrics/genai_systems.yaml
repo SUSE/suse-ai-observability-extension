@@ -44,7 +44,7 @@ nodes:
         alias: Prompt Tokens
       - expression: avg(gen_ai_usage_output_tokens_total{ gen_ai_system="${name}" })
         alias: Completion Tokens
-      - expression: avg(gen_ai_usage_cost_USD_bucket{ gen_ai_system="${name}" })
+      - expression: avg(gen_ai_usage_cost_USD_sum{ gen_ai_system="${name}" })
         alias: Usage Dollar Cost
     scope:  type in ("genai.system.ollama", "genai.system.openai") 
     identifier: urn:stackpack:openlit:shared:metric-binding:genai-system-avg-tokens-per-total-requests
