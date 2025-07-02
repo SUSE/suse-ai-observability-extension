@@ -156,6 +156,11 @@ class Pipeline:
                 description="Number of reasoning thought tokens processed.",
                 unit="1",
             ),
+            "genai_usage_tokens_total": self.meter.create_counter(
+                name="gen_ai_usage_tokens_total",
+                description="Number of tokens processed.",
+                unit="1",
+            ),
             "genai_cost": self.meter.create_histogram(
                 name=SemanticConvention.GEN_AI_USAGE_COST,
                 description="The distribution of GenAI request costs.",
@@ -288,6 +293,7 @@ class Pipeline:
         self.metrics["genai_completion_tokens"].add(output_tokens, metrics_attributes)
         self.metrics["genai_prompt_tokens"].add(input_tokens, metrics_attributes)
         self.metrics["genai_cost"].record(self.get_chat_model_cost(model, input_tokens, output_tokens), metrics_attributes)
+        self.metrics["genai_usage_tokens_total"].add(total_tokens, metrics_attributes)
         self.metrics["genai_server_tbt"].record(1/info.get("response_token/s") , metrics_attributes)
         self.metrics["genai_server_ttft"].record(info.get("load_duration") , metrics_attributes)
         # self.metrics["genai_reasoning_tokens"].add(reasoning_tokens, metrics_attributes)
@@ -650,6 +656,7 @@ class SemanticConvention:
     EVAL_CLASSIFICATION = "evals.classification"
     EVAL_VALIDATOR = "evals.validator"
     EVAL_EXPLANATION = "evals.explanation"
+
 _DB_CLIENT_OPERATION_DURATION_BUCKETS = [
     0.001,
     0.005,
