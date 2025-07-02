@@ -11,6 +11,7 @@ requirements:  opentelemetry-distro[otlp]==0.54b1
 from typing import Optional, List
 from pydantic import BaseModel
 
+import urllib.request
 import json
 import uuid
 
@@ -56,6 +57,15 @@ class Pipeline:
         self.chats = {}
         self.chat_model_provider = {}
         self.metrics = {}
+        self.cost_estimation = fetch_json_from_url_stdlib(self.valves.pricing_information)
+
+    def get_chat_model_cost(self, model, prompt, completion):
+        try:
+            cost = ((prompt / 1000) * self.cost_estimation['chat'][model]['promptPrice']) + \
+                ((completion / 1000) * self.cost_estimation['chat'][model]['completionPrice'])
+        except:
+            cost = 0
+        return cost
 
     def capture_messages(self):
         return self.valves.capture_message_content
@@ -233,7 +243,6 @@ class Pipeline:
         output_tokens = info.get("eval_count") or info.get("completion_tokens")
         #reasoning_tokens = info.get("completion_tokens_details", {}).get("reasoning_tokens", 0) TODO Verify where's the error!
         total_tokens = input_tokens + output_tokens
-        cost_coef = get_cost_for_model()
         if parent := self.chats.get(chat_id, None):
             provider = self.chat_model_provider.get((chat_id, model), "default")
             context = trace.set_span_in_context(parent)
@@ -246,7 +255,7 @@ class Pipeline:
                 span.set_attribute("gen_ai.endpoint", f"{provider}.chat")
                 span.set_attribute("gen_ai.environment", "default")
                 span.set_attribute("gen_ai.request.model", model)
-                span.set_attribute("gen_ai.usage.cost", total_tokens * cost_coef)
+                span.set_attribute("gen_ai.usage.cost", self.get_chat_model_cost(model, input_tokens, output_tokens))
                 span.set_attribute("gen_ai.usage.input_tokens", input_tokens)
                 span.set_attribute("gen_ai.usage.output_tokens", output_tokens)
                 span.set_attribute("gen_ai.usage.total_tokens", total_tokens)
@@ -257,11 +266,13 @@ class Pipeline:
                     span.set_attribute(SemanticConvention.GEN_AI_ASSISTANT_MESSAGE, message)
                 span.set_status(Status(StatusCode.OK))
             parent.set_status(Status(StatusCode.OK))
-            parent.end()
+            if not self.valves.group_chat_messages:
+                parent.end()
         else:
             parent.set_status(Status(StatusCode.ERROR))
             parent.end()
             return body
+
         metrics_attributes = create_metrics_attributes(
             service_name=self.valves.otlp_service_name,
             deployment_environment="default",
@@ -276,7 +287,7 @@ class Pipeline:
         self.metrics["genai_requests"].add(1, metrics_attributes)
         self.metrics["genai_completion_tokens"].add(output_tokens, metrics_attributes)
         self.metrics["genai_prompt_tokens"].add(input_tokens, metrics_attributes)
-        self.metrics["genai_cost"].record(total_tokens * cost_coef, metrics_attributes)
+        self.metrics["genai_cost"].record(self.get_chat_model_cost(model, input_tokens, output_tokens), metrics_attributes)
         self.metrics["genai_server_tbt"].record(1/info.get("response_token/s") , metrics_attributes)
         self.metrics["genai_server_ttft"].record(info.get("load_duration") , metrics_attributes)
         # self.metrics["genai_reasoning_tokens"].add(reasoning_tokens, metrics_attributes)
@@ -286,12 +297,19 @@ class Pipeline:
         if self.valves.debug_log_enabled:
             print(f"[DEBUG] {message}")
 
-def get_cost_for_model():
-    # TODO: load from file
-    return 0.01
+def fetch_json_from_url_stdlib(url):
+    try:
+        with urllib.request.urlopen(url) as response:
+            if response.status != 200:
+                return None
+            response_bytes = response.read()
+            response_string = response_bytes.decode('utf-8')
+            data_dict = json.loads(response_string)
+            return data_dict
 
-def load_pricing_file():
-    pass
+    except:
+        return None
+
 def get_last_assistant_message_obj(messages: List[dict]) -> dict:
     """Retrieve the last assistant message from the message list."""
     for message in reversed(messages):
