@@ -140,6 +140,27 @@ nodes:
       componentSummary:
         weight: 3
     _type: MetricBinding
+  - id: -143
+    name: Total Skipped Tasks
+    queries:
+      - expression: sum(gen_ai_tasks_skipped_total{ service_name="${name}" })
+        alias: Total Skipped Tasks
+    scope:  type in ("otel service", "genai.app") AND label in ("gen_ai_app")
+    identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-total-skipped-tasks
+    unit: short
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Utilization
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
   - id: -150
     name: Total Successful GenAI Requests
     queries:

@@ -166,6 +166,11 @@ class Pipeline:
                 description="The distribution of GenAI request costs.",
                 unit="USD",
             ),
+            "genai_tasks_skipped": self.meter.create_counter(
+                name="gen_ai_tasks_skipped",
+                description="The number of uncomputed tasks.",
+                unit="1",
+            ),
             "db_requests": self.meter.create_counter(
                 name=SemanticConvention.DB_REQUESTS,
                 description="Number of requests to VectorDBs",
@@ -191,6 +196,16 @@ class Pipeline:
 
         if task:
             self.log(f"Skipping {task} task.")
+            model = body.get("model", "default")
+            metrics_attributes = create_metrics_attributes(
+                service_name=self.valves.otlp_service_name,
+                deployment_environment="default",
+                operation=task,
+                system=SemanticConvention.GEN_AI_SYSTEM_OLLAMA,
+                request_model=model,
+                response_model=model,
+            )
+            self.metrics["genai_tasks_skipped"].add(1, metrics_attributes)
             return body
 
         chat_id = metadata.get("chat_id", "")
