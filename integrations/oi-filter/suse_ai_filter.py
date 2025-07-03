@@ -285,6 +285,7 @@ class Pipeline:
             system=SemanticConvention.GEN_AI_SYSTEM_OLLAMA,
             request_model=model,
             response_model=model,
+            app_name=self.valves.otlp_service_name,
         )
 
         self.metrics["genai_client_usage_tokens"].record(total_tokens, metrics_attributes)
@@ -330,6 +331,7 @@ def create_metrics_attributes(
     system: str,
     request_model: str,
     response_model: str,
+    app_name: str,
     # user: str,
 ):
     """
@@ -345,7 +347,7 @@ def create_metrics_attributes(
         SemanticConvention.GEN_AI_REQUEST_MODEL: request_model,
         SemanticConvention.GEN_AI_RESPONSE_MODEL: response_model,
         SemanticConvention.GEN_AI_ENVIRONMENT: "default",
-        SemanticConvention.GEN_AI_APPLICATION_NAME: "OI Filter",
+        SemanticConvention.GEN_AI_APPLICATION_NAME: app_name,
         #SemanticConvention.GEN_AI_REQUEST_USER: user,
     }
 
