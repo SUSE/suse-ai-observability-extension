@@ -176,6 +176,7 @@ nodes:
     enabled: true
     layout:
       metricPerspective:
+        tab: LLM
         section: Cost
       componentSummary:
         weight: 3
@@ -205,8 +206,8 @@ nodes:
     name: Average Tokens per Request 
     description: Input and output tokens per inference call. Indicates verbosity or prompt inflation. Higher values drive cost and latency.
     queries:
-      - expression: sum by(gen_ai_request_model) (rate(gen_ai_usage_tokens_total{service_name="${name}"}[${__interval}]))/sum(rate(gen_ai_requests_total{service_name="${name}"}[${__interval}]))
-        alias: "${gen_ai_request_model}"
+      - expression: sum(rate(gen_ai_usage_tokens_total{service_name="${name}"}[5m])) / sum(rate(gen_ai_requests_total{service_name="${name}"}[5m]))
+        alias: "AVG Tokens/Request"
         primary: true
     scope:  type in ("otel service", "genai.app") AND label in ("gen_ai_app") 
     identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-average-tokens-per-request
