@@ -166,7 +166,6 @@ nodes:
   - id: -160
     name: Average Usage Cost per model
     queries:
-      # TODO: check the "or 0" exception
       - expression: avg by(gen_ai_request_model) (gen_ai_usage_cost_USD_sum{ service_name="${name}" })/100
         alias: '${gen_ai_request_model}'
     scope: type in ("otel service", "genai.app") AND label in ("gen_ai_app")
@@ -177,8 +176,134 @@ nodes:
     enabled: true
     layout:
       metricPerspective:
-        tab: LLM
+        tab: VectorDB 
         section: Cost
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -170
+    name: DB Request Rate
+    queries:
+      - expression: sum(rate(db_requests_total{ service_name="${name}" }[${__rate_interval}]))
+        alias: Request Rate
+        primary: true
+    scope:  type in ("otel service", "genai.app") AND label in ("gen_ai_app") 
+    identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-vectordb-request-rate
+    unit: reqps
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Request 
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -180
+    name: Average Tokens per Request 
+    description: Input and output tokens per inference call. Indicates verbosity or prompt inflation. Higher values drive cost and latency.
+    queries:
+      - expression: sum by(gen_ai_request_model) (rate(gen_ai_usage_tokens_total{service_name="${name}"}[${__interval}]))/sum(rate(gen_ai_requests_total{service_name="${name}"}[${__interval}]))
+        alias: "${gen_ai_request_model}"
+        primary: true
+    scope:  type in ("otel service", "genai.app") AND label in ("gen_ai_app") 
+    identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-average-tokens-per-request
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: LLM 
+        section: Tokens
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -190
+    name: Token Throughput 
+    description: Aggregate input + output tokens processed per second. Similar to a GPU-workload proxy.
+    queries:
+      - expression: sum by(gen_ai_request_model) (rate(gen_ai_usage_tokens_total{service_name="${name}"}[${__interval}]))/sum(rate(gen_ai_requests_total{service_name="${name}"}[${__interval}]))
+        alias: "${gen_ai_request_model}"
+        primary: true
+    scope:  type in ("otel service", "genai.app") AND label in ("gen_ai_app") 
+    identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-tokens-throughput
+    unit: cps 
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: LLM 
+        section: Tokens
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -195
+    name: Cost per 1 K Tokens (USD)
+    description: Expenditure to 1000-token chunks, enabling cross-model cost benchmarking. 
+    queries:
+      - expression: (sum(rate(gen_ai_usage_cost_USD_sum{service_name="${name}"}[${__rate_interval}])) / sum(rate(gen_ai_usage_tokens_total{service_name="${name}"}[${__rate_interval}]))) * 1000
+        alias: "Cost"
+        primary: true
+    scope:  type in ("otel service", "genai.app") AND label in ("gen_ai_app") 
+    identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-cost-per-1k-tokens
+    unit: currencyUSD 
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: LLM 
+        section: Cost
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -200
+    name: Top Vector Databases by Usage
+    queries:
+      - expression: sum by(db_system) (db_requests_total{service_name="${name}"})
+        alias: "${db_system}"
+        primary: true
+    scope:  type in ("otel service", "genai.app") AND label in ("gen_ai_app") 
+    identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-vectordb-top-vectordb-by-usage
+    unit: short 
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Usage
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -205
+    name: Total Database Operations 
+    queries:
+      - expression: sum(db_requests_total{service_name="${name}"})
+        alias: Total Operations
+        primary: true
+    scope:  type in ("otel service", "genai.app") AND label in ("gen_ai_app") 
+    identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-vectordb-total-database-operations
+    unit: short 
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Usage
       componentSummary:
         weight: 3
     _type: MetricBinding
