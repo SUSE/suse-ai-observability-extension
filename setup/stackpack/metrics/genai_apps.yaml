@@ -248,8 +248,8 @@ nodes:
     name: Cost per 1 K Tokens (USD)
     description: Expenditure to 1000-token chunks, enabling cross-model cost benchmarking. 
     queries:
-      - expression: (sum(rate(gen_ai_usage_cost_USD_sum{service_name="${name}"}[${__rate_interval}])) / sum(rate(gen_ai_usage_tokens_total{service_name="${name}"}[${__rate_interval}]))) * 1000
-        alias: "Cost"
+      - expression: (sum by (gen_ai_request_model) (rate(gen_ai_usage_cost_USD_sum{service_name="${name}"}[${__rate_interval}])) / sum by(gen_ai_request_model) (rate(gen_ai_usage_tokens_total{service_name="${name}"}[${__rate_interval}]))) * 1000
+        alias: "${gen_ai_request_model}"
         primary: true
     scope:  type in ("otel service", "genai.app") AND label in ("gen_ai_app") 
     identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-cost-per-1k-tokens
