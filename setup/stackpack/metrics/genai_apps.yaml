@@ -176,7 +176,6 @@ nodes:
     enabled: true
     layout:
       metricPerspective:
-        tab: VectorDB 
         section: Cost
       componentSummary:
         weight: 3
