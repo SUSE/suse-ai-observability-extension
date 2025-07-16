@@ -6,6 +6,23 @@ import (
 	"strings"
 )
 
+func mapSUSEAI(labels map[string]string, f *receiver.Factory) (c *receiver.Component) {
+	id := UrnGenAiApp(labels[ServiceName], labels[ServiceNamespace])
+	if f.ComponentExists(id) {
+		c = f.MustGetComponent(id)
+	} else {
+		c = f.MustNewComponent(id, labels[ServiceName], CTypeGenAiApp)
+		c.Data.Layer = "Services"
+		c.Data.Domain = "OpenTelemetry VectorDB"
+		c.AddLabel("gen_vectordb_system")
+		c.AddLabelKey(toLabelKey(ServiceName), labels[ServiceName])
+		c.AddLabelKey(toLabelKey(ServiceNamespace), labels[ServiceNamespace])
+		c.AddProperty("namespaceIdentifier", UrnServiceNamespace(labels[ServiceNamespace]))
+		c.AddProperty("clusterIdentifier", UrnCluster(f.Cluster))
+	}
+	return
+}
+
 func mapGenAiApp(labels map[string]string, f *receiver.Factory) *receiver.Component {
 	id := UrnGenAiApp(labels[GenAiApplicationName], labels[ServiceNamespace])
 	var c *receiver.Component
@@ -44,6 +61,26 @@ func mapGenAiSystem(appComp *receiver.Component, labels map[string]string, f *re
 	}
 	if !f.RelationExists(appComp.ID, c.ID) {
 		f.MustNewRelation(appComp.ID, c.ID, "uses")
+	}
+	return c
+}
+
+func mapVectorSUSEAIDbSystem(appComp *receiver.Component, labels map[string]string, f *receiver.Factory) *receiver.Component {
+	serviceName := labels["service_name"]
+	id := UrnVectorDbSystem(serviceName)
+	var c *receiver.Component
+	if f.ComponentExists(id) {
+		c = f.MustGetComponent(id)
+	} else {
+		c = f.MustNewComponent(id, serviceName, fmt.Sprintf("genai.dbsystem.%s", strings.ToLower(serviceName)))
+		c.Data.Layer = "GenAiSystems"
+		c.Data.Domain = Domain
+		c.AddLabel("gen_vectordb_system")
+		c.AddLabelKey(toLabelKey(ServiceNamespace), labels[ServiceNamespace])
+		c.AddProperty("identifier", id)
+	}
+	if !f.RelationExists(appComp.ID, c.ID) {
+		f.MustNewRelation(appComp.ID, c.ID, "is")
 	}
 	return c
 }
