@@ -11,6 +11,8 @@ nodes:
         - genai_environment
         width: 100
         _type: ViewTypeTableColText
+      - title: Type
+        _type: ViewTypeTableColComponentType
     flags:
     - NoTopologyFilters
     filters:
