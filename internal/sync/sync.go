@@ -38,6 +38,7 @@ var RequiredFields = []string{TelemetrySdkLanguage, ServiceName, ServiceInstance
 	GenAiApplicationName}
 var GenAiRequiredFields = []string{GenAiSystem, GenAiOperationName, GenAiRequestModel}
 var DBRequiredFields = []string{DBSystem, DBOperation}
+var SUSEAIDBRequiredFields = []string{ServiceName, ServiceNamespace}
 
 func Sync(conf *config.Configuration) (*receiver.Factory, error) {
 	factory := receiver.NewFactory(Source, Source, conf.Kubernetes.Cluster)
@@ -112,6 +113,10 @@ func topologyFromMilvusMetrics(conf *config.Configuration, client *api.Client, f
 
 	if result != nil && len(*result) > 0 {
 		for _, r := range *result {
+			if err := validateRequiredFields(r.Labels, SUSEAIDBRequiredFields); err != nil {
+				slog.Error("failed to validate required fields", "error", err, "labels", r.Labels)
+				continue
+			}
 			appComp := mapSUSEAI(r.Labels, factory)
 			mapVectorSUSEAIDbSystem(appComp, r.Labels, factory)
 		}

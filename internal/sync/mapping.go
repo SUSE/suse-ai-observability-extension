@@ -13,8 +13,7 @@ func mapSUSEAI(labels map[string]string, f *receiver.Factory) (c *receiver.Compo
 	} else {
 		c = f.MustNewComponent(id, labels[ServiceName], CTypeGenAiApp)
 		c.Data.Layer = "Services"
-		c.Data.Domain = "OpenTelemetry VectorDB"
-		c.AddLabel("gen_vectordb_system")
+		c.Data.Domain = "OpenTelemetry"
 		c.AddLabelKey(toLabelKey(ServiceName), labels[ServiceName])
 		c.AddLabelKey(toLabelKey(ServiceNamespace), labels[ServiceNamespace])
 		c.AddProperty("namespaceIdentifier", UrnServiceNamespace(labels[ServiceNamespace]))
@@ -66,7 +65,7 @@ func mapGenAiSystem(appComp *receiver.Component, labels map[string]string, f *re
 }
 
 func mapVectorSUSEAIDbSystem(appComp *receiver.Component, labels map[string]string, f *receiver.Factory) *receiver.Component {
-	serviceName := labels["service_name"]
+	serviceName := labels[ServiceName]
 	id := UrnVectorDbSystem(serviceName)
 	var c *receiver.Component
 	if f.ComponentExists(id) {
