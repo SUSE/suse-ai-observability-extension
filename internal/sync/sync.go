@@ -28,14 +28,17 @@ const (
 
 	GenAiRequestsTotalPromQl = "sum_over_time(gen_ai_requests_total{}[%s])"
 	DbRequestsTotalPromQl    = "sum_over_time(db_requests_total{}[%s])"
+	MilvusRuntimeInfoPromQl = "milvus_runtime_info"
 
 	CTypeGenAiApp = "genai.app"
+	CTypeOTELService = "otel service"
 )
 
 var RequiredFields = []string{TelemetrySdkLanguage, ServiceName, ServiceInstanceId, ServiceNamespace, GenAiEnvironment,
 	GenAiApplicationName}
 var GenAiRequiredFields = []string{GenAiSystem, GenAiOperationName, GenAiRequestModel}
 var DBRequiredFields = []string{DBSystem, DBOperation}
+var SUSEAIDBRequiredFields = []string{ServiceName, ServiceNamespace}
 
 func Sync(conf *config.Configuration) (*receiver.Factory, error) {
 	factory := receiver.NewFactory(Source, Source, conf.Kubernetes.Cluster)
@@ -46,6 +49,11 @@ func Sync(conf *config.Configuration) (*receiver.Factory, error) {
 	}
 
 	err = dbMetrics2Topology(conf, client, factory)
+	if err != nil {
+		return nil, err
+	}
+
+	err = topologyFromMilvusMetrics(conf, client, factory)
 	if err != nil {
 		return nil, err
 	}
@@ -95,6 +103,25 @@ func dbMetrics2Topology(conf *config.Configuration, client *api.Client, factory 
 		}
 	}
 	return nil
+}
+
+func topologyFromMilvusMetrics(conf *config.Configuration, client *api.Client, factory *receiver.Factory) (err error) {
+	result, err := getMetricGroups(MilvusRuntimeInfoPromQl, client)
+	if err != nil {
+		return
+	}
+
+	if result != nil && len(*result) > 0 {
+		for _, r := range *result {
+			if err := validateRequiredFields(r.Labels, SUSEAIDBRequiredFields); err != nil {
+				slog.Error("failed to validate required fields", "error", err, "labels", r.Labels)
+				continue
+			}
+			appComp := mapSUSEAI(r.Labels, factory)
+			mapVectorSUSEAIDbSystem(appComp, r.Labels, factory)
+		}
+	}
+	return
 }
 
 func getMetricGroups(query string, client *api.Client) (*[]api.MetricResult, error) {
