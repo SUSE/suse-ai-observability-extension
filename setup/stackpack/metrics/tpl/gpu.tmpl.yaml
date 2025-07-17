@@ -164,3 +164,72 @@ nodes:
       componentSummary:
         weight: 2
     _type: MetricBinding
+
+  - id: -180
+    name: Average GPU Utilization
+    description: Share of time the GPU is busy running kernels.
+    queries:
+      - expression: avg_over_time(DCGM_FI_DEV_GPU_UTIL{ {{.Filter}} }[${__rate_interval}])
+        alias: GPU ${gpu}
+        primary: true
+    scope: {{.Scope}}
+    identifier: urn:stackpack:dcgm:shared:metric-binding:{{.Prefix}}-gpu-average-utilization
+    unit: percent 
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Utilization
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -190
+    name: GPU Memory Utilisation (%) 
+    description: Portion of on-board memory currently allocated.
+    queries:
+      - expression: 100 * (DCGM_FI_DEV_FB_USED{ {{.Filter}} }) / (DCGM_FI_DEV_FB_USED{ {{.Filter}} } + DCGM_FI_DEV_FB_FREE{ {{.Filter}} })
+        alias: GPU ${gpu}
+        primary: true
+    scope: {{.Scope}}
+    identifier: urn:stackpack:dcgm:shared:metric-binding:{{.Prefix}}-gpu-memory-utilization
+    unit: percent 
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Utilization
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -200
+    name: Average Power Draw 
+    description: Average GPU power consumption in watts.
+    queries:
+      - expression: avg_over_time(DCGM_FI_DEV_POWER_USAGE{ {{.Filter}} }[${__rate_interval}])
+        alias: GPU ${gpu}
+        primary: true
+    scope: {{.Scope}}
+    identifier: urn:stackpack:dcgm:shared:metric-binding:{{.Prefix}}-gpu-average-power-draw
+    unit: watt 
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Power 
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
