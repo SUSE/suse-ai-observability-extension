@@ -14,6 +14,7 @@ func mapSUSEAI(labels map[string]string, f *receiver.Factory) (c *receiver.Compo
 		c = f.MustNewComponent(id, labels[ServiceName], CTypeGenAiApp)
 		c.Data.Layer = "Services"
 		c.Data.Domain = "OpenTelemetry"
+		c.AddLabel("gen_vectordb_system")
 		c.AddLabelKey(toLabelKey(ServiceName), labels[ServiceName])
 		c.AddLabelKey(toLabelKey(ServiceNamespace), labels[ServiceNamespace])
 		c.AddProperty("namespaceIdentifier", UrnServiceNamespace(labels[ServiceNamespace]))
