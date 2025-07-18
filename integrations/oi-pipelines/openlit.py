@@ -21,7 +21,7 @@ class Pipeline:
             description="Endpoint for OTEL Collector"
         )
         OTEL_SERVICE_NAME: str = Field(
-            default="Open WebUI",
+            default="OI Chat",
             description="Sets service.name resource attribute for OpenTelemetry"
         )
         OLLAMA_ENDPOINT: str = Field(
@@ -40,7 +40,7 @@ class Pipeline:
         pass
 
     def __init__(self):
-        self.name = "Instrumentation"
+        self.name = "Instrumented"
         self.valves = self.Valves()
         pass
 
