@@ -6,6 +6,7 @@ nodes:
       columns:
         - _type: ViewTypeTableColHealth
         - title: Node
+          width: 140
           _type: ViewTypeTableColName
         - title: Status
           path:
@@ -13,26 +14,54 @@ nodes:
             - status
           width: 100
           _type: ViewTypeTableColText
-        - title: GPU count
+        - title: GPUs
           labelPrefix: nvidia.com/gpu.count
           pathToIdentifier:
             - properties
             - internalIP
-          width: 120
+          width: 110
           _type: ViewTypeTableColComponentLink
-        - title: GPU product
+        - title: Model
           labelPrefix: nvidia.com/gpu.product
           pathToIdentifier:
             - properties
             - internalIP
-          width: 160
+          width: 140
           _type: ViewTypeTableColComponentLink
-        - title: GPU Family
+        - title: Family
           labelPrefix: nvidia.com/gpu.family
           pathToIdentifier:
             - properties
             - internalIP
-          width: 160
+          width: 100
+          _type: ViewTypeTableColComponentLink
+        - title: Node OS
+          labelPrefix: feature.node.kubernetes.io/system-os_release.ID
+          pathToIdentifier:
+            - properties
+            - internalIP
+          width: 130
+          _type: ViewTypeTableColComponentLink
+        - title: OS Version
+          labelPrefix: feature.node.kubernetes.io/system-os_release.VERSION_ID
+          pathToIdentifier:
+            - properties
+            - internalIP
+          width: 140
+          _type: ViewTypeTableColComponentLink
+        - title: CUDA Version
+          labelPrefix: nvidia.com/cuda.runtime-version.full
+          pathToIdentifier:
+            - properties
+            - internalIP
+          width: 140
+          _type: ViewTypeTableColComponentLink
+        - title: Driver Version
+          labelPrefix: nvidia.com/cuda.driver-version.full
+          pathToIdentifier:
+            - properties
+            - internalIP
+          width: 140
           _type: ViewTypeTableColComponentLink
         - title: GPU Memory
           labelPrefix: nvidia.com/gpu.memory
@@ -54,7 +83,7 @@ nodes:
           pathToIdentifier:
             - properties
             - clusterNameIdentifier
-          width: 200
+          width: 150
           _type: ViewTypeTableColComponentLink
       _type: ViewTypeOverview
     flags:
