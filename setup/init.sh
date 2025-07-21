@@ -37,8 +37,12 @@ if [ "${AUTOSYNC_AVAILABLE:-}" != "true" ]; then
     echo "Uploading autosync stackpack..."
     sts stackpack upload --file /mnt/autosync-3.2.1-stac-0-bump-1037-203fef5-SNAPSHOT.sts --url "$STACKSTATE_API_URL" --"$STACKSTATE_TOKEN_TYPE"-token "$STACKSTATE_TOKEN"
 fi
-echo "Installing autosync stackpack..."
-sts stackpack install -n autosync -p sts_instance_type=openlit -p sts_instance_url="$KUBERNETES_CLUSTER" --url "$STACKSTATE_API_URL" --"$STACKSTATE_TOKEN_TYPE"-token "$STACKSTATE_TOKEN"
+echo "Ensuring autosync stackpack is installed..."
+AUTOSYNC_INSTALLED=$(sts stackpack list-instances --name autosync -o json --url "$STACKSTATE_API_URL" --"$STACKSTATE_TOKEN_TYPE"-token "$STACKSTATE_TOKEN" | jq '.instances | any(.config.sts_instance_type == "openlit")')
+if [ "${AUTOSYNC_INSTALLED:-}" != "true" ]; then
+    echo "Installing autosync stackpack..."
+    sts stackpack install -n autosync -p sts_instance_type=openlit -p sts_instance_url="$KUBERNETES_CLUSTER" --url "$STACKSTATE_API_URL" --"$STACKSTATE_TOKEN_TYPE"-token "$STACKSTATE_TOKEN"
+fi
 echo "Ensuring open-telemetry stackpack is installed..."
 OTEL_AVAILABLE=$(sts stackpack list-instances --name open-telemetry -o json --url "$STACKSTATE_API_URL" --"$STACKSTATE_TOKEN_TYPE"-token "$STACKSTATE_TOKEN" | jq '.instances | length != 0')
 if [ "${OTEL_AVAILABLE:-}" != "true" ]; then
