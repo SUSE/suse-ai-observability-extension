@@ -5,7 +5,6 @@ date: 2025-05-30
 version: 1.0
 license: Apache 2.0
 description: A pipeline for monitoring Open WebUI inside SUSE AI
-requirements:  opentelemetry-distro[otlp]==0.54b1
 """
 
 from typing import Optional, List
@@ -199,8 +198,6 @@ class Pipeline:
             metadata["chat_id"] = chat_id
             body["metadata"] = metadata
 
-        user_email = user.get("email", "undefined")
-
         provider = "unknown"
         try:
             provider = body["metadata"]["model"]["owned_by"]
@@ -233,7 +230,6 @@ class Pipeline:
             if self.capture_messages():
                 message = get_last_user_message(body["messages"])
                 span.add_event(SemanticConvention.GEN_AI_USER_MESSAGE, attributes={SemanticConvention.GEN_AI_SYSTEM: provider, SemanticConvention.CONTENT: message})
-                # SUSE Observability doesn't show the events.
                 span.set_attribute(SemanticConvention.GEN_AI_USER_MESSAGE, message)
             span.set_status(Status(StatusCode.OK))
         return body
@@ -246,7 +242,6 @@ class Pipeline:
         info = assistant_message_obj.get("usage", {})
         input_tokens = info.get("prompt_eval_count") or info.get("prompt_tokens")
         output_tokens = info.get("eval_count") or info.get("completion_tokens")
-        #reasoning_tokens = info.get("completion_tokens_details", {}).get("reasoning_tokens", 0) TODO Verify where's the error!
         total_tokens = input_tokens + output_tokens
         if parent := self.chats.get(chat_id, None):
             provider = self.chat_model_provider.get((chat_id, model), "default")
@@ -297,7 +292,6 @@ class Pipeline:
         self.metrics["genai_usage_tokens_total"].add(total_tokens, metrics_attributes)
         self.metrics["genai_server_tbt"].record(1/info.get("response_token/s") , metrics_attributes)
         self.metrics["genai_server_ttft"].record(info.get("load_duration") , metrics_attributes)
-        # self.metrics["genai_reasoning_tokens"].add(reasoning_tokens, metrics_attributes)
         return body
 
     def log(self, message: str):
@@ -332,7 +326,6 @@ def create_metrics_attributes(
     request_model: str,
     response_model: str,
     app_name: str,
-    # user: str,
 ):
     """
     Returns OTel metrics attributes
@@ -348,9 +341,9 @@ def create_metrics_attributes(
         SemanticConvention.GEN_AI_RESPONSE_MODEL: response_model,
         SemanticConvention.GEN_AI_ENVIRONMENT: "default",
         SemanticConvention.GEN_AI_APPLICATION_NAME: app_name,
-        #SemanticConvention.GEN_AI_REQUEST_USER: user,
     }
 
+# Credits to OpenLIT SDK
 class SemanticConvention:
     """
     The SemanticConvention class provides a centralized repository of constant values that

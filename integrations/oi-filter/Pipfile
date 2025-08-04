@@ -1,0 +1,13 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+opentelemetry-distro = {extras = ["otlp"], version = "==0.54b1"}
+python-lsp-server = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.13"
