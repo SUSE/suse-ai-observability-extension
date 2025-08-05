@@ -3,12 +3,12 @@
 # Declare variables to be passed into your templates.
 
 # Endpoints
-ollamaEndpoint: 'http://ollama.suse-ai.svc.cluster.local:11434'
+ollamaEndpoint: 'http://ollama.suse-private-ai.svc.cluster.local:11434'
 otlpEndpoint: 'http://opentelemetry-collector.observability.svc.cluster.local:4318'
 collectGpuStats: 'false'
 model: "llama3.2:3b"
 
-schedule: '*/5 * * * *'
+schedule: '* * * * *'
 
     
 # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
