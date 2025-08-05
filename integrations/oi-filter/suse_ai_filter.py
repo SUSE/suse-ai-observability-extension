@@ -29,7 +29,8 @@ from opentelemetry.sdk.metrics.export import (
     PeriodicExportingMetricReader,
 )
 
-LOCAL_SDK_NAME = "openlit"
+class UndefinedPriceError(Exception):
+    pass
 
 class Pipeline:
     class Valves(BaseModel):
@@ -39,8 +40,8 @@ class Pipeline:
         otlp_endpoint: str = "http://opentelemetry-collector.observability.svc.cluster.local:4318"
         capture_message_content: bool = True
         debug_log_enabled: bool = True
-        group_chat_messages: bool = False
-        pricing_information: str = "https://raw.githubusercontent.com/thbertoldi/oi-openlit/refs/heads/main/pricing.json"
+        pricing_information: str = "https://raw.githubusercontent.com/SUSE/suse-ai-observability-extension/refs/heads/main/integrations/oi-filter/pricing.json"
+        local_sdk_name: str = "openlit"
 
     def __init__(self):
         self.type = "filter"
@@ -62,7 +63,9 @@ class Pipeline:
         try:
             cost = ((prompt / 1000) * self.cost_estimation['chat'][model]['promptPrice']) + \
                 ((completion / 1000) * self.cost_estimation['chat'][model]['completionPrice'])
-        except:
+        except KeyError:
+            raise UndefinedPriceError
+        except Exception:
             cost = 0
         return cost
 
@@ -74,7 +77,7 @@ class Pipeline:
             ResourceAttributes.SERVICE_NAME: self.valves.otlp_service_name,
             ResourceAttributes.SERVICE_VERSION: "1.0",
             ResourceAttributes.DEPLOYMENT_ENVIRONMENT: "default",
-            ResourceAttributes.TELEMETRY_SDK_NAME: LOCAL_SDK_NAME}
+            ResourceAttributes.TELEMETRY_SDK_NAME: self.valves.local_sdk_name}
         )
         self._setup_meter(resource)
         self._setup_tracer(resource)
@@ -115,25 +118,6 @@ class Pipeline:
                 unit="s",
                 explicit_bucket_boundaries_advisory=_GEN_AI_CLIENT_OPERATION_DURATION_BUCKETS,
             ),
-            "genai_server_tbt": self.meter.create_histogram(
-                name=SemanticConvention.GEN_AI_SERVER_TBT,
-                description="Time per output token generated after the first token for successful responses",
-                unit="s",
-                explicit_bucket_boundaries_advisory=_GEN_AI_SERVER_TBT,
-            ),
-            "genai_server_ttft": self.meter.create_histogram(
-                name=SemanticConvention.GEN_AI_SERVER_TTFT,
-                description="Time to generate first token for successful responses",
-                unit="s",
-                explicit_bucket_boundaries_advisory=_GEN_AI_SERVER_TFTT,
-            ),
-            "db_client_operation_duration": self.meter.create_histogram(
-                name=SemanticConvention.DB_CLIENT_OPERATION_DURATION,
-                description="DB operation duration",
-                unit="s",
-                explicit_bucket_boundaries_advisory=_DB_CLIENT_OPERATION_DURATION_BUCKETS,
-            ),
-
             # Extra
             "genai_requests": self.meter.create_counter(
                 name=SemanticConvention.GEN_AI_REQUESTS,
@@ -150,11 +134,6 @@ class Pipeline:
                 description="Number of completion tokens processed.",
                 unit="1",
             ),
-            "genai_reasoning_tokens": self.meter.create_counter(
-                name=SemanticConvention.GEN_AI_USAGE_REASONING_TOKENS,
-                description="Number of reasoning thought tokens processed.",
-                unit="1",
-            ),
             "genai_usage_tokens_total": self.meter.create_counter(
                 name="gen_ai_usage_tokens_total",
                 description="Number of tokens processed.",
@@ -164,11 +143,6 @@ class Pipeline:
                 name=SemanticConvention.GEN_AI_USAGE_COST,
                 description="The distribution of GenAI request costs.",
                 unit="USD",
-            ),
-            "db_requests": self.meter.create_counter(
-                name=SemanticConvention.DB_REQUESTS,
-                description="Number of requests to VectorDBs",
-                unit="1",
             ),
         }
 
@@ -206,7 +180,7 @@ class Pipeline:
 
         model = body.get("model", "default")
         parent = self.chats.get(chat_id, None)
-        if parent is None or not self.valves.group_chat_messages:
+        if parent is None:
             parent = self.tracer.start_span(f"{chat_id}")
         self.chats[chat_id] = parent
         self.chat_model_provider[(chat_id, model)] = provider
@@ -223,7 +197,7 @@ class Pipeline:
             # Matching demo
             span.set_attribute("gen_ai.environment", "default")
             span.set_attribute("gen_ai.request.is_stream", body.get("stream"))
-            span.set_attribute("telemetry.sdk.name", LOCAL_SDK_NAME)
+            span.set_attribute("telemetry.sdk.name", self.valves.local_sdk_name)
             span.set_attribute("gen_ai.application_name", self.valves.otlp_service_name)
             span.set_attribute("gen_ai.endpoint", f"{provider}.chat")
 
@@ -255,29 +229,35 @@ class Pipeline:
                 span.set_attribute("gen_ai.endpoint", f"{provider}.chat")
                 span.set_attribute("gen_ai.environment", "default")
                 span.set_attribute("gen_ai.request.model", model)
-                span.set_attribute("gen_ai.usage.cost", self.get_chat_model_cost(model, input_tokens, output_tokens))
+                cost = 0
+                try:
+                    cost = self.get_chat_model_cost(model, input_tokens, output_tokens)
+                except UndefinedPriceError:
+                    self.log(f"Undefined price for model {model}")
+                span.set_attribute("gen_ai.usage.cost", cost)
                 span.set_attribute("gen_ai.usage.input_tokens", input_tokens)
                 span.set_attribute("gen_ai.usage.output_tokens", output_tokens)
                 span.set_attribute("gen_ai.usage.total_tokens", total_tokens)
-                span.set_attribute("telemetry.sdk.name", LOCAL_SDK_NAME)
+                span.set_attribute("telemetry.sdk.name", self.valves.local_sdk_name)
                 if self.capture_messages():
                     message = get_last_assistant_message(body["messages"])
                     span.add_event(SemanticConvention.GEN_AI_CONTENT_PROMPT, attributes={"gen_ai.generation": f"user: {message}"})
                     span.set_attribute(SemanticConvention.GEN_AI_ASSISTANT_MESSAGE, message)
                 span.set_status(Status(StatusCode.OK))
             parent.set_status(Status(StatusCode.OK))
-            if not self.valves.group_chat_messages:
-                parent.end()
-        else:
-            parent.set_status(Status(StatusCode.ERROR))
             parent.end()
+            self.chats.pop(chat_id, None)
+            for key in [k for k in self.chat_model_provider if k[0] == chat_id]:
+                self.chat_model_provider.pop(key, None)
+        else:
+            self.log("No parent span")
             return body
 
         metrics_attributes = create_metrics_attributes(
             service_name=self.valves.otlp_service_name,
             deployment_environment="default",
             operation=SemanticConvention.GEN_AI_OPERATION_TYPE_CHAT,
-            system=SemanticConvention.GEN_AI_SYSTEM_OLLAMA,
+            system=provider,
             request_model=model,
             response_model=model,
             app_name=self.valves.otlp_service_name,
@@ -288,10 +268,13 @@ class Pipeline:
         self.metrics["genai_requests"].add(1, metrics_attributes)
         self.metrics["genai_completion_tokens"].add(output_tokens, metrics_attributes)
         self.metrics["genai_prompt_tokens"].add(input_tokens, metrics_attributes)
-        self.metrics["genai_cost"].record(self.get_chat_model_cost(model, input_tokens, output_tokens), metrics_attributes)
+        cost = 0
+        try:
+            cost = self.get_chat_model_cost(model, input_tokens, output_tokens)
+        except UndefinedPriceError:
+            self.log(f"Undefined price for model {model}")
+        self.metrics["genai_cost"].record(cost, metrics_attributes)
         self.metrics["genai_usage_tokens_total"].add(total_tokens, metrics_attributes)
-        self.metrics["genai_server_tbt"].record(1/info.get("response_token/s") , metrics_attributes)
-        self.metrics["genai_server_ttft"].record(info.get("load_duration") , metrics_attributes)
         return body
 
     def log(self, message: str):
@@ -328,7 +311,7 @@ def create_metrics_attributes(
     app_name: str,
 ):
     """
-    Returns OTel metrics attributes
+    Returns OTel metrics attributes.
     """
 
     return {
@@ -651,18 +634,6 @@ class SemanticConvention:
     EVAL_CLASSIFICATION = "evals.classification"
     EVAL_VALIDATOR = "evals.validator"
     EVAL_EXPLANATION = "evals.explanation"
-
-_DB_CLIENT_OPERATION_DURATION_BUCKETS = [
-    0.001,
-    0.005,
-    0.01,
-    0.05,
-    0.1,
-    0.5,
-    1,
-    5,
-    10
-]
 
 _GEN_AI_CLIENT_OPERATION_DURATION_BUCKETS = [
     0.01,
