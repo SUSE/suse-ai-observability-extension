@@ -38,7 +38,7 @@ class Pipeline:
         pipelines: List[str] = []
         priority: int = 0
         otlp_service_name: str = os.getenv("OTEL_SERVICE_NAME", "Open WebUI")
-        otlp_endpoint: str = os.getenv("OTEL_ENDPOINT", "http://opentelemetry-collector.observability.svc.cluster.local:4318")
+        otlp_endpoint: str = os.getenv("OTEL_EXPORTER_HTTP_OTLP_ENDPOINT", "http://opentelemetry-collector.observability.svc.cluster.local:4318")
         capture_message_content: bool = True
         debug_log_enabled: bool = False
         pricing_information: str = os.getenv("PRICING_JSON", "https://raw.githubusercontent.com/SUSE/suse-ai-observability-extension/refs/heads/main/integrations/oi-filter/pricing.json")
