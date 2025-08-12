@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 import urllib.request
 import json
+import os
 import uuid
 
 from utils.pipelines.main import get_last_user_message, get_last_assistant_message
@@ -36,12 +37,11 @@ class Pipeline:
     class Valves(BaseModel):
         pipelines: List[str] = []
         priority: int = 0
-        otlp_service_name: str = "Open WebUI"
-        otlp_endpoint: str = "http://opentelemetry-collector.observability.svc.cluster.local:4318"
+        otlp_service_name: str = os.getenv("OTEL_SERVICE_NAME", "Open WebUI")
+        otlp_endpoint: str = os.getenv("OTEL_EXPORTER_HTTP_OTLP_ENDPOINT", "http://opentelemetry-collector.observability.svc.cluster.local:4318")
         capture_message_content: bool = True
-        debug_log_enabled: bool = True
-        pricing_information: str = "https://raw.githubusercontent.com/SUSE/suse-ai-observability-extension/refs/heads/main/integrations/oi-filter/pricing.json"
-        local_sdk_name: str = "openlit"
+        debug_log_enabled: bool = False
+        pricing_information: str = os.getenv("PRICING_JSON", "https://raw.githubusercontent.com/SUSE/suse-ai-observability-extension/refs/heads/main/integrations/oi-filter/pricing.json")
 
     def __init__(self):
         self.type = "filter"
@@ -58,6 +58,7 @@ class Pipeline:
         self.chat_model_provider = {}
         self.metrics = {}
         self.cost_estimation = fetch_json_from_url_stdlib(self.valves.pricing_information)
+        self.local_sdk_name = "openlit"
 
     def get_chat_model_cost(self, model, prompt, completion):
         try:
@@ -77,7 +78,7 @@ class Pipeline:
             ResourceAttributes.SERVICE_NAME: self.valves.otlp_service_name,
             ResourceAttributes.SERVICE_VERSION: "1.0",
             ResourceAttributes.DEPLOYMENT_ENVIRONMENT: "default",
-            ResourceAttributes.TELEMETRY_SDK_NAME: self.valves.local_sdk_name}
+            ResourceAttributes.TELEMETRY_SDK_NAME: self.local_sdk_name}
         )
         self._setup_meter(resource)
         self._setup_tracer(resource)
@@ -197,7 +198,7 @@ class Pipeline:
             # Matching demo
             span.set_attribute("gen_ai.environment", "default")
             span.set_attribute("gen_ai.request.is_stream", body.get("stream"))
-            span.set_attribute("telemetry.sdk.name", self.valves.local_sdk_name)
+            span.set_attribute("telemetry.sdk.name", self.local_sdk_name)
             span.set_attribute("gen_ai.application_name", self.valves.otlp_service_name)
             span.set_attribute("gen_ai.endpoint", f"{provider}.chat")
 
@@ -238,7 +239,7 @@ class Pipeline:
                 span.set_attribute("gen_ai.usage.input_tokens", input_tokens)
                 span.set_attribute("gen_ai.usage.output_tokens", output_tokens)
                 span.set_attribute("gen_ai.usage.total_tokens", total_tokens)
-                span.set_attribute("telemetry.sdk.name", self.valves.local_sdk_name)
+                span.set_attribute("telemetry.sdk.name", self.local_sdk_name)
                 if self.capture_messages():
                     message = get_last_assistant_message(body["messages"])
                     span.add_event(SemanticConvention.GEN_AI_CONTENT_PROMPT, attributes={"gen_ai.generation": f"user: {message}"})
