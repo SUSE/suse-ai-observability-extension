@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 import urllib.request
 import json
+import os
 import uuid
 
 from utils.pipelines.main import get_last_user_message, get_last_assistant_message
@@ -36,11 +37,11 @@ class Pipeline:
     class Valves(BaseModel):
         pipelines: List[str] = []
         priority: int = 0
-        otlp_service_name: str = "Open WebUI"
-        otlp_endpoint: str = "http://opentelemetry-collector.observability.svc.cluster.local:4318"
+        otlp_service_name: str = os.getenv("OTEL_SERVICE_NAME", "Open WebUI")
+        otlp_endpoint: str = os.getenv("OTEL_ENDPOINT", "http://opentelemetry-collector.observability.svc.cluster.local:4318")
         capture_message_content: bool = True
         debug_log_enabled: bool = True
-        pricing_information: str = "https://raw.githubusercontent.com/SUSE/suse-ai-observability-extension/refs/heads/main/integrations/oi-filter/pricing.json"
+        pricing_information: str = os.getenv("PRICING_JSON", "https://raw.githubusercontent.com/SUSE/suse-ai-observability-extension/refs/heads/main/integrations/oi-filter/pricing.json")
         local_sdk_name: str = "openlit"
 
     def __init__(self):
