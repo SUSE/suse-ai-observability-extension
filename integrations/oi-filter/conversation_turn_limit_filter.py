@@ -18,7 +18,6 @@ class Pipeline:
 
         # Valves for conversation turn limiting
         target_user_roles: List[str] = os.getenv("TARGET_USER_ROLES", "admin").split(",")
-        max_turns: Optional[int] = os.getenv("MAX_TURNS","5")
 
     def __init__(self):
         # Pipeline filters are only compatible with Open WebUI
