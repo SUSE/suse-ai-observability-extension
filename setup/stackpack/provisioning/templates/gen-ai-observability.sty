@@ -1,0 +1,19 @@
+version: "0.1"
+timestamp: "2025-08-25T10:00:00Z"
+nodes:
+{{ include "./templates/main-menu.sty" "yaml" }}
+
+{{ include "./templates/component-types.sty" "yaml" }}
+
+
+{{ include "./templates/metric-bindings-db-systems.sty" "yaml" }}
+{{ include "./templates/metric-bindings-genai-apps.sty" "yaml" }}
+{{ include "./templates/metric-bindings-genai-systems.sty" "yaml" }}
+{{ include "./templates/metric-bindings-gpu-nodes.sty" "yaml" }}
+{{ include "./templates/metric-bindings-gpu-pods.sty" "yaml" }}
+
+
+
+{{ include "./templates/view-types.sty" "yaml" }}
+
+{{ include "./templates/views.sty" "yaml" }}

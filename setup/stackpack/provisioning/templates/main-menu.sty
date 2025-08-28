@@ -1,0 +1,16 @@
+  - _type: MainMenuGroup
+    defaultOpen: true
+    iconbase64: "{{ include "./icons-svg/suse-ai.svg" "base64" }}"
+    identifier: urn:stackpack:genai-observability:shared:main-menu-group:genai
+    items:
+      - _type: MainMenuViewItem
+        viewIdentifier: urn:stackpack:genai-observability:shared:query-view:genai-components
+      - _type: MainMenuViewItem
+        viewIdentifier: urn:stackpack:genai-observability:shared:query-view:genai-apps
+      - _type: MainMenuViewItem
+        viewIdentifier: urn:stackpack:genai-observability:shared:query-view:genai-systems
+      - _type: MainMenuViewItem
+        viewIdentifier: urn:stackpack:genai-observability:shared:query-view:vector-databases
+      - _type: MainMenuViewItem
+        viewIdentifier: urn:stackpack:genai-observability:shared:query-view:gpu-nodes
+    name: GenAI Observability
