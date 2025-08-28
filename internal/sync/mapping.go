@@ -85,13 +85,33 @@ func mapVectorSUSEAIDbSystem(appComp *receiver.Component, labels map[string]stri
 	return c
 }
 
+func mapVectorSUSEAIGenAISystem(appComp *receiver.Component, labels map[string]string, f *receiver.Factory) *receiver.Component {
+	serviceName := labels[ServiceName]
+	id := UrnGenAiSystem(serviceName)
+	var c *receiver.Component
+	if f.ComponentExists(id) {
+		c = f.MustGetComponent(id)
+	} else {
+		c = f.MustNewComponent(id, serviceName, "genai.system.vllm")
+		c.Data.Layer = "GenAiSystems"
+		c.Data.Domain = Domain
+		c.AddLabel("gen_ai_system")
+		c.AddLabelKey(toLabelKey(ServiceNamespace), labels[ServiceNamespace])
+		c.AddProperty("identifier", id)
+	}
+	if !f.RelationExists(appComp.ID, c.ID) {
+		f.MustNewRelation(appComp.ID, c.ID, "is")
+	}
+	return c
+}
+
 func mapVectorDbSystem(appComp *receiver.Component, labels map[string]string, f *receiver.Factory) *receiver.Component {
 	id := UrnVectorDbSystem(labels[DBSystem])
 	var c *receiver.Component
 	if f.ComponentExists(id) {
 		c = f.MustGetComponent(id)
 	} else {
-		c = f.MustNewComponent(id, labels[DBSystem], fmt.Sprintf("genai.dbsystem.%s", strings.ToLower(labels[DBSystem])))
+		c = f.MustNewComponent(id, labels[DBSystem], "genai.dbsystem.milvus")
 		c.Data.Layer = "GenAiSystems"
 		c.Data.Domain = Domain
 		c.AddLabel("gen_vectordb_system")
