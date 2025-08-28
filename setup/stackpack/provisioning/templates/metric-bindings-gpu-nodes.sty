@@ -1,0 +1,234 @@
+  - _type: MetricBinding
+    name: GPU Temperature Average
+    queries:
+      - expression: avg(DCGM_FI_DEV_GPU_TEMP{ k8s_node_name="${name}" })
+        alias: Temperature
+        primary: true
+    scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+    identifier: urn:stackpack:genai-observability:shared:metric-binding:node-gpu-avg-temp
+    unit: celsius
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Temperature
+      componentSummary:
+        weight: 3
+
+
+  - _type: MetricBinding
+    name: GPU Power Total
+    queries:
+      - expression: sum(DCGM_FI_DEV_POWER_USAGE{ k8s_node_name="${name}" })
+        alias: Power
+        primary: true
+    scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+    identifier: urn:stackpack:genai-observability:shared:metric-binding:node-gpu-power-total
+    unit: kwatt
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Power
+      componentSummary:
+        weight: 3
+
+
+  - _type: MetricBinding
+    name: GPU Temperature
+    queries:
+      - expression: DCGM_FI_DEV_GPU_TEMP{ k8s_node_name="${name}" }
+        alias: GPU ${gpu}
+        primary: true
+    scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+    identifier: urn:stackpack:genai-observability:shared:metric-binding:node-gpu-temperature
+    unit: kwatt
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Temperature
+      componentSummary:
+        weight: 3
+
+
+  - _type: MetricBinding
+    name: GPU Power Usage
+    queries:
+      - expression: DCGM_FI_DEV_POWER_USAGE{ k8s_node_name="${name}" }
+        alias: GPU ${gpu}
+        primary: true
+    scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+    identifier: urn:stackpack:genai-observability:shared:metric-binding:node-gpu-power-usage
+    unit: kwatt
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Power
+      componentSummary:
+        weight: 3
+
+
+  - _type: MetricBinding
+    name: GPU SM Clocks
+    queries:
+      - expression: DCGM_FI_DEV_SM_CLOCK{ k8s_node_name="${name}" } * 1000000
+        alias: GPU ${gpu}
+        primary: true
+    scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+    identifier: urn:stackpack:genai-observability:shared:metric-binding:node-gpu-sm-clocks
+    unit: hertz
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Utilization
+      componentSummary:
+        weight: 2
+
+
+  - _type: MetricBinding
+    name: GPU Utilization
+    queries:
+      - expression: DCGM_FI_DEV_GPU_UTIL{ k8s_node_name="${name}" }
+        alias: GPU ${gpu}
+        primary: true
+    scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+    identifier: urn:stackpack:genai-observability:shared:metric-binding:node-gpu-utilization
+    unit: percent
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Utilization
+      componentSummary:
+        weight: 2
+
+
+  - _type: MetricBinding
+    name: Tensor Core Utilization
+    queries:
+      - expression: DCGM_FI_PROF_PIPE_TENSOR_ACTIVE{ k8s_node_name="${name}" }
+        alias: GPU ${gpu}
+        primary: true
+    scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+    identifier: urn:stackpack:genai-observability:shared:metric-binding:node-gpu-tensor-core-utilization
+    unit: percent
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Utilization
+      componentSummary:
+        weight: 2
+
+
+  - _type: MetricBinding
+    name: GPU Framebuffer Mem Used
+    queries:
+      - expression: DCGM_FI_DEV_FB_USED{ k8s_node_name="${name}" }
+        alias: GPU ${gpu}
+        primary: true
+    scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+    identifier: urn:stackpack:genai-observability:shared:metric-binding:node-gpu-framebuffer-mem-used
+    unit: bytes
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Utilization
+      componentSummary:
+        weight: 2
+
+
+  - _type: MetricBinding
+    name: Average GPU Utilization
+    description: Share of time the GPU is busy running kernels.
+    queries:
+      - expression: avg_over_time(DCGM_FI_DEV_GPU_UTIL{ k8s_node_name="${name}" }[${__rate_interval}])
+        alias: GPU ${gpu}
+        primary: true
+    scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+    identifier: urn:stackpack:genai-observability:shared:metric-binding:node-gpu-average-utilization
+    unit: percent 
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Utilization
+      componentSummary:
+        weight: 3
+
+
+  - _type: MetricBinding
+    name: GPU Memory Utilisation (%) 
+    description: Portion of on-board memory currently allocated.
+    queries:
+      - expression: 100 * (DCGM_FI_DEV_FB_USED{ k8s_node_name="${name}" }) / (DCGM_FI_DEV_FB_USED{ k8s_node_name="${name}" } + DCGM_FI_DEV_FB_FREE{ k8s_node_name="${name}" })
+        alias: GPU ${gpu}
+        primary: true
+    scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+    identifier: urn:stackpack:genai-observability:shared:metric-binding:node-gpu-memory-utilization
+    unit: percent 
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Utilization
+      componentSummary:
+        weight: 3
+
+
+  - _type: MetricBinding
+    name: Average Power Draw 
+    description: Average GPU power consumption in watts.
+    queries:
+      - expression: avg_over_time(DCGM_FI_DEV_POWER_USAGE{ k8s_node_name="${name}" }[${__rate_interval}])
+        alias: GPU ${gpu}
+        primary: true
+    scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+    identifier: urn:stackpack:genai-observability:shared:metric-binding:node-gpu-average-power-draw
+    unit: watt 
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Power 
+      componentSummary:
+        weight: 3
+
