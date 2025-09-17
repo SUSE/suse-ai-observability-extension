@@ -47,7 +47,7 @@ nodes:
 
       Check your OTEL collector logs to see if data is still being sent to SUSE Observability server.
     status: ENABLED
-    tags: [ ]
+    tags: []
   - _type: Monitor
     arguments:
       comparator: LTE
@@ -71,7 +71,7 @@ nodes:
 
       Check your OTEL collector logs to see if data is still being sent to SUSE Observability server.
     status: ENABLED
-    tags: [ ]
+    tags: []
   - _type: Monitor
     arguments:
       comparator: LTE
@@ -95,7 +95,7 @@ nodes:
 
       Check your OTEL collector logs to see if data is still being sent to SUSE Observability server.
     status: ENABLED
-    tags: [ ]
+    tags: []
   - _type: Monitor
     arguments:
       comparator: LT
@@ -119,4 +119,31 @@ nodes:
 
       Check your OTEL collector logs to see if data is still being sent to SUSE Observability server.
     status: ENABLED
-    tags: [ ]
+    tags: []
+  - _type: Monitor
+    arguments:
+      threshold: 1.0
+      comparator: GTE
+      failureState: "CRITICAL"
+      metric:
+        aliasTemplate: XID Error ${err_code}
+        query: max by (err_code, err_msg, service_name, app, service_namespace, k8s_cluster_name, k8s_node_name) (max_over_time(DCGM_FI_DEV_XID_ERRORS[5m]))
+        unit: short
+      titleTemplate: "NVIDIA XID Error ${err_code} - ${err_msg}"
+      urnTemplate: urn:host:/${k8s_node_name}-${k8s_cluster_name}
+    description: Indicates if a GPU Node is emitting an XID error for NVIDIA graphics cards
+    function: {{ get "urn:stackpack:common:monitor-function:threshold"  }}
+    id: -110
+    identifier: urn:custom:monitor:nvidia-xid-errors
+    intervalSeconds: 60
+    name: GPU Node NVIDIA XID Errors
+    remediationHint: |-
+      The GPU node is reporting an XID error from NVIDIA driver, indicating a general GPU error.
+      These errors can stem from various sources, including hardware problems, NVIDIA software issues, or user application problems.
+
+      ### General Remediation:
+      Many transient XID errors can be solved by simply rebooting the system or virtual machine instance. For more detailed
+      cases, check the documentation link below to find out about your specific error.
+      https://docs.nvidia.com/deploy/xid-errors/index.html
+    status: ENABLED
+    tags: []
