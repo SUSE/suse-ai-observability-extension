@@ -47,7 +47,7 @@ nodes:
 
       Check your OTEL collector logs to see if data is still being sent to SUSE Observability server.
     status: ENABLED
-    tags: [ ]
+    tags: []
   - _type: Monitor
     arguments:
       comparator: LTE
@@ -71,7 +71,7 @@ nodes:
 
       Check your OTEL collector logs to see if data is still being sent to SUSE Observability server.
     status: ENABLED
-    tags: [ ]
+    tags: []
   - _type: Monitor
     arguments:
       comparator: LTE
@@ -95,7 +95,7 @@ nodes:
 
       Check your OTEL collector logs to see if data is still being sent to SUSE Observability server.
     status: ENABLED
-    tags: [ ]
+    tags: []
   - _type: Monitor
     arguments:
       comparator: LT
@@ -119,7 +119,7 @@ nodes:
 
       Check your OTEL collector logs to see if data is still being sent to SUSE Observability server.
     status: ENABLED
-    tags: [ ]
+    tags: []
   - _type: Monitor
     arguments:
       threshold: 1.0
