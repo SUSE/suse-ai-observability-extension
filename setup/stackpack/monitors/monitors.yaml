@@ -127,10 +127,10 @@ nodes:
       failureState: "CRITICAL"
       metric:
         aliasTemplate: XID Error ${err_code}
-        query: max by (err_code, err_msg, service_name, app, service_namespace) (max_over_time(DCGM_FI_DEV_XID_ERRORS[5m]))
+        query: max by (err_code, err_msg, service_name, app, service_namespace, k8s_cluster_name, k8s_node_name) (max_over_time(DCGM_FI_DEV_XID_ERRORS[5m]))
         unit: short
       titleTemplate: "NVIDIA XID Error ${err_code} - ${err_msg}"
-      urnTemplate: urn:kubernetes:/${cluster_name}:node/${node}
+      urnTemplate: urn:host:/${k8s_node_name}-${k8s_cluster_name}
     description: Indicates if a GPU Node is emitting an XID error for NVIDIA graphics cards
     function: {{ get "urn:stackpack:common:monitor-function:threshold"  }}
     id: -110
