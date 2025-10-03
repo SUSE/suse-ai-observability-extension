@@ -17,6 +17,11 @@ type Configuration struct {
 	StackState stackstate.StackState `mapstructure:"stackstate" validate:"required"`
 	Instance   receiver.Instance     `mapstructure:"instance" validate:"required"`
 	Kubernetes Kubernetes            `mapstructure:"kubernetes" validate:"required"`
+	Preferences Preferences `mapsctructure:"preferences"`
+}
+
+type Preferences struct {
+	EnableOpenLIT bool
 }
 
 type Kubernetes struct {
@@ -41,7 +46,7 @@ func GetConfig() (*Configuration, error) {
 	v.SetDefault("stackstate.api_token", "")
 	v.SetDefault("stackstate.api_token_type", "api")
 	v.SetDefault("stackstate.legacy_api", false)
-	v.SetDefault("instance.type", "openlit")
+	v.SetDefault("instance.type", "suse-ai")
 	v.SetDefault("instance.url", "local")
 
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))

@@ -15,16 +15,13 @@ func main() {
 		slog.Error("failed to initialize", "error", err)
 		os.Exit(1)
 	}
-	var factory *receiver.Factory
-	factory, err = sync.Sync(conf)
 
-	if err != nil {
-		slog.Error("failed sync with kubernetes", "error", err)
-		os.Exit(1)
-	}
+	cIdFactory := new(identifier.ComponentIdentifierFactory)
+	cId, err := cIdFactory.Build(conf)
+	cId.Sync()
 
 	sts := receiver.NewClient(&conf.StackState, &conf.Instance)
-	err = sts.Send(factory)
+	err = sts.Send(cId.GetBuilder())
 	if err != nil {
 		slog.Error("failed to send", "error", err)
 		os.Exit(1)
