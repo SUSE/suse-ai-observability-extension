@@ -7,14 +7,14 @@ import (
 	"time"
 )
 
-type milvus struct{
-	promQL string
-	c *api.Client
+type milvus struct {
+	promQL  string
+	c       *api.Client
 	builder *receiver.Factory
 	semanticConventions
 }
 
-func NewMilvusWatcher(c *api.Client, builder *receiver.Factory) (*milvus) {
+func NewMilvusWatcher(c *api.Client, builder *receiver.Factory) *milvus {
 	m := new(milvus)
 	m.promQL = "milvus_runtime_info"
 	m.c = c
@@ -26,7 +26,13 @@ func NewMilvusWatcher(c *api.Client, builder *receiver.Factory) (*milvus) {
 
 func (m milvus) PerformComponentIdentification() (err error) {
 	metrics, err := m.checkMetrics()
-	for _, metric := range(*metrics) {
+	if err != nil {
+		return
+	}
+	if metrics == nil {
+		return
+	}
+	for _, metric := range *metrics {
 		_ = m.inferComponents(metric)
 		// TODO: retrieve and log error
 	}
@@ -81,7 +87,7 @@ func (m milvus) baseComponent(name, namespace string) (c *receiver.Component) {
 	return
 }
 
-func (m milvus) milvusComponent(name, namespace string) (c *receiver.Component){
+func (m milvus) milvusComponent(name, namespace string) (c *receiver.Component) {
 	id := m.semanticConventions.UrnVectorDbSystem(name)
 	if m.builder.ComponentExists(id) {
 		c = m.builder.MustGetComponent(id)

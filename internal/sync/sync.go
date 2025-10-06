@@ -1,21 +1,21 @@
 package identifier
 
 import (
-	"genai-observability/stackstate/api"
-	"genai-observability/stackstate/receiver"
 	"genai-observability/internal/config"
 	"genai-observability/internal/watcher"
+	"genai-observability/stackstate/api"
+	"genai-observability/stackstate/receiver"
 )
 
-type Watcher interface{
-	PerformComponentIdentification() (error)
+type Watcher interface {
+	PerformComponentIdentification() error
 }
 
-type componentIdentifier struct{
-	config *config.Configuration
-	client *api.Client
+type componentIdentifier struct {
+	config   *config.Configuration
+	client   *api.Client
 	watchers []Watcher
-	builder *receiver.Factory
+	builder  *receiver.Factory
 }
 
 func (c *componentIdentifier) registerWatcher(w Watcher) {
@@ -33,9 +33,8 @@ func (c ComponentIdentifierFactory) Build(conf *config.Configuration) (compId *c
 
 	compId.builder = receiver.NewFactory("openlit", "openlit", conf.Kubernetes.Cluster)
 
-
 	if conf.Preferences.EnableOpenLIT {
-		compId.registerWatcher(watcher.NewOpenLITWatcher(compId.client, compId.builder))
+		compId.registerWatcher(watcher.NewOpenLITWatcher(compId.client, compId.builder, conf.Kubernetes.QueryTimeInterval))
 	}
 	compId.registerWatcher(watcher.NewMilvusWatcher(compId.client, compId.builder))
 	compId.registerWatcher(watcher.NewVLLMWatcher(compId.client, compId.builder))
@@ -45,7 +44,7 @@ func (c ComponentIdentifierFactory) Build(conf *config.Configuration) (compId *c
 }
 
 func (c componentIdentifier) Sync() {
-	for _, w := range(c.watchers){
+	for _, w := range c.watchers {
 		w.PerformComponentIdentification() // TODO: make it async by adding a mutex to builder
 	}
 }

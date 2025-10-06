@@ -7,14 +7,14 @@ import (
 	"time"
 )
 
-type vllm struct{
-	promQL string
-	c *api.Client
+type vllm struct {
+	promQL  string
+	c       *api.Client
 	builder *receiver.Factory
 	semanticConventions
 }
 
-func NewVLLMWatcher(c *api.Client, builder *receiver.Factory) (*vllm) {
+func NewVLLMWatcher(c *api.Client, builder *receiver.Factory) *vllm {
 	v := new(vllm)
 	v.promQL = "vllm_healthy_pods_total"
 	v.c = c
@@ -26,7 +26,13 @@ func NewVLLMWatcher(c *api.Client, builder *receiver.Factory) (*vllm) {
 
 func (v vllm) PerformComponentIdentification() (err error) {
 	metrics, err := v.checkMetrics()
-	for _, metric := range(*metrics) {
+	if err != nil {
+		return
+	}
+	if metrics == nil {
+		return
+	}
+	for _, metric := range *metrics {
 		_ = v.inferComponents(metric)
 		// TODO: infer level2 components (aka models). I may need to change the promQL or do a second operation for this
 		// TODO: retrieve and log error
@@ -82,7 +88,7 @@ func (v vllm) baseComponent(name, namespace string) (c *receiver.Component) {
 	return
 }
 
-func (v vllm) vllmComponent(name, namespace string) (c *receiver.Component){
+func (v vllm) vllmComponent(name, namespace string) (c *receiver.Component) {
 	id := v.semanticConventions.UrnVectorDbSystem(name)
 	if v.builder.ComponentExists(id) {
 		c = v.builder.MustGetComponent(id)

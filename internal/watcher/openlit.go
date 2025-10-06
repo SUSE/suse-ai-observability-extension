@@ -2,27 +2,27 @@ package watcher
 
 import (
 	"errors"
+	"fmt"
 	"genai-observability/stackstate/api"
 	"genai-observability/stackstate/receiver"
-	"fmt"
-	"time"
 	"strings"
+	"time"
 )
 
 type openLIT struct {
 	requiredFieldsGenAI []string
-	requiredFieldsVDB []string
-	genAIPromQL string
-	vdbPromQL string
-	c *api.Client
-	builder *receiver.Factory
+	requiredFieldsVDB   []string
+	genAIPromQL         string
+	vdbPromQL           string
+	c                   *api.Client
+	builder             *receiver.Factory
 	semanticConventions
 }
 
-func NewOpenLITWatcher(c *api.Client, builder *receiver.Factory) (*openLIT) {
+func NewOpenLITWatcher(c *api.Client, builder *receiver.Factory, interval string) *openLIT {
 	olit := new(openLIT)
-	olit.genAIPromQL = "sum_over_time(gen_ai_requests_total{}[%s])"
-	olit.vdbPromQL = "sum_over_time(db_requests_total{}[%s])"
+	olit.genAIPromQL = fmt.Sprintf("sum_over_time(gen_ai_requests_total{}[%s])", interval)
+	olit.vdbPromQL = fmt.Sprintf("sum_over_time(db_requests_total{}[%s])", interval)
 	olit.c = c
 	olit.builder = builder
 	sc := NewSemanticConventions()
@@ -34,12 +34,20 @@ func NewOpenLITWatcher(c *api.Client, builder *receiver.Factory) (*openLIT) {
 
 func (o openLIT) PerformComponentIdentification() (err error) {
 	metrics, err := o.checkGenAIMetrics()
-	for _, metric := range(*metrics) {
-		_ = o.inferGenAIComponents(metric)
-		// TODO: retrieve and log error
+	if metrics != nil {
+		for _, metric := range *metrics {
+			_ = o.inferGenAIComponents(metric)
+			// TODO: retrieve and log error
+		}
 	}
 	metrics, err = o.checkVDBMetrics()
-	for _, metric := range(*metrics) {
+	if err != nil {
+		return
+	}
+	if metrics == nil {
+		return
+	}
+	for _, metric := range *metrics {
 		_ = o.inferVDBComponents(metric)
 		// TODO: retrieve and log error
 	}
