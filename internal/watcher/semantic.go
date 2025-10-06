@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-type semanticConventions struct{
+type semanticConventions struct {
 	Source               string
 	Domain               string
 	TelemetrySdkLanguage string
@@ -19,29 +19,29 @@ type semanticConventions struct{
 	GenAiApplicationName string
 	DBSystem             string
 	DBOperation          string
-	VLLMQuery string
-	CTypeGenAiApp string
-	CTypeOTELService string
+	VLLMQuery            string
+	CTypeGenAiApp        string
+	CTypeOTELService     string
 }
 
 func NewSemanticConventions() semanticConventions {
 	return semanticConventions{
-		Source               : "openlit",
-		Domain               : "Open Telemetry LLM",
-		TelemetrySdkLanguage : "telemetry_sdk_language",
-		GenAiRequestModel    : "gen_ai_request_model",
-		ServiceName          : "service_name",
-		ServiceInstanceId    : "service_instance_id",
-		GenAiOperationName   : "gen_ai_operation_name",
-		ServiceNamespace     : "service_namespace",
-		GenAiEnvironment     : "gen_ai_environment",
-		GenAiSystem          : "gen_ai_system",
-		GenAiApplicationName : "gen_ai_application_name",
-		DBSystem             : "db_system",
-		DBOperation          : "db_operation",
-		VLLMQuery : "vllm_healthy_pods_total",
-		CTypeGenAiApp : "genai.app",
-		CTypeOTELService : "otel service",
+		Source:               "openlit",
+		Domain:               "Open Telemetry LLM",
+		TelemetrySdkLanguage: "telemetry_sdk_language",
+		GenAiRequestModel:    "gen_ai_request_model",
+		ServiceName:          "service_name",
+		ServiceInstanceId:    "service_instance_id",
+		GenAiOperationName:   "gen_ai_operation_name",
+		ServiceNamespace:     "service_namespace",
+		GenAiEnvironment:     "gen_ai_environment",
+		GenAiSystem:          "gen_ai_system",
+		GenAiApplicationName: "gen_ai_application_name",
+		DBSystem:             "db_system",
+		DBOperation:          "db_operation",
+		VLLMQuery:            "vllm_healthy_pods_total",
+		CTypeGenAiApp:        "genai.app",
+		CTypeOTELService:     "otel service",
 	}
 }
 
@@ -80,7 +80,6 @@ func (s semanticConventions) UrnCluster(cluster string) string {
 func (s semanticConventions) DBSystemForGenAI(sys string) string {
 	return fmt.Sprintf("genai.dbsystem.%s", strings.ToLower(sys))
 }
-
 
 func toLabelKey(key string) string {
 	return strings.ReplaceAll(key, "_", ".")

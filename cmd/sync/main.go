@@ -1,9 +1,9 @@
 package main
 
 import (
-	"genai-observability/stackstate/receiver"
 	"genai-observability/internal/config"
 	"genai-observability/internal/sync"
+	"genai-observability/stackstate/receiver"
 	"log/slog"
 	"os"
 )
