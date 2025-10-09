@@ -10,6 +10,7 @@ type semanticConventions struct {
 	Domain               string
 	TelemetrySdkLanguage string
 	GenAiRequestModel    string
+	VLLMRequestModel     string
 	ServiceName          string
 	ServiceInstanceId    string
 	GenAiOperationName   string
@@ -30,6 +31,7 @@ func NewSemanticConventions() semanticConventions {
 		Domain:               "Open Telemetry LLM",
 		TelemetrySdkLanguage: "telemetry_sdk_language",
 		GenAiRequestModel:    "gen_ai_request_model",
+		VLLMRequestModel:     "model_name",
 		ServiceName:          "service_name",
 		ServiceInstanceId:    "service_instance_id",
 		GenAiOperationName:   "gen_ai_operation_name",

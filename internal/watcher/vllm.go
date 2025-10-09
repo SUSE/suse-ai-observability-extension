@@ -16,7 +16,7 @@ type vllm struct {
 
 func NewVLLMWatcher(c *api.Client, builder *receiver.Factory) *vllm {
 	v := new(vllm)
-	v.promQL = "vllm_healthy_pods_total"
+	v.promQL = "vllm_prompt_tokens_total"
 	v.c = c
 	v.builder = builder
 	sc := NewSemanticConventions()
@@ -34,61 +34,69 @@ func (v vllm) PerformComponentIdentification() (err error) {
 	}
 	for _, metric := range *metrics {
 		_ = v.inferComponents(metric)
-		// TODO: infer level2 components (aka models). I may need to change the promQL or do a second operation for this
 		// TODO: retrieve and log error
 	}
 	return
 }
 
 func (v vllm) inferComponents(metric api.MetricResult) (err error) {
-	serviceName, serviceNamespace, err := v.validateMetricFields(metric)
+	err = v.validateMetricLabels(metric.Labels)
 	if err != nil {
 		return
 	}
 
-	base := v.baseComponent(serviceName, serviceNamespace)
+	base := v.baseComponent(metric.Labels)
 
-	core := v.vllmComponent(serviceName, serviceNamespace)
+	core := v.vllmComponent(metric.Labels)
 
 	if !v.builder.RelationExists(base.ID, core.ID) {
 		v.builder.MustNewRelation(base.ID, core.ID, "is")
 	}
-	return
-}
 
-func (v vllm) validateMetricFields(metric api.MetricResult) (serviceName, serviceNamespace string, err error) {
-	if val, ok := metric.Labels[v.semanticConventions.ServiceName]; ok {
-		serviceName = val
-	}
-	if val, ok := metric.Labels[v.semanticConventions.ServiceNamespace]; ok {
-		serviceNamespace = val
-	}
+	model := v.modelComponent(metric.Labels)
 
-	if serviceName == "" && serviceNamespace == "" {
-		err = errors.New("Required information not available")
+	if !v.builder.RelationExists(core.ID, model.ID) {
+		v.builder.MustNewRelation(core.ID, model.ID, "runs")
 	}
 
 	return
 }
 
-func (v vllm) baseComponent(name, namespace string) (c *receiver.Component) {
+func (v vllm) validateMetricLabels(labels map[string]string) (err error) {
+	if _, ok := labels[v.semanticConventions.ServiceName]; !ok {
+		err = errors.New("Missing required fields")
+	}
+	if _, ok := labels[v.semanticConventions.ServiceNamespace]; !ok {
+		err = errors.New("Missing required fields")
+	}
+
+	if _, ok := labels[v.semanticConventions.ServiceNamespace]; !ok {
+		err = errors.New("Missing required fields")
+	}
+
+	return
+}
+
+func (v vllm) baseComponent(labels map[string]string) (c *receiver.Component) {
+	name, namespace := labels[v.ServiceName], labels[v.ServiceNamespace]
 	id := v.UrnGenAiApp(name, namespace)
 	if v.builder.ComponentExists(id) {
 		c = v.builder.MustGetComponent(id)
 	} else {
-		c = v.builder.MustNewComponent(id, name, v.semanticConventions.CTypeGenAiApp)
+		c = v.builder.MustNewComponent(id, name, v.CTypeGenAiApp)
 		c.Data.Layer = "Services"
 		c.Data.Domain = "OpenTelemetry"
 		c.AddLabel("gen_ai_system")
-		c.AddLabelKey(toLabelKey(v.semanticConventions.ServiceName), name)
-		c.AddLabelKey(toLabelKey(v.semanticConventions.ServiceNamespace), namespace)
+		c.AddLabelKey(toLabelKey(v.ServiceName), name)
+		c.AddLabelKey(toLabelKey(v.ServiceNamespace), namespace)
 		c.AddProperty("namespaceIdentifier", v.UrnServiceNamespace(namespace))
 		c.AddProperty("clusterIdentifier", v.UrnCluster(v.builder.Cluster))
 	}
 	return
 }
 
-func (v vllm) vllmComponent(name, namespace string) (c *receiver.Component) {
+func (v vllm) vllmComponent(labels map[string]string) (c *receiver.Component) {
+	name, namespace := labels[v.ServiceName], labels[v.ServiceNamespace]
 	id := v.semanticConventions.UrnVectorDbSystem(name)
 	if v.builder.ComponentExists(id) {
 		c = v.builder.MustGetComponent(id)
@@ -98,6 +106,21 @@ func (v vllm) vllmComponent(name, namespace string) (c *receiver.Component) {
 		c.Data.Domain = v.semanticConventions.Domain
 		c.AddLabel("gen_ai_system")
 		c.AddLabelKey(toLabelKey(v.semanticConventions.ServiceNamespace), namespace)
+		c.AddProperty("identifier", id)
+	}
+	return
+}
+
+func (v vllm) modelComponent(labels map[string]string) (c *receiver.Component) {
+	id := v.UrnGenAiModel(labels[v.VLLMRequestModel], labels[v.ServiceName])
+	if v.builder.ComponentExists(id) {
+		c = v.builder.MustGetComponent(id)
+	} else {
+		c = v.builder.MustNewComponent(id, labels[v.VLLMRequestModel], "genai.model")
+		c.Data.Layer = "GenAiModels"
+		c.Data.Domain = v.Domain
+		c.AddLabelKey(toLabelKey(v.GenAiApplicationName), labels[v.ServiceName])
+		c.AddLabelKey(toLabelKey(v.ServiceNamespace), labels[v.ServiceNamespace])
 		c.AddProperty("identifier", id)
 	}
 	return
