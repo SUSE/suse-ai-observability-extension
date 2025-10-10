@@ -166,8 +166,7 @@ nodes:
   - id: -160
     name: Average Usage Cost per model
     queries:
-      # TODO: check the "or 0" exception
-      - expression: avg by(gen_ai_request_model) (gen_ai_usage_cost_USD_sum{ gen_ai_system="${name}" })/100
+      - expression: avg by(gen_ai_request_model) (gen_ai_usage_cost_USD_sum{ gen_ai_system="${name}" })/100 or vector(0)
         alias: '${gen_ai_request_model}'
     scope: type in ("genai.system.ollama", "genai.system.openai")
     identifier: urn:stackpack:openlit:shared:metric-binding:genai-system-avg-usage-cost-per-model

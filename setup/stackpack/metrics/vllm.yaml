@@ -1,0 +1,22 @@
+nodes:
+  # General
+  - id: -202
+    name: End-to-End Request Latency (P99)
+    queries:
+      - expression: histogram_quantile(0.99, sum by (le, instance) (rate(vllm_e2e_request_latency_seconds_bucket{}[${__rate_interval}])))
+        alias: 'P99 Latency'
+        primary: true
+    scope: type = "genai.system.vllm"
+    identifier: urn:stackpack:vllm:shared:metric-binding:p99-e2e-latency
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+  # Model-specific

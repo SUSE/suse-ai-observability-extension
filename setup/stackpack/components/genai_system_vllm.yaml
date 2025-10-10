@@ -63,33 +63,11 @@ nodes:
           _type: ComponentTypeRelatedResources
 
       metrics:
-        - name: Cost
-          description: Cost Stats
+        - name: Performance
+          description: Latency
           bindings:
             - urn:stackpack:openlit:shared:metric-binding:genai-system-avg-usage-cost
-            - urn:stackpack:openlit:shared:metric-binding:genai-system-avg-total-usage-cost
-            - urn:stackpack:openlit:shared:metric-binding:genai-system-avg-tokens-per-total-requests
-          defaultExpanded: true
-          _type: ComponentTypeMetricCategory
-        - name: Tokens
-          description: Token Stats
-          bindings:
-          - urn:stackpack:openlit:shared:metric-binding:genai-system-total-usage-tokens
-          - urn:stackpack:openlit:shared:metric-binding:genai-system-total-usage-tokens-line
-          defaultExpanded: true
-          _type: ComponentTypeMetricCategory
-        - name: Requests
-          description: Request Stats
-          bindings:
-          - urn:stackpack:openlit:shared:metric-binding:genai-system-request-total-success
-          - urn:stackpack:openlit:shared:metric-binding:genai-system-total-requests
-          - urn:stackpack:openlit:shared:metric-binding:genai-system-request-rate
-          defaultExpanded: true
-          _type: ComponentTypeMetricCategory
-        - name: Models
-          description: Model Stats
-          bindings:
-          - urn:stackpack:openlit:shared:metric-binding:genai-system-top-models
+            - urn:stackpack:vllm:shared:metric-binding:p99-e2e-latency
           defaultExpanded: true
           _type: ComponentTypeMetricCategory
       _type: ComponentTypeHighlights
