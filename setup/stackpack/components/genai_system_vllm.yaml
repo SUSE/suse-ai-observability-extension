@@ -63,11 +63,31 @@ nodes:
           _type: ComponentTypeRelatedResources
 
       metrics:
-        - name: Performance
+        - name: Token Throughput
+          description: Token Throughput
+          bindings:
+            - urn:stackpack:vllm:shared:metric-binding:token-throughput-prompt
+            - urn:stackpack:vllm:shared:metric-binding:token-throughput-generation
+          defaultExpanded: true
+          _type: ComponentTypeMetricCategory
+        - name: End-to-End Latency
           description: Latency
           bindings:
-            - urn:stackpack:openlit:shared:metric-binding:genai-system-avg-usage-cost
-            - urn:stackpack:vllm:shared:metric-binding:p99-e2e-latency
+            - urn:stackpack:vllm:shared:metric-binding:e2e-latency-p99
+            - urn:stackpack:vllm:shared:metric-binding:e2e-latency-p95
+            - urn:stackpack:vllm:shared:metric-binding:e2e-latency-p90
+            - urn:stackpack:vllm:shared:metric-binding:e2e-latency-p50
+            - urn:stackpack:vllm:shared:metric-binding:e2e-latency-avg
+          defaultExpanded: true
+          _type: ComponentTypeMetricCategory
+        - name: Inter Token Latency
+          description: Inter token latency
+          bindings:
+            - urn:stackpack:vllm:shared:metric-binding:inter-token-latency-p99
+            - urn:stackpack:vllm:shared:metric-binding:inter-token-latency-p95
+            - urn:stackpack:vllm:shared:metric-binding:inter-token-latency-p90
+            - urn:stackpack:vllm:shared:metric-binding:inter-token-latency-p50
+            - urn:stackpack:vllm:shared:metric-binding:inter-token-latency-mean
           defaultExpanded: true
           _type: ComponentTypeMetricCategory
       _type: ComponentTypeHighlights

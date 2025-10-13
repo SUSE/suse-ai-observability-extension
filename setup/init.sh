@@ -64,12 +64,14 @@ declare -a SETTING_FILES=(
     "/mnt/overview/genai_apps.yaml"
     "/mnt/components/genai_system_ollama.yaml"
     "/mnt/components/genai_system_openai.yaml"
+    "/mnt/components/genai_system_vllm.yaml"
     "/mnt/components/genai_dbsystem_milvus.yaml"
     "/mnt/metrics/gpu_nodes.yaml"
     "/mnt/metrics/gpu_pods.yaml"
     "/mnt/metrics/genai_systems.yaml"
     "/mnt/metrics/db_systems.yaml"
     "/mnt/metrics/genai_apps.yaml"
+    "/mnt/metrics/vllm.yaml"
 )
 
 for file in "${SETTING_FILES[@]}"; do

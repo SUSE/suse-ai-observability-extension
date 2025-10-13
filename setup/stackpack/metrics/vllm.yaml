@@ -1,13 +1,13 @@
 nodes:
   # General
-  - id: -202
+  - id: -201
     name: End-to-End Request Latency (P99)
     queries:
-      - expression: histogram_quantile(0.99, sum by (le, instance) (rate(vllm_e2e_request_latency_seconds_bucket{}[${__rate_interval}])))
+      - expression: histogram_quantile(0.99, sum by(le) (rate(vllm_e2e_request_latency_seconds_bucket{}[${__rate_interval}])))
         alias: 'P99 Latency'
         primary: true
     scope: type = "genai.system.vllm"
-    identifier: urn:stackpack:vllm:shared:metric-binding:p99-e2e-latency
+    identifier: urn:stackpack:vllm:shared:metric-binding:e2e-latency-p99
     unit: seconds
     chartType: line
     priority: high
@@ -16,6 +16,123 @@ nodes:
       metricPerspective:
         tab: Performance
         section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -202
+    name: End-to-End Request Latency (P95)
+    queries:
+      - expression: histogram_quantile(0.95, sum by(le) (rate(vllm_e2e_request_latency_seconds_bucket{}[${__rate_interval}])))
+        alias: 'P95 Latency'
+        primary: true
+    scope: type = "genai.system.vllm"
+    identifier: urn:stackpack:vllm:shared:metric-binding:e2e-latency-p95
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -203
+    name: End-to-End Request Latency (P90)
+    queries:
+      - expression: histogram_quantile(0.90, sum by(le) (rate(vllm_e2e_request_latency_seconds_bucket{}[${__rate_interval}])))
+        alias: 'P90 Latency'
+        primary: true
+    scope: type = "genai.system.vllm"
+    identifier: urn:stackpack:vllm:shared:metric-binding:e2e-latency-p90
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+  - id: -204
+    name: End-to-End Request Latency (P50)
+    queries:
+      - expression: histogram_quantile(0.50, sum by(le) (rate(vllm_e2e_request_latency_seconds_bucket{}[${__rate_interval}])))
+        alias: 'P50 Latency'
+        primary: true
+    scope: type = "genai.system.vllm"
+    identifier: urn:stackpack:vllm:shared:metric-binding:e2e-latency-p50
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+  - id: -205
+    name: End-to-End Request Latency (Average)
+    queries:
+      - expression: rate(vllm_e2e_request_latency_seconds_sum{}[${__rate_interval}])/rate(vllm_e2e_request_latency_seconds_count{}[${__rate_interval}])
+        alias: 'Average'
+        primary: true
+    scope: type = "genai.system.vllm"
+    identifier: urn:stackpack:vllm:shared:metric-binding:e2e-latency-avg
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -206
+    name: Token Throughput (Prompt)
+    queries:
+      - expression: rate(vllm_prompt_tokens_total{}[${__rate_interval}])
+        alias: 'Prompt Tokens/Sec'
+        primary: true
+    scope: type = "genai.system.vllm"
+    identifier: urn:stackpack:vllm:shared:metric-binding:token-throughput-prompt
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Throughput
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+  - id: -207
+    name: Token Throughput (Generation)
+    queries:
+      - expression: rate(vllm_generation_tokens_total{}[${__rate_interval}])
+        alias: 'Generation Tokens/Sec'
+        primary: true
+    scope: type = "genai.system.vllm"
+    identifier: urn:stackpack:vllm:shared:metric-binding:token-throughput-generation
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Throughput
       componentSummary:
         weight: 8
     _type: MetricBinding
