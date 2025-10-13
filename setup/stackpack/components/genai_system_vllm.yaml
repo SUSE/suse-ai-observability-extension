@@ -80,15 +80,5 @@ nodes:
             - urn:stackpack:vllm:shared:metric-binding:e2e-latency-avg
           defaultExpanded: true
           _type: ComponentTypeMetricCategory
-        - name: Inter Token Latency
-          description: Inter token latency
-          bindings:
-            - urn:stackpack:vllm:shared:metric-binding:inter-token-latency-p99
-            - urn:stackpack:vllm:shared:metric-binding:inter-token-latency-p95
-            - urn:stackpack:vllm:shared:metric-binding:inter-token-latency-p90
-            - urn:stackpack:vllm:shared:metric-binding:inter-token-latency-p50
-            - urn:stackpack:vllm:shared:metric-binding:inter-token-latency-mean
-          defaultExpanded: true
-          _type: ComponentTypeMetricCategory
       _type: ComponentTypeHighlights
     _type: ComponentType

@@ -28,7 +28,7 @@ type semanticConventions struct {
 func NewSemanticConventions() semanticConventions {
 	return semanticConventions{
 		Source:               "openlit",
-		Domain:               "Open Telemetry LLM",
+		Domain:               "GenAI Abstractions",
 		TelemetrySdkLanguage: "telemetry_sdk_language",
 		GenAiRequestModel:    "gen_ai_request_model",
 		VLLMRequestModel:     "model_name",

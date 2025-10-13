@@ -97,7 +97,7 @@ func (v vllm) baseComponent(labels map[string]string) (c *receiver.Component) {
 
 func (v vllm) vllmComponent(labels map[string]string) (c *receiver.Component) {
 	name, namespace := labels[v.ServiceName], labels[v.ServiceNamespace]
-	id := v.semanticConventions.UrnVectorDbSystem(name)
+	id := v.semanticConventions.UrnGenAiSystem(name)
 	if v.builder.ComponentExists(id) {
 		c = v.builder.MustGetComponent(id)
 	} else {
