@@ -189,11 +189,17 @@ class Pipeline:
             metadata["chat_id"] = chat_id
             body["metadata"] = metadata
 
+        # Possible values: unknown, ollama, openai, vllm
         provider = "unknown"
         try:
             provider = body["metadata"]["model"]["owned_by"]
         except:
             pass
+        if provider == "openai":
+            try:
+                provider = body["metadata"]["model"]["openai"]["owned_by"]
+            except:
+                pass
 
         model = body.get("model", "default")
         parent = self.chats.get(chat_id, None)
