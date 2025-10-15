@@ -1,13 +1,13 @@
 nodes:
   # General
-  - id: -201
+  - id: -301
     name: End-to-End Request Latency (P99)
     queries:
-      - expression: histogram_quantile(0.99, sum by(le) (rate(vllm_e2e_request_latency_seconds_bucket{}[${__rate_interval}])))
+      - expression: histogram_quantile(0.99, sum by(le) (rate(vllm_e2e_request_latency_seconds_bucket{ model_name="${name}" }[${__rate_interval}])))
         alias: 'P99 Latency'
         primary: true
-    scope: type = "genai.system.vllm"
-    identifier: urn:stackpack:vllm:shared:metric-binding:e2e-latency-p99
+    scope: (type = "genai.model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:vllm-model:shared:metric-binding:e2e-latency-p99
     unit: seconds
     chartType: line
     priority: high
@@ -20,14 +20,14 @@ nodes:
         weight: 8
     _type: MetricBinding
 
-  - id: -202
+  - id: -302
     name: End-to-End Request Latency (P95)
     queries:
-      - expression: histogram_quantile(0.95, sum by(le) (rate(vllm_e2e_request_latency_seconds_bucket{}[${__rate_interval}])))
+      - expression: histogram_quantile(0.95, sum by(le) (rate(vllm_e2e_request_latency_seconds_bucket{ model_name="${name}" }[${__rate_interval}])))
         alias: 'P95 Latency'
         primary: true
-    scope: type = "genai.system.vllm"
-    identifier: urn:stackpack:vllm:shared:metric-binding:e2e-latency-p95
+    scope: (type = "genai.model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:vllm-model:shared:metric-binding:e2e-latency-p95
     unit: seconds
     chartType: line
     priority: high
@@ -40,14 +40,14 @@ nodes:
         weight: 8
     _type: MetricBinding
 
-  - id: -203
+  - id: -303
     name: End-to-End Request Latency (P90)
     queries:
-      - expression: histogram_quantile(0.90, sum by(le) (rate(vllm_e2e_request_latency_seconds_bucket{}[${__rate_interval}])))
+      - expression: histogram_quantile(0.90, sum by(le) (rate(vllm_e2e_request_latency_seconds_bucket{ model_name="${name}" }[${__rate_interval}])))
         alias: 'P90 Latency'
         primary: true
-    scope: type = "genai.system.vllm"
-    identifier: urn:stackpack:vllm:shared:metric-binding:e2e-latency-p90
+    scope: (type = "genai.model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:vllm-model:shared:metric-binding:e2e-latency-p90
     unit: seconds
     chartType: line
     priority: high
@@ -59,14 +59,14 @@ nodes:
       componentSummary:
         weight: 8
     _type: MetricBinding
-  - id: -204
+  - id: -304
     name: End-to-End Request Latency (P50)
     queries:
-      - expression: histogram_quantile(0.50, sum by(le) (rate(vllm_e2e_request_latency_seconds_bucket{}[${__rate_interval}])))
+      - expression: histogram_quantile(0.50, sum by(le) (rate(vllm_e2e_request_latency_seconds_bucket{ model_name="${name}" }[${__rate_interval}])))
         alias: 'P50 Latency'
         primary: true
-    scope: type = "genai.system.vllm"
-    identifier: urn:stackpack:vllm:shared:metric-binding:e2e-latency-p50
+    scope: (type = "genai.model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:vllm-model:shared:metric-binding:e2e-latency-p50
     unit: seconds
     chartType: line
     priority: high
@@ -78,14 +78,14 @@ nodes:
       componentSummary:
         weight: 8
     _type: MetricBinding
-  - id: -205
+  - id: -305
     name: End-to-End Request Latency (Average)
     queries:
-      - expression: rate(vllm_e2e_request_latency_seconds_sum{}[${__rate_interval}])/rate(vllm_e2e_request_latency_seconds_count{}[${__rate_interval}])
+      - expression: rate(vllm_e2e_request_latency_seconds_sum{ model_name="${name}" }[${__rate_interval}])/rate(vllm_e2e_request_latency_seconds_count{ model_name="${name}" }[${__rate_interval}])
         alias: 'Average'
         primary: true
-    scope: type = "genai.system.vllm"
-    identifier: urn:stackpack:vllm:shared:metric-binding:e2e-latency-avg
+    scope: (type = "genai.model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:vllm-model:shared:metric-binding:e2e-latency-avg
     unit: seconds
     chartType: line
     priority: high
@@ -98,14 +98,14 @@ nodes:
         weight: 8
     _type: MetricBinding
 
-  - id: -206
+  - id: -306
     name: Token Throughput (Prompt)
     queries:
-      - expression: rate(vllm_prompt_tokens_total{}[${__rate_interval}])
+      - expression: rate(vllm_prompt_tokens_total{model_name="${name}"}[${__rate_interval}])
         alias: 'Prompt Tokens/Sec'
         primary: true
-    scope: type = "genai.system.vllm"
-    identifier: urn:stackpack:vllm:shared:metric-binding:token-throughput-prompt
+    scope: (type = "genai.model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:vllm-model:shared:metric-binding:token-throughput-prompt
     unit: seconds
     chartType: line
     priority: high
@@ -117,14 +117,14 @@ nodes:
       componentSummary:
         weight: 8
     _type: MetricBinding
-  - id: -207
+  - id: -307
     name: Token Throughput (Generation)
     queries:
-      - expression: rate(vllm_generation_tokens_total{}[${__rate_interval}])
+      - expression: rate(vllm_generation_tokens_total{model_name="${name}"}[${__rate_interval}])
         alias: 'Generation Tokens/Sec'
         primary: true
-    scope: type = "genai.system.vllm"
-    identifier: urn:stackpack:vllm:shared:metric-binding:token-throughput-generation
+    scope: (type = "genai.model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:vllm-model:shared:metric-binding:token-throughput-generation
     unit: seconds
     chartType: line
     priority: high
@@ -136,14 +136,14 @@ nodes:
       componentSummary:
         weight: 8
     _type: MetricBinding
-  - id: -220
+  - id: -310
     name: GPU Cache Usage
     queries:
-      - expression: vllm_gpu_cache_usage_perc{}
+      - expression: vllm_gpu_cache_usage_perc{model_name="${name}"}
         alias: 'GPU Cache Usage'
         primary: true
-    scope: type = "genai.system.vllm"
-    identifier: urn:stackpack:vllm:shared:metric-binding:gpu-cache-usage
+    scope: (type = "genai.model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:vllm-model:shared:metric-binding:gpu-cache-usage
     unit: percentunit
     chartType: line
     priority: high
@@ -155,4 +155,3 @@ nodes:
       componentSummary:
         weight: 8
     _type: MetricBinding
-  # Model-specific

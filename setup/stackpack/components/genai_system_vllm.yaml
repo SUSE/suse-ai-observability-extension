@@ -80,5 +80,11 @@ nodes:
             - urn:stackpack:vllm:shared:metric-binding:e2e-latency-avg
           defaultExpanded: true
           _type: ComponentTypeMetricCategory
+        - name: Cache Utilization
+          description: Percentage of used cache blocks by vLLM.
+          bindings:
+            - urn:stackpack:vllm:shared:metric-binding:gpu-cache-usage
+          defaultExpanded: true
+          _type: ComponentTypeMetricCategory
       _type: ComponentTypeHighlights
     _type: ComponentType

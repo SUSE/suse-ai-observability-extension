@@ -123,6 +123,7 @@ func (v vllm) modelComponent(labels map[string]string) (c *receiver.Component) {
 		c.AddLabelKey(toLabelKey(v.ServiceNamespace), labels[v.ServiceNamespace])
 		c.AddProperty("identifier", id)
 	}
+	c.AddLabel("vllm_metrics_available")
 	return
 }
 
