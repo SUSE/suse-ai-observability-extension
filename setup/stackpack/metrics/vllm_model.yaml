@@ -253,3 +253,43 @@ nodes:
       componentSummary:
         weight: 8
     _type: MetricBinding
+
+  - id: -341
+    name: Number of Requests Running
+    queries:
+      - expression: vllm_num_requests_running{model_name="${name}"}
+        alias: 'req'
+        primary: true
+    scope: (type = "genai.model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:vllm-model:shared:metric-binding:req-running
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Scheduler
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -342
+    name: Number of Requests Waiting
+    queries:
+      - expression: vllm_num_requests_waiting{model_name="${name}"}
+        alias: 'req'
+        primary: true
+    scope: (type = "genai.model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:vllm-model:shared:metric-binding:req-waiting
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Scheduler
+      componentSummary:
+        weight: 8
+    _type: MetricBinding

@@ -71,6 +71,13 @@ nodes:
             - urn:stackpack:vllm-model:shared:metric-binding:token-throughput-generation
           defaultExpanded: true
           _type: ComponentTypeMetricCategory
+        - name: Scheduler
+          description: Requests running or waiting.
+          bindings:
+            - urn:stackpack:vllm-model:shared:metric-binding:req-running
+            - urn:stackpack:vllm-model:shared:metric-binding:req-waiting
+          defaultExpanded: true
+          _type: ComponentTypeMetricCategory
         - name: End-to-End Latency
           description: Latency
           bindings:
