@@ -97,6 +97,16 @@ nodes:
             - urn:stackpack:vllm:shared:metric-binding:ttft-latency-avg
           defaultExpanded: true
           _type: ComponentTypeMetricCategory
+        - name: Time Per Output Token Latency
+          description: Latency
+          bindings:
+            - urn:stackpack:vllm:shared:metric-binding:tpot-latency-p99
+            - urn:stackpack:vllm:shared:metric-binding:tpot-latency-p95
+            - urn:stackpack:vllm:shared:metric-binding:tpot-latency-p90
+            - urn:stackpack:vllm:shared:metric-binding:tpot-latency-p50
+            - urn:stackpack:vllm:shared:metric-binding:tpot-latency-avg
+          defaultExpanded: true
+          _type: ComponentTypeMetricCategory
         - name: Cache Utilization
           description: Percentage of used cache blocks by vLLM.
           bindings:
