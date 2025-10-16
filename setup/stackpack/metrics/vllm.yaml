@@ -155,4 +155,101 @@ nodes:
       componentSummary:
         weight: 8
     _type: MetricBinding
-  # Model-specific
+
+  - id: -231
+    name: Time To First Token Latency (P99)
+    queries:
+      - expression: histogram_quantile(0.99, sum by(le, model_name) (rate(vllm_time_to_first_token_seconds_bucket{}[${__rate_interval}])))
+        alias: '${model_name}'
+        primary: true
+    scope: type = "genai.system.vllm"
+    identifier: urn:stackpack:vllm:shared:metric-binding:ttft-latency-p99
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -232
+    name: Time To First Token Latency (P95)
+    queries:
+      - expression: histogram_quantile(0.95, sum by(le, model_name) (rate(vllm_time_to_first_token_seconds_bucket{}[${__rate_interval}])))
+        alias: '${model_name}'
+        primary: true
+    scope: type = "genai.system.vllm"
+    identifier: urn:stackpack:vllm:shared:metric-binding:ttft-latency-p95
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -233
+    name: Time To First Token Latency (P90)
+    queries:
+      - expression: histogram_quantile(0.90, sum by(le, model_name) (rate(vllm_time_to_first_token_seconds_bucket{}[${__rate_interval}])))
+        alias: '${model_name}'
+        primary: true
+    scope: type = "genai.system.vllm"
+    identifier: urn:stackpack:vllm:shared:metric-binding:ttft-latency-p90
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+  - id: -234
+    name: Time To First Token Latency (P50)
+    queries:
+      - expression: histogram_quantile(0.50, sum by(le, model_name) (rate(vllm_time_to_first_token_seconds_bucket{}[${__rate_interval}])))
+        alias: '${model_name}'
+        primary: true
+    scope: type = "genai.system.vllm"
+    identifier: urn:stackpack:vllm:shared:metric-binding:ttft-latency-p50
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+  - id: -235
+    name: Time To First Token Latency (Average)
+    queries:
+      - expression: rate(vllm_time_to_first_token_seconds_sum{}[${__rate_interval}])/rate(vllm_time_to_first_token_seconds_count{}[${__rate_interval}])
+        alias: '${model_name}'
+        primary: true
+    scope: type = "genai.system.vllm"
+    identifier: urn:stackpack:vllm:shared:metric-binding:ttft-latency-avg
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding

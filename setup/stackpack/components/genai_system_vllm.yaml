@@ -80,6 +80,16 @@ nodes:
             - urn:stackpack:vllm:shared:metric-binding:e2e-latency-avg
           defaultExpanded: true
           _type: ComponentTypeMetricCategory
+        - name: Time To First Token Latency
+          description: Latency
+          bindings:
+            - urn:stackpack:vllm:shared:metric-binding:ttft-latency-p99
+            - urn:stackpack:vllm:shared:metric-binding:ttft-latency-p95
+            - urn:stackpack:vllm:shared:metric-binding:ttft-latency-p90
+            - urn:stackpack:vllm:shared:metric-binding:ttft-latency-p50
+            - urn:stackpack:vllm:shared:metric-binding:ttft-latency-avg
+          defaultExpanded: true
+          _type: ComponentTypeMetricCategory
         - name: Cache Utilization
           description: Percentage of used cache blocks by vLLM.
           bindings:
