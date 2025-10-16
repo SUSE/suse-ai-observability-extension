@@ -234,6 +234,7 @@ nodes:
       componentSummary:
         weight: 8
     _type: MetricBinding
+
   - id: -235
     name: Time To First Token Latency (Average)
     queries:
@@ -250,6 +251,46 @@ nodes:
       metricPerspective:
         tab: Performance
         section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -241
+    name: Number of Requests Running
+    queries:
+      - expression: vllm_num_requests_running{model_name=~".+"}
+        alias: '${model_name} req'
+        primary: true
+    scope: type = "genai.system.vllm"
+    identifier: urn:stackpack:vllm:shared:metric-binding:req-running
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Scheduler
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -242
+    name: Number of Requests Waiting
+    queries:
+      - expression: vllm_num_requests_waiting{model_name=~".+"}
+        alias: '${model_name} req'
+        primary: true
+    scope: type = "genai.system.vllm"
+    identifier: urn:stackpack:vllm:shared:metric-binding:req-waiting
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Scheduler
       componentSummary:
         weight: 8
     _type: MetricBinding
