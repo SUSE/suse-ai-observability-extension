@@ -3,8 +3,8 @@ nodes:
   - id: -201
     name: End-to-End Request Latency (P99)
     queries:
-      - expression: histogram_quantile(0.99, sum by(le) (rate(vllm_e2e_request_latency_seconds_bucket{}[${__rate_interval}])))
-        alias: 'P99 Latency'
+      - expression: histogram_quantile(0.99, sum by(le, model_name) (rate(vllm_e2e_request_latency_seconds_bucket{}[${__rate_interval}])))
+        alias: '${model_name}'
         primary: true
     scope: type = "genai.system.vllm"
     identifier: urn:stackpack:vllm:shared:metric-binding:e2e-latency-p99
@@ -23,8 +23,8 @@ nodes:
   - id: -202
     name: End-to-End Request Latency (P95)
     queries:
-      - expression: histogram_quantile(0.95, sum by(le) (rate(vllm_e2e_request_latency_seconds_bucket{}[${__rate_interval}])))
-        alias: 'P95 Latency'
+      - expression: histogram_quantile(0.95, sum by(le, model_name) (rate(vllm_e2e_request_latency_seconds_bucket{}[${__rate_interval}])))
+        alias: '${model_name}'
         primary: true
     scope: type = "genai.system.vllm"
     identifier: urn:stackpack:vllm:shared:metric-binding:e2e-latency-p95
@@ -43,8 +43,8 @@ nodes:
   - id: -203
     name: End-to-End Request Latency (P90)
     queries:
-      - expression: histogram_quantile(0.90, sum by(le) (rate(vllm_e2e_request_latency_seconds_bucket{}[${__rate_interval}])))
-        alias: 'P90 Latency'
+      - expression: histogram_quantile(0.90, sum by(le, model_name) (rate(vllm_e2e_request_latency_seconds_bucket{}[${__rate_interval}])))
+        alias: '${model_name}'
         primary: true
     scope: type = "genai.system.vllm"
     identifier: urn:stackpack:vllm:shared:metric-binding:e2e-latency-p90
@@ -62,8 +62,8 @@ nodes:
   - id: -204
     name: End-to-End Request Latency (P50)
     queries:
-      - expression: histogram_quantile(0.50, sum by(le) (rate(vllm_e2e_request_latency_seconds_bucket{}[${__rate_interval}])))
-        alias: 'P50 Latency'
+      - expression: histogram_quantile(0.50, sum by(le, model_name) (rate(vllm_e2e_request_latency_seconds_bucket{}[${__rate_interval}])))
+        alias: '${model_name}'
         primary: true
     scope: type = "genai.system.vllm"
     identifier: urn:stackpack:vllm:shared:metric-binding:e2e-latency-p50
@@ -82,7 +82,7 @@ nodes:
     name: End-to-End Request Latency (Average)
     queries:
       - expression: rate(vllm_e2e_request_latency_seconds_sum{}[${__rate_interval}])/rate(vllm_e2e_request_latency_seconds_count{}[${__rate_interval}])
-        alias: 'Average'
+        alias: '${model_name}'
         primary: true
     scope: type = "genai.system.vllm"
     identifier: urn:stackpack:vllm:shared:metric-binding:e2e-latency-avg
@@ -102,7 +102,7 @@ nodes:
     name: Token Throughput (Prompt)
     queries:
       - expression: rate(vllm_prompt_tokens_total{}[${__rate_interval}])
-        alias: 'Prompt Tokens/Sec'
+        alias: '${model_name} tokens/sec'
         primary: true
     scope: type = "genai.system.vllm"
     identifier: urn:stackpack:vllm:shared:metric-binding:token-throughput-prompt
@@ -121,7 +121,7 @@ nodes:
     name: Token Throughput (Generation)
     queries:
       - expression: rate(vllm_generation_tokens_total{}[${__rate_interval}])
-        alias: 'Generation Tokens/Sec'
+        alias: '${model_name} tokens/sec'
         primary: true
     scope: type = "genai.system.vllm"
     identifier: urn:stackpack:vllm:shared:metric-binding:token-throughput-generation
@@ -140,7 +140,7 @@ nodes:
     name: GPU Cache Usage
     queries:
       - expression: vllm_gpu_cache_usage_perc{}
-        alias: 'GPU Cache Usage'
+        alias: '${model_name}'
         primary: true
     scope: type = "genai.system.vllm"
     identifier: urn:stackpack:vllm:shared:metric-binding:gpu-cache-usage
