@@ -5,24 +5,8 @@ nodes:
       columns:
       - title: Name
         _type: ViewTypeTableColName
-      - title: Environment
-        path:
-        - properties
-        - genai_environment
-        width: 100
-        _type: ViewTypeTableColText
-      - title: Requests
-        metricBindingIdentifier: urn:stackpack:openlit:shared:metric-binding:genai-system-total-requests
-        width: 160
-        _type: ViewTypeTableColMetricBinding
-      - title: Avg Usage DollarCost
-        metricBindingIdentifier: urn:stackpack:openlit:shared:metric-binding:genai-system-avg-usage-cost
-        width: 160
-        _type: ViewTypeTableColMetricBinding
-      - title: Total Usage Tokens
-        metricBindingIdentifier: urn:stackpack:openlit:shared:metric-binding:genai-system-total-usage-tokens
-        width: 160
-        _type: ViewTypeTableColMetricBinding
+      - title: Type
+        _type: ViewTypeTableColComponentType
       _type: ViewTypeOverview
     flags:
     - NoTopologyFilters
