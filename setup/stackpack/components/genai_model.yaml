@@ -89,13 +89,23 @@ nodes:
           defaultExpanded: true
           _type: ComponentTypeMetricCategory
         - name: Time To First Token Latency
-          description: Latency
+          description: Latency in seconds.
           bindings:
             - urn:stackpack:vllm-model:shared:metric-binding:ttft-latency-p99
             - urn:stackpack:vllm-model:shared:metric-binding:ttft-latency-p95
             - urn:stackpack:vllm-model:shared:metric-binding:ttft-latency-p90
             - urn:stackpack:vllm-model:shared:metric-binding:ttft-latency-p50
             - urn:stackpack:vllm-model:shared:metric-binding:ttft-latency-avg
+          defaultExpanded: true
+          _type: ComponentTypeMetricCategory
+        - name: Time Per Output Token Latency
+          description: Latency in seconds.
+          bindings:
+            - urn:stackpack:vllm-model:shared:metric-binding:tpot-latency-p99
+            - urn:stackpack:vllm-model:shared:metric-binding:tpot-latency-p95
+            - urn:stackpack:vllm-model:shared:metric-binding:tpot-latency-p90
+            - urn:stackpack:vllm-model:shared:metric-binding:tpot-latency-p50
+            - urn:stackpack:vllm-model:shared:metric-binding:tpot-latency-avg
           defaultExpanded: true
           _type: ComponentTypeMetricCategory
         - name: Cache Utilization
