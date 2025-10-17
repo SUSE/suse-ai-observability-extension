@@ -1,0 +1,117 @@
+nodes:
+  - id: -100
+    name: genai.system.vllm
+    iconbase64: data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjAuMCAwLjAgOTYuMCA5Ni4wIiBmaWxsPSJub25lIiBzdHJva2U9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJzcXVhcmUiIHN0cm9rZS1taXRlcmxpbWl0PSIxMCIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNsaXBQYXRoIGlkPSJnMzFlMjEyMzIzMTRfMF8zMy4wIj48cGF0aCBkPSJtMCAwbDk2LjAgMGwwIDk2LjBsLTk2LjAgMGwwIC05Ni4weiIgY2xpcC1ydWxlPSJub256ZXJvIi8+PC9jbGlwUGF0aD48ZyBjbGlwLXBhdGg9InVybCgjZzMxZTIxMjMyMzE0XzBfMzMuMCkiPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Im0wIDBsOTYuMCAwbDAgOTYuMGwtOTYuMCAweiIgZmlsbC1ydWxlPSJldmVub2RkIi8+PHBhdGggZmlsbD0iI2Q5ZDlkOSIgZD0ibTQxLjA0OTYxIDgwLjI3MTMyNGwxLjg4OTc2MjkgMGwwIDIuMzMwNzExNGwtMS44ODk3NjI5IDB6IiBmaWxsLXJ1bGU9ImV2ZW5vZGQiLz48cGF0aCBmaWxsPSIjZDlkOWQ5IiBkPSJtNDIuMjIxODU1IDgxLjQ1MTQ1bDEuODg5NzYyOSAwbDAgMi4zMzA3MDM3bC0xLjg4OTc2MjkgMHoiIGZpbGwtcnVsZT0iZXZlbm9kZCIvPjxnIGZpbHRlcj0idXJsKCNzaGFkb3dGaWx0ZXItZzMxZTIxMjMyMzE0XzBfMzMuMSkiPjx1c2UgeGxpbms6aHJlZj0iI2czMWUyMTIzMjMxNF8wXzMzLjEiIHRyYW5zZm9ybT0ibWF0cml4KDEuMCAwLjAgMC4wIDEuMCAwLjAgMi4wKSIvPjwvZz48ZGVmcz48ZmlsdGVyIGlkPSJzaGFkb3dGaWx0ZXItZzMxZTIxMjMyMzE0XzBfMzMuMSIgZmlsdGVyVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48ZmVHYXVzc2lhbkJsdXIgaW49IlNvdXJjZUFscGhhIiBzdGREZXZpYXRpb249IjIuMCIgcmVzdWx0PSJibHVyIi8+PGZlQ29tcG9uZW50VHJhbnNmZXIgaW49ImJsdXIiIGNvbG9yLWludGVycG9sYXRpb24tZmlsdGVycz0ic1JHQiI+PGZlRnVuY1IgdHlwZT0ibGluZWFyIiBzbG9wZT0iMCIgaW50ZXJjZXB0PSIwLjAiLz48ZmVGdW5jRyB0eXBlPSJsaW5lYXIiIHNsb3BlPSIwIiBpbnRlcmNlcHQ9IjAuMCIvPjxmZUZ1bmNCIHR5cGU9ImxpbmVhciIgc2xvcGU9IjAiIGludGVyY2VwdD0iMC4wIi8+PGZlRnVuY0EgdHlwZT0ibGluZWFyIiBzbG9wZT0iMC4wIiBpbnRlcmNlcHQ9IjAiLz48L2ZlQ29tcG9uZW50VHJhbnNmZXI+PC9maWx0ZXI+PC9kZWZzPjxnIGlkPSJnMzFlMjEyMzIzMTRfMF8zMy4xIj48cGF0aCBmaWxsPSIjZDlkOWQ5IiBkPSJtNDIuMjI0MTcgMjguNDcwNDM0bDAgNTUuMzA3MDgzbC0yNy42NTM1NDMgLTU1LjMwNzA4M3oiIGZpbGwtcnVsZT0iZXZlbm9kZCIvPjwvZz48ZyBmaWx0ZXI9InVybCgjc2hhZG93RmlsdGVyLWczMWUyMTIzMjMxNF8wXzMzLjIpIj48dXNlIHhsaW5rOmhyZWY9IiNnMzFlMjEyMzIzMTRfMF8zMy4yIiB0cmFuc2Zvcm09Im1hdHJpeCgxLjAgMC4wIDAuMCAxLjAgMC4wIDIuMCkiLz48L2c+PGRlZnM+PGZpbHRlciBpZD0ic2hhZG93RmlsdGVyLWczMWUyMTIzMjMxNF8wXzMzLjIiIGZpbHRlclVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PGZlR2F1c3NpYW5CbHVyIGluPSJTb3VyY2VBbHBoYSIgc3RkRGV2aWF0aW9uPSIyLjAiIHJlc3VsdD0iYmx1ciIvPjxmZUNvbXBvbmVudFRyYW5zZmVyIGluPSJibHVyIiBjb2xvci1pbnRlcnBvbGF0aW9uLWZpbHRlcnM9InNSR0IiPjxmZUZ1bmNSIHR5cGU9ImxpbmVhciIgc2xvcGU9IjAiIGludGVyY2VwdD0iMC4wIi8+PGZlRnVuY0cgdHlwZT0ibGluZWFyIiBzbG9wZT0iMCIgaW50ZXJjZXB0PSIwLjAiLz48ZmVGdW5jQiB0eXBlPSJsaW5lYXIiIHNsb3BlPSIwIiBpbnRlcmNlcHQ9IjAuMCIvPjxmZUZ1bmNBIHR5cGU9ImxpbmVhciIgc2xvcGU9IjAuMCIgaW50ZXJjZXB0PSIwIi8+PC9mZUNvbXBvbmVudFRyYW5zZmVyPjwvZmlsdGVyPjwvZGVmcz48ZyBpZD0iZzMxZTIxMjMyMzE0XzBfMzMuMiI+PHBhdGggZmlsbD0iI2Q5ZDlkOSIgZD0ibTQyLjIyMzAzOCA4My43Nzc1MmwyMS43Mjk2NTYgMGwxOC42NTM1NDUgLTcwLjM4NTgyNmwtMjUuNTc0ODAyIDEzLjQ2MTk0M3oiIGZpbGwtcnVsZT0iZXZlbm9kZCIvPjwvZz48ZyBmaWx0ZXI9InVybCgjc2hhZG93RmlsdGVyLWczMWUyMTIzMjMxNF8wXzMzLjMpIj48dXNlIHhsaW5rOmhyZWY9IiNnMzFlMjEyMzIzMTRfMF8zMy4zIiB0cmFuc2Zvcm09Im1hdHJpeCgxLjAgMC4wIDAuMCAxLjAgMC4wIDIuMCkiLz48L2c+PGRlZnM+PGZpbHRlciBpZD0ic2hhZG93RmlsdGVyLWczMWUyMTIzMjMxNF8wXzMzLjMiIGZpbHRlclVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PGZlR2F1c3NpYW5CbHVyIGluPSJTb3VyY2VBbHBoYSIgc3RkRGV2aWF0aW9uPSIyLjAiIHJlc3VsdD0iYmx1ciIvPjxmZUNvbXBvbmVudFRyYW5zZmVyIGluPSJibHVyIiBjb2xvci1pbnRlcnBvbGF0aW9uLWZpbHRlcnM9InNSR0IiPjxmZUZ1bmNSIHR5cGU9ImxpbmVhciIgc2xvcGU9IjAiIGludGVyY2VwdD0iMC4wIi8+PGZlRnVuY0cgdHlwZT0ibGluZWFyIiBzbG9wZT0iMCIgaW50ZXJjZXB0PSIwLjAiLz48ZmVGdW5jQiB0eXBlPSJsaW5lYXIiIHNsb3BlPSIwIiBpbnRlcmNlcHQ9IjAuMCIvPjxmZUZ1bmNBIHR5cGU9ImxpbmVhciIgc2xvcGU9IjAuMCIgaW50ZXJjZXB0PSIwIi8+PC9mZUNvbXBvbmVudFRyYW5zZmVyPjwvZmlsdGVyPjwvZGVmcz48ZyBpZD0iZzMxZTIxMjMyMzE0XzBfMzMuMyI+PHBhdGggZmlsbD0iI2ZkYjUxNSIgZD0ibTQxLjA0NzcgMjcuMjkzOTYybDAgNTUuMzA3MDlsLTI3LjY1MzU0MiAtNTUuMzA3MDl6IiBmaWxsLXJ1bGU9ImV2ZW5vZGQiLz48L2c+PGcgZmlsdGVyPSJ1cmwoI3NoYWRvd0ZpbHRlci1nMzFlMjEyMzIzMTRfMF8zMy40KSI+PHVzZSB4bGluazpocmVmPSIjZzMxZTIxMjMyMzE0XzBfMzMuNCIgdHJhbnNmb3JtPSJtYXRyaXgoMS4wIDAuMCAwLjAgMS4wIDAuMCAyLjApIi8+PC9nPjxkZWZzPjxmaWx0ZXIgaWQ9InNoYWRvd0ZpbHRlci1nMzFlMjEyMzIzMTRfMF8zMy40IiBmaWx0ZXJVbml0cz0idXNlclNwYWNlT25Vc2UiPjxmZUdhdXNzaWFuQmx1ciBpbj0iU291cmNlQWxwaGEiIHN0ZERldmlhdGlvbj0iMi4wIiByZXN1bHQ9ImJsdXIiLz48ZmVDb21wb25lbnRUcmFuc2ZlciBpbj0iYmx1ciIgY29sb3ItaW50ZXJwb2xhdGlvbi1maWx0ZXJzPSJzUkdCIj48ZmVGdW5jUiB0eXBlPSJsaW5lYXIiIHNsb3BlPSIwIiBpbnRlcmNlcHQ9IjAuMCIvPjxmZUZ1bmNHIHR5cGU9ImxpbmVhciIgc2xvcGU9IjAiIGludGVyY2VwdD0iMC4wIi8+PGZlRnVuY0IgdHlwZT0ibGluZWFyIiBzbG9wZT0iMCIgaW50ZXJjZXB0PSIwLjAiLz48ZmVGdW5jQSB0eXBlPSJsaW5lYXIiIHNsb3BlPSIwLjAiIGludGVyY2VwdD0iMCIvPjwvZmVDb21wb25lbnRUcmFuc2Zlcj48L2ZpbHRlcj48L2RlZnM+PGcgaWQ9ImczMWUyMTIzMjMxNF8wXzMzLjQiPjxwYXRoIGZpbGw9IiMzMGEyZmYiIGQ9Im00MS4wNDY1NjYgODIuNjAxMDVsMjEuNzI5NjYgMGwxOC42NTM1NDUgLTcwLjM4NTgyNmwtMjUuNTc0ODA2IDEzLjQ2MTk0M3oiIGZpbGwtcnVsZT0iZXZlbm9kZCIvPjwvZz48L2c+PC9zdmc+
+    identifier: urn:system:auto:component-type:genai.system.vllm
+
+    highlights:
+      namePlural: genai_systems
+      fields:
+        - fieldId: type
+          label:
+            title: Type
+          valueExtractor:
+            _type: ComponentTypeSource
+          display:
+            _type: TagDisplay
+          _type: ComponentTypeField
+        - fieldId: health
+          label:
+            title: Health
+          valueExtractor:
+            _type: HealthSource
+          display:
+            _type: HealthBadgeDisplay
+          _type: ComponentTypeField
+        - fieldId: labels
+          label:
+            title: Labels
+          valueExtractor:
+            _type: TagsSource
+          display:
+            singular: label
+            _type: TagDisplay
+          _type: ComponentTypeField
+      about:
+        fields:
+          - type
+          - health
+          - labels
+        _type: ComponentTypeAbout
+      events:
+        showEvents: false
+        _type: ComponentTypeEvents
+      showLogs: false
+      showLastChange: false
+      externalComponent:
+        showConfiguration: false
+        showStatus: false
+        externalIdSelector: "^openlit:urn:open-telemetry:"
+        _type: ComponentTypeExternalComponent
+      relatedResources:
+        - resourceType: genai.model
+          title: Models
+          stql: (withNeighborsOf(direction = "down", components = (id = "{COMPONENT_ID}"),
+            levels = "1")) and type = "genai.model"
+#          viewTypeIdentifier: urn:stackpack:open-telemetry:shared:view-type:service-instance
+          _type: ComponentTypeRelatedResources
+        - resourceType: otel service
+          title: Related Open Telemetry services
+          stql: (withNeighborsOf(direction = "up", components = (id = "{COMPONENT_ID}"),
+            levels = "1")) and type = "otel service"
+          viewTypeIdentifier: urn:stackpack:open-telemetry:shared:view-type:service
+          _type: ComponentTypeRelatedResources
+
+      metrics:
+        - name: Token Throughput
+          description: Token Throughput
+          bindings:
+            - urn:stackpack:vllm:shared:metric-binding:token-throughput-prompt
+            - urn:stackpack:vllm:shared:metric-binding:token-throughput-generation
+          defaultExpanded: true
+          _type: ComponentTypeMetricCategory
+        - name: Scheduler
+          description: Requests running or waiting.
+          bindings:
+            - urn:stackpack:vllm:shared:metric-binding:req-running
+            - urn:stackpack:vllm:shared:metric-binding:req-waiting
+          defaultExpanded: true
+          _type: ComponentTypeMetricCategory
+        - name: End-to-End Latency
+          description: Latency
+          bindings:
+            - urn:stackpack:vllm:shared:metric-binding:e2e-latency-p99
+            - urn:stackpack:vllm:shared:metric-binding:e2e-latency-p95
+            - urn:stackpack:vllm:shared:metric-binding:e2e-latency-p90
+            - urn:stackpack:vllm:shared:metric-binding:e2e-latency-p50
+            - urn:stackpack:vllm:shared:metric-binding:e2e-latency-avg
+          defaultExpanded: true
+          _type: ComponentTypeMetricCategory
+        - name: Time To First Token Latency
+          description: Latency
+          bindings:
+            - urn:stackpack:vllm:shared:metric-binding:ttft-latency-p99
+            - urn:stackpack:vllm:shared:metric-binding:ttft-latency-p95
+            - urn:stackpack:vllm:shared:metric-binding:ttft-latency-p90
+            - urn:stackpack:vllm:shared:metric-binding:ttft-latency-p50
+            - urn:stackpack:vllm:shared:metric-binding:ttft-latency-avg
+          defaultExpanded: true
+          _type: ComponentTypeMetricCategory
+        - name: Time Per Output Token Latency
+          description: Latency
+          bindings:
+            - urn:stackpack:vllm:shared:metric-binding:tpot-latency-p99
+            - urn:stackpack:vllm:shared:metric-binding:tpot-latency-p95
+            - urn:stackpack:vllm:shared:metric-binding:tpot-latency-p90
+            - urn:stackpack:vllm:shared:metric-binding:tpot-latency-p50
+            - urn:stackpack:vllm:shared:metric-binding:tpot-latency-avg
+          defaultExpanded: true
+          _type: ComponentTypeMetricCategory
+        - name: Cache Utilization
+          description: Percentage of used cache blocks by vLLM.
+          bindings:
+            - urn:stackpack:vllm:shared:metric-binding:gpu-cache-usage
+          defaultExpanded: true
+          _type: ComponentTypeMetricCategory
+      _type: ComponentTypeHighlights
+    _type: ComponentType

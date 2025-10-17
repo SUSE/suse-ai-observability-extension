@@ -33,9 +33,9 @@ const (
 	DefaultTimeout        = "10s"
 )
 
-func NewClient(conf *sts.StackState) *Client {
+func NewClient(conf *sts.StackState) (*Client, error) {
 	url, _ := strings.CutSuffix(conf.ApiUrl, "/")
-	return &Client{url: url, conf: conf, legacyApi: conf.LegacyApi}
+	return &Client{url: url, conf: conf, legacyApi: conf.LegacyApi}, nil
 }
 
 func (c *Client) Status() (*ServerInfo, error) {

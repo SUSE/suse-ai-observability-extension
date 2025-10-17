@@ -1,10 +1,10 @@
 package config
 
 import (
-	"github.com/alecthomas/kingpin"
-	"github.com/go-playground/validator/v10"
 	"genai-observability/stackstate"
 	"genai-observability/stackstate/receiver"
+	"github.com/alecthomas/kingpin"
+	"github.com/go-playground/validator/v10"
 	"github.com/spf13/viper"
 	"log/slog"
 	"os"
@@ -14,9 +14,14 @@ import (
 )
 
 type Configuration struct {
-	StackState stackstate.StackState `mapstructure:"stackstate" validate:"required"`
-	Instance   receiver.Instance     `mapstructure:"instance" validate:"required"`
-	Kubernetes Kubernetes            `mapstructure:"kubernetes" validate:"required"`
+	StackState  stackstate.StackState `mapstructure:"stackstate" validate:"required"`
+	Instance    receiver.Instance     `mapstructure:"instance" validate:"required"`
+	Kubernetes  Kubernetes            `mapstructure:"kubernetes" validate:"required"`
+	Preferences Preferences           `mapstructure:"preferences"`
+}
+
+type Preferences struct {
+	EnableOpenLIT bool `mapstructure:"enable_openlit"`
 }
 
 type Kubernetes struct {
@@ -41,8 +46,9 @@ func GetConfig() (*Configuration, error) {
 	v.SetDefault("stackstate.api_token", "")
 	v.SetDefault("stackstate.api_token_type", "api")
 	v.SetDefault("stackstate.legacy_api", false)
-	v.SetDefault("instance.type", "openlit")
+	v.SetDefault("instance.type", "suse-ai")
 	v.SetDefault("instance.url", "local")
+	v.SetDefault("preferences.enable_openlit", true)
 
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AutomaticEnv()

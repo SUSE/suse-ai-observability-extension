@@ -1,0 +1,23 @@
+nodes:
+  - id: -151
+    name: Total Calls
+    queries:
+      - expression: sum by() (db_requests_total{ db_operation="${name}" })
+        alias: Tota Calls
+        primary: true
+    scope:  type in ("genai.dbsystem.milvus")
+    identifier: urn:stackpack:openlit:shared:metric-binding:vectordb-operation-total
+    unit: short
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Utilization
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
