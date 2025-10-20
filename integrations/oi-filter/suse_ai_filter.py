@@ -1,10 +1,10 @@
 """
 title: SUSE AI Monitoring Pipeline
 author: Thiago Bertoldi (SUSE)
-date: 2025-05-30
-version: 1.0
+date: 2025-10-20
+version: 1.1.0
 license: Apache 2.0
-description: A pipeline for monitoring Open WebUI inside SUSE AI
+description: A pipeline for generating chat telemetry data for SUSE AI
 """
 
 from typing import Optional, List
