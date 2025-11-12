@@ -16,7 +16,7 @@ type vllm struct {
 
 func NewVLLMWatcher(c *api.Client, builder *receiver.Factory) *vllm {
 	v := new(vllm)
-	v.promQL = "vllm_prompt_tokens_total"
+	v.promQL = "vllm:prompt_tokens_total or vllm_prompt_tokens_total"
 	v.c = c
 	v.builder = builder
 	sc := NewSemanticConventions()
