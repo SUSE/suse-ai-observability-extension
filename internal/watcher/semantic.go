@@ -23,6 +23,7 @@ type semanticConventions struct {
 	VLLMQuery            string
 	CTypeGenAiApp        string
 	CTypeOTELService     string
+	ElasticClusterName   string
 }
 
 func NewSemanticConventions() semanticConventions {
@@ -44,6 +45,7 @@ func NewSemanticConventions() semanticConventions {
 		VLLMQuery:            "vllm_healthy_pods_total",
 		CTypeGenAiApp:        "genai.app",
 		CTypeOTELService:     "otel service",
+		ElasticClusterName:   "elasticsearch_cluster_name",
 	}
 }
 

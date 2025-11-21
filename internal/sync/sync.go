@@ -38,6 +38,7 @@ func (c ComponentIdentifierFactory) Build(conf *config.Configuration) (compId *c
 	}
 	compId.registerWatcher(watcher.NewMilvusWatcher(compId.client, compId.builder))
 	compId.registerWatcher(watcher.NewVLLMWatcher(compId.client, compId.builder))
+	compId.registerWatcher(watcher.NewOpenSearchWatcher(compId.client, compId.builder))
 
 	return
 

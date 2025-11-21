@@ -70,10 +70,6 @@ func (v vllm) validateMetricLabels(labels map[string]string) (err error) {
 		err = errors.New("Missing required fields")
 	}
 
-	if _, ok := labels[v.semanticConventions.ServiceNamespace]; !ok {
-		err = errors.New("Missing required fields")
-	}
-
 	return
 }
 
