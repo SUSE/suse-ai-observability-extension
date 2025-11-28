@@ -75,6 +75,7 @@ declare -a SETTING_FILES=(
     "/mnt/metrics/genai_apps.yaml"
     "/mnt/metrics/vllm.yaml"
     "/mnt/metrics/vllm_model.yaml"
+    "/mnt/metrics/opensearch.yaml"
 )
 
 for file in "${SETTING_FILES[@]}"; do
