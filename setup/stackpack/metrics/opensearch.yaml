@@ -112,3 +112,23 @@ nodes:
       componentSummary:
         weight: 3
     _type: MetricBinding
+  - id: -406
+    name: Completed Operations Count
+    description: "Returns the amount of operations completed"
+    queries:
+      - expression: sum(elasticsearch_index_operations_completed_total{elasticsearch_cluster_name="opensearch-cluster"}) by (operation)
+        alias: '${operation}'
+        primary: true
+    scope:  type in ("genai.dbsystem.opensearch")
+    identifier: urn:stackpack:opensearch:shared:metric-binding:vectordb-operation
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Operations
+      componentSummary:
+        weight: 3
+    _type: MetricBinding

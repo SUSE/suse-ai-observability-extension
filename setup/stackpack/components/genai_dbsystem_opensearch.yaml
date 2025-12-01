@@ -68,6 +68,12 @@ nodes:
           - urn:stackpack:opensearch:shared:metric-binding:vectordb-pending-tasks-count
           defaultExpanded: true
           _type: ComponentTypeMetricCategory
+        - name: Operations
+          description: The amount of operations done, by type
+          bindings:
+          - urn:stackpack:opensearch:shared:metric-binding:vectordb-operations
+          defaultExpanded: true
+          _type: ComponentTypeMetricCategory
         - name: Disk Space
           description: Percentage of free disk space
           bindings:
