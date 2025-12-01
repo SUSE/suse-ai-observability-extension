@@ -68,5 +68,19 @@ nodes:
           - urn:stackpack:opensearch:shared:metric-binding:vectordb-pending-tasks-count
           defaultExpanded: true
           _type: ComponentTypeMetricCategory
+        - name: Disk Space
+          description: Percentage of free disk space
+          bindings:
+          - urn:stackpack:opensearch:shared:metric-binding:vectordb-free-space
+          defaultExpanded: true
+          _type: ComponentTypeMetricCategory
+        - name: Cluster Status
+          description: Cluster Status
+          bindings:
+          - urn:stackpack:opensearch:shared:metric-binding:vectordb-green
+          - urn:stackpack:opensearch:shared:metric-binding:vectordb-yellow
+          - urn:stackpack:opensearch:shared:metric-binding:vectordb-red
+          defaultExpanded: true
+          _type: ComponentTypeMetricCategory
       _type: ComponentTypeHighlights
     _type: ComponentType

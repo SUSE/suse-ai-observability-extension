@@ -23,3 +23,92 @@ nodes:
       componentSummary:
         weight: 3
     _type: MetricBinding
+  - id: -402
+    name: Cluster Status (Green)
+    description: "Green"
+    queries:
+      - expression: elasticsearch_cluster_health{elasticsearch_cluster_name="opensearch-cluster", status="green"}
+        alias: Cluster is Green (no issues)
+        primary: true
+    scope:  type in ("genai.dbsystem.opensearch")
+    identifier: urn:stackpack:opensearch:shared:metric-binding:vectordb-green
+    unit: short
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Status
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+  - id: -403
+    name: Cluster Status (Yellow)
+    description: "Yellow"
+    queries:
+      - expression: elasticsearch_cluster_health{elasticsearch_cluster_name="opensearch-cluster", status="yellow"}
+        alias: Cluster is Yellow (deviating)
+        primary: true
+    scope:  type in ("genai.dbsystem.opensearch")
+    identifier: urn:stackpack:opensearch:shared:metric-binding:vectordb-yellow
+    unit: short
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Status
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+  - id: -404
+    name: Cluster Status (Red)
+    description: "Red"
+    queries:
+      - expression: elasticsearch_cluster_health{elasticsearch_cluster_name="opensearch-cluster", status="red"}
+        alias: Cluster is Red (attention required)
+        primary: true
+    scope:  type in ("genai.dbsystem.opensearch")
+    identifier: urn:stackpack:opensearch:shared:metric-binding:vectordb-red
+    unit: short
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Status
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+  - id: -405
+    name: Free Disk (%)
+    description: "Returns % of disk free per node"
+    queries:
+      - expression: (elasticsearch_node_fs_disk_free_bytes{elasticsearch_cluster_name="opensearch-cluster"} / elasticsearch_node_fs_disk_total_bytes{elasticsearch_cluster_name="opensearch-cluster"}) * 100
+        alias: '${elasticsearch_node_name}'
+        primary: true
+    scope:  type in ("genai.dbsystem.opensearch")
+    identifier: urn:stackpack:opensearch:shared:metric-binding:vectordb-free-space
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Disk Space
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
