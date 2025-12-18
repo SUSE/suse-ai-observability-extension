@@ -67,6 +67,7 @@ declare -a SETTING_FILES=(
     "/mnt/components/genai_system_vllm.yaml"
     "/mnt/components/genai_model.yaml"
     "/mnt/components/genai_dbsystem_milvus.yaml"
+    "/mnt/components/genai_dbsystem_opensearch.yaml"
     "/mnt/metrics/gpu_nodes.yaml"
     "/mnt/metrics/gpu_pods.yaml"
     "/mnt/metrics/genai_systems.yaml"
@@ -74,6 +75,7 @@ declare -a SETTING_FILES=(
     "/mnt/metrics/genai_apps.yaml"
     "/mnt/metrics/vllm.yaml"
     "/mnt/metrics/vllm_model.yaml"
+    "/mnt/metrics/opensearch.yaml"
 )
 
 for file in "${SETTING_FILES[@]}"; do

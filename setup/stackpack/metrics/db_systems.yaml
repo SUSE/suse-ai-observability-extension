@@ -5,7 +5,7 @@ nodes:
       - expression: sum(rate(db_requests_total{ db_system="${name}" }[${__rate_interval}]))
         alias: Request Rate
         primary: true
-    scope:  type in ("genai.dbsystem.milvus") 
+    scope:  type in ("genai.dbsystem.milvus")
     identifier: urn:stackpack:openlit:shared:metric-binding:vectordb-system-request-rate
     unit: reqps
     chartType: line
@@ -14,7 +14,7 @@ nodes:
     layout:
       metricPerspective:
         tab: VectorDB
-        section: Request 
+        section: Request
       componentSummary:
         weight: 3
     _type: MetricBinding
@@ -25,7 +25,7 @@ nodes:
       - expression: sum by() (db_requests_total{ db_system="${name}" })
         alias: Requests
         primary: true
-    scope:  type in ("genai.dbsystem.milvus") 
+    scope:  type in ("genai.dbsystem.milvus")
     identifier: urn:stackpack:openlit:shared:metric-binding:vectordb-system-request-total-success
     unit: short
     chartType: line
@@ -48,9 +48,9 @@ nodes:
       - expression: histogram_quantile(0.99, sum by (le, pod, node_id, function_name) (rate(milvus_proxy_req_latency_bucket{ service_name="${name}" }[${__rate_interval}])))
         alias: '${function_name}'
         primary: true
-    scope:  type in ("genai.dbsystem.milvus") 
+    scope:  type in ("genai.dbsystem.milvus")
     identifier: urn:stackpack:milvus:shared:metric-binding:vectordb-system-request-latency-p99
-    unit: s 
+    unit: s
     chartType: line
     priority: high
     enabled: true
@@ -69,9 +69,9 @@ nodes:
       - expression: sum by(function_name) (increase(milvus_proxy_req_latency_sum{ service_name="${name}" }[${__rate_interval}]))  / sum by(function_name) (increase(milvus_proxy_req_latency_count{ service_name="${name}" }[${__rate_interval}]))
         alias: '${function_name}'
         primary: true
-    scope:  type in ("genai.dbsystem.milvus") 
+    scope:  type in ("genai.dbsystem.milvus")
     identifier: urn:stackpack:milvus:shared:metric-binding:vectordb-system-average-request-latency
-    unit: s 
+    unit: s
     chartType: line
     priority: high
     enabled: true
@@ -84,15 +84,15 @@ nodes:
     _type: MetricBinding
 
   - id: -190
-    name: Insert Vector Count Rate	
+    name: Insert Vector Count Rate
     description: "The average number of vectors inserted per second"
     queries:
       - expression: sum(rate(milvus_proxy_insert_vectors_count_total{service_name="${name}"}[${__rate_interval}]))
-        alias: Count Rate 
+        alias: Count Rate
         primary: true
-    scope:  type in ("genai.dbsystem.milvus") 
+    scope:  type in ("genai.dbsystem.milvus")
     identifier: urn:stackpack:milvus:shared:metric-binding:vectordb-system-invsert-vector-count-rate
-    unit: cps 
+    unit: cps
     chartType: line
     priority: high
     enabled: true
@@ -106,14 +106,14 @@ nodes:
 
   - id: -195
     name: Search Vector Count Rate
-    description: "The average number of vectors queried per second." 
+    description: "The average number of vectors queried per second"
     queries:
       - expression: sum(rate(milvus_proxy_search_vectors_count_total{service_name=~"${name}"}[${__rate_interval}]))
-        alias: Count rate 
+        alias: Count Rate
         primary: true
-    scope:  type in ("genai.dbsystem.milvus") 
+    scope:  type in ("genai.dbsystem.milvus")
     identifier: urn:stackpack:milvus:shared:metric-binding:vectordb-system-insert-vector-search-rate
-    unit: cps 
+    unit: cps
     chartType: line
     priority: high
     enabled: true
@@ -130,9 +130,9 @@ nodes:
     description: "The 99th percentile of the latency of receiving search and query requests"
     queries:
       - expression: histogram_quantile(0.99, sum by (le) (rate(milvus_proxy_sq_latency_bucket{service_name=~"${name}"}[${__rate_interval}])))
-        alias: Latency 
+        alias: Latency
         primary: true
-    scope:  type in ("genai.dbsystem.milvus") 
+    scope:  type in ("genai.dbsystem.milvus")
     identifier: urn:stackpack:milvus:shared:metric-binding:vectordb-system-search-latency
     unit: s
     chartType: line
@@ -141,7 +141,7 @@ nodes:
     layout:
       metricPerspective:
         tab: VectorDB
-        section: Latency 
+        section: Latency
       componentSummary:
         weight: 3
     _type: MetricBinding
@@ -150,12 +150,12 @@ nodes:
     name: Average Search Latency
     description: "The average latency of the receiving search and query requests"
     queries:
-      - expression: sum by (query_type) (increase(milvus_proxy_sq_latency_sum{service_name=~"${name}"}[${__interval}]))  / sum by (query_type) (increase(milvus_proxy_sq_latency_count{service_name=~"${name}"}[${__interval}])) 
+      - expression: sum by (query_type) (increase(milvus_proxy_sq_latency_sum{service_name=~"${name}"}[${__interval}]))  / sum by (query_type) (increase(milvus_proxy_sq_latency_count{service_name=~"${name}"}[${__interval}]))
         alias: '${query_type}'
         primary: true
-    scope:  type in ("genai.dbsystem.milvus") 
+    scope:  type in ("genai.dbsystem.milvus")
     identifier: urn:stackpack:milvus:shared:metric-binding:vectordb-system-average-search-latency
-    unit: s 
+    unit: s
     chartType: line
     priority: high
     enabled: true
@@ -174,16 +174,16 @@ nodes:
       - expression: sum(rate(milvus_proxy_req_count_total{service_name=~"${name}"}[${__rate_interval}])) by(function_name)
         alias: '${function_name}'
         primary: true
-    scope:  type in ("genai.dbsystem.milvus") 
+    scope:  type in ("genai.dbsystem.milvus")
     identifier: urn:stackpack:openlit:shared:metric-binding:vectordb-system-request-sucess-rate
-    unit: reqps 
+    unit: reqps
     chartType: line
     priority: high
     enabled: true
     layout:
       metricPerspective:
         tab: VectorDB
-        section: Request 
+        section: Request
       componentSummary:
         weight: 3
     _type: MetricBinding
@@ -195,16 +195,16 @@ nodes:
       - expression: sum(rate(milvus_proxy_req_count_total{service_name=~"${name}", status=~"fail"}[${__rate_interval}])) by(function_name)
         alias: '${function_name}'
         primary: true
-    scope:  type in ("genai.dbsystem.milvus") 
+    scope:  type in ("genai.dbsystem.milvus")
     identifier: urn:stackpack:milvus:shared:metric-binding:vectordb-system-request-failed-rate
-    unit: reqps 
+    unit: reqps
     chartType: line
     priority: high
     enabled: true
     layout:
       metricPerspective:
         tab: VectorDB
-        section: Request 
+        section: Request
       componentSummary:
         weight: 3
     _type: MetricBinding
@@ -216,9 +216,9 @@ nodes:
       - expression: sum(milvus_proxy_req_count_total{service_name=~"${name}", status="fail"})
         alias: Failure Count
         primary: true
-    scope:  type in ("genai.dbsystem.milvus") 
+    scope:  type in ("genai.dbsystem.milvus")
     identifier: urn:stackpack:milvus:shared:metric-binding:vectordb-system-failed-requests-count
-    unit: short 
+    unit: short
     chartType: line
     tags:
       experimental_chartType: Gauge
@@ -228,7 +228,7 @@ nodes:
     layout:
       metricPerspective:
         tab: VectorDB
-        section: Request 
+        section: Request
       componentSummary:
         weight: 3
     _type: MetricBinding
@@ -240,7 +240,7 @@ nodes:
       - expression: histogram_quantile(0.99, sum by (le, msg_type) (rate(milvus_proxy_mutation_send_latency_bucket{service_name=~"${name}"}[${__interval}])))
         alias: '${msg_type}'
         primary: true
-    scope:  type in ("genai.dbsystem.milvus") 
+    scope:  type in ("genai.dbsystem.milvus")
     identifier: urn:stackpack:milvus:shared:metric-binding:vectordb-system-mutation-send-latency
     unit: s
     chartType: line
@@ -261,16 +261,16 @@ nodes:
       - expression: sum by (msg_type) (increase(milvus_proxy_mutation_send_latency_sum{service_name=~"${name}"}[${__interval}])) / sum by(msg_type) (increase(milvus_proxy_mutation_send_latency_count{service_name=~"${name}"}[${__interval}]))
         alias: '${msg_type}'
         primary: true
-    scope:  type in ("genai.dbsystem.milvus") 
+    scope:  type in ("genai.dbsystem.milvus")
     identifier: urn:stackpack:milvus:shared:metric-binding:vectordb-system-average-mutation-send-latency
-    unit: s 
+    unit: s
     chartType: line
     priority: high
     enabled: true
     layout:
       metricPerspective:
         tab: VectorDB
-        section: Latency 
+        section: Latency
       componentSummary:
         weight: 3
     _type: MetricBinding
