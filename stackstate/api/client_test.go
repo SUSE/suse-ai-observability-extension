@@ -3,8 +3,8 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/joho/godotenv"
 	sts "genai-observability/stackstate"
+	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"log/slog"
@@ -46,7 +46,8 @@ func getMockServer(conf *sts.StackState, hf http.HandlerFunc) *httptest.Server {
 func getClient(t *testing.T, hf http.HandlerFunc) (*Client, *httptest.Server) {
 	conf := getConfig(t)
 	server := getMockServer(conf, hf)
-	client, _ := NewClient(conf)
+	client, err := NewClient(conf)
+	require.NoError(t, err)
 	return client, server
 }
 
@@ -151,7 +152,8 @@ func TestQueryRange(t *testing.T) {
 
 func TestClientConnection(t *testing.T) {
 	conf := getConfig(t)
-	client, _ := NewClient(conf)
+	client, err := NewClient(conf)
+	require.NoError(t, err)
 	status, err := client.Status()
 	require.NoError(t, err, `Not expecting err %v`, err)
 	assert.Equal(t, status.Version.Major, 6)
@@ -159,7 +161,8 @@ func TestClientConnection(t *testing.T) {
 
 func TestTopologyQuery(t *testing.T) {
 	conf := getConfig(t)
-	client, _ := NewClient(conf)
+	client, err := NewClient(conf)
+	require.NoError(t, err)
 	res, err := client.TopologyQuery("type = 'service' and label in ('namespace:kube-system')", "", false)
 	require.NoError(t, err)
 	require.True(t, res.Success, `Expected to be successful but was %s`, toJson(res))
@@ -169,7 +172,8 @@ func TestTopologyQuery(t *testing.T) {
 
 func TestTopologyStreamQuery(t *testing.T) {
 	conf := getConfig(t)
-	client, _ := NewClient(conf)
+	client, err := NewClient(conf)
+	require.NoError(t, err)
 	res, err := client.TopologyStreamQuery("type = 'service' and label in ('namespace:kube-system')", "", true)
 	require.NoError(t, err)
 	require.True(t, res.Success, `Expected to be successful but was %s`, toJson(res))

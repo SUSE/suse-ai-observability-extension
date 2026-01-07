@@ -1,9 +1,13 @@
 package stackstate
 
 type StackState struct {
-	ApiUrl       string `mapstructure:"api_url" validate:"required"`
-	ApiKey       string `mapstructure:"api_key" validate:"required"`
-	ApiToken     string `mapstructure:"api_token" validate:"required"`
-	ApiTokenType string `mapstructure:"api_token_type"`
-	LegacyApi    bool   `mapstructure:"legacy_api"`
+	ApiUrl        string `mapstructure:"api_url" validate:"required"`
+	ApiKey        string `mapstructure:"api_key" validate:"required"`
+	ApiToken      string `mapstructure:"api_token" validate:"required"`
+	ApiTokenType  string `mapstructure:"api_token_type"`
+	LegacyApi     bool   `mapstructure:"legacy_api"`
+	TLSSkipVerify bool   `mapstructure:"tls_skip_verify"`
+	TLSCertFile   string `mapstructure:"tls_cert_file"`
+	TLSKeyFile    string `mapstructure:"tls_key_file"`
+	TLSCAFile     string `mapstructure:"tls_ca_file"`
 }
