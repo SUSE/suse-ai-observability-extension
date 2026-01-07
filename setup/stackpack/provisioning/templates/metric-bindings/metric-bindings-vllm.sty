@@ -1,0 +1,720 @@
+- _type: MetricBinding
+  name: End-to-End Request Latency (P99)
+  queries:
+    - expression: histogram_quantile(0.99, sum by(le, model_name) (rate({__name__=~"vllm:e2e_request_latency_seconds_bucket|vllm_e2e_request_latency_seconds_bucket"}[${__rate_interval}])))
+      alias: "${model_name}"
+      primary: true
+  scope: type = "genai.system.vllm"
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-e2e-latency-p99
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: End-to-End Request Latency (P95)
+  queries:
+    - expression: histogram_quantile(0.95, sum by(le, model_name) (rate({__name__=~"vllm:e2e_request_latency_seconds_bucket|vllm_e2e_request_latency_seconds_bucket"}[${__rate_interval}])))
+      alias: "${model_name}"
+      primary: true
+  scope: type = "genai.system.vllm"
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-e2e-latency-p95
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: End-to-End Request Latency (P90)
+  queries:
+    - expression: histogram_quantile(0.90, sum by(le, model_name) (rate({__name__=~"vllm:e2e_request_latency_seconds_bucket|vllm_e2e_request_latency_seconds_bucket"}[${__rate_interval}])))
+      alias: "${model_name}"
+      primary: true
+  scope: type = "genai.system.vllm"
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-e2e-latency-p90
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: End-to-End Request Latency (P50)
+  queries:
+    - expression: histogram_quantile(0.50, sum by(le, model_name) (rate({__name__=~"vllm:e2e_request_latency_seconds_bucket|vllm_e2e_request_latency_seconds_bucket"}[${__rate_interval}])))
+      alias: "${model_name}"
+      primary: true
+  scope: type = "genai.system.vllm"
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-e2e-latency-p50
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: End-to-End Request Latency (Average)
+  queries:
+    - expression: rate({__name__=~"vllm:e2e_request_latency_seconds_sum|vllm_e2e_request_latency_seconds_sum"}[${__rate_interval}])/rate({__name__=~"vllm:e2e_request_latency_seconds_count|vllm_e2e_request_latency_seconds_count"}[${__rate_interval}])
+      alias: "${model_name}"
+      primary: true
+  scope: type = "genai.system.vllm"
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-e2e-latency-avg
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Token Throughput (Prompt)
+  queries:
+    - expression: rate({__name__=~"vllm:prompt_tokens_total|vllm_prompt_tokens_total"}[${__rate_interval}])
+      alias: "${model_name} tokens/sec"
+      primary: true
+  scope: type = "genai.system.vllm"
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-token-throughput-prompt
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Throughput
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Token Throughput (Generation)
+  queries:
+    - expression: rate({__name__=~"vllm:generation_tokens_total|vllm_generation_tokens_total"}[${__rate_interval}])
+      alias: "${model_name} tokens/sec"
+      primary: true
+  scope: type = "genai.system.vllm"
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-token-throughput-generation
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Throughput
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: GPU Cache Usage
+  queries:
+    - expression: vllm_gpu_cache_usage_perc{} or vllm:gpu_cache_usage_perc{}
+      alias: "${model_name}"
+      primary: true
+  scope: type = "genai.system.vllm"
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-gpu-cache-usage
+  unit: percentunit
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Cache Utilization
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Time To First Token Latency (P99)
+  queries:
+    - expression: histogram_quantile(0.99, sum by(le, model_name) (rate({__name__=~"vllm:time_to_first_token_seconds_bucket|vllm_time_to_first_token_seconds_bucket"}[${__rate_interval}])))
+      alias: "${model_name}"
+      primary: true
+  scope: type = "genai.system.vllm"
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-ttft-latency-p99
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Time To First Token Latency (P95)
+  queries:
+    - expression: histogram_quantile(0.95, sum by(le, model_name) (rate({__name__=~"vllm:time_to_first_token_seconds_bucket|vllm_time_to_first_token_seconds_bucket"}[${__rate_interval}])))
+      alias: "${model_name}"
+      primary: true
+  scope: type = "genai.system.vllm"
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-ttft-latency-p95
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Time To First Token Latency (P90)
+  queries:
+    - expression: histogram_quantile(0.90, sum by(le, model_name) (rate({__name__=~"vllm:time_to_first_token_seconds_bucket|vllm_time_to_first_token_seconds_bucket"}[${__rate_interval}])))
+      alias: "${model_name}"
+      primary: true
+  scope: type = "genai.system.vllm"
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-ttft-latency-p90
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Time To First Token Latency (P50)
+  queries:
+    - expression: histogram_quantile(0.50, sum by(le, model_name) (rate({__name__=~"vllm:time_to_first_token_seconds_bucket|vllm_time_to_first_token_seconds_bucket"}[${__rate_interval}])))
+      alias: "${model_name}"
+      primary: true
+  scope: type = "genai.system.vllm"
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-ttft-latency-p50
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Time To First Token Latency (Average)
+  queries:
+    - expression: rate({__name__=~"vllm:time_to_first_token_seconds_sum|vllm_time_to_first_token_seconds_sum"}[${__rate_interval}])/rate({__name__=~"vllm:time_to_first_token_seconds_count|vllm_time_to_first_token_seconds_count"}[${__rate_interval}])
+      alias: "${model_name}"
+      primary: true
+  scope: type = "genai.system.vllm"
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-ttft-latency-avg
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Number of Requests Running
+  queries:
+    - expression: vllm_num_requests_running{model_name=~".+"} or vllm:num_requests_running{model_name=~".+"}
+      alias: "${model_name} req"
+      primary: true
+  scope: type = "genai.system.vllm"
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-req-running
+  unit: short
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Scheduler
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Number of Requests Waiting
+  queries:
+    - expression: vllm_num_requests_waiting{model_name=~".+"} or vllm:num_requests_waiting{model_name=~".+"}
+      alias: "${model_name} req"
+      primary: true
+  scope: type = "genai.system.vllm"
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-req-waiting
+  unit: short
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Scheduler
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Time Per Output Token Latency (P99)
+  queries:
+    - expression: histogram_quantile(0.99, sum by(le, model_name) (rate({__name__=~"vllm:time_per_output_token_seconds_bucket|vllm_time_per_output_token_seconds_bucket"}[${__rate_interval}])))
+      alias: "${model_name}"
+      primary: true
+  scope: type = "genai.system.vllm"
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-tpot-latency-p99
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Time Per Output Token Latency (P95)
+  queries:
+    - expression: histogram_quantile(0.95, sum by(le, model_name) (rate({__name__=~"vllm:time_per_output_token_seconds_bucket|vllm_time_per_output_token_seconds_bucket"}[${__rate_interval}])))
+      alias: "${model_name}"
+      primary: true
+  scope: type = "genai.system.vllm"
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-tpot-latency-p95
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Time Per Output Token Latency (P90)
+  queries:
+    - expression: histogram_quantile(0.90, sum by(le, model_name) (rate({__name__=~"vllm:time_per_output_token_seconds_bucket|vllm_time_per_output_token_seconds_bucket"}[${__rate_interval}])))
+      alias: "${model_name}"
+      primary: true
+  scope: type = "genai.system.vllm"
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-tpot-latency-p90
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Time Per Output Token Latency (P50)
+  queries:
+    - expression: histogram_quantile(0.50, sum by(le, model_name) (rate({__name__=~"vllm:time_per_output_token_seconds_bucket|vllm_time_per_output_token_seconds_bucket"}[${__rate_interval}])))
+      alias: "${model_name}"
+      primary: true
+  scope: type = "genai.system.vllm"
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-tpot-latency-p50
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Time Per Output Token Latency (Average)
+  queries:
+    - expression: rate({__name__=~"vllm:time_per_output_token_seconds_sum|vllm_time_per_output_token_seconds_sum"}[${__rate_interval}])/rate({__name__=~"vllm:time_per_output_token_seconds_count|vllm_time_per_output_token_seconds_count"}[${__rate_interval}])
+      alias: "${model_name}"
+      primary: true
+  scope: type = "genai.system.vllm"
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-tpot-latency-avg
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: End-to-End Request Latency (P99)
+  queries:
+    - expression: histogram_quantile(0.99, sum by(le) (rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_bucket", model_name="${name}" }[${__rate_interval}])))
+      alias: "P99 Latency"
+      primary: true
+  scope: (type = "genai.model" and label = "vllm_metrics_available")
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-model-e2e-latency-p99
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: End-to-End Request Latency (P95)
+  queries:
+    - expression: histogram_quantile(0.95, sum by(le) (rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_bucket", model_name="${name}" }[${__rate_interval}])))
+      alias: "P95 Latency"
+      primary: true
+  scope: (type = "genai.model" and label = "vllm_metrics_available")
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-model-e2e-latency-p95
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: End-to-End Request Latency (P90)
+  queries:
+    - expression: histogram_quantile(0.90, sum by(le) (rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_bucket", model_name="${name}" }[${__rate_interval}])))
+      alias: "P90 Latency"
+      primary: true
+  scope: (type = "genai.model" and label = "vllm_metrics_available")
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-model-e2e-latency-p90
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: End-to-End Request Latency (P50)
+  queries:
+    - expression: histogram_quantile(0.50, sum by(le) (rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_bucket", model_name="${name}" }[${__rate_interval}])))
+      alias: "P50 Latency"
+      primary: true
+  scope: (type = "genai.model" and label = "vllm_metrics_available")
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-model-e2e-latency-p50
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: End-to-End Request Latency (Average)
+  queries:
+    - expression: rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_sum", model_name="${name}" }[${__rate_interval}])/rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_count", model_name="${name}" }[${__rate_interval}])
+      alias: "Average"
+      primary: true
+  scope: (type = "genai.model" and label = "vllm_metrics_available")
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-model-e2e-latency-avg
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Token Throughput (Prompt)
+  queries:
+    - expression: rate({__name__=~"vllm(:|_)prompt_tokens_total", model_name="${name}"}[${__rate_interval}])
+      alias: "Prompt Tokens/Sec"
+      primary: true
+  scope: (type = "genai.model" and label = "vllm_metrics_available")
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-model-token-throughput-prompt
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Throughput
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Token Throughput (Generation)
+  queries:
+    - expression: rate({__name__=~"vllm(:|_)generation_tokens_total", model_name="${name}"}[${__rate_interval}])
+      alias: "Generation Tokens/Sec"
+      primary: true
+  scope: (type = "genai.model" and label = "vllm_metrics_available")
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-model-token-throughput-generation
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Throughput
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: GPU Cache Usage
+  queries:
+    - expression: vllm_gpu_cache_usage_perc{model_name="${name}"} or vllm:gpu_cache_usage_perc{model_name="${name}"}
+      alias: "GPU Cache Usage"
+      primary: true
+  scope: (type = "genai.model" and label = "vllm_metrics_available")
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-model-gpu-cache-usage
+  unit: percentunit
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Cache Utilization
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Time To First Token Latency (P99)
+  queries:
+    - expression: histogram_quantile(0.99, sum by(le) (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
+      alias: "P99"
+      primary: true
+  scope: (type = "genai.model" and label = "vllm_metrics_available")
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-model-ttft-latency-p99
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Time To First Token Latency (P95)
+  queries:
+    - expression: histogram_quantile(0.95, sum by(le) (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
+      alias: "P95"
+      primary: true
+  scope: (type = "genai.model" and label = "vllm_metrics_available")
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-model-ttft-latency-p95
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Time To First Token Latency (P90)
+  queries:
+    - expression: histogram_quantile(0.90, sum by(le) (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
+      alias: "P90"
+      primary: true
+  scope: (type = "genai.model" and label = "vllm_metrics_available")
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-model-ttft-latency-p90
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Time To First Token Latency (P50)
+  queries:
+    - expression: histogram_quantile(0.50, sum by(le) (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
+      alias: "P50"
+      primary: true
+  scope: (type = "genai.model" and label = "vllm_metrics_available")
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-model-ttft-latency-p50
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Time To First Token Latency (Average)
+  queries:
+    - expression: rate({__name__=~"vllm(:|_)time_to_first_token_seconds_sum", model_name="${name}"}[${__rate_interval}])/rate({__name__=~"vllm(:|_)time_to_first_token_seconds_count", model_name="${name}"}[${__rate_interval}])
+      alias: "Average"
+      primary: true
+  scope: (type = "genai.model" and label = "vllm_metrics_available")
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-model-ttft-latency-avg
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Number of Requests Running
+  queries:
+    - expression: vllm_num_requests_running{model_name="${name}"} or vllm:num_requests_running{model_name="${name}"}
+      alias: "req"
+      primary: true
+  scope: (type = "genai.model" and label = "vllm_metrics_available")
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-model-req-running
+  unit: short
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Scheduler
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Number of Requests Waiting
+  queries:
+    - expression: vllm_num_requests_waiting{model_name="${name}"} or vllm:num_requests_waiting{model_name="${name}"}
+      alias: "req"
+      primary: true
+  scope: (type = "genai.model" and label = "vllm_metrics_available")
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-model-req-waiting
+  unit: short
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Scheduler
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Time Per Ouput Token Latency (P99)
+  queries:
+    - expression: histogram_quantile(0.99, sum by(le) (rate({__name__=~"vllm(:|_)time_per_output_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
+      alias: "P99"
+      primary: true
+  scope: (type = "genai.model" and label = "vllm_metrics_available")
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-model-tpot-latency-p99
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Time Per Ouput Token Latency (P95)
+  queries:
+    - expression: histogram_quantile(0.95, sum by(le) (rate({__name__=~"vllm(:|_)time_per_output_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
+      alias: "P95"
+      primary: true
+  scope: (type = "genai.model" and label = "vllm_metrics_available")
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-model-tpot-latency-p95
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Time Per Ouput Token Latency (P90)
+  queries:
+    - expression: histogram_quantile(0.90, sum by(le) (rate({__name__=~"vllm(:|_)time_per_output_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
+      alias: "P90"
+      primary: true
+  scope: (type = "genai.model" and label = "vllm_metrics_available")
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-model-tpot-latency-p90
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Time Per Ouput Token Latency (P50)
+  queries:
+    - expression: histogram_quantile(0.50, sum by(le) (rate({__name__=~"vllm(:|_)time_per_output_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
+      alias: "P50"
+      primary: true
+  scope: (type = "genai.model" and label = "vllm_metrics_available")
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-model-tpot-latency-p50
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8
+- _type: MetricBinding
+  name: Time Per Ouput Token Latency (Average)
+  queries:
+    - expression: rate({__name__=~"vllm(:|_)time_per_output_token_seconds_sum", model_name="${name}"}[${__rate_interval}])/rate({__name__=~"vllm(:|_)time_per_output_token_seconds_count", model_name="${name}"}[${__rate_interval}])
+      alias: "Average"
+      primary: true
+  scope: (type = "genai.model" and label = "vllm_metrics_available")
+  identifier: urn:stackpack:genai-observability:shared:metric-binding:vllm-model-tpot-latency-avg
+  unit: seconds
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: Performance
+      section: Latency
+    componentSummary:
+      weight: 8

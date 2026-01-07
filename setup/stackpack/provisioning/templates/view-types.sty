@@ -1,0 +1,179 @@
+- _type: ViewType
+  name: GenAI apps view definition
+  iconbase64: "{{ include "./icons-svg/genai_app.svg" "base64" }}"
+  overview:
+    columns:
+      - _type: ViewTypeTableColHealth
+      - title: Node
+        _type: ViewTypeTableColName
+      - title: Requests
+        metricBindingIdentifier: urn:stackpack:genai-observability:shared:metric-binding:app-request-total-success
+        width: 160
+        _type: ViewTypeTableColMetricBinding
+      - title: Avg Usage DollarCost
+        metricBindingIdentifier: urn:stackpack:genai-observability:shared:metric-binding:app-avg-usage-cost
+        width: 160
+        _type: ViewTypeTableColMetricBinding
+      - title: Total Usage Tokens
+        metricBindingIdentifier: urn:stackpack:genai-observability:shared:metric-binding:app-total-usage-tokens
+        width: 160
+        _type: ViewTypeTableColMetricBinding
+      - title: Namespace
+        labelPrefix: service.namespace
+        pathToIdentifier:
+          - properties
+          - namespaceIdentifier
+        width: 200
+        _type: ViewTypeTableColComponentLink
+    _type: ViewTypeOverview
+  flags:
+    - NoTopologyFilters
+  filters:
+    - prefix: cluster-name
+      name: cluster-name
+      _type: LabelPrefixedFilter
+    - tabs:
+        - EVENTS
+        - TRACES
+      _type: TopologyFilters
+  identifier: urn:stackpack:genai-observability:shared:view-type:apps
+
+- _type: ViewType
+  name: K8s gpu nodes view definition
+  iconbase64: "{{ include "./icons-svg/nvidia.svg" "base64" }}"
+  overview:
+    columns:
+      - _type: ViewTypeTableColHealth
+      - title: Node
+        width: 140
+        _type: ViewTypeTableColName
+      - title: Status
+        path:
+          - properties
+          - status
+        width: 100
+        _type: ViewTypeTableColText
+      - title: GPUs
+        labelPrefix: nvidia.com/gpu.count
+        pathToIdentifier:
+          - properties
+          - internalIP
+        width: 110
+        _type: ViewTypeTableColComponentLink
+      - title: Model
+        labelPrefix: nvidia.com/gpu.product
+        pathToIdentifier:
+          - properties
+          - internalIP
+        width: 140
+        _type: ViewTypeTableColComponentLink
+      - title: Family
+        labelPrefix: nvidia.com/gpu.family
+        pathToIdentifier:
+          - properties
+          - internalIP
+        width: 100
+        _type: ViewTypeTableColComponentLink
+      - title: Node OS
+        labelPrefix: feature.node.kubernetes.io/system-os_release.ID
+        pathToIdentifier:
+          - properties
+          - internalIP
+        width: 130
+        _type: ViewTypeTableColComponentLink
+      - title: OS Version
+        labelPrefix: feature.node.kubernetes.io/system-os_release.VERSION_ID
+        pathToIdentifier:
+          - properties
+          - internalIP
+        width: 140
+        _type: ViewTypeTableColComponentLink
+      - title: CUDA Version
+        labelPrefix: nvidia.com/cuda.runtime-version.full
+        pathToIdentifier:
+          - properties
+          - internalIP
+        width: 140
+        _type: ViewTypeTableColComponentLink
+      - title: Driver Version
+        labelPrefix: nvidia.com/cuda.driver-version.full
+        pathToIdentifier:
+          - properties
+          - internalIP
+        width: 140
+        _type: ViewTypeTableColComponentLink
+      - title: GPU Memory
+        labelPrefix: nvidia.com/gpu.memory
+        pathToIdentifier:
+          - properties
+          - internalIP
+        width: 160
+        _type: ViewTypeTableColComponentLink
+      - title: CPU Usage
+        metricBindingIdentifier: urn:stackpack:stackstate-k8s-agent-v2:shared:metric-binding:host-cpu-time-summary
+        width: 160
+        _type: ViewTypeTableColMetricBinding
+      - title: Usable Memory
+        metricBindingIdentifier: urn:stackpack:stackstate-k8s-agent-v2:shared:metric-binding:host-memory
+        width: 150
+        _type: ViewTypeTableColMetricBinding
+      - title: Cluster
+        labelPrefix: cluster-name
+        pathToIdentifier:
+          - properties
+          - clusterNameIdentifier
+        width: 150
+        _type: ViewTypeTableColComponentLink
+    _type: ViewTypeOverview
+  flags:
+    - NoTopologyFilters
+  filters:
+    - prefix: cluster-name
+      name: cluster-name
+      _type: LabelPrefixedFilter
+    - tabs:
+        - EVENTS
+        - TRACES
+      _type: TopologyFilters
+  identifier: urn:stackpack:genai-observability:shared:view-type:node
+
+
+- _type: ViewType
+  name: GenAI Systems
+  iconbase64: "{{ include "./icons/genai-systems.png" "base64" }}"
+  overview:
+    columns:
+    - title: Name
+      _type: ViewTypeTableColName
+    - title: Type
+      _type: ViewTypeTableColComponentType
+    _type: ViewTypeOverview
+  flags:
+  - NoTopologyFilters
+  filters:
+  - tabs: []
+    _type: TopologyFilters
+  identifier: urn:stackpack:genai-observability:shared:view-type:systems
+
+
+- _type: ViewType
+  name: Vector DB Systems
+  iconbase64: "{{ include "./icons/db-systems.png" "base64" }}"
+  overview:
+    columns:
+    - title: Name
+      _type: ViewTypeTableColName
+    - title: Environment
+      path:
+      - properties
+      - genai_environment
+      width: 100
+      _type: ViewTypeTableColText
+    - title: Type
+      _type: ViewTypeTableColComponentType
+  flags:
+  - NoTopologyFilters
+  filters:
+  - tabs: []
+    _type: TopologyFilters
+  identifier: urn:stackpack:genai-observability:shared:view-type:vector-db-systems

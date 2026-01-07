@@ -1,0 +1,3 @@
+## Provisioning...
+
+Provisioning GenAI Observability monitoring. Please wait a moment.

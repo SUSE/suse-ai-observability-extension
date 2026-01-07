@@ -56,42 +56,15 @@ if [ "${K8S_AVAILABLE:-}" != "true" ]; then
     sts stackpack install --name kubernetes-v2 -p kubernetes_cluster_name="$KUBERNETES_CLUSTER" --url "$STACKSTATE_API_URL" --"$STACKSTATE_TOKEN_TYPE"-token "$STACKSTATE_TOKEN"
 fi
 echo "Applying settings..."
-declare -a SETTING_FILES=(
-    "/mnt/menu/llm.yaml"
-    "/mnt/overview/genai_system.yaml"
-    "/mnt/overview/gpu_nodes.yaml"
-    "/mnt/overview/vector_db_system.yaml"
-    "/mnt/overview/genai_apps.yaml"
-    "/mnt/components/genai_system_ollama.yaml"
-    "/mnt/components/genai_system_openai.yaml"
-    "/mnt/components/genai_system_vllm.yaml"
-    "/mnt/components/genai_model.yaml"
-    "/mnt/components/genai_dbsystem_milvus.yaml"
-    "/mnt/components/genai_dbsystem_opensearch.yaml"
-    "/mnt/metrics/gpu_nodes.yaml"
-    "/mnt/metrics/gpu_pods.yaml"
-    "/mnt/metrics/genai_systems.yaml"
-    "/mnt/metrics/db_systems.yaml"
-    "/mnt/metrics/genai_apps.yaml"
-    "/mnt/metrics/vllm.yaml"
-    "/mnt/metrics/vllm_model.yaml"
-    "/mnt/metrics/opensearch.yaml"
-)
 
-for file in "${SETTING_FILES[@]}"; do
-    if [ -f "$file" ]; then
-        echo "Applying $file..."
-        sts settings apply -f "$file" --url "$STACKSTATE_API_URL" --"$STACKSTATE_TOKEN_TYPE"-token "$STACKSTATE_TOKEN"
-    else
-        echo "Warning: File $file not found, skipping..."
-    fi
-done
+echo "Creating Stackpack STS file..."
+zip -r /mnt/genai-observability-stackpack.sts /mnt/stackpack.conf /mnt/provisioning /mnt/resources
 
-echo "Defining monitors..."
-if [ -f "/mnt/monitors/monitors.yaml" ]; then
-    sts monitor apply -f "/mnt/monitors/monitors.yaml" --url "$STACKSTATE_API_URL" --"$STACKSTATE_TOKEN_TYPE"-token "$STACKSTATE_TOKEN"
-else
-    echo "Warning: Monitors file not found, skipping..."
-fi
+echo "Uploading Stackpack..."
+ sts stackpack upload --file /mnt/genai-observability-stackpack.sts
+
+echo "Installing Stackpack..."
+sts stackpack install --name genai-observability
+
 echo "Installation completed successfully."
 exit 0

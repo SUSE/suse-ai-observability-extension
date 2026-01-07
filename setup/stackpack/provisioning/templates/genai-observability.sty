@@ -1,0 +1,19 @@
+nodes:
+{{ include "./templates/main-menu.sty" "yaml" }}
+{{ include "./templates/view-types.sty" "yaml" }}
+{{ include "./templates/views.sty" "yaml" }}
+
+{{ include "./templates/component-types/dbsystem-milvus.sty" "yaml" }}
+{{ include "./templates/component-types/dbsystem-opensearch.sty" "yaml" }}
+{{ include "./templates/component-types/genai-system-ollama.sty" "yaml" }}
+{{ include "./templates/component-types/genai-system-openai.sty" "yaml" }}
+{{ include "./templates/component-types/genai-system-vllm.sty" "yaml" }}
+{{ include "./templates/component-types/genai-vllm-model.sty" "yaml" }}
+
+{{ include "./templates/metric-bindings/metric-bindings-genai.sty" "yaml" }}
+{{ include "./templates/metric-bindings/metric-bindings-milvus.sty" "yaml" }}
+{{ include "./templates/metric-bindings/metric-bindings-nvidia-dcgm.sty" "yaml" }}
+{{ include "./templates/metric-bindings/metric-bindings-ollama.sty" "yaml" }}
+{{ include "./templates/metric-bindings/metric-bindings-opensearch.sty" "yaml" }}
+{{ include "./templates/metric-bindings/metric-bindings-vectordatabases.sty" "yaml" }}
+{{ include "./templates/metric-bindings/metric-bindings-vllm.sty" "yaml" }}
