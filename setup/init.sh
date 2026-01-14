@@ -60,11 +60,17 @@ echo "Applying settings..."
 echo "Creating Stackpack STS file..."
 zip -r /mnt/genai-observability-stackpack.sts /mnt/stackpack.conf /mnt/provisioning /mnt/resources
 
+echo "LS 1"
+ls .
+
+echo "LS 2"
+ls /mnt/
+
 echo "Uploading Stackpack..."
- sts stackpack upload --file /mnt/genai-observability-stackpack.sts
+sts stackpack upload --file /mnt/genai-observability-stackpack.sts --url "$STACKSTATE_API_URL" --"$STACKSTATE_TOKEN_TYPE"-token "$STACKSTATE_TOKEN"
 
 echo "Installing Stackpack..."
-sts stackpack install --name genai-observability
+sts stackpack install --name genai-observability --url "$STACKSTATE_API_URL" --"$STACKSTATE_TOKEN_TYPE"-token "$STACKSTATE_TOKEN"
 
 echo "Installation completed successfully."
 exit 0

@@ -1,6 +1,6 @@
 FROM opensuse/tumbleweed
 RUN zypper --non-interactive refresh && \
-    zypper --non-interactive install jq
+    zypper --non-interactive install jq zip
 RUN curl -o- https://dl.stackstate.com/stackstate-cli/install.sh | bash
 COPY setup/stackpack    /mnt/.
 COPY setup/deps    /mnt/.
