@@ -1,0 +1,61 @@
+{
+    "_type": "component",
+    "checks": [],
+    "streams": [
+        \{{# join element.data.metrics "," \}}
+            {
+                "_type": "metricstream",
+                "name": "\{{ name \}}",
+                "query": {
+                    "conditions": [
+                        \{{# join conditions "," \}}
+                            {
+                                "key": "\{{ key \}}",
+                                "value": "\{{ value \}}"
+                            }
+                        \{{/ join \}}
+                    ],
+                    "_type": " metrictelemetryquery",
+                    "metricfield": "\{{#if metricfield \}}\{{ metricfield \}}\{{else\}}value\{{/if\}}",
+                    "aggregation": "\{{#if aggregation \}}\{{ aggregation \}}\{{else\}}mean\{{/if\}}"
+                },
+                "datasource": \{{ resolve "datasource" "stackstate metrics" \}},
+                "datatype": "metrics",
+                "id": \{{ id \}}
+            }
+        \{{/ join \}}    
+    ],
+    "labels": [
+        \{{#if element.data.labels \}}
+            \{{# join element.data.labels "," "" "," \}}
+            {
+            "_type": "label",
+            "name": "\{{ this \}}"
+            }
+            \{{/ join \}}
+        \{{/if\}}
+        {
+            "_type": "label",
+            "name": "{{integrationType}}:{{integrationUrl}}"
+        }
+        \{{#if element.data.tags \}}
+            \{{# join element.data.tags "," "," "" \}}
+            {
+              "_type": "label",
+              "name": "\{{ this \}}"
+            }
+            \{{/ join \}}
+        \{{/if\}}
+    ],
+    "name": "\{{#if element.data.name\}}\{{ element.data.name \}}\{{else\}}\{{ element.externalid \}}\{{/if\}}",
+    \{{#if element.data.description\}}
+    "description": "\{{ element.data.description \}}",
+    \{{/if\}}
+    "type" : \{{ resolveorcreate "componenttype" element.type.name "auto-synced component" \}},
+    "version": "\{{ element.data.version \}}",
+    "layer": \{{ resolveorcreate "layer" element.data.layer "auto-synced components" \}},
+    "domain": \{{ resolveorcreate "domain" element.data.domain "auto-synced domain" \}},
+    "environments": [
+        \{{ resolveorcreate "environment" element.data.environment "auto-synced environment" \}}
+    ]
+}

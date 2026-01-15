@@ -1,3 +1,12 @@
 ## Installation
 
-You can click on `Install` to install the StackPack.
+## Prerequisites
+
+## Data Sources
+
+The runtime automatically collects topology from:
+- **OpenLIT SDK** - Applications instrumented with OpenLIT
+- **vLLM** - vLLM inference servers with metrics enabled
+- **Milvus** - Milvus vector databases
+- **OpenSearch** - OpenSearch/Elasticsearch clusters
+

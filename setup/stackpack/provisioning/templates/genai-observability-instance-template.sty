@@ -1,0 +1,95 @@
+nodes:
+- _type: DataSource
+  config:
+    _type: Sts.StsTopologyDataSourceConfig
+    autoExpireElements: false
+    expireElementsAfter: 172800000
+    id: -802
+    integrationType: "{{integrationType}}"
+    supportedDataTypes:
+    - TOPOLOGY_ELEMENTS
+    supportedWindowingMethods: []
+    topic: "{{topicName}}"
+  description: DataSource that was generated for {{integrationType}} {{integrationUrl}}
+  extTopology:
+    _type: ExtTopology
+    dataSource: -801
+    id: -803
+    settings:
+      _type: TopologySyncSettings
+      cleanupExpiredElements: false
+      cleanupInterval: 3600000
+      id: -804
+      maxBatchSize: 200
+      maxBatchesPerSecond: 5
+  id: -801
+  identifier: urn:stackpack:genai-observability:instance:{{instanceId}}:data-source:datasource-{{integrationType}}-{{integrationUrl}}
+  name: DataSource {{integrationType}} {{integrationUrl}}
+  pluginId: Sts
+  uiRequestTimeout: 15000
+- _type: Sync
+  componentActions: []
+  defaultComponentAction:
+    _type: SyncActionCreateComponent
+    id: -815
+    mergeStrategy: MergePreferTheirs
+    templateFunction: -805
+    type: default_component_mapping
+  defaultRelationAction:
+    _type: SyncActionCreateRelation
+    id: -816
+    mergeStrategy: MergePreferTheirs
+    templateFunction: -807
+    type: default_relation_mapping
+  extTopology: -803
+  id: -813
+  identifier: urn:stackpack:genai-observability:instance:{{instanceId}}:sync:synchronisation-{{integrationType}}-{{integrationUrl}}
+  name: Synchronization {{integrationType}} {{integrationUrl}}
+  relationActions: []
+  topologyDataQuery:
+    _type: Sts.StsTopologyElementsQuery
+    componentIdExtractorFunction: {{ get "urn:stackpack:genai-observability:shared:id-extractor-function:genai-component-id-extractor" }}
+    consumerOffsetStartAtEarliest: false
+    id: -814
+    relationIdExtractorFunction: {{ get "urn:stackpack:genai-observability:shared:id-extractor-function:genai-relation-id-extractor" }}
+- _type: QueryView
+  groupedByDomains: true
+  groupedByLayers: true
+  groupedByRelations: true
+  groupingEnabled: true
+  id: -811
+  identifier: urn:stackpack:genai-observability:instance:{{instanceId}}:query-view:{{integrationType}}-{{integrationUrl}}
+  minimumGroupSize: 10
+  name: "{{integrationType}} - {{integrationUrl}}"
+  query: label IN ('{{integrationType}}:{{integrationUrl}}')
+  queryVersion: 0.0.1
+  showIndirectRelations: false
+- _type: ComponentTemplateFunction
+  handlebarsTemplate: '{{ include "./templates/openlit-component-template.json.handlebars"
+    }}'
+  id: -805
+  identifier: urn:stackpack:genai-observability:instance:{{instanceId}}:component-template-function:{{integrationType}}-{{integrationUrl}}-component-template
+  name: "{{integrationType}}-{{integrationUrl}}-component-template"
+  parameters:
+  - _type: Parameter
+    id: -806
+    multiple: false
+    name: element
+    required: true
+    system: false
+    type: STRUCT_TYPE
+- _type: RelationTemplateFunction
+  handlebarsTemplate: '{{ include "./templates/openlit-relation-template.json.handlebars"
+    }}'
+  id: -807
+  identifier: urn:stackpack:genai-observability:instance:{{instanceId}}:relation-template-function:{{integrationType}}-{{integrationUrl}}-relation-template
+  name: "{{integrationType}}-{{integrationUrl}}-relation-template"
+  parameters:
+  - _type: Parameter
+    id: -808
+    multiple: false
+    name: element
+    required: true
+    system: false
+    type: STRUCT_TYPE
+version: '0.1'

@@ -1,0 +1,37 @@
+{
+    "_type": "Relation",
+    "checks": [],
+    "streams": [
+        \{{# join element.data.metrics "," \}}
+            {
+                "_type": "MetricStream",
+                "name": "\{{ name \}}",
+                "query": {
+                    "conditions": [
+                        \{{# join conditions "," \}}
+                            {
+                                "key": "\{{ key \}}",
+                                "value": "\{{ value \}}"
+                            }
+                        \{{/ join \}}
+                    ],
+                    "_type": " MetricTelemetryQuery",
+                    "metricField": "\{{#if metricField \}}\{{ metricField \}}\{{else\}}value\{{/if\}}",
+                    "aggregation": "\{{#if aggregation \}}\{{ aggregation \}}\{{else\}}MEAN\{{/if\}}"
+                },
+                "dataSource": \{{ resolve "DataSource" "StackState Metrics" \}},
+                "dataType": "METRICS",
+                "id": \{{ id \}}
+            }
+        \{{/ join \}}    
+    ],
+    "labels": [],
+    "name": "\{{ element.sourceExternalId \}} --> \{{ element.targetExternalId \}}",
+    \{{#if element.data.description\}}
+    "description": "\{{ element.data.description \}}",
+    \{{/if\}}
+    "type": \{{ resolveOrCreate "RelationType" element.type.name "Auto-synced Relation" \}},
+    "dependencyDirection": "\{{#if element.data.dependencyDirection \}}\{{ element.data.dependencyDirection \}}\{{else\}}ONE_WAY\{{/if\}}",
+    "source": \{{ element.sourceId \}},
+    "target": \{{ element.targetId \}}
+}

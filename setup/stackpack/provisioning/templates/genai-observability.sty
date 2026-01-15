@@ -17,3 +17,41 @@ nodes:
 {{ include "./templates/metric-bindings/metric-bindings-opensearch.sty" "yaml" }}
 {{ include "./templates/metric-bindings/metric-bindings-vectordatabases.sty" "yaml" }}
 {{ include "./templates/metric-bindings/metric-bindings-vllm.sty" "yaml" }}
+
+{{ include "./monitors/vectordb-system-metric-stream/monitor.sty" "yaml" }}
+{{ include "./monitors/genai-system-metric-stream/monitor.sty" "yaml" }}
+{{ include "./monitors/genai-model-metric-stream/monitor.sty" "yaml" }}
+{{ include "./monitors/genai-model-op-metric-stream/monitor.sty" "yaml" }}
+{{ include "./monitors/vectordb-op-metric-stream/monitor.sty" "yaml" }}
+{{ include "./monitors/nvidia-xid-errors/monitor.sty" "yaml" }}
+
+- _type: IdExtractorFunction
+  description: A generic component id extractor function for GenAI topology elements.
+  groovyScript: '{{ include "./scripts/genai-component-id-extractor.groovy" }}'
+  id: -900
+  identifier: urn:stackpack:genai-observability:shared:id-extractor-function:genai-component-id-extractor
+  name: GenAI component id extractor
+  parameters:
+  - _type: Parameter
+    id: -901
+    multiple: false
+    name: topologyElement
+    required: true
+    system: true
+    type: STRUCT_TYPE
+- _type: IdExtractorFunction
+  description: A generic relation id extractor function for GenAI topology elements.
+  groovyScript: '{{ include "./scripts/genai-relation-id-extractor.groovy" }}'
+  id: -902
+  identifier: urn:stackpack:genai-observability:shared:id-extractor-function:genai-relation-id-extractor
+  name: GenAI relation id extractor
+  parameters:
+  - _type: Parameter
+    id: -903
+    multiple: false
+    name: topologyElement
+    required: true
+    system: true
+    type: STRUCT_TYPE
+
+version: '0.1'
