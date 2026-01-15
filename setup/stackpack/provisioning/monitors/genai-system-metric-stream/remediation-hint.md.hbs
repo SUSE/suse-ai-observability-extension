@@ -1,0 +1,11 @@
+Have not received data in the last hour.
+
+### Check Open Telemetry Collector
+
+Check your OTEL collector logs to see if data is still being sent to SUSE Observability server.
+
+### Things to check
+- Verify the GenAI system (Ollama, OpenAI, vLLM, etc.) is running and healthy
+- Check OTEL collector configuration for the GenAI exporter
+- Verify network connectivity between OTEL collector and Observability server
+- Check for any errors in the OTEL collector logs

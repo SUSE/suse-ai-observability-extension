@@ -1,0 +1,21 @@
+- _type: Monitor
+  name: LLM GenAI Model Metric Stream Active
+  tags:
+    - genai
+    - llm
+    - model
+  function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+  identifier: urn:stackpack:genai-observability:shared:monitor:genai-model-metric-stream
+  description: "{{ include "./monitors/genai-model-metric-stream/description" }}"
+  status: ENABLED
+  arguments:
+    comparator: LTE
+    failureState: DEVIATING
+    metric:
+      aliasTemplate: Requests ${gen_ai_system} - ${gen_ai_request_model}
+      query: sum(sum_over_time(gen_ai_requests_total{}[5m])) by (gen_ai_system, gen_ai_request_model)
+      unit: short
+    threshold: 1.0
+    urnTemplate: urn:openlit:genai:${gen_ai_system}:model/${gen_ai_request_model}
+  intervalSeconds: 60
+  remediationHint: "{{ include "./monitors/genai-model-metric-stream/remediation-hint.md.hbs" "identity" }}"
