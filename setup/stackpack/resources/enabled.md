@@ -13,7 +13,7 @@ This StackPack has automatically provisioned:
 ### Resources Created
 - **Component Types**: GenAI-specific component types (models, systems, operations)
 - **Metric Bindings**: Pre-configured metrics for LLM and vector database monitoring
-- **Monitors**: 6 health monitors for data stream detection and GPU error monitoring
+- **Monitors**: Several health monitors for data stream detection and GPU error monitoring
 - **Views**: Custom views for GenAI Applications, LLM Systems, Vector Databases, and GPU Nodes
 - **Data Source**: Topology sync for instance type `{{configurationConfig.instance_type}}`
 

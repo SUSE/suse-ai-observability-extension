@@ -8,7 +8,7 @@ Comprehensive observability for Generative AI applications and infrastructure.
 - **LLM System Monitoring**: vLLM, Ollama, and OpenAI with metrics for token throughput, latency, and cache utilization
 - **Vector Database Monitoring**: Milvus and OpenSearch with request rates and operation metrics
 - **GPU Node Monitoring**: GPU utilization and NVIDIA XID error detection
-- **6 Health Monitors**: Automatic health monitoring for all GenAI components
+- **Several Health Monitors**: Automatic health monitoring for all GenAI components
 
 ### Automatic Dependencies
 
