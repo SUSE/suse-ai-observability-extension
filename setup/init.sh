@@ -1,77 +1,168 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
-for var in STACKSTATE_API_URL STACKSTATE_TOKEN STACKSTATE_TOKEN_TYPE KUBERNETES_CLUSTER; do
-    if [ -z "${!var}" ]; then
-        echo "Error: $var is not set"
-        exit 1
-    fi
-done
-
-if [[ "$STACKSTATE_TOKEN_TYPE" != "service" && "$STACKSTATE_TOKEN_TYPE" != "api" ]]; then
-    echo "Warning: STACKSTATE_TOKEN_TYPE must be 'service' or 'api'; defaulting to 'api'"
-    STACKSTATE_TOKEN_TYPE="api"
-fi
+readonly STACKPACK_NAME="genai-observability"
+readonly STACKPACK_DIR="/mnt"
+readonly STACKPACK_ARCHIVE="/tmp/${STACKPACK_NAME}.sts"
 
 INSTANCE_TYPE="${INSTANCE_TYPE:-openlit}"
 
-STACKPACK_NAME="genai-observability"
+log_info() {
+    echo "[INFO] $*"
+}
 
-if [ "${UNINSTALL:-}" = "true" ]; then
-    echo "Starting uninstall process..."
-    
-    STACKPACK_ID=$(sts stackpack list-instances --name "$STACKPACK_NAME" -o json \
-        --url "$STACKSTATE_API_URL" --"$STACKSTATE_TOKEN_TYPE"-token "$STACKSTATE_TOKEN" | \
-        jq --arg CLUSTER "$KUBERNETES_CLUSTER" \
-        '.instances | map(select(.config.kubernetes_cluster_name == $CLUSTER and .status == "INSTALLED"))[0].id // empty')
-    
-    if [ -z "$STACKPACK_ID" ]; then
-        echo "No $STACKPACK_NAME stackpack instance found for cluster $KUBERNETES_CLUSTER"
-    else
-        echo "Uninstalling $STACKPACK_NAME stackpack instance (ID: $STACKPACK_ID)..."
-        sts stackpack uninstall --id "$STACKPACK_ID" --name "$STACKPACK_NAME" \
-            --url "$STACKSTATE_API_URL" --"$STACKSTATE_TOKEN_TYPE"-token "$STACKSTATE_TOKEN"
-        echo "Uninstall completed successfully."
+log_error() {
+    echo "[ERROR] $*" >&2
+}
+
+log_success() {
+    echo "[SUCCESS] $*"
+}
+
+log_section() {
+    echo ""
+    echo "=============================================="
+    echo "$*"
+    echo "=============================================="
+}
+
+validate_environment() {
+    local required_vars=("STACKSTATE_API_URL" "STACKSTATE_TOKEN" "STACKSTATE_TOKEN_TYPE" "KUBERNETES_CLUSTER")
+    local missing_vars=()
+
+    for var in "${required_vars[@]}"; do
+        if [[ -z "${!var:-}" ]]; then
+            missing_vars+=("$var")
+        fi
+    done
+
+    if [[ ${#missing_vars[@]} -gt 0 ]]; then
+        log_error "Missing required environment variables: ${missing_vars[*]}"
+        exit 1
     fi
-    exit 0
-fi
 
-echo "Starting GenAI Observability installation..."
+    if [[ "$STACKSTATE_TOKEN_TYPE" != "service" && "$STACKSTATE_TOKEN_TYPE" != "api" ]]; then
+        log_info "STACKSTATE_TOKEN_TYPE must be 'service' or 'api'; defaulting to 'api'"
+        STACKSTATE_TOKEN_TYPE="api"
+    fi
+}
 
-echo "Checking if $STACKPACK_NAME stackpack is available..."
-STACKPACK_AVAILABLE=$(sts stackpack list -o json \
-    --url "$STACKSTATE_API_URL" --"$STACKSTATE_TOKEN_TYPE"-token "$STACKSTATE_TOKEN" | \
-    jq --arg NAME "$STACKPACK_NAME" '.stackpacks | any(.name == $NAME)')
+sts_auth_args() {
+    echo "--url" "$STACKSTATE_API_URL" "--${STACKSTATE_TOKEN_TYPE}-token" "$STACKSTATE_TOKEN"
+}
 
-if [ "${STACKPACK_AVAILABLE:-}" != "true" ]; then
-    echo "Uploading $STACKPACK_NAME stackpack..."
-    zip -r /mnt/genai-observability-stackpack.sts /mnt/stackpack.conf /mnt/provisioning /mnt/resources
-    sts stackpack upload --file /mnt/genai-observability-stackpack.sts \
-        --url "$STACKSTATE_API_URL" --"$STACKSTATE_TOKEN_TYPE"-token "$STACKSTATE_TOKEN"
-fi
+run_sts() {
+    local cmd=("sts" "$@")
+    local auth_args
+    read -ra auth_args <<< "$(sts_auth_args)"
+    "${cmd[@]}" "${auth_args[@]}"
+}
 
-echo "Checking if $STACKPACK_NAME is already installed for cluster $KUBERNETES_CLUSTER..."
-STACKPACK_INSTALLED=$(sts stackpack list-instances --name "$STACKPACK_NAME" -o json \
-    --url "$STACKSTATE_API_URL" --"$STACKSTATE_TOKEN_TYPE"-token "$STACKSTATE_TOKEN" | \
-    jq --arg CLUSTER "$KUBERNETES_CLUSTER" \
-    '.instances | any(.config.kubernetes_cluster_name == $CLUSTER)')
-
-if [ "${STACKPACK_INSTALLED:-}" = "true" ]; then
-    echo "$STACKPACK_NAME is already installed for cluster $KUBERNETES_CLUSTER"
-else
-    echo "Installing $STACKPACK_NAME stackpack..."
-    echo "  - kubernetes_cluster_name: $KUBERNETES_CLUSTER"
-    echo "  - instance_type: $INSTANCE_TYPE"
+# -----------------------------------------------------------------------------
+# StackPack + STS CLI stuff
+# -----------------------------------------------------------------------------
+create_stackpack_archive() {
+    log_info "Creating StackPack archive..."
     
-    sts stackpack install --name "$STACKPACK_NAME" \
-        -p kubernetes_cluster_name="$KUBERNETES_CLUSTER" \
-        -p instance_type="$INSTANCE_TYPE" \
-        --url "$STACKSTATE_API_URL" --"$STACKSTATE_TOKEN_TYPE"-token "$STACKSTATE_TOKEN"
-fi
+    if [[ ! -f "${STACKPACK_DIR}/stackpack.conf" ]]; then
+        log_error "stackpack.conf not found in ${STACKPACK_DIR}"
+        exit 1
+    fi
 
-echo ""
-echo "=============================================="
-echo "Installation completed successfully!"
-echo "=============================================="
-echo ""
-exit 0
+    (cd "${STACKPACK_DIR}" && zip -r "${STACKPACK_ARCHIVE}" stackpack.conf provisioning resources)
+    
+    log_info "Archive created: ${STACKPACK_ARCHIVE}"
+}
+
+is_stackpack_available() {
+    local result
+    result=$(run_sts stackpack list -o json | \
+        jq --arg NAME "$STACKPACK_NAME" '.stackpacks | any(.name == $NAME)')
+    [[ "${result}" == "true" ]]
+}
+
+is_stackpack_installed() {
+    local result
+    result=$(run_sts stackpack list-instances --name "$STACKPACK_NAME" -o json | \
+        jq --arg CLUSTER "$KUBERNETES_CLUSTER" \
+        '.instances | any(.config.kubernetes_cluster_name == $CLUSTER)')
+    [[ "${result}" == "true" ]]
+}
+
+get_installed_instance_id() {
+    run_sts stackpack list-instances --name "$STACKPACK_NAME" -o json | \
+        jq -r --arg CLUSTER "$KUBERNETES_CLUSTER" \
+        '.instances | map(select(.config.kubernetes_cluster_name == $CLUSTER and .status == "INSTALLED"))[0].id // empty'
+}
+
+upload_stackpack() {
+    log_info "Uploading StackPack..."
+    create_stackpack_archive
+    run_sts stackpack upload --file "${STACKPACK_ARCHIVE}"
+    log_success "StackPack uploaded successfully"
+}
+
+install_stackpack() {
+    log_info "Installing StackPack with parameters:"
+    log_info "  - kubernetes_cluster_name: $KUBERNETES_CLUSTER"
+    log_info "  - instance_type: $INSTANCE_TYPE"
+
+    run_sts stackpack install --name "$STACKPACK_NAME" \
+        -p "kubernetes_cluster_name=$KUBERNETES_CLUSTER" \
+        -p "instance_type=$INSTANCE_TYPE"
+
+    log_success "StackPack installed successfully"
+}
+
+uninstall_stackpack() {
+    local instance_id
+    instance_id=$(get_installed_instance_id)
+
+    if [[ -z "$instance_id" ]]; then
+        log_info "No installed instance found for cluster: $KUBERNETES_CLUSTER"
+        return 0
+    fi
+
+    log_info "Uninstalling StackPack instance (ID: $instance_id)..."
+    run_sts stackpack uninstall --id "$instance_id" --name "$STACKPACK_NAME"
+    log_success "StackPack uninstalled successfully"
+}
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
+main_uninstall() {
+    log_section "Starting Uninstall Process"
+    uninstall_stackpack
+}
+
+main_install() {
+    log_section "Starting GenAI Observability Installation"
+
+    log_info "Checking if StackPack is available..."
+    if ! is_stackpack_available; then
+        upload_stackpack
+    else
+        log_info "StackPack already available"
+    fi
+
+    log_info "Checking if StackPack is installed for cluster: $KUBERNETES_CLUSTER..."
+    if is_stackpack_installed; then
+        log_info "StackPack already installed for cluster: $KUBERNETES_CLUSTER"
+    else
+        install_stackpack
+    fi
+
+    log_section "Installation Completed Successfully"
+}
+
+main() {
+    validate_environment
+
+    if [[ "${UNINSTALL:-}" == "true" ]]; then
+        main_uninstall
+    else
+        main_install
+    fi
+}
+
+main "$@"
