@@ -20,7 +20,11 @@ func main() {
 	cId, err := cIdFactory.Build(conf)
 	cId.Sync()
 
-	sts := receiver.NewClient(&conf.StackState, &conf.Instance)
+	sts, err := receiver.NewClient(&conf.StackState, &conf.Instance)
+	if err != nil {
+		slog.Error("failed to create receiver client", "error", err)
+		os.Exit(1)
+	}
 	err = sts.Send(cId.GetBuilder())
 	if err != nil {
 		slog.Error("failed to send", "error", err)
