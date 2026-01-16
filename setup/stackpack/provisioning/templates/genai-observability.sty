@@ -24,6 +24,7 @@ nodes:
 {{ include "./monitors/genai-model-op-metric-stream/monitor.sty" "yaml" }}
 {{ include "./monitors/vectordb-op-metric-stream/monitor.sty" "yaml" }}
 {{ include "./monitors/nvidia-xid-errors/monitor.sty" "yaml" }}
+{{ include "./monitors/opensearch-cluster-status/monitor.sty" "yaml" }}
 
 - _type: IdExtractorFunction
   description: A generic component id extractor function for GenAI topology elements.

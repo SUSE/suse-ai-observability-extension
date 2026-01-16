@@ -1,0 +1,1 @@
+Monitors the health status of OpenSearch clusters. This monitor checks the elasticsearch_cluster_health metric and triggers a critical alert when the cluster enters a red state.
