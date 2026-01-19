@@ -2,12 +2,11 @@ package api
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
-	rq "github.com/carlmjohnson/requests"
 	sts "genai-observability/stackstate"
+	rq "github.com/carlmjohnson/requests"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -19,12 +18,10 @@ type Client struct {
 	url       string
 	conf      *sts.StackState
 	legacyApi bool
+	transport *http.Transport
 }
 
 var (
-	transport = &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
 	DumpHttpRequest bool
 )
 
@@ -35,7 +32,24 @@ const (
 
 func NewClient(conf *sts.StackState) (*Client, error) {
 	url, _ := strings.CutSuffix(conf.ApiUrl, "/")
-	return &Client{url: url, conf: conf, legacyApi: conf.LegacyApi}, nil
+
+	// Create TLS configuration
+	tlsConfig, err := sts.CreateTLSConfig(conf)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create TLS config: %w", err)
+	}
+
+	// Create HTTP transport with custom TLS configuration
+	transport := &http.Transport{
+		TLSClientConfig: tlsConfig,
+	}
+
+	return &Client{
+		url:       url,
+		conf:      conf,
+		legacyApi: conf.LegacyApi,
+		transport: transport,
+	}, nil
 }
 
 func (c *Client) Status() (*ServerInfo, error) {
@@ -280,7 +294,7 @@ func (c *Client) executeTopoScript(req scriptRequest) (*TopoQueryResponse, error
 
 func (c *Client) apiRequests(endpoint string) *rq.Builder {
 	uri := fmt.Sprintf("%s/api/%s", c.url, endpoint)
-	return request(uri).
+	return c.request(uri).
 		Header(c.GetXHeader(), c.conf.ApiToken)
 }
 
@@ -291,13 +305,13 @@ func (c Client) GetXHeader() string {
 	return "X-API-Token"
 }
 
-func request(uri string) *rq.Builder {
+func (c *Client) request(uri string) *rq.Builder {
 	b := rq.URL(uri).
 		ContentType("application/json")
 	if DumpHttpRequest {
 		b.Transport(rq.Record(nil, "http_dump"))
 	} else {
-		b.Transport(transport)
+		b.Transport(c.transport)
 	}
 	return b
 }

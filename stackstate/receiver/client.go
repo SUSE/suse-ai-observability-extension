@@ -2,10 +2,9 @@ package receiver
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
-	rq "github.com/carlmjohnson/requests"
 	sts "genai-observability/stackstate"
+	rq "github.com/carlmjohnson/requests"
 	"golang.org/x/exp/maps"
 	"log/slog"
 	"net/http"
@@ -14,15 +13,13 @@ import (
 )
 
 type Client struct {
-	url      string
-	conf     *sts.StackState
-	instance *Instance
+	url       string
+	conf      *sts.StackState
+	instance  *Instance
+	transport *http.Transport
 }
 
 var (
-	transport = &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
 	DumpHttpRequest bool
 )
 
@@ -31,9 +28,26 @@ const (
 	MetricEndpoint string = "receiver/stsAgent/api/v1/series"
 )
 
-func NewClient(conf *sts.StackState, instance *Instance) *Client {
+func NewClient(conf *sts.StackState, instance *Instance) (*Client, error) {
 	url, _ := strings.CutSuffix(conf.ApiUrl, "/")
-	return &Client{url: url, conf: conf, instance: instance}
+
+	// Create TLS configuration
+	tlsConfig, err := sts.CreateTLSConfig(conf)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create TLS config: %w", err)
+	}
+
+	// Create HTTP transport with custom TLS configuration
+	transport := &http.Transport{
+		TLSClientConfig: tlsConfig,
+	}
+
+	return &Client{
+		url:       url,
+		conf:      conf,
+		instance:  instance,
+		transport: transport,
+	}, nil
 }
 
 func (c *Client) Send(f *Factory) error {
@@ -105,23 +119,23 @@ func (c *Client) sendTopoAndEvents(f *Factory) error {
 
 func (c *Client) agentRequest() *rq.Builder {
 	uri := fmt.Sprintf("%s/%s", c.url, Endpoint)
-	return request(uri).
+	return c.request(uri).
 		Param("api_key", c.conf.ApiKey)
 }
 
 func (c *Client) metricRequest() *rq.Builder {
 	uri := fmt.Sprintf("%s/%s", c.url, MetricEndpoint)
-	return request(uri).
+	return c.request(uri).
 		Param("api_key", c.conf.ApiKey)
 }
 
-func request(uri string) *rq.Builder {
+func (c *Client) request(uri string) *rq.Builder {
 	b := rq.URL(uri).
 		ContentType("application/json")
 	if DumpHttpRequest {
 		b.Transport(rq.Record(nil, "http_dump"))
 	} else {
-		b.Transport(transport)
+		b.Transport(c.transport)
 	}
 	return b
 }
