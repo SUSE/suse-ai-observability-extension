@@ -5,7 +5,7 @@
       alias: Request Rate
       primary: true
   scope: type in ("genai.system.ollama", "genai.system.openai")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:genai-system-request-rate
+  identifier: urn:stackpack:openlit:shared:metric-binding:genai-system-request-rate
   unit: reqps
   chartType: line
   priority: high
@@ -23,7 +23,7 @@
       alias: "${gen_ai_request_model}"
       primary: true
   scope: type in ("genai.system.ollama", "genai.system.openai")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:genai-system-top-models
+  identifier: urn:stackpack:openlit:shared:metric-binding:genai-system-top-models
   unit: short
   chartType: line
   priority: high
@@ -44,7 +44,7 @@
     - expression: avg(gen_ai_usage_cost_USD_bucket{ gen_ai_system="${name}" })
       alias: Usage Dollar Cost
   scope: type in ("genai.system.ollama", "genai.system.openai")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:genai-system-avg-tokens-per-total-requests
+  identifier: urn:stackpack:openlit:shared:metric-binding:genai-system-avg-tokens-per-total-requests
   unit: short
   chartType: line
   priority: high
@@ -61,7 +61,7 @@
     - expression: avg by() (gen_ai_usage_cost_USD_sum{ gen_ai_system="${name}" })
       alias: Usage Dollar Cost
   scope: type in ("genai.system.ollama", "genai.system.openai")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:genai-system-avg-usage-cost
+  identifier: urn:stackpack:openlit:shared:metric-binding:genai-system-avg-usage-cost
   unit: currencyUSD
   chartType: line
   tags:
@@ -81,7 +81,7 @@
     - expression: sum(gen_ai_usage_cost_USD_sum{ gen_ai_system="${name}" })
       alias: Usage Dollar Cost
   scope: type in ("genai.system.ollama", "genai.system.openai")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:genai-system-avg-total-usage-cost
+  identifier: urn:stackpack:openlit:shared:metric-binding:genai-system-avg-total-usage-cost
   unit: currencyUSD
   chartType: line
   tags:
@@ -101,7 +101,7 @@
     - expression: sum(gen_ai_usage_tokens_total{ gen_ai_system="${name}" })
       alias: Total Usage Tokens
   scope: type in ("genai.system.ollama", "genai.system.openai")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:genai-system-total-usage-tokens
+  identifier: urn:stackpack:openlit:shared:metric-binding:genai-system-total-usage-tokens
   unit: short
   chartType: line
   tags:
@@ -121,7 +121,7 @@
     - expression: sum(gen_ai_usage_tokens_total{ gen_ai_system="${name}" })
       alias: Total Usage Tokens
   scope: type in ("genai.system.ollama", "genai.system.openai")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:genai-system-total-usage-tokens-line
+  identifier: urn:stackpack:openlit:shared:metric-binding:genai-system-total-usage-tokens-line
   unit: short
   chartType: line
   priority: high
@@ -139,7 +139,7 @@
       alias: Requests
       primary: true
   scope: type in ("genai.system.ollama", "genai.system.openai")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:genai-system-request-total-success
+  identifier: urn:stackpack:openlit:shared:metric-binding:genai-system-request-total-success
   unit: short
   chartType: line
   tags:
@@ -159,7 +159,7 @@
     - expression: avg by(gen_ai_request_model) (gen_ai_usage_cost_USD_sum{ gen_ai_system="${name}" })/100 or vector(0)
       alias: "${gen_ai_request_model}"
   scope: type in ("genai.system.ollama", "genai.system.openai")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:genai-system-avg-usage-cost-per-model
+  identifier: urn:stackpack:openlit:shared:metric-binding:genai-system-avg-usage-cost-per-model
   unit: currencyUSD
   chartType: line
   priority: high

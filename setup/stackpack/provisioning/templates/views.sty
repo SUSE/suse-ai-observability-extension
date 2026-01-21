@@ -10,7 +10,7 @@
   groupedByRelations: true
   groupingEnabled: true
   id: -200
-  identifier: urn:stackpack:genai-observability:shared:query-view:systems
+  identifier: urn:stackpack:openlit:shared:query-view:systems
   minimumGroupSize: 3
   name: LLM Systems
   neighboringComponents: false
@@ -19,7 +19,7 @@
   showCause: NONE
   showIndirectRelations: false
   tags: []
-  viewType: urn:stackpack:genai-observability:shared:view-type:systems
+  viewType: urn:stackpack:openlit:shared:view-type:systems
 
 - _type: QueryView
   autoGrouping: true
@@ -33,7 +33,7 @@
   groupedByRelations: true
   groupingEnabled: true
   id: -220
-  identifier: urn:stackpack:genai-observability:shared:query-view:genai-models
+  identifier: urn:stackpack:openlit:shared:query-view:genai-models
   minimumGroupSize: 3
   name: Models
   neighboringComponents: false
@@ -55,7 +55,7 @@
   groupedByRelations: true
   groupingEnabled: true
   id: -240
-  identifier: urn:stackpack:genai-observability:shared:query-view:vector-databases
+  identifier: urn:stackpack:openlit:shared:query-view:vector-databases
   minimumGroupSize: 3
   name: Vector Databases
   neighboringComponents: false
@@ -64,7 +64,7 @@
   showCause: NONE
   showIndirectRelations: false
   tags: []
-  viewType: urn:stackpack:genai-observability:shared:view-type:vector-db-systems
+  viewType: urn:stackpack:openlit:shared:view-type:vector-db-systems
 
 - _type: QueryView
   autoGrouping: true
@@ -78,7 +78,7 @@
   groupedByRelations: true
   groupingEnabled: true
   id: -250
-  identifier: urn:stackpack:genai-observability:shared:query-view:components
+  identifier: urn:stackpack:openlit:shared:query-view:genai-components
   minimumGroupSize: 3
   name: Components
   neighboringComponents: false
@@ -100,7 +100,7 @@
   groupedByRelations: true
   groupingEnabled: true
   id: -260
-  identifier: urn:stackpack:genai-observability:shared:query-view:apps
+  identifier: urn:stackpack:openlit:shared:query-view:apps
   minimumGroupSize: 3
   name: Applications
   neighboringComponents: false
@@ -109,7 +109,7 @@
   showCause: NONE
   showIndirectRelations: false
   tags: []
-  viewType: urn:stackpack:genai-observability:shared:view-type:apps
+  viewType: urn:stackpack:openlit:shared:view-type:apps
 
 - _type: QueryView
   name: GPU Nodes
@@ -122,12 +122,12 @@
   minimumGroupSize: 3
   query: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
   queryVersion: 0.0.1
-  identifier: urn:stackpack:genai-observability:shared:query-view:gpu-nodes
+  identifier: urn:stackpack:openlit:shared:query-view:gpu-nodes
   tags: []
   autoGrouping: true
   connectedComponents: true
   neighboringComponents: false
-  viewType: urn:stackpack:genai-observability:shared:view-type:node
+  viewType: urn:stackpack:openlit:shared:view-type:node
   flags:
     - HideFromViewsOverview
     - DisableEventHandlers

@@ -1,7 +1,7 @@
 - _type: ComponentType
   name: "dbsystem milvus"
   iconbase64: "{{ include "./icons-svg/milvus.svg" "base64" }}"
-  identifier: urn:stackpack:genai-observability:shared:component-type:dbsystem-milvus
+  identifier: urn:stackpack:openlit:shared:component-type:dbsystem-milvus
   highlights:
     namePlural: db_systems
     fields:
@@ -66,9 +66,9 @@
       - name: Requests
         description: Request Stats
         bindings:
-          - urn:stackpack:genai-observability:shared:metric-binding:vectordb-system-request-total-success
-          - urn:stackpack:genai-observability:shared:metric-binding:vectordb-system-total-requests
-          - urn:stackpack:genai-observability:shared:metric-binding:vectordb-system-request-rate
+          - urn:stackpack:openlit:shared:metric-binding:vectordb-system-request-total-success
+          - urn:stackpack:openlit:shared:metric-binding:vectordb-system-total-requests
+          - urn:stackpack:openlit:shared:metric-binding:vectordb-system-request-rate
         defaultExpanded: true
         _type: ComponentTypeMetricCategory
     _type: ComponentTypeHighlights

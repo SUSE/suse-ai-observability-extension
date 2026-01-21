@@ -7,15 +7,15 @@
       - title: Node
         _type: ViewTypeTableColName
       - title: Requests
-        metricBindingIdentifier: urn:stackpack:genai-observability:shared:metric-binding:app-request-total-success
+        metricBindingIdentifier: urn:stackpack:openlit:shared:metric-binding:app-request-total-success
         width: 160
         _type: ViewTypeTableColMetricBinding
       - title: Avg Usage DollarCost
-        metricBindingIdentifier: urn:stackpack:genai-observability:shared:metric-binding:app-avg-usage-cost
+        metricBindingIdentifier: urn:stackpack:openlit:shared:metric-binding:app-avg-usage-cost
         width: 160
         _type: ViewTypeTableColMetricBinding
       - title: Total Usage Tokens
-        metricBindingIdentifier: urn:stackpack:genai-observability:shared:metric-binding:app-total-usage-tokens
+        metricBindingIdentifier: urn:stackpack:openlit:shared:metric-binding:app-total-usage-tokens
         width: 160
         _type: ViewTypeTableColMetricBinding
       - title: Namespace
@@ -36,7 +36,7 @@
         - EVENTS
         - TRACES
       _type: TopologyFilters
-  identifier: urn:stackpack:genai-observability:shared:view-type:apps
+  identifier: urn:stackpack:openlit:shared:view-type:apps
 
 - _type: ViewType
   name: K8s gpu nodes view definition
@@ -135,7 +135,7 @@
         - EVENTS
         - TRACES
       _type: TopologyFilters
-  identifier: urn:stackpack:genai-observability:shared:view-type:node
+  identifier: urn:stackpack:openlit:shared:view-type:node
 
 
 - _type: ViewType
@@ -153,7 +153,7 @@
   filters:
   - tabs: []
     _type: TopologyFilters
-  identifier: urn:stackpack:genai-observability:shared:view-type:systems
+  identifier: urn:stackpack:openlit:shared:view-type:systems
 
 
 - _type: ViewType
@@ -176,4 +176,4 @@
   filters:
   - tabs: []
     _type: TopologyFilters
-  identifier: urn:stackpack:genai-observability:shared:view-type:vector-db-systems
+  identifier: urn:stackpack:openlit:shared:view-type:vector-db-systems

@@ -5,7 +5,7 @@
       alias: Temperature
       primary: true
   scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:node-gpu-avg-temp
+  identifier: urn:stackpack:openlit:shared:metric-binding:node-gpu-avg-temp
   unit: celsius
   chartType: line
   tags:
@@ -26,7 +26,7 @@
       alias: Power
       primary: true
   scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:node-gpu-power-total
+  identifier: urn:stackpack:openlit:shared:metric-binding:node-gpu-power-total
   unit: kwatt
   chartType: line
   tags:
@@ -47,7 +47,7 @@
       alias: GPU ${gpu}
       primary: true
   scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:node-gpu-temperature
+  identifier: urn:stackpack:openlit:shared:metric-binding:node-gpu-temperature
   unit: kwatt
   chartType: line
   priority: high
@@ -65,7 +65,7 @@
       alias: GPU ${gpu}
       primary: true
   scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:node-gpu-power-usage
+  identifier: urn:stackpack:openlit:shared:metric-binding:node-gpu-power-usage
   unit: kwatt
   chartType: line
   priority: high
@@ -83,7 +83,7 @@
       alias: GPU ${gpu}
       primary: true
   scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:node-gpu-sm-clocks
+  identifier: urn:stackpack:openlit:shared:metric-binding:node-gpu-sm-clocks
   unit: hertz
   chartType: line
   priority: high
@@ -101,7 +101,7 @@
       alias: GPU ${gpu}
       primary: true
   scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:node-gpu-utilization
+  identifier: urn:stackpack:openlit:shared:metric-binding:node-gpu-utilization
   unit: percent
   chartType: line
   priority: high
@@ -119,7 +119,7 @@
       alias: GPU ${gpu}
       primary: true
   scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:node-gpu-tensor-core-utilization
+  identifier: urn:stackpack:openlit:shared:metric-binding:node-gpu-tensor-core-utilization
   unit: percent
   chartType: line
   priority: high
@@ -137,7 +137,7 @@
       alias: GPU ${gpu}
       primary: true
   scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:node-gpu-framebuffer-mem-used
+  identifier: urn:stackpack:openlit:shared:metric-binding:node-gpu-framebuffer-mem-used
   unit: bytes
   chartType: line
   priority: high
@@ -156,7 +156,7 @@
       alias: GPU ${gpu}
       primary: true
   scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:node-gpu-average-utilization
+  identifier: urn:stackpack:openlit:shared:metric-binding:node-gpu-average-utilization
   unit: percent
   chartType: line
   tags:
@@ -178,7 +178,7 @@
       alias: GPU ${gpu}
       primary: true
   scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:node-gpu-memory-utilization
+  identifier: urn:stackpack:openlit:shared:metric-binding:node-gpu-memory-utilization
   unit: percent
   chartType: line
   priority: high
@@ -197,7 +197,7 @@
       alias: GPU ${gpu}
       primary: true
   scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:node-gpu-average-power-draw
+  identifier: urn:stackpack:openlit:shared:metric-binding:node-gpu-average-power-draw
   unit: watt
   chartType: line
   tags:
@@ -218,7 +218,7 @@
       alias: Temperature
       primary: true
   scope: type IN ("pod")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:pod-gpu-avg-temp
+  identifier: urn:stackpack:openlit:shared:metric-binding:pod-gpu-avg-temp
   unit: celsius
   chartType: line
   tags:
@@ -239,7 +239,7 @@
       alias: Power
       primary: true
   scope: type IN ("pod")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:pod-gpu-power-total
+  identifier: urn:stackpack:openlit:shared:metric-binding:pod-gpu-power-total
   unit: kwatt
   chartType: line
   tags:
@@ -260,7 +260,7 @@
       alias: GPU ${gpu}
       primary: true
   scope: type IN ("pod")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:pod-gpu-temperature
+  identifier: urn:stackpack:openlit:shared:metric-binding:pod-gpu-temperature
   unit: kwatt
   chartType: line
   priority: high
@@ -278,7 +278,7 @@
       alias: GPU ${gpu}
       primary: true
   scope: type IN ("pod")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:pod-gpu-power-usage
+  identifier: urn:stackpack:openlit:shared:metric-binding:pod-gpu-power-usage
   unit: kwatt
   chartType: line
   priority: high
@@ -296,7 +296,7 @@
       alias: GPU ${gpu}
       primary: true
   scope: type IN ("pod")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:pod-gpu-sm-clocks
+  identifier: urn:stackpack:openlit:shared:metric-binding:pod-gpu-sm-clocks
   unit: hertz
   chartType: line
   priority: high
@@ -314,7 +314,7 @@
       alias: GPU ${gpu}
       primary: true
   scope: type IN ("pod")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:pod-gpu-utilization
+  identifier: urn:stackpack:openlit:shared:metric-binding:pod-gpu-utilization
   unit: percent
   chartType: line
   priority: high
@@ -332,7 +332,7 @@
       alias: GPU ${gpu}
       primary: true
   scope: type IN ("pod")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:pod-gpu-tensor-core-utilization
+  identifier: urn:stackpack:openlit:shared:metric-binding:pod-gpu-tensor-core-utilization
   unit: percent
   chartType: line
   priority: high
@@ -350,7 +350,7 @@
       alias: GPU ${gpu}
       primary: true
   scope: type IN ("pod")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:pod-gpu-framebuffer-mem-used
+  identifier: urn:stackpack:openlit:shared:metric-binding:pod-gpu-framebuffer-mem-used
   unit: bytes
   chartType: line
   priority: high
@@ -369,7 +369,7 @@
       alias: GPU ${gpu}
       primary: true
   scope: type IN ("pod")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:pod-gpu-average-utilization
+  identifier: urn:stackpack:openlit:shared:metric-binding:pod-gpu-average-utilization
   unit: percent
   chartType: line
   tags:
@@ -391,7 +391,7 @@
       alias: GPU ${gpu}
       primary: true
   scope: type IN ("pod")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:pod-gpu-memory-utilization
+  identifier: urn:stackpack:openlit:shared:metric-binding:pod-gpu-memory-utilization
   unit: percent
   chartType: line
   priority: high
@@ -410,7 +410,7 @@
       alias: GPU ${gpu}
       primary: true
   scope: type IN ("pod")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:pod-gpu-average-power-draw
+  identifier: urn:stackpack:openlit:shared:metric-binding:pod-gpu-average-power-draw
   unit: watt
   chartType: line
   tags:
