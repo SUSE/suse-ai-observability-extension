@@ -1,2 +1,2 @@
-# GenAI Observability Releases 
+# SUSE AI Observability Extension Releases 
 

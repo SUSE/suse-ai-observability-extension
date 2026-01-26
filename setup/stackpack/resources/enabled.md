@@ -1,4 +1,4 @@
-# GenAI Observability Installed
+# SUSE AI Observability Extension Installed
 
 The StackPack is now installed and receiving data.
 
@@ -19,7 +19,7 @@ This StackPack has automatically provisioned:
 
 ## Navigate to GenAI Topology
 
-Use the **GenAI Observability** menu in the left sidebar to access:
+Use the **SUSE AI Observability Extension** menu in the left sidebar to access:
 - **GenAI Applications** - Applications using LLMs
 - **LLM Systems** - vLLM, Ollama, OpenAI endpoints
 - **Models** - Individual LLM models

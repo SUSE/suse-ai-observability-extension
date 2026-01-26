@@ -1,6 +1,6 @@
 ## Deprovisioning...
 
-Removing GenAI Observability StackPack resources.
+Removing SUSE AI Observability Extension StackPack resources.
 
 ### Note
 

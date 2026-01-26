@@ -1,6 +1,6 @@
 ## Provisioning...
 
-Installing GenAI Observability StackPack. This includes:
+Installing SUSE AI Observability Extension StackPack. This includes:
 
 1. Installing **open-telemetry** StackPack
 2. Installing **kubernetes-v2** StackPack for cluster `{{configurationConfig.kubernetes_cluster_name}}`

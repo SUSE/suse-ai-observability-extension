@@ -1,4 +1,4 @@
-## GenAI Observability
+## SUSE AI Observability Extension
 
 Comprehensive observability for Generative AI applications and infrastructure.
 

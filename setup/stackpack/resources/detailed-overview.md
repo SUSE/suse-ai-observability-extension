@@ -1,8 +1,8 @@
-# GenAI Observability StackPack
+# SUSE AI Observability Extension StackPack
 
 ## Overview
 
-The GenAI Observability StackPack provides comprehensive observability for Generative AI applications and infrastructure, including LLM systems, vector databases, and GPU nodes.
+The SUSE AI Observability Extension StackPack provides comprehensive observability for Generative AI applications and infrastructure, including LLM systems, vector databases, and GPU nodes.
 
 ## Architecture
 
