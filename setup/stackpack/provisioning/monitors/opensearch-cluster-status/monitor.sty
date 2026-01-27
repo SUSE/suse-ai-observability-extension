@@ -1,0 +1,21 @@
+- _type: Monitor
+  name: OpenSearch Cluster Status
+  tags:
+    - genai
+    - vectordb
+    - opensearch
+  function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+  identifier: urn:stackpack:openlit:shared:monitor:opensearch-cluster-status
+  description: "{{ include "./monitors/opensearch-cluster-status/description" }}"
+  status: ENABLED
+  arguments:
+    comparator: GTE
+    failureState: CRITICAL
+    metric:
+      aliasTemplate: Cluster Status ${elasticsearch_cluster_name}
+      query: elasticsearch_cluster_health{status="red"}
+      unit: short
+    threshold: 1.0
+    urnTemplate: urn:openlit:vectordb:system/${elasticsearch_cluster_name}
+  intervalSeconds: 60
+  remediationHint: "{{ include "./monitors/opensearch-cluster-status/remediation-hint.md.hbs" "identity" }}"

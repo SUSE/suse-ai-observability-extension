@@ -1,0 +1,1 @@
+Indicates if a GPU Node is emitting an XID error for NVIDIA graphics cards. XID errors indicate general GPU errors that can stem from hardware problems, NVIDIA software issues, or user application problems.

@@ -1,0 +1,116 @@
+- _type: ComponentType
+  name: "genai model"
+  iconbase64: "{{ include "./icons-svg/genai-model.svg" "base64" }}"
+  identifier: urn:stackpack:openlit:shared:component-type:genai-model
+  highlights:
+    namePlural: genai_models
+    fields:
+      - fieldId: type
+        label:
+          title: Type
+        valueExtractor:
+          _type: ComponentTypeSource
+        display:
+          _type: TagDisplay
+        _type: ComponentTypeField
+      - fieldId: health
+        label:
+          title: Health
+        valueExtractor:
+          _type: HealthSource
+        display:
+          _type: HealthBadgeDisplay
+        _type: ComponentTypeField
+      - fieldId: labels
+        label:
+          title: Labels
+        valueExtractor:
+          _type: TagsSource
+        display:
+          singular: label
+          _type: TagDisplay
+        _type: ComponentTypeField
+    about:
+      fields:
+        - type
+        - health
+        - labels
+      _type: ComponentTypeAbout
+    events:
+      showEvents: false
+      _type: ComponentTypeEvents
+    showLogs: false
+    showLastChange: false
+    externalComponent:
+      showConfiguration: false
+      showStatus: false
+      externalIdSelector: "^openlit:urn:genai:"
+      _type: ComponentTypeExternalComponent
+    relatedResources:
+      - resourceType: genai.operation
+        title: Operations
+        stql:
+          (withNeighborsOf(direction = "down", components = (id = "{COMPONENT_ID}"),
+          levels = "1")) and type = "genai.operation"
+        #          viewTypeIdentifier: urn:stackpack:open-telemetry:shared:view-type:service-instance
+        _type: ComponentTypeRelatedResources
+      - resourceType: genai.system
+        title: Related GenAI systems
+        stql:
+          (withNeighborsOf(direction = "up", components = (id = "{COMPONENT_ID}"),
+          levels = "1")) and (type = "genai.system.vllm" or type = "genai.system.ollama" or type = "genai.system.openai")
+        viewTypeIdentifier: urn:stackpack:open-telemetry:shared:view-type:service
+        _type: ComponentTypeRelatedResources
+
+    metrics:
+      - name: Token Throughput
+        description: Token Throughput
+        bindings:
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-token-throughput-prompt
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-token-throughput-generation
+        defaultExpanded: true
+        _type: ComponentTypeMetricCategory
+      - name: Scheduler
+        description: Requests running or waiting.
+        bindings:
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-req-running
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-req-waiting
+        defaultExpanded: true
+        _type: ComponentTypeMetricCategory
+      - name: End-to-End Latency
+        description: Latency
+        bindings:
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-e2e-latency-p99
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-e2e-latency-p95
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-e2e-latency-p90
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-e2e-latency-p50
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-e2e-latency-avg
+        defaultExpanded: true
+        _type: ComponentTypeMetricCategory
+      - name: Time To First Token Latency
+        description: Latency in seconds.
+        bindings:
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-ttft-latency-p99
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-ttft-latency-p95
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-ttft-latency-p90
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-ttft-latency-p50
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-ttft-latency-avg
+        defaultExpanded: true
+        _type: ComponentTypeMetricCategory
+      - name: Time Per Output Token Latency
+        description: Latency in seconds.
+        bindings:
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-tpot-latency-p99
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-tpot-latency-p95
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-tpot-latency-p90
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-tpot-latency-p50
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-tpot-latency-avg
+        defaultExpanded: true
+        _type: ComponentTypeMetricCategory
+      - name: Cache Utilization
+        description: Percentage of used cache blocks by vLLM for this model
+        bindings:
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-gpu-cache-usage
+        defaultExpanded: true
+        _type: ComponentTypeMetricCategory
+    _type: ComponentTypeHighlights

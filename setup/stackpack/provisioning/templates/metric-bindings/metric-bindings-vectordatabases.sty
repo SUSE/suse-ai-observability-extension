@@ -1,0 +1,57 @@
+- _type: MetricBinding
+  name: Total Database Operations
+  queries:
+    - expression: sum(db_requests_total{service_name="${name}"})
+      alias: Total Operations
+      primary: true
+  scope: type in ("otel service", "genai.app") AND label in ("gen_ai_app")
+  identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-vectordb-total-database-operations
+  unit: short
+  chartType: line
+  tags:
+    experimental_chartType: Gauge
+    enableGaugeChart: "1"
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: VectorDB
+      section: Usage
+    componentSummary:
+      weight: 3
+- _type: MetricBinding
+  name: Top Vector Databases by Usage
+  queries:
+    - expression: sum by(db_system) (db_requests_total{service_name="${name}"})
+      alias: "${db_system}"
+      primary: true
+  scope: type in ("otel service", "genai.app") AND label in ("gen_ai_app")
+  identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-vectordb-top-vectordb-by-usage
+  unit: short
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: VectorDB
+      section: Usage
+    componentSummary:
+      weight: 3
+- _type: MetricBinding
+  name: DB Request Rate
+  queries:
+    - expression: sum(rate(db_requests_total{ service_name="${name}" }[${__rate_interval}]))
+      alias: Request Rate
+      primary: true
+  scope: type in ("otel service", "genai.app") AND label in ("gen_ai_app")
+  identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-vectordb-request-rate
+  unit: reqps
+  chartType: line
+  priority: high
+  enabled: true
+  layout:
+    metricPerspective:
+      tab: VectorDB
+      section: Request
+    componentSummary:
+      weight: 3

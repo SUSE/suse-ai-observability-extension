@@ -1,0 +1,105 @@
+The OpenSearch cluster is reporting a RED health status, indicating critical issues that require immediate attention.
+
+A RED status means at least one **primary shard is unassigned**, so some data is unavailable and some reads/writes may fail.
+
+## Possible Causes
+
+- One or more primary shards are not allocated (unassigned primaries)
+- Data loss may have occurred or is imminent (especially if no valid shard copies exist)
+- Cluster nodes may be down or unreachable (node crash/restart, instability under heavy load / OOM)
+- Disk space issues on one or more nodes (allocation blocked by disk watermarks / flood stage)
+- Allocation rules prevent placement (cluster/index routing allocation filters, awareness/forced awareness constraints)
+- Shard recovery failures or corruption (shard stuck initializing / repeated recovery failure)
+- Recent maintenance / rolling restart temporarily leaving shards unassigned
+
+## Remediation Steps
+
+### Check Cluster Health Details
+
+Run the following command to get detailed cluster health information:
+
+    curl -X GET "http://<opensearch-host>:9200/_cluster/health?pretty"
+
+### Check Unassigned Shards
+
+Identify which shards are unassigned:
+
+    curl -X GET "http://<opensearch-host>:9200/_cat/shards?v&h=index,shard,prirep,state,node,unassigned.reason"
+
+### Explain Why Shards Won’t Allocate
+
+Ask OpenSearch to explain the allocation blockers (“deciders”):
+
+    curl -X GET "http://<opensearch-host>:9200/_cluster/allocation/explain?pretty"
+
+### Check Shard Copies That Exist (Shard Stores)
+
+See what shard copies exist on nodes and why allocation may be failing:
+
+    curl -X GET "http://<opensearch-host>:9200/_shard_stores?pretty"
+
+### Check Allocation & Disk Threshold Settings
+
+Review cluster and index settings that might block allocations (filters, awareness, disk watermarks):
+
+    curl -X GET "http://<opensearch-host>:9200/_cluster/settings?include_defaults=true&flat_settings=true"
+
+### Things to Check
+
+- Verify all cluster nodes are running and accessible
+- Check disk space on all nodes (shard allocation can stop due to disk watermarks; flood stage can also trigger write blocks)
+- Review OpenSearch logs for errors (crashes, recovery failures, corruption, IO errors)
+- Check network connectivity between cluster nodes
+- Verify JVM heap memory is not exhausted; look for memory pressure / OOM events
+- Look for allocation constraints that prevent shard placement:
+  - cluster/index routing allocation include/require/exclude rules
+  - awareness / forced awareness settings that require nodes in specific zones/racks/attributes
+
+## Recovery Actions
+
+1. If nodes are down, restart/replace them and allow the cluster to recover automatically.
+2. If disk space is low, free up space, expand storage, or add capacity (more data nodes).
+3. Remove or fix misconfigured allocation filters/awareness constraints so shards have eligible nodes.
+4. Retry failed allocations once the underlying issue is fixed:
+
+    curl -X POST "http://<opensearch-host>:9200/_cluster/reroute?retry_failed=true"
+
+5. Restore from snapshot if shard data cannot be recovered safely.
+6. If acceptable, delete irrecoverable/red indices to return cluster health (data loss for those indices).
+7. Last resort (accepts data loss): force-allocate a primary shard.
+
+   - Allocate a stale primary (may overwrite newer data if a better copy later rejoins):
+
+    curl -X POST "http://<opensearch-host>:9200/_cluster/reroute" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "commands": [
+          {
+            "allocate_stale_primary": {
+              "index": "my-index",
+              "shard": 0,
+              "node": "node-1",
+              "accept_data_loss": true
+            }
+          }
+        ]
+      }'
+
+   - Allocate an empty primary (initializes an empty shard; previous data is lost):
+
+    curl -X POST "http://<opensearch-host>:9200/_cluster/reroute" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "commands": [
+          {
+            "allocate_empty_primary": {
+              "index": "my-index",
+              "shard": 0,
+              "node": "node-1",
+              "accept_data_loss": true
+            }
+          }
+        ]
+      }'
+
+Note: Avoid making major configuration changes while the cluster is RED; stabilize and restore allocations first.

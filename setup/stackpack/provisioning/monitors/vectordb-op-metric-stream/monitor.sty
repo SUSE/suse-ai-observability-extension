@@ -1,0 +1,21 @@
+- _type: Monitor
+  name: LLM VectorDB Op Metric Stream Active
+  tags:
+    - genai
+    - vectordb
+    - operation
+  function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+  identifier: urn:stackpack:openlit:shared:monitor:vectordb-op-metric-stream
+  description: "{{ include "./monitors/vectordb-op-metric-stream/description" }}"
+  status: ENABLED
+  arguments:
+    comparator: LT
+    failureState: DEVIATING
+    metric:
+      aliasTemplate: Requests ${db_system} - ${db_operation}
+      query: sum(sum_over_time(db_requests_total{}[5m])) by (db_system, db_operation)
+      unit: short
+    threshold: 1.0
+    urnTemplate: urn:openlit:vectordb:${db_system}:operation/${db_operation}
+  intervalSeconds: 60
+  remediationHint: "{{ include "./monitors/vectordb-op-metric-stream/remediation-hint.md.hbs" "identity" }}"

@@ -1,4 +1,4 @@
-FROM golang:1.23-alpine AS builder
+FROM dp.apps.rancher.io/containers/go:1.25.5 AS builder
 
 WORKDIR /app
 
@@ -10,9 +10,7 @@ COPY . .
 
 RUN go build -trimpath -o /app/genaisync ./cmd/sync/main.go
 
-FROM alpine:3.20.3
-
-RUN apk --no-cache update && apk --no-cache add stress-ng
+FROM dp.apps.rancher.io/containers/bci-micro:15.7
 
 USER 1001
 WORKDIR /app

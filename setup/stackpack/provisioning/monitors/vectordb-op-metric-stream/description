@@ -1,0 +1,1 @@
+Indicates if Open Telemetry is sending data to the VectorDB operation component. This monitor checks if db_requests_total metrics are being received for specific database operations.

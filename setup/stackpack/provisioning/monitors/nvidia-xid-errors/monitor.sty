@@ -1,0 +1,22 @@
+- _type: Monitor
+  name: GPU Node NVIDIA XID Errors
+  tags:
+    - gpu
+    - nvidia
+    - hardware
+  function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+  identifier: urn:stackpack:openlit:shared:monitor:nvidia-xid-errors
+  description: "{{ include "./monitors/nvidia-xid-errors/description" }}"
+  status: ENABLED
+  arguments:
+    threshold: 1.0
+    comparator: GTE
+    failureState: CRITICAL
+    metric:
+      aliasTemplate: XID Error ${err_code}
+      query: max by (err_code, err_msg, service_name, app, service_namespace, k8s_cluster_name, k8s_node_name) (max_over_time(DCGM_FI_DEV_XID_ERRORS[5m]))
+      unit: short
+    titleTemplate: "NVIDIA XID Error ${err_code} - ${err_msg}"
+    urnTemplate: urn:host:/${k8s_node_name}-${k8s_cluster_name}
+  intervalSeconds: 60
+  remediationHint: "{{ include "./monitors/nvidia-xid-errors/remediation-hint.md.hbs" "identity" }}"
