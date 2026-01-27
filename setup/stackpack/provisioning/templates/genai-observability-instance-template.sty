@@ -23,7 +23,7 @@ nodes:
       maxBatchSize: 200
       maxBatchesPerSecond: 5
   id: -801
-  identifier: urn:stackpack:genai-observability:instance:{{instanceId}}:data-source:datasource-{{integrationType}}-{{integrationUrl}}
+  identifier: urn:stackpack:openlit:instance:{{instanceId}}:data-source:datasource-{{integrationType}}-{{integrationUrl}}
   name: DataSource {{integrationType}} {{integrationUrl}}
   pluginId: Sts
   uiRequestTimeout: 15000
@@ -43,22 +43,22 @@ nodes:
     type: default_relation_mapping
   extTopology: -803
   id: -813
-  identifier: urn:stackpack:genai-observability:instance:{{instanceId}}:sync:synchronisation-{{integrationType}}-{{integrationUrl}}
+  identifier: urn:stackpack:openlit:instance:{{instanceId}}:sync:synchronisation-{{integrationType}}-{{integrationUrl}}
   name: Synchronization {{integrationType}} {{integrationUrl}}
   relationActions: []
   topologyDataQuery:
     _type: Sts.StsTopologyElementsQuery
-    componentIdExtractorFunction: {{ get "urn:stackpack:genai-observability:shared:id-extractor-function:genai-component-id-extractor" }}
+    componentIdExtractorFunction: {{ get "urn:stackpack:openlit:shared:id-extractor-function:genai-component-id-extractor" }}
     consumerOffsetStartAtEarliest: false
     id: -814
-    relationIdExtractorFunction: {{ get "urn:stackpack:genai-observability:shared:id-extractor-function:genai-relation-id-extractor" }}
+    relationIdExtractorFunction: {{ get "urn:stackpack:openlit:shared:id-extractor-function:genai-relation-id-extractor" }}
 - _type: QueryView
   groupedByDomains: true
   groupedByLayers: true
   groupedByRelations: true
   groupingEnabled: true
   id: -811
-  identifier: urn:stackpack:genai-observability:instance:{{instanceId}}:query-view:{{integrationType}}-{{integrationUrl}}
+  identifier: urn:stackpack:openlit:instance:{{instanceId}}:query-view:{{integrationType}}-{{integrationUrl}}
   minimumGroupSize: 10
   name: "{{integrationType}} - {{integrationUrl}}"
   query: label IN ('{{integrationType}}:{{integrationUrl}}')
@@ -68,7 +68,7 @@ nodes:
   handlebarsTemplate: '{{ include "./templates/openlit-component-template.json.handlebars"
     }}'
   id: -805
-  identifier: urn:stackpack:genai-observability:instance:{{instanceId}}:component-template-function:{{integrationType}}-{{integrationUrl}}-component-template
+  identifier: urn:stackpack:openlit:instance:{{instanceId}}:component-template-function:{{integrationType}}-{{integrationUrl}}-component-template
   name: "{{integrationType}}-{{integrationUrl}}-component-template"
   parameters:
   - _type: Parameter
@@ -82,7 +82,7 @@ nodes:
   handlebarsTemplate: '{{ include "./templates/openlit-relation-template.json.handlebars"
     }}'
   id: -807
-  identifier: urn:stackpack:genai-observability:instance:{{instanceId}}:relation-template-function:{{integrationType}}-{{integrationUrl}}-relation-template
+  identifier: urn:stackpack:openlit:instance:{{instanceId}}:relation-template-function:{{integrationType}}-{{integrationUrl}}-relation-template
   name: "{{integrationType}}-{{integrationUrl}}-relation-template"
   parameters:
   - _type: Parameter

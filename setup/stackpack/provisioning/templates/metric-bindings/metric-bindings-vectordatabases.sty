@@ -5,7 +5,7 @@
       alias: Total Operations
       primary: true
   scope: type in ("otel service", "genai.app") AND label in ("gen_ai_app")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:genai-app-vectordb-total-database-operations
+  identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-vectordb-total-database-operations
   unit: short
   chartType: line
   tags:
@@ -26,7 +26,7 @@
       alias: "${db_system}"
       primary: true
   scope: type in ("otel service", "genai.app") AND label in ("gen_ai_app")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:genai-app-vectordb-top-vectordb-by-usage
+  identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-vectordb-top-vectordb-by-usage
   unit: short
   chartType: line
   priority: high
@@ -44,7 +44,7 @@
       alias: Request Rate
       primary: true
   scope: type in ("otel service", "genai.app") AND label in ("gen_ai_app")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:genai-app-vectordb-request-rate
+  identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-vectordb-request-rate
   unit: reqps
   chartType: line
   priority: high

@@ -1,7 +1,7 @@
 - _type: ComponentType
   name: "genai model"
   iconbase64: "{{ include "./icons-svg/genai-model.svg" "base64" }}"
-  identifier: urn:stackpack:genai-observability:shared:component-type:genai-model
+  identifier: urn:stackpack:openlit:shared:component-type:genai-model
   highlights:
     namePlural: genai_models
     fields:
@@ -66,51 +66,51 @@
       - name: Token Throughput
         description: Token Throughput
         bindings:
-          - urn:stackpack:genai-observability:shared:metric-binding:vllm-model-token-throughput-prompt
-          - urn:stackpack:genai-observability:shared:metric-binding:vllm-model-token-throughput-generation
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-token-throughput-prompt
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-token-throughput-generation
         defaultExpanded: true
         _type: ComponentTypeMetricCategory
       - name: Scheduler
         description: Requests running or waiting.
         bindings:
-          - urn:stackpack:genai-observability:shared:metric-binding:vllm-model-req-running
-          - urn:stackpack:genai-observability:shared:metric-binding:vllm-model-req-waiting
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-req-running
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-req-waiting
         defaultExpanded: true
         _type: ComponentTypeMetricCategory
       - name: End-to-End Latency
         description: Latency
         bindings:
-          - urn:stackpack:genai-observability:shared:metric-binding:vllm-model-e2e-latency-p99
-          - urn:stackpack:genai-observability:shared:metric-binding:vllm-model-e2e-latency-p95
-          - urn:stackpack:genai-observability:shared:metric-binding:vllm-model-e2e-latency-p90
-          - urn:stackpack:genai-observability:shared:metric-binding:vllm-model-e2e-latency-p50
-          - urn:stackpack:genai-observability:shared:metric-binding:vllm-model-e2e-latency-avg
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-e2e-latency-p99
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-e2e-latency-p95
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-e2e-latency-p90
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-e2e-latency-p50
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-e2e-latency-avg
         defaultExpanded: true
         _type: ComponentTypeMetricCategory
       - name: Time To First Token Latency
         description: Latency in seconds.
         bindings:
-          - urn:stackpack:genai-observability:shared:metric-binding:vllm-model-ttft-latency-p99
-          - urn:stackpack:genai-observability:shared:metric-binding:vllm-model-ttft-latency-p95
-          - urn:stackpack:genai-observability:shared:metric-binding:vllm-model-ttft-latency-p90
-          - urn:stackpack:genai-observability:shared:metric-binding:vllm-model-ttft-latency-p50
-          - urn:stackpack:genai-observability:shared:metric-binding:vllm-model-ttft-latency-avg
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-ttft-latency-p99
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-ttft-latency-p95
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-ttft-latency-p90
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-ttft-latency-p50
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-ttft-latency-avg
         defaultExpanded: true
         _type: ComponentTypeMetricCategory
       - name: Time Per Output Token Latency
         description: Latency in seconds.
         bindings:
-          - urn:stackpack:genai-observability:shared:metric-binding:vllm-model-tpot-latency-p99
-          - urn:stackpack:genai-observability:shared:metric-binding:vllm-model-tpot-latency-p95
-          - urn:stackpack:genai-observability:shared:metric-binding:vllm-model-tpot-latency-p90
-          - urn:stackpack:genai-observability:shared:metric-binding:vllm-model-tpot-latency-p50
-          - urn:stackpack:genai-observability:shared:metric-binding:vllm-model-tpot-latency-avg
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-tpot-latency-p99
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-tpot-latency-p95
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-tpot-latency-p90
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-tpot-latency-p50
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-tpot-latency-avg
         defaultExpanded: true
         _type: ComponentTypeMetricCategory
       - name: Cache Utilization
         description: Percentage of used cache blocks by vLLM for this model
         bindings:
-          - urn:stackpack:genai-observability:shared:metric-binding:vllm-model-gpu-cache-usage
+          - urn:stackpack:openlit:shared:metric-binding:vllm-model-gpu-cache-usage
         defaultExpanded: true
         _type: ComponentTypeMetricCategory
     _type: ComponentTypeHighlights

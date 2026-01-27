@@ -1,4 +1,4 @@
-## The GenAI Observability StackPack is waiting for your action, please send some topology to StackState
+## The SUSE AI Observability Extension StackPack is waiting for your action, please send some topology to StackState
 
 The synchronization has been installed.
 

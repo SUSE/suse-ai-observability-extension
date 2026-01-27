@@ -1,7 +1,7 @@
 - _type: ComponentType
   name: "dbsystem opensearch"
   iconbase64: "{{ include "./icons-svg/opensearch.svg" "base64" }}"
-  identifier: urn:stackpack:genai-observability:shared:component-type:dbsystem-opensearch
+  identifier: urn:stackpack:openlit:shared:component-type:dbsystem-opensearch
   highlights:
     namePlural: db_systems
     fields:
@@ -66,27 +66,27 @@
       - name: Requests
         description: Request Stats
         bindings:
-          - urn:stackpack:genai-observability:shared:metric-binding:vectordb-pending-tasks-count
+          - urn:stackpack:openlit:shared:metric-binding:vectordb-pending-tasks-count
         defaultExpanded: true
         _type: ComponentTypeMetricCategory
       - name: Operations
         description: The amount of operations done, by type
         bindings:
-          - urn:stackpack:genai-observability:shared:metric-binding:vectordb-operations
+          - urn:stackpack:openlit:shared:metric-binding:vectordb-operations
         defaultExpanded: true
         _type: ComponentTypeMetricCategory
       - name: Disk Space
         description: Percentage of free disk space
         bindings:
-          - urn:stackpack:genai-observability:shared:metric-binding:vectordb-free-space
+          - urn:stackpack:openlit:shared:metric-binding:vectordb-free-space
         defaultExpanded: true
         _type: ComponentTypeMetricCategory
       - name: Cluster Status
         description: Cluster Status
         bindings:
-          - urn:stackpack:genai-observability:shared:metric-binding:vectordb-green
-          - urn:stackpack:genai-observability:shared:metric-binding:vectordb-yellow
-          - urn:stackpack:genai-observability:shared:metric-binding:vectordb-red
+          - urn:stackpack:openlit:shared:metric-binding:vectordb-green
+          - urn:stackpack:openlit:shared:metric-binding:vectordb-yellow
+          - urn:stackpack:openlit:shared:metric-binding:vectordb-red
         defaultExpanded: true
         _type: ComponentTypeMetricCategory
     _type: ComponentTypeHighlights

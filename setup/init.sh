@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-readonly STACKPACK_NAME="genai-observability"
+readonly STACKPACK_NAME="openlit"
 readonly STACKPACK_DIR="/mnt"
 readonly STACKPACK_ARCHIVE="/tmp/${STACKPACK_NAME}.sts"
 
@@ -125,8 +125,24 @@ get_installed_instance_id() {
 upload_stackpack() {
   log_info "Uploading StackPack..."
   create_stackpack_archive
-  run_sts stackpack upload --file "${STACKPACK_ARCHIVE}"
-  log_success "StackPack uploaded successfully"
+
+  # Delete existing StackPack before uploading to avoid version conflicts
+  delete_existing_stackpack
+
+  if run_sts stackpack upload --file "${STACKPACK_ARCHIVE}"; then
+    log_success "StackPack uploaded successfully"
+  else
+    local upload_exit_code=$?
+    log_error "StackPack upload failed with exit code: $upload_exit_code"
+
+    # Check if StackPack is now available despite the upload failure
+    if is_stackpack_available; then
+      log_info "StackPack appears to be available despite upload error, proceeding..."
+    else
+      log_error "StackPack upload failed and StackPack is not available"
+      exit $upload_exit_code
+    fi
+  fi
 }
 
 install_stackpack() {
@@ -139,6 +155,22 @@ install_stackpack() {
     -p "instance_type=$INSTANCE_TYPE"
 
   log_success "StackPack installed successfully"
+}
+
+delete_existing_stackpack() {
+  log_info "Checking for existing StackPack to delete..."
+
+  if ! is_stackpack_available; then
+    log_info "No existing StackPack found, proceeding with upload"
+    return 0
+  fi
+
+  log_info "Deleting existing StackPack: $STACKPACK_NAME"
+  if run_sts stackpack delete --name "$STACKPACK_NAME" 2>/dev/null; then
+    log_success "Existing StackPack deleted successfully"
+  else
+    log_info "StackPack deletion returned non-zero (may not exist or already deleted)"
+  fi
 }
 
 uninstall_stackpack() {
@@ -167,9 +199,10 @@ main_install() {
 
   log_info "Checking if StackPack is available..."
   if ! is_stackpack_available; then
+    log_info "StackPack not available, uploading..."
     upload_stackpack
   else
-    log_info "StackPack already available"
+    log_info "StackPack already available, proceeding with installation"
   fi
 
   log_info "Checking if StackPack is installed for cluster: $KUBERNETES_CLUSTER..."

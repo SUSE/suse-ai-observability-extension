@@ -6,7 +6,7 @@
       alias: "AVG Tokens/Request"
       primary: true
   scope: type in ("otel service", "genai.app") AND label in ("gen_ai_app")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:genai-app-average-tokens-per-request
+  identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-average-tokens-per-request
   unit: short
   chartType: line
   priority: high
@@ -25,7 +25,7 @@
       alias: "${gen_ai_request_model}"
       primary: true
   scope: type in ("otel service", "genai.app") AND label in ("gen_ai_app")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:genai-app-tokens-throughput
+  identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-tokens-throughput
   unit: cps
   chartType: line
   priority: high
@@ -44,7 +44,7 @@
       alias: "${gen_ai_request_model}"
       primary: true
   scope: type in ("otel service", "genai.app") AND label in ("gen_ai_app")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:genai-app-cost-per-1k-tokens
+  identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-cost-per-1k-tokens
   unit: currencyUSD
   chartType: line
   priority: high
@@ -62,7 +62,7 @@
       alias: Request Rate
       primary: true
   scope: type in ("otel service", "genai.app") AND label in ("gen_ai_app")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:genai-app-request-rate
+  identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-request-rate
   unit: reqps
   chartType: line
   priority: high
@@ -80,7 +80,7 @@
       alias: "${gen_ai_request_model}"
       primary: true
   scope: type in ("otel service", "genai.app") AND label in ("gen_ai_app")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:genai-app-top-models
+  identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-top-models
   unit: short
   chartType: line
   priority: high
@@ -101,7 +101,7 @@
     - expression: avg(gen_ai_usage_cost_USD_bucket{ service_name="${name}" })
       alias: Usage Dollar Cost
   scope: type in ("otel service", "genai.app") AND label in ("gen_ai_app")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:genai-app-avg-tokens-per-total-requests
+  identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-avg-tokens-per-total-requests
   unit: short
   chartType: line
   priority: high
@@ -118,7 +118,7 @@
     - expression: avg by() (gen_ai_usage_cost_USD_sum{ service_name="${name}" })
       alias: Usage Dollar Cost
   scope: type in ("otel service", "genai.app") AND label in ("gen_ai_app")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:genai-app-avg-usage-cost
+  identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-avg-usage-cost
   unit: currencyUSD
   chartType: line
   tags:
@@ -138,7 +138,7 @@
     - expression: sum(gen_ai_usage_cost_USD_sum{ service_name="${name}" })
       alias: Usage Dollar Cost
   scope: type in ("otel service", "genai.app") AND label in ("gen_ai_app")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:genai-app-avg-total-usage-cost
+  identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-avg-total-usage-cost
   unit: currencyUSD
   chartType: line
   tags:
@@ -158,7 +158,7 @@
     - expression: sum(gen_ai_usage_tokens_total{ service_name="${name}" })
       alias: Total Usage Tokens
   scope: type in ("otel service", "genai.app") AND label in ("gen_ai_app")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:genai-app-total-usage-tokens
+  identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-total-usage-tokens
   unit: short
   chartType: line
   tags:
@@ -178,7 +178,7 @@
     - expression: sum(gen_ai_usage_tokens_total{ service_name="${name}" })
       alias: Total Usage Tokens
   scope: type in ("otel service", "genai.app") AND label in ("gen_ai_app")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:genai-app-total-usage-tokens-line
+  identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-total-usage-tokens-line
   unit: short
   chartType: line
   priority: high
@@ -196,7 +196,7 @@
       alias: Requests
       primary: true
   scope: type in ("otel service", "genai.app") AND label in ("gen_ai_app")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:genai-app-request-total-success
+  identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-request-total-success
   unit: short
   chartType: line
   tags:
@@ -216,7 +216,7 @@
     - expression: avg by(gen_ai_request_model) (gen_ai_usage_cost_USD_sum{ service_name="${name}" })/100
       alias: "${gen_ai_request_model}"
   scope: type in ("otel service", "genai.app") AND label in ("gen_ai_app")
-  identifier: urn:stackpack:genai-observability:shared:metric-binding:genai-app-avg-usage-cost-per-model
+  identifier: urn:stackpack:openlit:shared:metric-binding:genai-app-avg-usage-cost-per-model
   unit: currencyUSD
   chartType: line
   priority: high
