@@ -53,6 +53,8 @@ spec:
                 value: {{ include "genai-observability-demo.fullname" . }}-rag101
               - name: APP_RAG102_URL
                 value: {{ include "genai-observability-demo.fullname" . }}-rag102
+              - name: OTEL_RESOURCE_ATTRIBUTES
+                value: gen_ai.system={{ .Values.genAiSystem }}
             image: badouralix/curl-jq:alpine
             imagePullPolicy: IfNotPresent 
             name: curl

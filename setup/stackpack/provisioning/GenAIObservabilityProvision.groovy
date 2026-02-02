@@ -13,15 +13,14 @@ class GenAIObservabilityProvision extends ProvisioningScript {
   ProvisioningIO<scala.Unit> install(Map<String, Object> config) {
     def templateArguments = [
       'topicName': topicName(config),
-      'integrationType': config.instance_type,
-      'integrationUrl': config.kubernetes_cluster_name,
+      'integrationType': config.instance_type ?: 'opentelemetry',
+      'integrationUrl': config.kubernetes_cluster_name ?: "local",
       'instanceId': context().instance().id()
     ]
     templateArguments.putAll(config)
 
-    return context().sts().install("open-telemetry", [:]) >>
-           context().sts().install("kubernetes-v2", ['kubernetes_cluster_name': config.kubernetes_cluster_name]) >>
-           context().stackPack().importSnapshot("templates/genai-observability.sty", [:]) >>
+    // We assume open-telemetry and kubernetes-v2 are already installed as per user's environment
+    return context().stackPack().importSnapshot("templates/genai-observability.sty", [:]) >>
            context().instance().importSnapshot("templates/genai-observability-instance-template.sty", templateArguments)
   }
 
@@ -32,14 +31,13 @@ class GenAIObservabilityProvision extends ProvisioningScript {
 
   @Override
   void waitingForData(Map<String, Object> config) {
+    // We use the OTel collector topic which should always have data
     context().sts().onDataReceived(topicName(config), {
       context().sts().provisioningComplete()
     })
   }
 
   private def topicName(Map<String, Object> config) {
-    def clusterName = config.kubernetes_cluster_name
-    def type = config.instance_type
-    return context().sts().createTopologyTopicName(type, clusterName)
+    return "sts_topo_opentelemetry_collector"
   }
 }

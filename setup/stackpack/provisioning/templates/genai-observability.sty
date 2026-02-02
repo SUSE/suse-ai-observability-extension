@@ -26,9 +26,69 @@ nodes:
 {{ include "./monitors/nvidia-xid-errors/monitor.sty" "yaml" }}
 {{ include "./monitors/opensearch-cluster-status/monitor.sty" "yaml" }}
 
+- _type: ComponentMappingFunction
+  description: Maps OpenLIT element to the Service component.
+  script: "{{ include "./scripts/service-mapper.groovy" }}"
+  id: -910
+  identifier: urn:stackpack:openlit:shared:component-mapping-function:service-mapper
+  name: OpenLIT Service Mapper
+  parameters:
+  - _type: Parameter
+    id: -911
+    multiple: false
+    name: element
+    required: true
+    system: true
+    type: STRUCT_TYPE
+
+- _type: ComponentMappingFunction
+  description: Maps OpenLIT element to the GenAI System component.
+  script: "{{ include "./scripts/system-mapper.groovy" }}"
+  id: -912
+  identifier: urn:stackpack:openlit:shared:component-mapping-function:system-mapper
+  name: OpenLIT System Mapper
+  parameters:
+  - _type: Parameter
+    id: -913
+    multiple: false
+    name: element
+    required: true
+    system: true
+    type: STRUCT_TYPE
+
+- _type: ComponentMappingFunction
+  description: Maps OpenLIT element to the GenAI Model component.
+  script: "{{ include "./scripts/model-mapper.groovy" }}"
+  id: -914
+  identifier: urn:stackpack:openlit:shared:component-mapping-function:model-mapper
+  name: OpenLIT Model Mapper
+  parameters:
+  - _type: Parameter
+    id: -915
+    multiple: false
+    name: element
+    required: true
+    system: true
+    type: STRUCT_TYPE
+
+- _type: RelationMappingFunction
+  description: Maps OpenLIT element to a relation.
+  script: "{{ include "./scripts/relation-mapper.groovy" }}"
+  id: -916
+  identifier: urn:stackpack:openlit:shared:relation-mapping-function:relation-mapper
+  name: OpenLIT Relation Mapper
+  parameters:
+  - _type: Parameter
+    id: -917
+    multiple: false
+    name: element
+    required: true
+    system: true
+    type: STRUCT_TYPE
+
 - _type: IdExtractorFunction
   description: A generic component id extractor function for GenAI topology elements.
-  groovyScript: '{{ include "./scripts/genai-component-id-extractor.groovy" }}'
+  groovyScript: "{{ include "./scripts/genai-component-id-extractor.groovy" }}"
   id: -900
   identifier: urn:stackpack:openlit:shared:id-extractor-function:genai-component-id-extractor
   name: GenAI component id extractor
@@ -40,9 +100,10 @@ nodes:
     required: true
     system: true
     type: STRUCT_TYPE
+
 - _type: IdExtractorFunction
   description: A generic relation id extractor function for GenAI topology elements.
-  groovyScript: '{{ include "./scripts/genai-relation-id-extractor.groovy" }}'
+  groovyScript: "{{ include "./scripts/genai-relation-id-extractor.groovy" }}"
   id: -902
   identifier: urn:stackpack:openlit:shared:id-extractor-function:genai-relation-id-extractor
   name: GenAI relation id extractor

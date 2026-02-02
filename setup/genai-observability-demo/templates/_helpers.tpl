@@ -40,6 +40,7 @@ helm.sh/chart: {{ include "genai-observability-demo.chart" . }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
+gen_ai.system: {{ .Values.genAiSystem | quote }}
 {{- end }}
 
 {{/*

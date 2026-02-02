@@ -38,6 +38,8 @@ spec:
             value: {{.Values.ollamaEndpoint}}
           - name: OTLP_ENDPOINT
             value: {{.Values.otlpEndpoint}}
+          - name: OTEL_RESOURCE_ATTRIBUTES
+            value: gen_ai.system={{ .Values.genAiSystem }}
           - name: COLLECT_GPU_STATS
             value: "{{.Values.collectGpuStats}}"
           securityContext:

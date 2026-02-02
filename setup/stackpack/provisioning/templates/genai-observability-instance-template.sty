@@ -5,7 +5,7 @@ nodes:
     autoExpireElements: false
     expireElementsAfter: 172800000
     id: -802
-    integrationType: "{{integrationType}}"
+    integrationType: "opentelemetry"
     supportedDataTypes:
     - TOPOLOGY_ELEMENTS
     supportedWindowingMethods: []
@@ -23,73 +23,96 @@ nodes:
       maxBatchSize: 200
       maxBatchesPerSecond: 5
   id: -801
-  identifier: urn:stackpack:openlit:instance:{{instanceId}}:data-source:datasource-{{integrationType}}-{{integrationUrl}}
-  name: DataSource {{integrationType}} {{integrationUrl}}
+  identifier: urn:stackpack:openlit:instance:{{instanceId}}:data-source:datasource
+  name: DataSource OpenLIT
   pluginId: Sts
   uiRequestTimeout: 15000
+
 - _type: Sync
-  componentActions: []
+  componentActions:
+    - _type: SyncActionCreateComponent
+      id: -815
+      mappingFunction: {{ get "urn:stackpack:openlit:shared:component-mapping-function:service-mapper" }}
+      mergeStrategy: MergePreferTheirs
+      templateFunction: {{ get "urn:stackpack:open-telemetry:shared:component-template-function:component" }}
+      type: service
+    - _type: SyncActionCreateComponent
+      id: -816
+      mappingFunction: {{ get "urn:stackpack:openlit:shared:component-mapping-function:service-mapper" }}
+      mergeStrategy: MergePreferTheirs
+      templateFunction: {{ get "urn:stackpack:open-telemetry:shared:component-template-function:component" }}
+      type: service-instance
   defaultComponentAction:
-    _type: SyncActionCreateComponent
-    id: -815
-    mergeStrategy: MergePreferTheirs
-    templateFunction: -805
-    type: default_component_mapping
-  defaultRelationAction:
-    _type: SyncActionCreateRelation
-    id: -816
-    mergeStrategy: MergePreferTheirs
-    templateFunction: -807
-    type: default_relation_mapping
+    _type: SyncActionCreateOnMerge
+    type: ""
   extTopology: -803
   id: -813
-  identifier: urn:stackpack:openlit:instance:{{instanceId}}:sync:synchronisation-{{integrationType}}-{{integrationUrl}}
-  name: Synchronization {{integrationType}} {{integrationUrl}}
+  identifier: urn:stackpack:openlit:instance:{{instanceId}}:sync:apps
+  name: GenAI Apps Synchronization
   relationActions: []
   topologyDataQuery:
     _type: Sts.StsTopologyElementsQuery
-    componentIdExtractorFunction: {{ get "urn:stackpack:openlit:shared:id-extractor-function:genai-component-id-extractor" }}
-    consumerOffsetStartAtEarliest: false
+    componentIdExtractorFunction: {{ get "urn:stackpack:common:id-extractor-function:default-function" }}
+    consumerOffsetStartAtEarliest: true
     id: -814
-    relationIdExtractorFunction: {{ get "urn:stackpack:openlit:shared:id-extractor-function:genai-relation-id-extractor" }}
-- _type: QueryView
-  groupedByDomains: true
-  groupedByLayers: true
-  groupedByRelations: true
-  groupingEnabled: true
-  id: -811
-  identifier: urn:stackpack:openlit:instance:{{instanceId}}:query-view:{{integrationType}}-{{integrationUrl}}
-  minimumGroupSize: 10
-  name: "{{integrationType}} - {{integrationUrl}}"
-  query: label IN ('{{integrationType}}:{{integrationUrl}}')
-  queryVersion: 0.0.1
-  showIndirectRelations: false
-- _type: ComponentTemplateFunction
-  handlebarsTemplate: '{{ include "./templates/openlit-component-template.json.handlebars"
-    }}'
-  id: -805
-  identifier: urn:stackpack:openlit:instance:{{instanceId}}:component-template-function:{{integrationType}}-{{integrationUrl}}-component-template
-  name: "{{integrationType}}-{{integrationUrl}}-component-template"
-  parameters:
-  - _type: Parameter
-    id: -806
-    multiple: false
-    name: element
-    required: true
-    system: false
-    type: STRUCT_TYPE
-- _type: RelationTemplateFunction
-  handlebarsTemplate: '{{ include "./templates/openlit-relation-template.json.handlebars"
-    }}'
-  id: -807
-  identifier: urn:stackpack:openlit:instance:{{instanceId}}:relation-template-function:{{integrationType}}-{{integrationUrl}}-relation-template
-  name: "{{integrationType}}-{{integrationUrl}}-relation-template"
-  parameters:
-  - _type: Parameter
-    id: -808
-    multiple: false
-    name: element
-    required: true
-    system: false
-    type: STRUCT_TYPE
+    relationIdExtractorFunction: {{ get "urn:stackpack:common:id-extractor-function:default-function" }}
+
+- _type: Sync
+  componentActions:
+    - _type: SyncActionCreateComponent
+      id: -825
+      mappingFunction: {{ get "urn:stackpack:openlit:shared:component-mapping-function:system-mapper" }}
+      mergeStrategy: MergePreferTheirs
+      templateFunction: {{ get "urn:stackpack:open-telemetry:shared:component-template-function:component" }}
+      type: service
+    - _type: SyncActionCreateComponent
+      id: -826
+      mappingFunction: {{ get "urn:stackpack:openlit:shared:component-mapping-function:system-mapper" }}
+      mergeStrategy: MergePreferTheirs
+      templateFunction: {{ get "urn:stackpack:open-telemetry:shared:component-template-function:component" }}
+      type: service-instance
+  defaultComponentAction:
+    _type: SyncActionCreateOnMerge
+    type: ""
+  extTopology: -803
+  id: -823
+  identifier: urn:stackpack:openlit:instance:{{instanceId}}:sync:systems
+  name: GenAI Systems Synchronization
+  relationActions: []
+  topologyDataQuery:
+    _type: Sts.StsTopologyElementsQuery
+    componentIdExtractorFunction: {{ get "urn:stackpack:common:id-extractor-function:default-function" }}
+    consumerOffsetStartAtEarliest: true
+    id: -824
+    relationIdExtractorFunction: {{ get "urn:stackpack:common:id-extractor-function:default-function" }}
+
+- _type: Sync
+  componentActions:
+    - _type: SyncActionCreateComponent
+      id: -835
+      mappingFunction: {{ get "urn:stackpack:openlit:shared:component-mapping-function:model-mapper" }}
+      mergeStrategy: MergePreferTheirs
+      templateFunction: {{ get "urn:stackpack:open-telemetry:shared:component-template-function:component" }}
+      type: service
+    - _type: SyncActionCreateComponent
+      id: -836
+      mappingFunction: {{ get "urn:stackpack:openlit:shared:component-mapping-function:model-mapper" }}
+      mergeStrategy: MergePreferTheirs
+      templateFunction: {{ get "urn:stackpack:open-telemetry:shared:component-template-function:component" }}
+      type: service-instance
+  defaultComponentAction:
+    _type: SyncActionCreateOnMerge
+    type: ""
+  extTopology: -803
+  id: -833
+  identifier: urn:stackpack:openlit:instance:{{instanceId}}:sync:models
+  name: GenAI Models Synchronization
+  relationActions: []
+  topologyDataQuery:
+    _type: Sts.StsTopologyElementsQuery
+    componentIdExtractorFunction: {{ get "urn:stackpack:common:id-extractor-function:default-function" }}
+    consumerOffsetStartAtEarliest: true
+    id: -834
+    relationIdExtractorFunction: {{ get "urn:stackpack:common:id-extractor-function:default-function" }}
+
 version: '0.1'

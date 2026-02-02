@@ -6,6 +6,7 @@
 ollamaEndpoint: 'http://ollama.suse-private-ai.svc.cluster.local:11434'
 otlpEndpoint: 'http://opentelemetry-collector.observability.svc.cluster.local:4318'
 collectGpuStats: 'false'
+genAiSystem: "ZUSE"
 model: "llama3.2:3b"
 
 schedule: '* * * * *'
