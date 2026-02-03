@@ -1,4 +1,5 @@
 nodes:
+{{ include "./templates/domains.sty" "yaml" }}
 {{ include "./templates/main-menu.sty" "yaml" }}
 {{ include "./templates/view-types.sty" "yaml" }}
 {{ include "./templates/views.sty" "yaml" }}
@@ -86,6 +87,21 @@ nodes:
     system: true
     type: STRUCT_TYPE
 
+- _type: ComponentMappingFunction
+  description: Maps OpenLIT element to the GenAI Operation component.
+  script: "{{ include "./scripts/operation-mapper.groovy" }}"
+  id: -918
+  identifier: urn:stackpack:openlit:shared:component-mapping-function:operation-mapper
+  name: OpenLIT Operation Mapper
+  parameters:
+  - _type: Parameter
+    id: -919
+    multiple: false
+    name: element
+    required: true
+    system: true
+    type: STRUCT_TYPE
+
 - _type: IdExtractorFunction
   description: A generic component id extractor function for GenAI topology elements.
   groovyScript: "{{ include "./scripts/genai-component-id-extractor.groovy" }}"
@@ -112,6 +128,36 @@ nodes:
     id: -903
     multiple: false
     name: topologyElement
+    required: true
+    system: true
+    type: STRUCT_TYPE
+
+- _type: ComponentTemplateFunction
+  description: A generic component template function for GenAI topology elements.
+  handlebarsTemplate: "{{ include "./templates/openlit-component-template.json.handlebars" }}"
+  id: -904
+  identifier: urn:stackpack:openlit:shared:component-template-function:openlit-component
+  name: GenAI component template function
+  parameters:
+  - _type: Parameter
+    id: -905
+    multiple: false
+    name: element
+    required: true
+    system: true
+    type: STRUCT_TYPE
+
+- _type: RelationTemplateFunction
+  description: A generic relation template function for GenAI topology elements.
+  handlebarsTemplate: "{{ include "./templates/openlit-relation-template.json.handlebars" }}"
+  id: -906
+  identifier: urn:stackpack:openlit:shared:relation-template-function:openlit-relation
+  name: GenAI relation template function
+  parameters:
+  - _type: Parameter
+    id: -907
+    multiple: false
+    name: element
     required: true
     system: true
     type: STRUCT_TYPE

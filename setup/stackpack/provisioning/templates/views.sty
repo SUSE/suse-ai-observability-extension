@@ -14,7 +14,7 @@
   minimumGroupSize: 3
   name: LLM Systems
   neighboringComponents: false
-  query: (label IN ("gen_ai_system"))
+  query: (label IN ("gen_ai_system", "gen_ai_system:true"))
   queryVersion: 0.0.1
   showCause: NONE
   showIndirectRelations: false
@@ -59,7 +59,7 @@
   minimumGroupSize: 3
   name: Vector Databases
   neighboringComponents: false
-  query: (label IN ("gen_vectordb_system"))
+  query: (label IN ("gen_vectordb_system", "gen_vectordb_system:true"))
   queryVersion: 0.0.1
   showCause: NONE
   showIndirectRelations: false
@@ -82,7 +82,7 @@
   minimumGroupSize: 3
   name: Components
   neighboringComponents: false
-  query: (label IN ("gen_vectordb_system", "gen_ai_system", "gen_ai_app") OR type IN ("genai.model", "genai.dboperation", "genai.operation"))
+  query: (label IN ("gen_vectordb_system", "gen_vectordb_system:true", "gen_ai_system", "gen_ai_system:true", "gen_ai_app", "gen_ai_app:true") OR type IN ("genai.model", "genai.dboperation", "genai.operation"))
   queryVersion: 0.0.1
   showCause: NONE
   showIndirectRelations: false
@@ -104,7 +104,7 @@
   minimumGroupSize: 3
   name: Applications
   neighboringComponents: false
-  query: (label IN ("gen_ai_app") AND type IN ("otel service", "genai.app", "Service"))
+  query: (label IN ("gen_ai_app", "gen_ai_app:true") AND type IN ("otel service", "genai.app", "Service"))
   queryVersion: 0.0.1
   showCause: NONE
   showIndirectRelations: false

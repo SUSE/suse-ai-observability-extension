@@ -19,7 +19,6 @@ class GenAIObservabilityProvision extends ProvisioningScript {
     ]
     templateArguments.putAll(config)
 
-    // We assume open-telemetry and kubernetes-v2 are already installed as per user's environment
     return context().stackPack().importSnapshot("templates/genai-observability.sty", [:]) >>
            context().instance().importSnapshot("templates/genai-observability-instance-template.sty", templateArguments)
   }
@@ -31,7 +30,6 @@ class GenAIObservabilityProvision extends ProvisioningScript {
 
   @Override
   void waitingForData(Map<String, Object> config) {
-    // We use the OTel collector topic which should always have data
     context().sts().onDataReceived(topicName(config), {
       context().sts().provisioningComplete()
     })

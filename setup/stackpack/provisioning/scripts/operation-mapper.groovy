@@ -13,21 +13,22 @@ if (componentPayload["spanAttributes"]) {
     } catch (e) {}
 }
 
-def systemName = (attributes["gen_ai.system"] ?: "unknown").toString()
-def modelName = (attributes["gen_ai.request.model"] ?: attributes["model_name"])?.toString()
-
-if (!modelName) {
+def operationName = (attributes["gen_ai.operation.name"] ?: attributes["db.operation"])?.toString()
+if (!operationName) {
     return null
 }
 
-def modelUrn = "urn:genai:model:/${systemName.toLowerCase()}/${modelName.toLowerCase()}".toString()
+def systemName = (attributes["gen_ai.system"] ?: attributes["db.system"] ?: "unknown").toString()
+def modelName = (attributes["gen_ai.request.model"] ?: attributes["model_name"] ?: "none").toString()
+
+def operationUrn = "urn:genai:operation:/${systemName.toLowerCase()}/${modelName.toLowerCase()}/${operationName.toLowerCase()}".toString()
 
 return [
-    "externalId": modelUrn,
-    "typeName": "genai.model".toString(),
+    "externalId": operationUrn,
+    "typeName": "genai.operation".toString(),
     "data": [
-        "name": modelName,
-        "labels": ["genai_model", "stackpack:openlit", "gen_ai_app"],
+        "name": operationName,
+        "labels": ["genai_operation", "stackpack:openlit", "gen_ai_app"],
         "domain": "urn:stackpack:open-telemetry:shared:domain:opentelemetry".toString(),
         "layer": "urn:stackpack:common:layer:services".toString()
     ]

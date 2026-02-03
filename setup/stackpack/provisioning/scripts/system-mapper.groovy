@@ -3,6 +3,7 @@ def payload = elementMap["payload"]
 def componentPayload = payload ? (payload["TopologyComponent"] ?: payload["TopologyRelation"]) : elementMap
 def dataStr = componentPayload["data"]
 def attributes = [:]
+
 if (componentPayload["spanAttributes"]) {
     attributes = componentPayload["spanAttributes"]
 } else if (dataStr instanceof String) {
@@ -11,22 +12,32 @@ if (componentPayload["spanAttributes"]) {
         attributes = parsedData["tags"] ?: [:]
     } catch (e) {}
 }
-if (!attributes.containsKey("gen_ai.system")) {
-    return null
+
+String systemName = (attributes["gen_ai.system"] ?: attributes["db.system"])?.toString()
+if (!systemName) {
+    def serviceName = (attributes["service.name"] ?: componentPayload["name"])?.toString()
+    if (serviceName?.toLowerCase()?.contains("milvus")) systemName = "milvus"
+    else if (serviceName?.toLowerCase()?.contains("opensearch")) systemName = "opensearch"
+    else if (serviceName?.toLowerCase()?.contains("ollama")) systemName = "ollama"
+    else if (serviceName?.toLowerCase()?.contains("vllm")) systemName = "vllm"
 }
-def systemName = attributes["gen_ai.system"]
-def systemUrn = "urn:genai:system:/${systemName.toLowerCase()}"
+
+if (!systemName) return null
+
+def systemLower = systemName.toLowerCase().toString()
+boolean isDB = attributes.containsKey("db.system") || systemLower.contains("milvus") || systemLower.contains("opensearch")
+
+def systemUrn = "openlit:" + (isDB ? "urn:openlit:vectordb:system/${systemLower}" : "urn:genai:system:/${systemLower}").toString()
+def typeName = (isDB ? "dbsystem.${systemLower}" : "genai.system.${systemLower}").toString()
+def label = (isDB ? "gen_vectordb_system" : "gen_ai_system").toString()
+
 return [
     "externalId": systemUrn,
-    "typeName": "genai.system.${systemName.toLowerCase()}",
+    "typeName": typeName,
     "data": [
         "name": systemName,
-        "tags": [
-            "gen_ai_system": "true",
-            "gen_ai.system": systemName,
-            "stackpack": "openlit"
-        ],
-        "domain": "urn:stackpack:open-telemetry:shared:domain:opentelemetry",
-        "layer": "urn:stackpack:common:layer:services"
+        "labels": [label, "stackpack:openlit", "gen_ai_app"],
+        "domain": "urn:stackpack:open-telemetry:shared:domain:opentelemetry".toString(),
+        "layer": "urn:stackpack:common:layer:services".toString()
     ]
 ]
