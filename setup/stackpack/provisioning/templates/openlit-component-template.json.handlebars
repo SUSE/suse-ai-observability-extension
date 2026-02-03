@@ -1,17 +1,21 @@
 {
   "_type": "Component",
-  "labels": [
-    \{{#if element.data.tags\}}
-    \{{# join element.data.tags ","\}}
-        {
-        "_type": "Label",
-        "name": "\{{key\}}:\{{this\}}"
-        }
-    \{{/ join \}}
-    \{{/if\}}
-    ],
   "name": "\{{#if element.data.name\}}\{{ element.data.name \}}\{{else\}}\{{ element.externalId \}}\{{/if\}}",
-  "type" : \{{ getOrCreate (identifier "urn:stackpack:open-telemetry:shared" "ComponentType" element.type.name) (identifier "urn:system:auto" "ComponentType" element.type.name) (concat "Type=ComponentType;Name=" element.type.name) \}},
-  "layer" : \{{ get "urn:stackpack:common:layer:services" \}},
-  "domain": \{{ get "urn:stackpack:open-telemetry:shared:domain:opentelemetry" \}}
+  "type" : \{{ resolveOrCreate "ComponentType" "urn:stackpack:open-telemetry:shared:component-type:service" "otel service" \}},
+  "layer" : \{{ resolveOrCreate "Layer" "urn:stackpack:common:layer:services" "Services" \}},
+  "domain": \{{ resolveOrCreate "Domain" "urn:stackpack:open-telemetry:shared:domain:opentelemetry" "Open Telemetry" \}},
+  "labels": [
+    \{{#if element.data.tags \}}
+      \{{# join element.data.tags "," \}}
+        {
+          "_type": "Label",
+          "name": "\{{key\}}"
+        }
+        ,{
+          "_type": "Label",
+          "name": "\{{key\}}:\{{this\}}"
+        }
+      \{{/ join \}}
+    \{{/if\}}
+  ]
 }

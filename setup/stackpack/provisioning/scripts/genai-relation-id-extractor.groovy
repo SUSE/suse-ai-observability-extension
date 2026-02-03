@@ -6,7 +6,7 @@ if (!relation) return null
 
 def externalId = relation["externalId"]?.toString()
 def type = relation["typeName"]?.toLowerCase() ?: "uses"
-// CONSISTENT PREFIX
+// Add openlit: prefix to match our components
 def newExternalId = "openlit:${externalId ?: "unknown-rel"}".toString()
 
 return Sts.createId(newExternalId, new HashSet(), type)

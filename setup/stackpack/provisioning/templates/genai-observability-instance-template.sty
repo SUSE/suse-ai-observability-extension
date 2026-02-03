@@ -34,21 +34,21 @@ nodes:
       id: -815
       mappingFunction: {{ get "urn:stackpack:openlit:shared:component-mapping-function:service-mapper" }}
       mergeStrategy: MergePreferTheirs
-      templateFunction: {{ get "urn:stackpack:openlit:shared:component-template-function:openlit-component" }}
+      templateFunction: {{ get "urn:stackpack:open-telemetry:shared:component-template-function:component" }}
       type: service
     - _type: SyncActionCreateComponent
       id: -816
       mappingFunction: {{ get "urn:stackpack:openlit:shared:component-mapping-function:service-mapper" }}
       mergeStrategy: MergePreferTheirs
-      templateFunction: {{ get "urn:stackpack:openlit:shared:component-template-function:openlit-component" }}
+      templateFunction: {{ get "urn:stackpack:open-telemetry:shared:component-template-function:component" }}
       type: service-instance
   defaultComponentAction:
     _type: SyncActionCreateOnMerge
     type: ""
   extTopology: -803
   id: -813
-  identifier: urn:stackpack:openlit:instance:{{instanceId}}:sync:v122-apps
-  name: GenAI Synchronization v1.22
+  identifier: urn:stackpack:openlit:instance:{{instanceId}}:sync:v128-apps
+  name: GenAI Synchronization v1.28
   relationActions: []
   topologyDataQuery:
     _type: Sts.StsTopologyElementsQuery

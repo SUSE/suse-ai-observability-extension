@@ -10,7 +10,7 @@ def externalId = relationPayload["externalId"]?.toString()
 
 if (!sourceId || !targetId) return null
 
-// Apply CONSISTENT prefix
+// Apply CONSISTENT prefix to match our components
 def newSourceId = "openlit:${sourceId}".toString()
 def newTargetId = "openlit:${targetId}".toString()
 def newExternalId = "openlit:${externalId ?: sourceId + '->' + targetId}".toString()

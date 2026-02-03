@@ -25,7 +25,7 @@ boolean isGenAi = attributes.containsKey("gen_ai.system") || attributes.contains
 
 if (!isGenAi) return null
 
-// Modify element directly like OTel does
+// Enrich the element directly
 if (!element.data.containsKey("tags")) {
     element.data.put("tags", [:])
 }
@@ -35,5 +35,8 @@ element.data.tags.put("gen_ai_app", "true")
 element.data.tags.put("stackpack", "openlit")
 if (isMilvus) element.data.tags.put("gen_vectordb_system", "true")
 if (isOllama || isVllm) element.data.tags.put("gen_ai_system", "true")
+
+// Ensure type is 'service' so OTel template logic works
+element.type.name = "service"
 
 return element
