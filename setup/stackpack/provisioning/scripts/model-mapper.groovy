@@ -11,24 +11,39 @@ if (componentPayload["spanAttributes"]) {
         def parsedData = new groovy.json.JsonSlurper().parseText(dataStr)
         attributes = parsedData["tags"] ?: [:]
     } catch (e) {}
+} else if (dataStr instanceof Map) {
+    attributes = dataStr["tags"] ?: [:]
 }
 
-def systemName = (attributes["gen_ai.system"] ?: "unknown").toString()
-def modelName = (attributes["gen_ai.request.model"] ?: attributes["model_name"])?.toString()
+def systemName = (attributes["gen_ai.provider.name"] ?: attributes["gen_ai.system"] ?: attributes["db.system"])?.toString()
+def modelAttr = (attributes["gen_ai.request.model"] ?: attributes["gen_ai.models"])?.toString()
 
-if (!modelName) {
-    return null
+// If we have a list of models in gen_ai.models, we'd ideally emit one per model
+// But the multiplexed sync gives us the payload once. 
+// For now we take the first model or the specific one from span attributes.
+def modelName = "default-model"
+if (modelAttr) {
+    modelName = modelAttr.split(",")[0].trim()
 }
 
-def modelUrn = "urn:genai:model:/${systemName.toLowerCase()}/${modelName.toLowerCase()}".toString()
+if (!systemName) {
+    def serviceName = (attributes["service.name"] ?: componentPayload["name"])?.toString()
+    if (serviceName?.toLowerCase()?.contains("milvus")) systemName = "milvus"
+    else if (serviceName?.toLowerCase()?.contains("ollama")) systemName = "ollama"
+}
 
-return [
-    "externalId": modelUrn,
-    "typeName": "genai.model".toString(),
-    "data": [
-        "name": modelName,
-        "labels": ["genai_model", "stackpack:openlit", "gen_ai_app"],
-        "domain": "urn:stackpack:open-telemetry:shared:domain:opentelemetry".toString(),
-        "layer": "urn:stackpack:common:layer:services".toString()
-    ]
-]
+if (!systemName) return null
+
+def systemLower = systemName.toLowerCase().toString()
+def modelUrn = "openlit:urn:genai:model:/${systemLower}/${modelName.toLowerCase()}".toString()
+
+element.type.name = "urn:stackpack:openlit:shared:component-type:genai-model"
+if (!element.data.containsKey("tags")) element.data.put("tags", [:])
+element.data.put("name", modelName)
+element.data.put("externalId", modelUrn)
+element.data.tags.putAll(attributes)
+element.data.tags.put("genai-model", "true")
+element.data.tags.put("gen_ai_app", "true")
+element.data.tags.put("stackpack", "suse-ai")
+
+return element

@@ -6,6 +6,7 @@ nodes:
 
 {{ include "./templates/component-types/dbsystem-milvus.sty" "yaml" }}
 {{ include "./templates/component-types/dbsystem-opensearch.sty" "yaml" }}
+{{ include "./templates/component-types/genai-app.sty" "yaml" }}
 {{ include "./templates/component-types/genai-system-ollama.sty" "yaml" }}
 {{ include "./templates/component-types/genai-system-openai.sty" "yaml" }}
 {{ include "./templates/component-types/genai-system-vllm.sty" "yaml" }}
@@ -27,12 +28,26 @@ nodes:
 {{ include "./monitors/nvidia-xid-errors/monitor.sty" "yaml" }}
 {{ include "./monitors/opensearch-cluster-status/monitor.sty" "yaml" }}
 
+# Mappers
 - _type: ComponentMappingFunction
-  description: Maps OpenLIT element to the Service component.
+  script: "{{ include "./scripts/genai-multiplexed-mapper.groovy" }}"
+  id: -918
+  identifier: urn:stackpack:openlit:shared:component-mapping-function:genai-multiplexed-mapper-v130
+  name: GenAI Multiplexed Mapper v130
+  parameters:
+  - _type: Parameter
+    id: -919
+    multiple: false
+    name: element
+    required: true
+    system: true
+    type: STRUCT_TYPE
+
+- _type: ComponentMappingFunction
   script: "{{ include "./scripts/service-mapper.groovy" }}"
   id: -910
-  identifier: urn:stackpack:openlit:shared:component-mapping-function:service-mapper
-  name: OpenLIT Service Mapper
+  identifier: urn:stackpack:openlit:shared:component-mapping-function:service-mapper-v130
+  name: OpenLIT Service Mapper v130
   parameters:
   - _type: Parameter
     id: -911
@@ -43,11 +58,10 @@ nodes:
     type: STRUCT_TYPE
 
 - _type: ComponentMappingFunction
-  description: Maps OpenLIT element to the GenAI System component.
   script: "{{ include "./scripts/system-mapper.groovy" }}"
   id: -912
-  identifier: urn:stackpack:openlit:shared:component-mapping-function:system-mapper
-  name: OpenLIT System Mapper
+  identifier: urn:stackpack:openlit:shared:component-mapping-function:system-mapper-v130
+  name: OpenLIT System Mapper v130
   parameters:
   - _type: Parameter
     id: -913
@@ -58,11 +72,10 @@ nodes:
     type: STRUCT_TYPE
 
 - _type: ComponentMappingFunction
-  description: Maps OpenLIT element to the GenAI Model component.
   script: "{{ include "./scripts/model-mapper.groovy" }}"
   id: -914
-  identifier: urn:stackpack:openlit:shared:component-mapping-function:model-mapper
-  name: OpenLIT Model Mapper
+  identifier: urn:stackpack:openlit:shared:component-mapping-function:model-mapper-v130
+  name: OpenLIT Model Mapper v130
   parameters:
   - _type: Parameter
     id: -915
@@ -73,11 +86,11 @@ nodes:
     type: STRUCT_TYPE
 
 - _type: RelationMappingFunction
-  description: Maps OpenLIT element to a relation.
+  description: Maps relations.
   script: "{{ include "./scripts/relation-mapper.groovy" }}"
   id: -916
-  identifier: urn:stackpack:openlit:shared:relation-mapping-function:relation-mapper
-  name: OpenLIT Relation Mapper
+  identifier: urn:stackpack:openlit:shared:relation-mapping-function:relation-mapper-v130
+  name: OpenLIT Relation Mapper v130
   parameters:
   - _type: Parameter
     id: -917
@@ -87,27 +100,96 @@ nodes:
     system: true
     type: STRUCT_TYPE
 
-- _type: ComponentMappingFunction
-  description: Maps OpenLIT element to the GenAI Operation component.
-  script: "{{ include "./scripts/operation-mapper.groovy" }}"
-  id: -918
-  identifier: urn:stackpack:openlit:shared:component-mapping-function:operation-mapper
-  name: OpenLIT Operation Mapper
+- _type: RelationMappingFunction
+  script: "{{ include "./scripts/app-to-system-rel-mapper.groovy" }}"
+  id: -940
+  identifier: urn:stackpack:openlit:shared:relation-mapping-function:app-to-system-rel-mapper-v130
+  name: OpenLIT App to System Relation Mapper v130
   parameters:
   - _type: Parameter
-    id: -919
+    id: -941
     multiple: false
     name: element
     required: true
     system: true
     type: STRUCT_TYPE
 
+- _type: RelationMappingFunction
+  script: "{{ include "./scripts/system-to-model-rel-mapper.groovy" }}"
+  id: -942
+  identifier: urn:stackpack:openlit:shared:relation-mapping-function:system-to-model-rel-mapper-v130
+  name: OpenLIT System to Model Relation Mapper v130
+  parameters:
+  - _type: Parameter
+    id: -943
+    multiple: false
+    name: element
+    required: true
+    system: true
+    type: STRUCT_TYPE
+
+- _type: RelationMappingFunction
+  script: "{{ include "./scripts/provided-by-mapper.groovy" }}"
+  id: -944
+  identifier: urn:stackpack:openlit:shared:relation-mapping-function:provided-by-mapper-v130
+  name: OpenLIT Provided-by Relation Mapper v130
+  parameters:
+  - _type: Parameter
+    id: -945
+    multiple: false
+    name: element
+    required: true
+    system: true
+    type: STRUCT_TYPE
+
+# Extractors
 - _type: IdExtractorFunction
-  description: A generic component id extractor function for GenAI topology elements.
   groovyScript: "{{ include "./scripts/genai-component-id-extractor.groovy" }}"
-  id: -900
+  id: -9001
   identifier: urn:stackpack:openlit:shared:id-extractor-function:genai-component-id-extractor
   name: GenAI component id extractor
+  parameters:
+  - _type: Parameter
+    id: -9011
+    multiple: false
+    name: topologyElement
+    required: true
+    system: true
+    type: STRUCT_TYPE
+
+- _type: IdExtractorFunction
+  groovyScript: "{{ include "./scripts/genai-void-id-extractor.groovy" }}"
+  id: -9081
+  identifier: urn:stackpack:openlit:shared:id-extractor-function:genai-void-id-extractor
+  name: GenAI void id extractor
+  parameters:
+  - _type: Parameter
+    id: -9091
+    multiple: false
+    name: topologyElement
+    required: true
+    system: true
+    type: STRUCT_TYPE
+
+- _type: IdExtractorFunction
+  groovyScript: "{{ include "./scripts/genai-multiplexed-id-extractor.groovy" }}"
+  id: -908
+  identifier: urn:stackpack:openlit:shared:id-extractor-function:genai-multiplexed-id-extractor
+  name: GenAI multiplexed id extractor
+  parameters:
+  - _type: Parameter
+    id: -909
+    multiple: false
+    name: topologyElement
+    required: true
+    system: true
+    type: STRUCT_TYPE
+
+- _type: IdExtractorFunction
+  groovyScript: "{{ include "./scripts/genai-service-id-extractor.groovy" }}"
+  id: -900
+  identifier: urn:stackpack:openlit:shared:id-extractor-function:genai-service-id-extractor
+  name: GenAI service id extractor
   parameters:
   - _type: Parameter
     id: -901
@@ -118,7 +200,34 @@ nodes:
     type: STRUCT_TYPE
 
 - _type: IdExtractorFunction
-  description: A generic relation id extractor function for GenAI topology elements.
+  groovyScript: "{{ include "./scripts/genai-system-id-extractor.groovy" }}"
+  id: -930
+  identifier: urn:stackpack:openlit:shared:id-extractor-function:genai-system-id-extractor
+  name: GenAI system id extractor
+  parameters:
+  - _type: Parameter
+    id: -931
+    multiple: false
+    name: topologyElement
+    required: true
+    system: true
+    type: STRUCT_TYPE
+
+- _type: IdExtractorFunction
+  groovyScript: "{{ include "./scripts/genai-model-id-extractor.groovy" }}"
+  id: -932
+  identifier: urn:stackpack:openlit:shared:id-extractor-function:genai-model-id-extractor
+  name: GenAI model id extractor
+  parameters:
+  - _type: Parameter
+    id: -933
+    multiple: false
+    name: topologyElement
+    required: true
+    system: true
+    type: STRUCT_TYPE
+
+- _type: IdExtractorFunction
   groovyScript: "{{ include "./scripts/genai-relation-id-extractor.groovy" }}"
   id: -902
   identifier: urn:stackpack:openlit:shared:id-extractor-function:genai-relation-id-extractor
@@ -132,8 +241,8 @@ nodes:
     system: true
     type: STRUCT_TYPE
 
+# Templates
 - _type: ComponentTemplateFunction
-  description: A generic component template function for GenAI topology elements.
   handlebarsTemplate: "{{ include "./templates/openlit-component-template.json.handlebars" }}"
   id: -904
   identifier: urn:stackpack:openlit:shared:component-template-function:openlit-component
@@ -148,7 +257,6 @@ nodes:
     type: STRUCT_TYPE
 
 - _type: RelationTemplateFunction
-  description: A generic relation template function for GenAI topology elements.
   handlebarsTemplate: "{{ include "./templates/openlit-relation-template.json.handlebars" }}"
   id: -906
   identifier: urn:stackpack:openlit:shared:relation-template-function:openlit-relation

@@ -11,24 +11,32 @@ if (componentPayload["spanAttributes"]) {
         def parsedData = new groovy.json.JsonSlurper().parseText(dataStr)
         attributes = parsedData["tags"] ?: [:]
     } catch (e) {}
+} else if (dataStr instanceof Map) {
+    attributes = dataStr["tags"] ?: [:]
 }
 
 def operationName = (attributes["gen_ai.operation.name"] ?: attributes["db.operation"])?.toString()
-if (!operationName) {
-    return null
-}
+if (!operationName) return null
 
 def systemName = (attributes["gen_ai.system"] ?: attributes["db.system"] ?: "unknown").toString()
 def modelName = (attributes["gen_ai.request.model"] ?: attributes["model_name"] ?: "none").toString()
 
-def operationUrn = "urn:genai:operation:/${systemName.toLowerCase()}/${modelName.toLowerCase()}/${operationName.toLowerCase()}".toString()
+def systemLower = systemName.toLowerCase().toString()
+def operationUrn = "openlit:urn:genai:operation:/${systemLower}/${modelName.toLowerCase()}/${operationName.toLowerCase()}".toString()
 
 return [
     "externalId": operationUrn,
-    "typeName": "genai.operation".toString(),
+    "typeName": "genai.operation",
     "data": [
         "name": operationName,
-        "labels": ["genai_operation", "stackpack:openlit", "gen_ai_app"],
+        "tags": [
+            "genai_operation": "true",
+            "stackpack": "openlit",
+            "gen_ai_app": "true",
+            "gen_ai_system": systemName,
+            "gen_ai_request_model": modelName,
+            "name": operationName
+        ],
         "domain": "urn:stackpack:open-telemetry:shared:domain:opentelemetry".toString(),
         "layer": "urn:stackpack:common:layer:services".toString()
     ]

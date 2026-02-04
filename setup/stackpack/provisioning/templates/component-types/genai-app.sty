@@ -1,9 +1,9 @@
 - _type: ComponentType
-  name: "dbsystem.milvus"
-  iconbase64: "{{ include "./icons-svg/milvus.svg" "base64" }}"
-  identifier: urn:stackpack:openlit:shared:component-type:dbsystem-milvus
+  name: "genai.app"
+  iconbase64: "{{ include "./icons-svg/genai_app.svg" "base64" }}"
+  identifier: urn:stackpack:openlit:shared:component-type:genai-app
   highlights:
-    namePlural: db_systems
+    namePlural: genai_apps
     fields:
       - fieldId: type
         label:
@@ -47,28 +47,32 @@
       externalIdSelector: "^openlit:"
       _type: ComponentTypeExternalComponent
     relatedResources:
-      - resourceType: genai.dboperation
-        title: Operations
+      - resourceType: genai.system
+        title: GenAI Systems
         stql:
           (withNeighborsOf(direction = "down", components = (id = "{COMPONENT_ID}"),
-          levels = "1")) and type = "genai.dboperation"
-        #          viewTypeIdentifier: urn:stackpack:open-telemetry:shared:view-type:service-instance
+          levels = "1")) and (label = "gen_ai_system" or label = "gen_vectordb_system")
         _type: ComponentTypeRelatedResources
-      - resourceType: otel service
-        title: Related Open Telemetry services
-        stql:
-          (withNeighborsOf(direction = "up", components = (id = "{COMPONENT_ID}"),
-          levels = "1")) and type = "otel service"
-        viewTypeIdentifier: urn:stackpack:open-telemetry:shared:view-type:service
-        _type: ComponentTypeRelatedResources
-
     metrics:
+      - name: Cost
+        description: Cost Stats
+        bindings:
+          - urn:stackpack:openlit:shared:metric-binding:app-avg-usage-cost
+          - urn:stackpack:openlit:shared:metric-binding:app-avg-total-usage-cost
+        defaultExpanded: true
+        _type: ComponentTypeMetricCategory
+      - name: Tokens
+        description: Token Stats
+        bindings:
+          - urn:stackpack:openlit:shared:metric-binding:app-total-usage-tokens
+        defaultExpanded: true
+        _type: ComponentTypeMetricCategory
       - name: Requests
         description: Request Stats
         bindings:
-          - urn:stackpack:openlit:shared:metric-binding:vectordb-system-request-total-success
-          - urn:stackpack:openlit:shared:metric-binding:vectordb-system-total-requests
-          - urn:stackpack:openlit:shared:metric-binding:vectordb-system-request-rate
+          - urn:stackpack:openlit:shared:metric-binding:app-request-total-success
+          - urn:stackpack:openlit:shared:metric-binding:app-total-requests
+          - urn:stackpack:openlit:shared:metric-binding:app-request-rate
         defaultExpanded: true
         _type: ComponentTypeMetricCategory
     _type: ComponentTypeHighlights

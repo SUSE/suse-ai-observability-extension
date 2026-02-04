@@ -1,7 +1,7 @@
 {
   "_type": "Relation",
-  "name": "\{{ element.sourceExternalId \}} --> \{{ element.targetExternalId \}}",
-  "type": \{{ resolveOrCreate "RelationType" element.type.name "Auto-synced Relation" \}},
-  "source": \{{ element.sourceId \}},
-  "target": \{{ element.targetId \}}
+  "name": "\{{ element.sourceId \}} -> \{{ element.targetId \}}",
+  "type": \{{ resolveOrCreate "RelationType" element.typeName "Auto-synced Relation" \}},
+  "source": { "identifier": "\{{ element.sourceId \}}" },
+  "target": { "identifier": "\{{ element.targetId \}}" }
 }

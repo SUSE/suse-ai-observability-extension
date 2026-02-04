@@ -23,38 +23,88 @@ nodes:
       maxBatchSize: 200
       maxBatchesPerSecond: 5
   id: -801
-  identifier: urn:stackpack:openlit:instance:{{instanceId}}:data-source:datasource
-  name: DataSource OpenLIT
+  identifier: urn:stackpack:openlit:instance:{{instanceId}}:data-source:datasource-v130-relations-fix
+  name: DataSource OpenLIT Relations Fix
   pluginId: Sts
   uiRequestTimeout: 15000
 
+# Sync A: Apps & Systems (Consolidated)
 - _type: Sync
   componentActions:
     - _type: SyncActionCreateComponent
-      id: -815
-      mappingFunction: {{ get "urn:stackpack:openlit:shared:component-mapping-function:service-mapper" }}
-      mergeStrategy: MergePreferTheirs
-      templateFunction: {{ get "urn:stackpack:open-telemetry:shared:component-template-function:component" }}
+      id: -1815
+      mappingFunction: {{ get "urn:stackpack:openlit:shared:component-mapping-function:genai-multiplexed-mapper-v130" }}
+      mergeStrategy: MergePreferMine
+      templateFunction: {{ get "urn:stackpack:openlit:shared:component-template-function:openlit-component" }}
       type: service
     - _type: SyncActionCreateComponent
-      id: -816
-      mappingFunction: {{ get "urn:stackpack:openlit:shared:component-mapping-function:service-mapper" }}
-      mergeStrategy: MergePreferTheirs
-      templateFunction: {{ get "urn:stackpack:open-telemetry:shared:component-template-function:component" }}
+      id: -1816
+      mappingFunction: {{ get "urn:stackpack:openlit:shared:component-mapping-function:genai-multiplexed-mapper-v130" }}
+      mergeStrategy: MergePreferMine
+      templateFunction: {{ get "urn:stackpack:openlit:shared:component-template-function:openlit-component" }}
       type: service-instance
+  relationActions:
+    - _type: SyncActionCreateRelation
+      id: -1820
+      mappingFunction: {{ get "urn:stackpack:openlit:shared:relation-mapping-function:provided-by-mapper-v130" }}
+      templateFunction: {{ get "urn:stackpack:openlit:shared:relation-template-function:openlit-relation" }}
+      type: "provided-by"
+    # Infer App -> System relation
+    - _type: SyncActionCreateRelation
+      id: -1821
+      mappingFunction: {{ get "urn:stackpack:openlit:shared:relation-mapping-function:app-to-system-rel-mapper-v130" }}
+      templateFunction: {{ get "urn:stackpack:openlit:shared:relation-template-function:openlit-relation" }}
+      type: service
+    # Infer System -> Model relation
+    - _type: SyncActionCreateRelation
+      id: -1842
+      mappingFunction: {{ get "urn:stackpack:openlit:shared:relation-mapping-function:system-to-model-rel-mapper-v130" }}
+      templateFunction: {{ get "urn:stackpack:openlit:shared:relation-template-function:openlit-relation" }}
+      type: service
   defaultComponentAction:
     _type: SyncActionCreateOnMerge
+    templateFunction: {{ get "urn:stackpack:openlit:shared:component-template-function:openlit-component" }}
     type: ""
   extTopology: -803
-  id: -813
-  identifier: urn:stackpack:openlit:instance:{{instanceId}}:sync:v128-apps
-  name: GenAI Synchronization v1.28
-  relationActions: []
+  id: -1813
+  identifier: urn:stackpack:openlit:instance:{{instanceId}}:sync:v130-apps-systems-v2
+  name: GenAI Sync v1.30 Apps & Systems v2
   topologyDataQuery:
     _type: Sts.StsTopologyElementsQuery
-    componentIdExtractorFunction: {{ get "urn:stackpack:openlit:shared:id-extractor-function:genai-component-id-extractor" }}
+    componentIdExtractorFunction: {{ get "urn:stackpack:openlit:shared:id-extractor-function:genai-multiplexed-id-extractor" }}
     consumerOffsetStartAtEarliest: true
-    id: -814
+    id: -1814
     relationIdExtractorFunction: {{ get "urn:stackpack:openlit:shared:id-extractor-function:genai-relation-id-extractor" }}
+
+# Sync C: Models
+- _type: Sync
+  componentActions:
+    - _type: SyncActionCreateComponent
+      id: -830
+      mappingFunction: {{ get "urn:stackpack:openlit:shared:component-mapping-function:model-mapper-v130" }}
+      mergeStrategy: MergePreferMine
+      templateFunction: {{ get "urn:stackpack:openlit:shared:component-template-function:openlit-component" }}
+      type: service
+    - _type: SyncActionCreateComponent
+      id: -831
+      mappingFunction: {{ get "urn:stackpack:openlit:shared:component-mapping-function:model-mapper-v130" }}
+      mergeStrategy: MergePreferMine
+      templateFunction: {{ get "urn:stackpack:openlit:shared:component-template-function:openlit-component" }}
+      type: service-instance
+  relationActions: []
+  defaultComponentAction:
+    _type: SyncActionCreateOnMerge
+    templateFunction: {{ get "urn:stackpack:openlit:shared:component-template-function:openlit-component" }}
+    type: ""
+  extTopology: -803
+  id: -833
+  identifier: urn:stackpack:openlit:instance:{{instanceId}}:sync:v130-models
+  name: GenAI Sync v1.30 Models
+  topologyDataQuery:
+    _type: Sts.StsTopologyElementsQuery
+    componentIdExtractorFunction: {{ get "urn:stackpack:openlit:shared:id-extractor-function:genai-model-id-extractor" }}
+    consumerOffsetStartAtEarliest: true
+    id: -834
+    relationIdExtractorFunction: {{ get "urn:stackpack:openlit:shared:id-extractor-function:genai-void-id-extractor" }}
 
 version: '0.1'

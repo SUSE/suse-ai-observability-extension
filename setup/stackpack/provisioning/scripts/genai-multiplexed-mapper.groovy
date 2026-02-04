@@ -15,6 +15,7 @@ if (componentPayload["spanAttributes"]) {
     attributes = dataStr["tags"] ?: [:]
 }
 
+def externalId = element.externalId.toString()
 def serviceName = (attributes["service.name"] ?: componentPayload["name"])?.toString()
 def systemName = (attributes["gen_ai.provider.name"] ?: attributes["gen_ai.system"] ?: attributes["db.system"])?.toString()
 
@@ -27,7 +28,9 @@ if (!systemName && serviceName) {
     else if (lowerName.contains("opensearch")) systemName = "opensearch"
 }
 
-if (systemName) {
+if (externalId.startsWith("openlit:system:")) {
+    if (!systemName) return null
+    
     // Transform to System
     def systemLower = systemName.toLowerCase().toString()
     boolean isDB = attributes.containsKey("db.system") || systemLower.contains("milvus") || systemLower.contains("opensearch")
