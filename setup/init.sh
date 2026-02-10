@@ -89,6 +89,11 @@ run_sts() {
 # StackPack + STS CLI stuff
 # -----------------------------------------------------------------------------
 create_stackpack_archive() {
+  if [[ -f "${STACKPACK_ARCHIVE}" ]]; then
+    log_info "StackPack archive already exists: ${STACKPACK_ARCHIVE}"
+    return 0
+  fi
+
   log_info "Creating StackPack archive..."
 
   if [[ ! -f "${STACKPACK_DIR}/stackpack.conf" ]]; then
