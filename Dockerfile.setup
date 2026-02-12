@@ -3,6 +3,7 @@ RUN zypper --non-interactive refresh && \
     zypper --non-interactive install jq zip
 RUN curl -o- https://dl.stackstate.com/stackstate-cli/install.sh | bash
 COPY setup/stackpack    /mnt/.
+COPY setup/dep/* /mnt/.
 COPY setup/init.sh /mnt/.
 
 ENTRYPOINT ["/bin/bash", "/mnt/init.sh"]
