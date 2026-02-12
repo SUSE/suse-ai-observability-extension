@@ -5,6 +5,9 @@ readonly STACKPACK_NAME="openlit"
 readonly STACKPACK_DIR="/mnt"
 readonly STACKPACK_ARCHIVE="/tmp/${STACKPACK_NAME}.sts"
 
+readonly AUTOSYNC_NAME="autosync"
+readonly AUTOSYNC_FILE="/mnt/autosync-3.2.1-stac-0-bump-1037-203fef5-SNAPSHOT.sts"
+
 INSTANCE_TYPE="${INSTANCE_TYPE:-openlit}"
 
 log_info() {
@@ -83,6 +86,64 @@ run_sts() {
   fi
 
   "${cmd[@]}"
+}
+
+# -----------------------------------------------------------------------------
+# Autosync StackPack
+# -----------------------------------------------------------------------------
+is_autosync_available() {
+  local result
+  result=$(run_sts stackpack list -o json |
+    jq --arg NAME "$AUTOSYNC_NAME" '.stackpacks | any(.name == $NAME)')
+  [[ "${result}" == "true" ]]
+}
+
+is_autosync_installed() {
+  local result
+  result=$(run_sts stackpack list-instances --name "$AUTOSYNC_NAME" -o json |
+    jq --arg URL "$KUBERNETES_CLUSTER" \
+      '.instances | any(.config.sts_instance_type == "openlit" and .config.sts_instance_url == $URL)')
+  [[ "${result}" == "true" ]]
+}
+
+ensure_autosync_stackpack() {
+  log_info "Checking if Autosync StackPack is available..."
+  if ! is_autosync_available; then
+    log_info "Autosync StackPack not available, uploading..."
+    if [[ ! -f "$AUTOSYNC_FILE" ]]; then
+      log_error "Autosync StackPack file not found: $AUTOSYNC_FILE"
+      exit 1
+    fi
+
+    if run_sts stackpack upload --file "$AUTOSYNC_FILE"; then
+      log_success "Autosync StackPack uploaded successfully"
+    else
+      local upload_exit_code=$?
+      log_error "Autosync StackPack upload failed with exit code: $upload_exit_code"
+      if is_autosync_available; then
+        log_info "Autosync StackPack appears to be available despite upload error, proceeding..."
+      else
+        log_error "Autosync StackPack upload failed and is not available"
+        exit $upload_exit_code
+      fi
+    fi
+  else
+    log_info "Autosync StackPack already available"
+  fi
+
+  log_info "Checking if Autosync StackPack is installed for openlit..."
+  if is_autosync_installed; then
+    log_info "Autosync StackPack already installed for openlit"
+  else
+    log_info "Installing Autosync StackPack..."
+    log_info "  - sts_instance_type: openlit"
+    log_info "  - sts_instance_url: $KUBERNETES_CLUSTER"
+
+    run_sts stackpack install --name "$AUTOSYNC_NAME" \
+      -p "sts_instance_type=openlit" \
+      -p "sts_instance_url=$KUBERNETES_CLUSTER"
+    log_success "Autosync StackPack installed successfully"
+  fi
 }
 
 # -----------------------------------------------------------------------------
@@ -201,6 +262,8 @@ main_uninstall() {
 
 main_install() {
   log_section "Starting GenAI Observability Installation"
+
+  ensure_autosync_stackpack
 
   log_info "Checking if StackPack is available..."
   if ! is_stackpack_available; then
