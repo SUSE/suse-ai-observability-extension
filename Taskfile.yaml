@@ -17,3 +17,29 @@ tasks:
     cmds:
       - podman push {{.IMAGE}}-runtime:{{.VERSION}}
       - podman push {{.IMAGE}}-setup:{{.VERSION}}
+
+  version-up:
+    desc: Increments the stackpack version (patch)
+    cmds:
+      - |
+        VERSION=$(grep 'version =' stackpack/suse-ai/stackpack.conf | cut -d'"' -f2)
+        BASE=$(echo $VERSION | cut -d'.' -f1-2)
+        PATCH=$(echo $VERSION | cut -d'.' -f3)
+        NEW_PATCH=$((PATCH + 1))
+        NEW_VERSION="$BASE.$NEW_PATCH"
+        sed -i "s/version = \"$VERSION\"/version = \"$NEW_VERSION\"/" stackpack/suse-ai/stackpack.conf
+        echo "StackPack version updated to $NEW_VERSION"
+
+  stackpack-upload:
+    desc: Zips, uploads and upgrades the stackpack
+    cmds:
+      - |
+        cd stackpack/suse-ai
+        zip -r /tmp/suse-ai.sts stackpack.conf provisioning resources
+        sts stackpack upload --file /tmp/suse-ai.sts
+        sts stackpack upgrade --name suse-ai --unlocked-strategy overwrite
+
+  sts-script:
+    desc: Runs a Groovy script from a file (use FILE=path/to/script.groovy)
+    cmds:
+      - sts script run --file "{{.FILE}}"
