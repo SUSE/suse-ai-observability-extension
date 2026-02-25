@@ -5,18 +5,19 @@ import com.stackstate.stackpack.Version
 
 class SuseAiProvision extends ProvisioningScript {
 
-  SuseAiProvision(ProvisioningContext context) {
-    super(context)
-  }
+    SuseAiProvision(ProvisioningContext context) {
+        super(context)
+    }
 
-  @Override
-  ProvisioningIO<scala.Unit> install(Map<String, Object> config) {
-    return context().stackPack().importSnapshot("templates/shared.sty", [:]) >>
-           context().stackPack().importSnapshot("templates/suse-ai.sty", [:])
-  }
+    @Override
+    ProvisioningIO<scala.Unit> install(Map<String, Object> config) {
+        return context().stackPack().importSnapshot('templates/suse-ai.sty', [:])
+    }
 
-  @Override
-  ProvisioningIO<scala.Unit> upgrade(Map<String, Object> config, Version current) {
-    return install(config)
-  }
+    @Override
+    ProvisioningIO<scala.Unit> upgrade(Map<String, Object> config, Version current) {
+        return install(config)
+    }
+
 }
+

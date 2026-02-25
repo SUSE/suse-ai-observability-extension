@@ -8,20 +8,24 @@ if (data.containsKey("identifiers") && data["identifiers"] instanceof List) {
     data["identifiers"].each { identifiers.add(it.toString()) }
 }
 
-// Check for SUSE AI management
+// Check if it is a relation
+boolean isRelation = data.containsKey("sourceExternalId") && data.containsKey("targetExternalId")
+
+// Check for SUSE AI management or inference rule
 boolean isManaged = false
 if (data.containsKey("tags") && data["tags"] instanceof Map) {
     def tags = data["tags"]
-    if (tags["suse.ai.managed"] == "true" || tags["suse.ai.managed"] == true) {
+    if (tags["suse.ai.managed"] == "true" || tags["suse.ai.managed"] == true || tags.containsKey("gen_ai.system")) {
         isManaged = true
     }
 }
 
-if (isManaged) {
+if (isManaged || isRelation) {
     // Add original externalId to identifiers to ensure we can link back for metrics/traces
     identifiers.add(externalId.toString())
     // Create a new prefixed externalId to avoid ownership conflict with OTel sync
     externalId = "suse-ai:" + externalId
+    return Sts.createId(externalId.toString(), identifiers, typeName.toString())
 }
 
-return Sts.createId(externalId.toString(), identifiers, typeName.toString())
+return null
