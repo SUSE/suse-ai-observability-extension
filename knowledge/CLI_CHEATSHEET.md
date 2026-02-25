@@ -50,7 +50,7 @@ You can run Groovy scripts directly against the StackState API. This is extremel
 ## 4. Graph & Queries (STQL)
 *   **Query Topology**:
     ```bash
-    sts graph query --query "label = 'gen_ai_app'"
+    sts graph query --query "label = 'some-label'"
     ```
 
 ## 5. Monitors

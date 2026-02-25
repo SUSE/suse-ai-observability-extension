@@ -1,0 +1,62 @@
+  - _type: MetricBinding
+    id: -2000
+    name: LLM Request Rate
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:request-rate
+    unit: reqps
+    chartType: line
+    priority: high
+    enabled: true
+    scope: label IN ("suse.ai.managed:true")
+    queries:
+      - expression: sum(rate(gen_ai_requests_total{ service_name="${name}" }[${__rate_interval}]))
+        alias: App Request Rate
+      - expression: sum(rate(gen_ai_requests_total{ gen_ai_system="${name}" }[${__rate_interval}]))
+        alias: System Request Rate
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Utilization
+      componentSummary:
+        weight: 3
+
+  - _type: MetricBinding
+    id: -2001
+    name: Average Tokens per Request
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:average-tokens-per-request
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    scope: label IN ("suse.ai.managed:true")
+    queries:
+      - expression: sum(rate(gen_ai_usage_tokens_total{service_name="${name}"}[5m])) / sum(rate(gen_ai_requests_total{service_name="${name}"}[5m]))
+        alias: "AVG Tokens/Request (App)"
+      - expression: sum(rate(gen_ai_usage_tokens_total{gen_ai_system="${name}"}[5m])) / sum(rate(gen_ai_requests_total{gen_ai_system="${name}"}[5m]))
+        alias: "AVG Tokens/Request (System)"
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Tokens
+      componentSummary:
+        weight: 3
+
+  - _type: MetricBinding
+    id: -2002
+    name: Total Usage Cost
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:total-usage-cost
+    unit: currencyUSD
+    chartType: line
+    priority: high
+    enabled: true
+    scope: label IN ("suse.ai.managed:true")
+    queries:
+      - expression: sum(gen_ai_usage_cost_USD_sum{ service_name="${name}" })
+        alias: App Cost
+      - expression: sum(gen_ai_usage_cost_USD_sum{ gen_ai_system="${name}" })
+        alias: System Cost
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Cost
+      componentSummary:
+        weight: 3

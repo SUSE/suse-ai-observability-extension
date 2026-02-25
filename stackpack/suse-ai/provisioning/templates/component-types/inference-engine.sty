@@ -1,0 +1,32 @@
+  - _type: "ComponentType"
+    id: -4003
+    identifier: "urn:stackpack:suse-ai:shared:component-type:inference-engine"
+    name: "inference-engine"
+    iconbase64: "data:image/svg+xml;base64,{{ include "icons/llm-ollama.svg" "base64" }}"
+    highlights:
+      _type: "ComponentTypeHighlight"
+      namePlural: "inference-engines"
+      fields:
+        - _type: "ComponentTypeField"
+          fieldId: "health"
+          label:
+            title: "Health"
+          valueExtractor:
+            _type: "HealthSource"
+          display:
+            _type: "HealthBadgeDisplay"
+      about:
+        _type: "ComponentTypeAbout"
+        fields: ["health"]
+      events:
+        _type: "ComponentTypeEvents"
+        showEvents: true
+      showLogs: false
+      showLastChange: false
+      externalComponent:
+        _type: "ComponentTypeExternalComponent"
+        showConfiguration: false
+        showStatus: false
+        externalIdSelector: "^suse-ai:"
+      relatedResources: []
+      metrics: []

@@ -1,0 +1,112 @@
+  - _type: "ComponentType"
+    identifier: "urn:stackpack:suse-ai:shared:component-type:application"
+    name: "application"
+    iconbase64: "data:image/svg+xml;base64,{{ include "icons/genai_app.svg" "base64" }}"
+    highlights:
+      _type: "ComponentTypeHighlight"
+      namePlural: "applications"
+      fields:
+        - _type: "ComponentTypeField"
+          fieldId: "health"
+          label:
+            title: "Health"
+          valueExtractor:
+            _type: "HealthSource"
+          display:
+            _type: "HealthBadgeDisplay"
+        - _type: "ComponentTypeField"
+          fieldId: "type"
+          label:
+            title: "Type"
+          valueExtractor:
+            _type: "ComponentTypeSource"
+          display:
+            _type: "TagDisplay"
+        - _type: "ComponentTypeField"
+          fieldId: "labels"
+          label:
+            title: "Labels"
+          valueExtractor:
+            _type: "TagsSource"
+          display:
+            _type: "TagDisplay"
+            singular: "label"
+      about:
+        _type: "ComponentTypeAbout"
+        fields: ["health", "type", "labels"]
+      events:
+        _type: "ComponentTypeEvents"
+        showEvents: true
+      showLogs: false
+      showLastChange: false
+      externalComponent:
+        _type: "ComponentTypeExternalComponent"
+        showConfiguration: false
+        showStatus: false
+        externalIdSelector: "^suse-ai:"
+      relatedResources: []
+      metrics: []
+
+  - _type: "ComponentType"
+    identifier: "urn:stackpack:suse-ai:shared:component-type:agent"
+    name: "agent"
+    iconbase64: "data:image/svg+xml;base64,{{ include "icons/genai_app.svg" "base64" }}"
+    highlights:
+      _type: "ComponentTypeHighlight"
+      namePlural: "agents"
+      fields:
+        - _type: "ComponentTypeField"
+          fieldId: "health"
+          label:
+            title: "Health"
+          valueExtractor:
+            _type: "HealthSource"
+          display:
+            _type: "HealthBadgeDisplay"
+      about:
+        _type: "ComponentTypeAbout"
+        fields: ["health"]
+      events:
+        _type: "ComponentTypeEvents"
+        showEvents: true
+      showLogs: false
+      showLastChange: false
+      externalComponent:
+        _type: "ComponentTypeExternalComponent"
+        showConfiguration: false
+        showStatus: false
+        externalIdSelector: "^suse-ai:"
+      relatedResources: []
+      metrics: []
+
+  - _type: "ComponentType"
+    identifier: "urn:stackpack:suse-ai:shared:component-type:ui"
+    name: "ui"
+    iconbase64: "data:image/svg+xml;base64,{{ include "icons/genai_app.svg" "base64" }}"
+    highlights:
+      _type: "ComponentTypeHighlight"
+      namePlural: "uis"
+      fields:
+        - _type: "ComponentTypeField"
+          fieldId: "health"
+          label:
+            title: "Health"
+          valueExtractor:
+            _type: "HealthSource"
+          display:
+            _type: "HealthBadgeDisplay"
+      about:
+        _type: "ComponentTypeAbout"
+        fields: ["health"]
+      events:
+        _type: "ComponentTypeEvents"
+        showEvents: true
+      showLogs: false
+      showLastChange: false
+      externalComponent:
+        _type: "ComponentTypeExternalComponent"
+        showConfiguration: false
+        showStatus: false
+        externalIdSelector: "^suse-ai:"
+      relatedResources: []
+      metrics: []

@@ -1,0 +1,32 @@
+  - _type: "ComponentType"
+    id: -4007
+    identifier: "urn:stackpack:suse-ai:shared:component-type:search-engine"
+    name: "search-engine"
+    iconbase64: "data:image/png;base64,{{ include "icons/llm.png" "base64" }}"
+    highlights:
+      _type: "ComponentTypeHighlight"
+      namePlural: "search-engines"
+      fields:
+        - _type: "ComponentTypeField"
+          fieldId: "health"
+          label:
+            title: "Health"
+          valueExtractor:
+            _type: "HealthSource"
+          display:
+            _type: "HealthBadgeDisplay"
+      about:
+        _type: "ComponentTypeAbout"
+        fields: ["health"]
+      events:
+        _type: "ComponentTypeEvents"
+        showEvents: true
+      showLogs: false
+      showLastChange: false
+      externalComponent:
+        _type: "ComponentTypeExternalComponent"
+        showConfiguration: false
+        showStatus: false
+        externalIdSelector: "^suse-ai:"
+      relatedResources: []
+      metrics: []

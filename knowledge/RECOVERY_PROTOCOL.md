@@ -3,26 +3,32 @@
 This document tracks critical findings and recovery steps for the StackPack.
 
 ## 1. Template Paths
-- **Rule**: All `include` paths in STY files are relative to the file being parsed IF using relative syntax (`./` or `../`).
-- **Discovery**: In v1.31.141-143, we discovered that StackState's Handlebars engine resolves `include` paths relative to the zip root when no prefix is used, or relative to the caller when `../` is used.
+- **Rule**: All `include` paths in STY files are relative to the `provisioning/` directory if not using a relative prefix (`./`).
+- **Discovery**: StackState's Handlebars engine automatically prepends `provisioning/` to include paths. If you use `include "templates/foo.sty"`, it looks for `provisioning/templates/foo.sty`.
 - **Fixed Path Map**:
-  - `templates/genai-observability.sty` -> `./domains.sty`
-  - `templates/component-types/genai-app.sty` -> `../../icons-svg/genai_app.svg`
+  - `templates/suse-ai.sty` -> `templates/shared.sty` (Relative to zip root / provisioning)
 
 ## 2. Namespace & Context
-- **Rule**: `MainMenuGroup`, `Domain`, and `QueryView` MUST stay in the `shared` namespace (`urn:stackpack:openlit:shared:`) to be visible in the global UI.
-- **Rule**: `DataSource`, `Sync`, and `Monitor` MUST stay in the `instance` namespace (`urn:stackpack:openlit:instance:{{instanceId}}:`) for proper ownership.
+- **Rule**: `MainMenuGroup`, `Domain`, and `QueryView` SHOULD stay in the `shared` namespace (`urn:stackpack:suse-ai:shared:`) for global visibility.
+- **Rule**: Use `context().stackPack().importSnapshot(...)` for shared objects. Using `context().instance()` can lead to `NamespaceSnapshotException` if those objects are later referenced by global nodes.
 
 ## 3. Component Identity
-- **Strategy**: **Claim OTel URN**.
-- **Reasoning**: To ensure metrics and traces from the standard OTel collector "stick" to our components, we must use the same `externalId`. We override the `domain` and `type` in the Mapper.
+- **Strategy**: **suse-ai: Prefix**.
+- **Reasoning**: We use a custom `IdExtractorFunction` to prefix `externalId` with `suse-ai:`. 
+- **Merging**: To ensure data still links, we add the original OTel URN to the `identifiers` list in the component template.
 
-## 4. Groovy Scripting
-- **Validation**: Always use `npm-groovy-lint`.
-- **String Interpolation**: Avoid `${var}` in Groovy strings if they are embedded in STY files, as Handlebars might try to resolve them first. Use `"string" + var` instead.
+## 4. Groovy Scripting & Handlebars Escaping
+- **Rule**: When using Handlebars syntax (`{{ ... }}`) inside a Groovy script that is itself included in a template, you must escape the braces: `\{{ ... \}}`.
+- **Reasoning**: If not escaped, the StackPack importer tries to resolve the variables (like `element.data`) during provisioning time, instead of leaving them for the Sync engine to resolve during data flow.
 
-## 5. Handlebars & UI Resolution
-- **Rule**: Use `resolveOrCreate` (camelCase) for reliable node linking.
-- **Rule**: Type names inside the helper (e.g. `componenttype`) should be lowercase.
-- **Rule**: If a component shows `domain: 0` or URN as name in metadata, the resolution failed. Check if the URN in the `resolveOrCreate` call matches the node's identifier EXACTLY (including namespace).
-- **Rule**: Use PNG icons with `data:image/png;base64,` prefix to avoid validation errors.
+## 5. Schema Validation (Mandatory Fields)
+- **Rule**: `ComponentType` highlights MUST include:
+    - `events`: `_type: "ComponentTypeEvents"`
+    - `metrics`: `[]` (empty list if none)
+    - `relatedResources`: `[]` (empty list if none)
+    - `externalComponent`: `_type: "ComponentTypeExternalComponent"`
+- **Failure Symptom**: `spray.json.DeserializationException: Object is missing required member 'events'`.
+
+## 6. Icon Prefixing
+- **Rule**: Icons included via `base64` helper need the manual `data:image/...;base64,` prefix in the YAML string.
+- **Example**: `iconbase64: "data:image/svg+xml;base64,{{ include "icons/foo.svg" "base64" }}"`.

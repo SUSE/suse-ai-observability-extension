@@ -1,0 +1,22 @@
+nodes:
+{{ include "templates/relation-types.sty" "yaml" }}
+
+# Component Types
+{{ include "templates/component-types/genai-app.sty" "yaml" }}
+{{ include "templates/component-types/inference-engine.sty" "yaml" }}
+{{ include "templates/component-types/vectordb.sty" "yaml" }}
+{{ include "templates/component-types/genai-model.sty" "yaml" }}
+{{ include "templates/component-types/model-proxy.sty" "yaml" }}
+{{ include "templates/component-types/search-engine.sty" "yaml" }}
+{{ include "templates/component-types/mcp-server.sty" "yaml" }}
+{{ include "templates/component-types/workflow-engine.sty" "yaml" }}
+{{ include "templates/component-types/ml-registry.sty" "yaml" }}
+
+# Sync
+{{ include "templates/synchronization.sty" "yaml" }}
+
+# Metric Bindings
+{{ include "templates/metric-bindings/genai-metrics.sty" "yaml" }}
+
+# Monitors
+{{ include "templates/monitors/genai-monitors.sty" "yaml" }}

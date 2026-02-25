@@ -1,0 +1,33 @@
+<svg width="30" height="30" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+
+    <!-- Central Circular Nucleus -->
+    <circle cx="32" cy="32" r="12" fill="#4A90E2"/>
+
+    <!-- Inner Rotating Node Connections -->
+    <g transform="rotate(30 32 32)">
+        <circle cx="32" cy="14" r="3" fill="#E9A227"/>
+        <line x1="32" y1="17" x2="32" y2="24" stroke="#4A90E2" stroke-width="1.5"/>
+
+        <circle cx="50" cy="24" r="3" fill="#E9A227"/>
+        <line x1="47" y1="26" x2="41" y2="29" stroke="#4A90E2" stroke-width="1.5"/>
+
+        <circle cx="50" cy="40" r="3" fill="#E9A227"/>
+        <line x1="47" y1="40" x2="41" y2="36" stroke="#4A90E2" stroke-width="1.5"/>
+
+        <circle cx="32" cy="50" r="3" fill="#E9A227"/>
+        <line x1="32" y1="47" x2="32" y2="40" stroke="#4A90E2" stroke-width="1.5"/>
+
+        <circle cx="14" cy="40" r="3" fill="#E9A227"/>
+        <line x1="17" y1="38" x2="23" y2="35" stroke="#4A90E2" stroke-width="1.5"/>
+
+        <circle cx="14" cy="24" r="3" fill="#E9A227"/>
+        <line x1="17" y1="26" x2="23" y2="29" stroke="#4A90E2" stroke-width="1.5"/>
+    </g>
+
+    <!-- Additional Layer of Detail for Visual Depth -->
+    <circle cx="32" cy="32" r="22" stroke="#4A90E2" stroke-width="0.5" stroke-dasharray="2,4"/>
+
+    <!-- Text "GENAI" at Center -->
+    <text x="32" y="35" fill="white" font-size="7" font-family="Arial" font-weight="bold" text-anchor="middle">GenAi</text>
+</svg>

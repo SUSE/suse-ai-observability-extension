@@ -37,7 +37,9 @@ Resource attributes identify the entity producing the telemetry (the "Applicatio
 | `service.name` | string | The logical name of the service. |
 | `service.namespace` | string | The namespace (e.g., K8s namespace). |
 | `telemetry.sdk.name` | string | Set to `suse-ai` for our instrumentation. |
-| `gen_ai.system` | string | (Legacy/Extended) The type of AI system (Ollama, vLLM). |
+| `suse.ai.managed` | bool | Indicates if the resource is managed by SUSE AI. |
+| `suse.ai.component.name` | string | See examples in ARCH.md. |
+| `suse.ai.component.type` | string | See examples in ARCH.md. |
 
 ## 3. Metrics
 
@@ -51,9 +53,3 @@ Resource attributes identify the entity producing the telemetry (the "Applicatio
 *   `gen_ai.provider.name`
 *   `gen_ai.request.model`
 *   `error.type`
-
-## 4. SUSE AI Extensions
-
-To support dynamic topology inference in StackState, we extend these with:
-*   `stackpack: suse-ai`: Identifies GenAI-relevant resources.
-*   `gen_ai.models`: A comma-separated list of models detected at the resource level (aggregated from spans).

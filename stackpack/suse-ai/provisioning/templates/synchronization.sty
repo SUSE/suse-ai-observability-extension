@@ -1,0 +1,104 @@
+  - _type: DataSource
+    name: "SUSE AI Topology"
+    identifier: "urn:stackpack:suse-ai:shared:data-source:suse-ai"
+    pluginId: Sts
+    config:
+      autoExpireElements: true
+      expireElementsAfter: 900000
+      _type: Sts.StsTopologyDataSourceConfig
+      id: -1010
+      supportedWindowingMethods: []
+      integrationType: opentelemetry
+      supportedDataTypes:
+        - TOPOLOGY_ELEMENTS
+      topic: sts_topo_opentelemetry_collector
+    extTopology:
+      _type: ExtTopology
+      dataSource: -1000
+      id: -1001
+      settings:
+        _type: TopologySyncSettings
+        maxBatchesPerSecond: 5
+        id: -1002
+        maxBatchSize: 200
+    id: -1000
+    uiRequestTimeout: 15000
+
+  - _type: Sync
+    name: "SUSE AI"
+    identifier: "urn:stackpack:suse-ai:shared:sync:suse-ai"
+    relationActions: []
+    extTopology: -1001
+    topologyDataQuery:
+      _type: Sts.StsTopologyElementsQuery
+      relationIdExtractorFunction: -1100
+      componentIdExtractorFunction: -1100
+      id: -1003
+      consumerOffsetStartAtEarliest: false
+    id: -1004
+    componentActions: []
+    defaultComponentAction:
+      _type: SyncActionCreateComponent
+      mappingFunction: -1101
+      templateFunction: -1102
+      id: -1005
+      mergeStrategy: MergePreferMine
+      type: default_component_mapping
+    defaultRelationAction:
+      _type: SyncActionCreateRelation
+      templateFunction: -1103
+      id: -1006
+      mergeStrategy: MergePreferTheirs
+      type: default_relation_mapping
+
+  - _type: IdExtractorFunction
+    id: -1100
+    identifier: urn:stackpack:suse-ai:shared:id-extractor-function:suse-ai-id-extractor
+    name: SUSE AI ID extractor
+    parameters:
+      - _type: Parameter
+        multiple: false
+        name: topologyElement
+        required: true
+        system: true
+        type: STRUCT_TYPE
+    groovyScript: "{{ include "templates/sync/suse-ai-id-extractor.groovy" }}"
+
+  - _type: ComponentMappingFunction
+    id: -1101
+    identifier: urn:stackpack:suse-ai:shared:component-mapping-function:suse-ai-mapper
+    name: SUSE AI component mapping
+    parameters:
+      - _type: Parameter
+        multiple: false
+        name: element
+        required: true
+        system: true
+        type: STRUCT_TYPE
+    script: "{{ include "templates/sync/component-mapping-function.groovy" }}"
+
+  - _type: ComponentTemplateFunction
+    handlebarsTemplate: "{{ include "templates/sync/component-template.json.handlebars" }}"
+    id: -1102
+    identifier: urn:stackpack:suse-ai:shared:component-template-function:suse-ai-component
+    name: SUSE AI Component Template
+    parameters:
+      - _type: Parameter
+        multiple: false
+        name: element
+        required: true
+        system: false
+        type: STRUCT_TYPE
+
+  - _type: RelationTemplateFunction
+    handlebarsTemplate: "{{ include "templates/sync/relation-template.json.handlebars" }}"
+    id: -1103
+    identifier: urn:stackpack:suse-ai:shared:relation-template-function:suse-ai-relation
+    name: SUSE AI Relation Template
+    parameters:
+      - _type: Parameter
+        multiple: false
+        name: element
+        required: true
+        system: false
+        type: STRUCT_TYPE

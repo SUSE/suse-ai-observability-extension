@@ -1,0 +1,71 @@
+nodes:
+  - _type: Domain
+    id: -1
+    identifier: urn:stackpack:suse-ai:shared:domain:genai
+    name: SUSE AI
+    description: Components and services related to GenAI architectures.
+    order: 1.00
+
+  - _type: "MainMenuGroup"
+    id: -200
+    identifier: "urn:stackpack:suse-ai:shared:main-menu-group:suse-ai"
+    name: "SUSE AI"
+    iconbase64: "data:image/png;base64,{{ include "icons/llm.png" "base64" }}"
+    defaultOpen: true
+    items:
+      - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:all-genai"
+      - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:applications"
+      - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:platform-systems"
+      - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:gpu-nodes"
+
+  - _type: "QueryView"
+    id: -201
+    identifier: "urn:stackpack:suse-ai:shared:query-view:all-genai"
+    name: "All GenAI Components"
+    description: "Overview of all GenAI-related components."
+    query: "(label IN ('suse.ai.managed:true') OR type IN ('genai.model'))"
+    queryVersion: "0.0.1"
+    autoGrouping: true
+    connectedComponents: true
+    groupedByDomains: true
+    groupedByLayers: true
+    groupingEnabled: true
+
+  - _type: "QueryView"
+    id: -202
+    identifier: "urn:stackpack:suse-ai:shared:query-view:applications"
+    name: "AI Applications"
+    description: "User workloads and interfaces consuming GenAI services."
+    query: "(label IN ('suse.ai.managed:true') AND type IN ('application', 'agent', 'ui'))"
+    queryVersion: "0.0.1"
+    autoGrouping: true
+    connectedComponents: true
+    groupedByDomains: true
+    groupedByLayers: true
+    groupingEnabled: true
+
+  - _type: "QueryView"
+    id: -203
+    identifier: "urn:stackpack:suse-ai:shared:query-view:platform-systems"
+    name: "Platform Systems"
+    description: "Inference engines, vector databases, and other backing services."
+    query: "(label IN ('suse.ai.managed:true') AND type IN ('inference-engine', 'model-proxy', 'vectordb', 'search-engine', 'mcp-server', 'workflow-engine', 'ml-registry'))"
+    queryVersion: "0.0.1"
+    autoGrouping: true
+    connectedComponents: true
+    groupedByDomains: true
+    groupedByLayers: true
+    groupingEnabled: true
+
+  - _type: "QueryView"
+    id: -204
+    identifier: "urn:stackpack:suse-ai:shared:query-view:gpu-nodes"
+    name: "GPU Nodes"
+    description: "Kubernetes nodes hosting NVIDIA GPUs."
+    query: "(label IN ('nvidia.com/gpu.present:true') AND type IN ('node'))"
+    queryVersion: "0.0.1"
+    autoGrouping: true
+    connectedComponents: true
+    groupedByDomains: true
+    groupedByLayers: true
+    groupingEnabled: true

@@ -1,0 +1,32 @@
+  - _type: "ComponentType"
+    id: -4008
+    identifier: "urn:stackpack:suse-ai:shared:component-type:mcp-server"
+    name: "mcp-server"
+    iconbase64: "data:image/png;base64,{{ include "icons/llm.png" "base64" }}"
+    highlights:
+      _type: "ComponentTypeHighlight"
+      namePlural: "mcp-servers"
+      fields:
+        - _type: "ComponentTypeField"
+          fieldId: "health"
+          label:
+            title: "Health"
+          valueExtractor:
+            _type: "HealthSource"
+          display:
+            _type: "HealthBadgeDisplay"
+      about:
+        _type: "ComponentTypeAbout"
+        fields: ["health"]
+      events:
+        _type: "ComponentTypeEvents"
+        showEvents: true
+      showLogs: false
+      showLastChange: false
+      externalComponent:
+        _type: "ComponentTypeExternalComponent"
+        showConfiguration: false
+        showStatus: false
+        externalIdSelector: "^suse-ai:"
+      relatedResources: []
+      metrics: []
