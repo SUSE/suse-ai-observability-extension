@@ -11,7 +11,7 @@
     \{{/if\}}
   ],
   "name": "\{{ element.sourceExternalId \}} --> \{{ element.targetExternalId \}}",
-  "type": \{{ resolveOrCreate (concat "urn:stackpack:suse-ai:shared:relation-type:" element.type.name) "RelationType" element.type.name \}},
+  "type": \{{ get (concat "urn:stackpack:suse-ai:shared:relation-type:" element.type.name) \}},
   "dependencyDirection": "ONE_WAY",
   "source": \{{ element.sourceId \}},
   "target": \{{ element.targetId \}}

@@ -68,3 +68,34 @@
     groupedByDomains: true
     groupedByLayers: true
     groupingEnabled: true
+
+  # OTel types for compatibility
+  - _type: "ComponentType"
+    identifier: "urn:stackpack:suse-ai:shared:component-type:service"
+    name: "service"
+  - _type: "ComponentType"
+    identifier: "urn:stackpack:suse-ai:shared:component-type:service-instance"
+    name: "service-instance"
+  - _type: "ComponentType"
+    identifier: "urn:stackpack:suse-ai:shared:component-type:pod"
+    name: "pod"
+  - _type: "ComponentType"
+    identifier: "urn:stackpack:suse-ai:shared:component-type:namespace"
+    name: "namespace"
+  - _type: "ComponentType"
+    identifier: "urn:stackpack:suse-ai:shared:component-type:node"
+    name: "node"
+
+  - _type: "RelationType"
+    identifier: "urn:stackpack:suse-ai:shared:relation-type:provided-by"
+    name: "provided-by"
+  - _type: "RelationType"
+    identifier: "urn:stackpack:suse-ai:shared:relation-type:is-hosted-on"
+    name: "is-hosted-on"
+  - _type: "RelationType"
+    identifier: "urn:stackpack:suse-ai:shared:relation-type:belongs-to"
+    name: "belongs-to"
+  - _type: "RelationType"
+    identifier: "urn:stackpack:suse-ai:shared:relation-type:kubernetes-to-otel"
+    name: "kubernetes-to-otel"
+

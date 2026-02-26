@@ -18,6 +18,9 @@
 *   **Fact**: Modern StackState schemas for `ComponentType` require the `externalComponent` field.
 *   **Fact**: `QueryView` nodes require a `queryVersion` (e.g., `"0.0.1"`) to be properly indexed in some versions.
 
-## 5. Deployment Commands
-*   **Fact**: `sts stackpack upgrade` fails if the StackPack is in an `ERROR` state. You must `uninstall` and then `install`.
-*   **Fact**: `task stackpack-upload` executes both the zip creation and the `sts stackpack upload` / `upgrade` commands.
+## 6. Template & Scripting Facts
+*   **Fact**: The `include` helper in STY files produces multiline base64 output which breaks YAML if used inside double quotes. Single-line base64 should be used or embedded directly.
+*   **Fact**: `IdExtractorFunction` returning `null` effectively filters out components from a synchronization.
+*   **Fact**: `ResolveOrCreate` helper requires specific capitalization for the second argument (e.g., `"ComponentType"`, `"RelationType"`, `"Layer"`, `"Domain"`, `"Environment"`).
+*   **Fact**: Merging multiple STY files into a single `importSnapshot` master file prevents `NamespaceSnapshotException` caused by cross-file references.
+

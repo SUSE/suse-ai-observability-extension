@@ -11,7 +11,7 @@
     \{{/if\}}
     ],
   "name": "\{{#if element.data.name\}}\{{ element.data.name \}}\{{else\}}\{{ element.externalId \}}\{{/if\}}",
-  "type" : \{{ resolveOrCreate (concat "urn:stackpack:suse-ai:shared:component-type:" element.type.name) "ComponentType" element.type.name \}},
+  "type" : \{{ get (concat "urn:stackpack:suse-ai:shared:component-type:" element.type.name) \}},
   "layer" : \{{ get "urn:stackpack:common:layer:services" \}},
   "domain": \{{ get "urn:stackpack:suse-ai:shared:domain:genai" \}},
   "environments": [

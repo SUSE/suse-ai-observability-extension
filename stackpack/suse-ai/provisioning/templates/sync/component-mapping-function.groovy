@@ -25,6 +25,12 @@ if (isManaged) {
     if (tags['suse.ai.component.type']) {
         element.type.name = tags['suse.ai.component.type'].toString()
     }
+    
+    // Ensure the type is one of our known types or default to application
+    def knownTypes = ['application', 'agent', 'ui', 'inference-engine', 'vectordb', 'genai.model', 'model-proxy', 'search-engine', 'mcp-server', 'workflow-engine', 'ml-registry', 'service', 'service-instance', 'pod', 'namespace', 'node']
+    if (!knownTypes.contains(element.type.name)) {
+        element.type.name = 'application'
+    }
 } else if (tags.containsKey('gen_ai.system')) {
     // Inference Rule
     element.type.name = 'inference-engine'
