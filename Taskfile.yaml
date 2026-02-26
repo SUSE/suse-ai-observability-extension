@@ -39,6 +39,15 @@ tasks:
         sts stackpack upload --file /tmp/suse-ai.sts
         sts stackpack upgrade --name suse-ai --unlocked-strategy overwrite
 
+  stackpack-uninstall:
+    desc: Uninstall all installed instances of SUSE AI Observability stackpack
+    cmds:
+      - |
+        sts stackpack list-instances --name suse-ai -o json | jq -r '.instances[] | select(.status == "INSTALLED" or .status == "ERROR") | .id' | while read ID; do
+          echo "Uninstalling instance $ID"
+          sts stackpack uninstall --id "$ID" --name suse-ai
+        done
+
   sts-script:
     desc: Runs a Groovy script from a file (use FILE=path/to/script.groovy)
     cmds:
