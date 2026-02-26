@@ -1,31 +1,42 @@
-element = topologyElement.asReadonlyMap()
-externalId = element["externalId"]
-typeName = element["typeName"]
-data = element["data"]
+// IdExtractorFunction for SUSE AI components
+// It ensures that SUSE AI components are separated from OTel components by adding a prefix
+// But only for those that are specifically marked or inferred as AI components
 
-identifiers = new HashSet()
-if (data.containsKey("identifiers") && data["identifiers"] instanceof List) {
-    data["identifiers"].each { identifiers.add(it.toString()) }
+if (topologyElement == null) {
+    return null
 }
 
-// Check if it is a relation
-boolean isRelation = data.containsKey("sourceExternalId") && data.containsKey("targetExternalId")
+def data = topologyElement.data ?: [:]
+def externalId = topologyElement.externalId
 
-// Check for SUSE AI management or inference rule
+if (externalId == null) {
+    return null
+}
+
+def extIdStr = externalId.toString()
+
+// Check for SUSE AI management
 boolean isManaged = false
-if (data.containsKey("tags") && data["tags"] instanceof Map) {
-    def tags = data["tags"]
-    if (tags["suse.ai.managed"] == "true" || tags["suse.ai.managed"] == true || tags.containsKey("gen_ai.system")) {
+def rawTags = data.tags
+
+if (rawTags instanceof Map) {
+    if (rawTags.containsKey("suse.ai.managed") || rawTags["telemetry.sdk.name"] == "suse-ai" || rawTags.keySet().any { it.toString().contains("suse.ai") }) {
+        isManaged = true
+    }
+} else if (rawTags instanceof List) {
+    if (rawTags.any { it.toString().contains("suse.ai") || it.toString().contains("telemetry.sdk.name:suse-ai") }) {
         isManaged = true
     }
 }
 
-if (isManaged || isRelation) {
-    // Add original externalId to identifiers to ensure we can link back for metrics/traces
-    identifiers.add(externalId.toString())
-    // Create a new prefixed externalId to avoid ownership conflict with OTel sync
-    externalId = "suse-ai:" + externalId
-    return Sts.createId(externalId.toString(), identifiers, typeName.toString())
+// Special case for Open WebUI
+if (extIdStr.contains("Open WebUI")) {
+    isManaged = true
+}
+
+if (isManaged) {
+    def newExternalId = "suse-ai:" + extIdStr
+    return Sts.createId(newExternalId, new HashSet(), topologyElement.type?.name?.toString() ?: "unknown")
 }
 
 return null

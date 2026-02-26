@@ -1,0 +1,14 @@
+{
+  "_type": "Relation",
+  "labels": [
+    {
+        "_type": "Label",
+        "name": "suse.ai.managed:true"
+    }
+  ],
+  "name": "\{{ element.externalId \}} runs on \{{ element.identifiers.[0] \}}",
+  "type": \{{ resolveOrCreate "urn:stackpack:suse-ai:shared:relation-type:runs" "RelationType" "runs" \}},
+  "dependencyDirection": "ONE_WAY",
+  "source": \{{ element.id \}},
+  "target": \{{ resolve (element.identifiers.[0]) \}}
+}

@@ -23,4 +23,7 @@
 *   **Fact**: `IdExtractorFunction` returning `null` effectively filters out components from a synchronization.
 *   **Fact**: `ResolveOrCreate` helper requires specific capitalization for the second argument (e.g., `"ComponentType"`, `"RelationType"`, `"Layer"`, `"Domain"`, `"Environment"`).
 *   **Fact**: Merging multiple STY files into a single `importSnapshot` master file prevents `NamespaceSnapshotException` caused by cross-file references.
+*   **Fact**: The `suse-ai` synchronization uses a separate component strategy with a `suse-ai:` prefix to ensure clean ownership and avoid collisions with the standard OTel sync.
+*   **Fact**: Linking SUSE AI components to original OTel components is achieved by adding the original URN to the `identifiers` list in the ID extractor and using a custom `SyncActionCreateRelation` in the component synchronization settings.
+
 

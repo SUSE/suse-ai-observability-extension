@@ -1,40 +1,64 @@
-if (!element.data.containsKey("tags")) {
-    element.data.put("tags", [:])
-}
+def data = element.data ?: [:]
+def rawTags = data.tags ?: [:]
+def tags = [:]
 
-if (!element.data.containsKey("properties")) {
-    element.data.put("properties", [:])
+// Convert list of tags to map for easier processing
+if (rawTags instanceof List) {
+    rawTags.each { 
+        if (it instanceof String) {
+            def parts = it.split(':', 2)
+            if (parts.length == 2) {
+                tags[parts[0]] = parts[1]
+            } else {
+                tags[it] = true
+            }
+        }
+    }
+} else if (rawTags instanceof Map) {
+    tags = rawTags
 }
-
-def tags = element.data.tags
 
 // Identity Promotion
 if (tags.containsKey('suse.ai.component.name')) {
-    element.data.put('name', tags['suse.ai.component.name'].toString())
+    data.put('name', tags['suse.ai.component.name'].toString())
 } else if (tags.containsKey('service.name')) {
-    element.data.put('name', tags['service.name'].toString())
+    data.put('name', tags['service.name'].toString())
 }
 
-// Identify SUSE AI Components
-boolean isManaged = tags['suse.ai.managed'] == 'true' || tags['suse.ai.managed'] == true
+// Ensure the managed tag is present if we are here
+tags['suse.ai.managed'] = 'true'
 
-if (isManaged) {
-    tags.put('suse.ai.managed', 'true')
-    
-    // Use custom component type if provided
-    if (tags['suse.ai.component.type']) {
-        element.type.name = tags['suse.ai.component.type'].toString()
-    }
-    
-    // Ensure the type is one of our known types or default to application
-    def knownTypes = ['application', 'agent', 'ui', 'inference-engine', 'vectordb', 'genai.model', 'model-proxy', 'search-engine', 'mcp-server', 'workflow-engine', 'ml-registry', 'service', 'service-instance', 'pod', 'namespace', 'node']
-    if (!knownTypes.contains(element.type.name)) {
-        element.type.name = 'application'
-    }
-} else if (tags.containsKey('gen_ai.system')) {
-    // Inference Rule
-    element.type.name = 'inference-engine'
-    tags.put('suse.ai.managed', 'true')
+// Determine component type
+def currentType = element.type?.name ?: "application"
+
+if (tags['suse.ai.component.type']) {
+    currentType = tags['suse.ai.component.type'].toString()
 }
+
+// Map common aliases
+switch(currentType) {
+    case 'ui':
+    case 'frontend':
+        currentType = 'ui'
+        break
+    case 'app':
+    case 'service':
+        currentType = 'application'
+        break
+    case 'llm':
+    case 'model':
+        currentType = 'genai.model'
+        break
+}
+
+// Default to application if type is unknown
+def knownTypes = ['application', 'agent', 'ui', 'inference-engine', 'vectordb', 'genai.model', 'model-proxy', 'search-engine', 'mcp-server', 'workflow-engine', 'ml-registry']
+if (!knownTypes.contains(currentType)) {
+    currentType = 'application'
+}
+
+element.type.name = currentType
+data.tags = tags
+element.data = data
 
 element
