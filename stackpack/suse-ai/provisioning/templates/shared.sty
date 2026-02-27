@@ -13,8 +13,17 @@
     defaultOpen: true
     items:
       - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:all-genai"
-      - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:applications"
-      - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:platform-systems"
+      - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:application"
+      - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:agent"
+      - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:ui"
+      - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:inference-engine"
+      - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:vectordb"
+      - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:genai.model"
+      - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:model-proxy"
+      - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:search-engine"
+      - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:mcp-server"
+      - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:workflow-engine"
+      - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:ml-registry"
       - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:gpu-nodes"
 
   - _type: "QueryView"
@@ -31,11 +40,11 @@
     groupingEnabled: true
 
   - _type: "QueryView"
-    id: -202
-    identifier: "urn:stackpack:suse-ai:shared:query-view:applications"
+    id: -210
+    identifier: "urn:stackpack:suse-ai:shared:query-view:application"
     name: "AI Applications"
-    description: "User workloads and interfaces consuming GenAI services."
-    query: "(label IN ('suse.ai.managed:true') AND type IN ('application', 'agent', 'ui'))"
+    description: "User workloads consuming GenAI services."
+    query: "(label IN ('suse.ai.managed:true') AND type = 'application')"
     queryVersion: "0.0.1"
     autoGrouping: true
     connectedComponents: true
@@ -44,11 +53,128 @@
     groupingEnabled: true
 
   - _type: "QueryView"
-    id: -203
-    identifier: "urn:stackpack:suse-ai:shared:query-view:platform-systems"
-    name: "Platform Systems"
-    description: "Inference engines, vector databases, and other backing services."
-    query: "(label IN ('suse.ai.managed:true') AND type IN ('inference-engine', 'model-proxy', 'vectordb', 'search-engine', 'mcp-server', 'workflow-engine', 'ml-registry'))"
+    id: -211
+    identifier: "urn:stackpack:suse-ai:shared:query-view:agent"
+    name: "AI Agents"
+    description: "Autonomous agents performing tasks using LLMs."
+    query: "(label IN ('suse.ai.managed:true') AND type = 'agent')"
+    queryVersion: "0.0.1"
+    autoGrouping: true
+    connectedComponents: true
+    groupedByDomains: true
+    groupedByLayers: true
+    groupingEnabled: true
+
+  - _type: "QueryView"
+    id: -212
+    identifier: "urn:stackpack:suse-ai:shared:query-view:ui"
+    name: "AI Frontends"
+    description: "User interfaces for interacting with GenAI systems."
+    query: "(label IN ('suse.ai.managed:true') AND type IN ('ui') OR type STARTSWITH 'ui.')"
+    queryVersion: "0.0.1"
+    autoGrouping: true
+    connectedComponents: true
+    groupedByDomains: true
+    groupedByLayers: true
+    groupingEnabled: true
+
+  - _type: "QueryView"
+    id: -213
+    identifier: "urn:stackpack:suse-ai:shared:query-view:inference-engine"
+    name: "Inference Engines"
+    description: "Backends serving LLMs (vLLM, Ollama, etc.)."
+    query: "(label IN ('suse.ai.managed:true') AND type IN ('inference-engine') OR type STARTSWITH 'inference-engine.')"
+    queryVersion: "0.0.1"
+    autoGrouping: true
+    connectedComponents: true
+    groupedByDomains: true
+    groupedByLayers: true
+    groupingEnabled: true
+
+  - _type: "QueryView"
+    id: -214
+    identifier: "urn:stackpack:suse-ai:shared:query-view:vectordb"
+    name: "Vector Databases"
+    description: "Databases for storing and retrieving high-dimensional vectors."
+    query: "(label IN ('suse.ai.managed:true') AND type IN ('vectordb') OR type STARTSWITH 'vectordb.')"
+    queryVersion: "0.0.1"
+    autoGrouping: true
+    connectedComponents: true
+    groupedByDomains: true
+    groupedByLayers: true
+    groupingEnabled: true
+
+  - _type: "QueryView"
+    id: -215
+    identifier: "urn:stackpack:suse-ai:shared:query-view:genai.model"
+    name: "AI Models"
+    description: "Large Language Models and other AI models."
+    query: "type = 'genai.model'"
+    queryVersion: "0.0.1"
+    autoGrouping: true
+    connectedComponents: true
+    groupedByDomains: true
+    groupedByLayers: true
+    groupingEnabled: true
+
+  - _type: "QueryView"
+    id: -216
+    identifier: "urn:stackpack:suse-ai:shared:query-view:model-proxy"
+    name: "Model Proxies"
+    description: "Proxies and gateways for AI models."
+    query: "(label IN ('suse.ai.managed:true') AND type IN ('model-proxy') OR type STARTSWITH 'model-proxy.')"
+    queryVersion: "0.0.1"
+    autoGrouping: true
+    connectedComponents: true
+    groupedByDomains: true
+    groupedByLayers: true
+    groupingEnabled: true
+
+  - _type: "QueryView"
+    id: -217
+    identifier: "urn:stackpack:suse-ai:shared:query-view:search-engine"
+    name: "Search Engines"
+    description: "Traditional and AI-powered search engines."
+    query: "(label IN ('suse.ai.managed:true') AND type IN ('search-engine') OR type STARTSWITH 'search-engine.')"
+    queryVersion: "0.0.1"
+    autoGrouping: true
+    connectedComponents: true
+    groupedByDomains: true
+    groupedByLayers: true
+    groupingEnabled: true
+
+  - _type: "QueryView"
+    id: -218
+    identifier: "urn:stackpack:suse-ai:shared:query-view:mcp-server"
+    name: "MCP Servers"
+    description: "Model Context Protocol servers."
+    query: "(label IN ('suse.ai.managed:true') AND type = 'mcp-server')"
+    queryVersion: "0.0.1"
+    autoGrouping: true
+    connectedComponents: true
+    groupedByDomains: true
+    groupedByLayers: true
+    groupingEnabled: true
+
+  - _type: "QueryView"
+    id: -219
+    identifier: "urn:stackpack:suse-ai:shared:query-view:workflow-engine"
+    name: "Workflow Engines"
+    description: "Engines for orchestrating AI workflows."
+    query: "(label IN ('suse.ai.managed:true') AND type = 'workflow-engine')"
+    queryVersion: "0.0.1"
+    autoGrouping: true
+    connectedComponents: true
+    groupedByDomains: true
+    groupedByLayers: true
+    groupingEnabled: true
+
+  - _type: "QueryView"
+    id: -220
+    identifier: "urn:stackpack:suse-ai:shared:query-view:ml-registry"
+    name: "ML Registries"
+    description: "Registries for managing ML models."
+    query: "(label IN ('suse.ai.managed:true') AND type IN ('ml-registry') OR type STARTSWITH 'ml-registry.')"
     queryVersion: "0.0.1"
     autoGrouping: true
     connectedComponents: true

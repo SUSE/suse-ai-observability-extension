@@ -12,12 +12,14 @@ nodes:
 {{ include "templates/component-types/mcp-server.sty" "yaml" }}
 {{ include "templates/component-types/workflow-engine.sty" "yaml" }}
 {{ include "templates/component-types/ml-registry.sty" "yaml" }}
+{{ include "templates/component-types/products.sty" "yaml" }}
 
 # Sync
 {{ include "templates/synchronization.sty" "yaml" }}
 
 # Metric Bindings
 {{ include "templates/metric-bindings/genai-metrics.sty" "yaml" }}
+{{ include "templates/metric-bindings/product-metrics.sty" "yaml" }}
 
 # Monitors
 {{ include "templates/monitors/genai-monitors.sty" "yaml" }}

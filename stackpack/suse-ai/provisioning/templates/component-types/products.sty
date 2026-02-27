@@ -1,0 +1,457 @@
+  - _type: "ComponentType"
+    id: -5001
+    identifier: "urn:stackpack:suse-ai:shared:component-type:inference-engine.vllm"
+    name: "inference-engine.vllm"
+    iconbase64: data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iQXJ0d29yayIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2aWV3Qm94PSIwIDAgNDAgNDAiPgogIDxkZWZzPgogICAgPHN0eWxlPgogICAgICAuY2xzLTEgewogICAgICAgIGZpbGw6ICMwYzMyMmM7CiAgICAgIH0KCiAgICAgIC5jbHMtMSwgLmNscy0yIHsKICAgICAgICBzdHJva2Utd2lkdGg6IDBweDsKICAgICAgfQoKICAgICAgLmNscy0yIHsKICAgICAgICBmaWxsOiAjZmU3YzNmOwogICAgICB9CiAgICA8L3N0eWxlPgogIDwvZGVmcz4KICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0yMC4zMiwzM2gtLjY0Yy0xLjYxLDAtMy4xNS0uNy00LjIxLTEuOTJsLTMuMS0zLjU2Yy0uODktMS4wMi0xLjM4LTIuMzMtMS4zOC0zLjY5di00LjgzYzAtNC45Niw0LjA0LTksOS05czksNC4wNCw5LDl2NC44M2MwLDEuMzYtLjQ5LDIuNjctMS4zOCwzLjY5bC0zLjEsMy41N2MtMS4wNiwxLjIxLTIuNTgsMS45MS00LjE5LDEuOTFaTTIwLDEyYy0zLjg2LDAtNywzLjE0LTcsN3Y0LjgzYzAsLjg3LjMyLDEuNzIuODksMi4zOGwzLjEsMy41NmMuNjguNzgsMS42NiwxLjIzLDIuNywxLjIzaC42NGMxLjAzLDAsMi4wMS0uNDUsMi42OC0xLjIybDMuMS0zLjU3Yy41Ny0uNjYuODktMS41Ljg5LTIuMzh2LTQuODNjMC0zLjg2LTMuMTQtNy03LTdaIi8+CiAgPHJlY3QgY2xhc3M9ImNscy0xIiB4PSIxNCIgeT0iMjkiIHdpZHRoPSIyIiBoZWlnaHQ9IjgiLz4KICA8cmVjdCBjbGFzcz0iY2xzLTEiIHg9IjI0IiB5PSIyOSIgd2lkdGg9IjIiIGhlaWdodD0iOCIvPgogIDxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTUiIHk9IjE4IiB3aWR0aD0iMiIgaGVpZ2h0PSI3Ii8+CiAgPHJlY3QgY2xhc3M9ImNscy0yIiB4PSIxOSIgeT0iMTUiIHdpZHRoPSIyIiBoZWlnaHQ9IjEwIi8+CiAgPHJlY3QgY2xhc3M9ImNscy0yIiB4PSIyMyIgeT0iMTgiIHdpZHRoPSIyIiBoZWlnaHQ9IjciLz4KICA8cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0yOS4xOSwzMy40NGwtMS40MS0xLjQxLDMuNTQtMy41NC0xLjUyLTEuNTIuNDItLjY3Yy42Ny0xLjA5LDEuMTctMi4yOCwxLjQ2LTMuNTJsLjE4LS43N2gyLjE1di00aC0yLjE1bC0uMTgtLjc3Yy0uMjktMS4yNC0uNzktMi40My0xLjQ2LTMuNTJsLS40Mi0uNjcsMS41Mi0xLjUyLTIuODMtMi44My0xLjUyLDEuNTItLjY3LS40MmMtMS4wOS0uNjgtMi4yOC0xLjE3LTMuNTItMS40NmwtLjc3LS4xOHYtMi4xNWgtNHYyLjE1bC0uNzcuMThjLTEuMjQuMjktMi40My43OS0zLjUyLDEuNDZsLS42Ny40Mi0xLjUyLTEuNTItMi44MywyLjgzLDEuNTIsMS41Mi0uNDIuNjdjLS42NywxLjA5LTEuMTcsMi4yOC0xLjQ2LDMuNTJsLS4xOC43N2gtMi4xNXY0aDIuMTVsLjE4Ljc3Yy4yOSwxLjI0Ljc4LDIuNDMsMS40NiwzLjUybC40Mi42Ny0xLjUyLDEuNTIsMy41NCwzLjU0LTEuNDEsMS40MS00Ljk1LTQuOTUsMS44NC0xLjg0Yy0uNDYtLjg1LS44My0xLjczLTEuMS0yLjY1aC0yLjU5di04aDIuNTljLjI3LS45Mi42NC0xLjgsMS4xLTIuNjVsLTEuODQtMS44NCw1LjY2LTUuNjYsMS44NCwxLjg0Yy44NC0uNDYsMS43My0uODMsMi42NS0xLjF2LTIuNTloOHYyLjU5Yy45Mi4yNywxLjguNjQsMi42NSwxLjFsMS44NC0xLjg0LDUuNjYsNS42Ni0xLjg0LDEuODRjLjQ2Ljg1LjgzLDEuNzMsMS4xLDIuNjVoMi41OXY4aC0yLjU5Yy0uMjcuOTItLjY0LDEuOC0xLjEsMi42NWwxLjg0LDEuODQtNC45NSw0Ljk1WiIvPgo8L3N2Zz4=
+    highlights:
+      _type: "ComponentTypeHighlight"
+      namePlural: "inference-engines"
+      fields:
+        - _type: "ComponentTypeField"
+          fieldId: "health"
+          label:
+            title: "Health"
+          valueExtractor:
+            _type: "HealthSource"
+          display:
+            _type: "HealthBadgeDisplay"
+        - _type: "ComponentTypeField"
+          fieldId: "type"
+          label:
+            title: "Type"
+          valueExtractor:
+            _type: "ComponentTypeSource"
+          display:
+            _type: "TagDisplay"
+        - _type: "ComponentTypeField"
+          fieldId: "labels"
+          label:
+            title: "Labels"
+          valueExtractor:
+            _type: "TagsSource"
+          display:
+            _type: "TagDisplay"
+            singular: "label"
+      about:
+        _type: "ComponentTypeAbout"
+        fields: ["health", "type", "labels"]
+      events:
+        _type: "ComponentTypeEvents"
+        showEvents: true
+      showLogs: false
+      showLastChange: false
+      externalComponent:
+        _type: "ComponentTypeExternalComponent"
+        showConfiguration: false
+        showStatus: false
+        externalIdSelector: "^suse-ai:"
+      relatedResources: []
+      metrics:
+        - _type: "ComponentTypeMetricCategory"
+          name: "Metrics"
+          description: "Metrics"
+          bindings:
+            - "urn:stackpack:suse-ai:shared:metric-binding:vllm:e2e-latency-p99"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vllm:e2e-latency-p95"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vllm:e2e-latency-p90"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vllm:e2e-latency-p50"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vllm:e2e-latency-avg"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vllm:token-throughput-prompt"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vllm:token-throughput-generation"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vllm:gpu-cache-usage"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vllm:ttft-latency-p99"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vllm:ttft-latency-p95"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vllm:ttft-latency-p90"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vllm:ttft-latency-p50"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vllm:ttft-latency-avg"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vllm:req-running"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vllm:req-waiting"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vllm:tpot-latency-p99"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vllm:tpot-latency-p95"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vllm:tpot-latency-p90"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vllm:tpot-latency-p50"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vllm:tpot-latency-avg"
+          defaultExpanded: true
+
+  - _type: "ComponentType"
+    id: -5002
+    identifier: "urn:stackpack:suse-ai:shared:component-type:inference-engine.ollama"
+    name: "inference-engine.ollama"
+    iconbase64: data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iQXJ0d29yayIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2aWV3Qm94PSIwIDAgNDAgNDAiPgogIDxkZWZzPgogICAgPHN0eWxlPgogICAgICAuY2xzLTEgewogICAgICAgIGZpbGw6ICMwYzMyMmM7CiAgICAgIH0KCiAgICAgIC5jbHMtMSwgLmNscy0yIHsKICAgICAgICBzdHJva2Utd2lkdGg6IDBweDsKICAgICAgfQoKICAgICAgLmNscy0yIHsKICAgICAgICBmaWxsOiAjZmU3YzNmOwogICAgICB9CiAgICA8L3N0eWxlPgogIDwvZGVmcz4KICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0yMC4zMiwzM2gtLjY0Yy0xLjYxLDAtMy4xNS0uNy00LjIxLTEuOTJsLTMuMS0zLjU2Yy0uODktMS4wMi0xLjM4LTIuMzMtMS4zOC0zLjY5di00LjgzYzAtNC45Niw0LjA0LTksOS05czksNC4wNCw5LDl2NC44M2MwLDEuMzYtLjQ5LDIuNjctMS4zOCwzLjY5bC0zLjEsMy41N2MtMS4wNiwxLjIxLTIuNTgsMS45MS00LjE5LDEuOTFaTTIwLDEyYy0zLjg2LDAtNywzLjE0LTcsN3Y0LjgzYzAsLjg3LjMyLDEuNzIuODksMi4zOGwzLjEsMy41NmMuNjguNzgsMS42NiwxLjIzLDIuNywxLjIzaC42NGMxLjAzLDAsMi4wMS0uNDUsMi42OC0xLjIybDMuMS0zLjU3Yy41Ny0uNjYuODktMS41Ljg5LTIuMzh2LTQuODNjMC0zLjg2LTMuMTQtNy03LTdaIi8+CiAgPHJlY3QgY2xhc3M9ImNscy0xIiB4PSIxNCIgeT0iMjkiIHdpZHRoPSIyIiBoZWlnaHQ9IjgiLz4KICA8cmVjdCBjbGFzcz0iY2xzLTEiIHg9IjI0IiB5PSIyOSIgd2lkdGg9IjIiIGhlaWdodD0iOCIvPgogIDxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTUiIHk9IjE4IiB3aWR0aD0iMiIgaGVpZ2h0PSI3Ii8+CiAgPHJlY3QgY2xhc3M9ImNscy0yIiB4PSIxOSIgeT0iMTUiIHdpZHRoPSIyIiBoZWlnaHQ9IjEwIi8+CiAgPHJlY3QgY2xhc3M9ImNscy0yIiB4PSIyMyIgeT0iMTgiIHdpZHRoPSIyIiBoZWlnaHQ9IjciLz4KICA8cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0yOS4xOSwzMy40NGwtMS40MS0xLjQxLDMuNTQtMy41NC0xLjUyLTEuNTIuNDItLjY3Yy42Ny0xLjA5LDEuMTctMi4yOCwxLjQ2LTMuNTJsLjE4LS43N2gyLjE1di00aC0yLjE1bC0uMTgtLjc3Yy0uMjktMS4yNC0uNzktMi40My0xLjQ2LTMuNTJsLS40Mi0uNjcsMS41Mi0xLjUyLTIuODMtMi44My0xLjUyLDEuNTItLjY3LS40MmMtMS4wOS0uNjgtMi4yOC0xLjE3LTMuNTItMS40NmwtLjc3LS4xOHYtMi4xNWgtNHYyLjE1bC0uNzcuMThjLTEuMjQuMjktMi40My43OS0zLjUyLDEuNDZsLS42Ny40Mi0xLjUyLTEuNTItMi44MywyLjgzLDEuNTIsMS41Mi0uNDIuNjdjLS42NywxLjA5LTEuMTcsMi4yOC0xLjQ2LDMuNTJsLS4xOC43N2gtMi4xNXY0aDIuMTVsLjE4Ljc3Yy4yOSwxLjI0Ljc4LDIuNDMsMS40NiwzLjUybC40Mi42Ny0xLjUyLDEuNTIsMy41NCwzLjU0LTEuNDEsMS40MS00Ljk1LTQuOTUsMS44NC0xLjg0Yy0uNDYtLjg1LS44My0xLjczLTEuMS0yLjY1aC0yLjU5di04aDIuNTljLjI3LS45Mi42NC0xLjgsMS4xLTIuNjVsLTEuODQtMS44NCw1LjY2LTUuNjYsMS44NCwxLjg0Yy44NC0uNDYsMS43My0uODMsMi42NS0xLjF2LTIuNTloOHYyLjU5Yy45Mi4yNywxLjguNjQsMi42NSwxLjFsMS44NC0xLjg0LDUuNjYsNS42Ni0xLjg0LDEuODRjLjQ2Ljg1LjgzLDEuNzMsMS4xLDIuNjVoMi41OXY4aC0yLjU5Yy0uMjcuOTItLjY0LDEuOC0xLjEsMi42NWwxLjg0LDEuODQtNC45NSw0Ljk1WiIvPgo8L3N2Zz4=
+    highlights:
+      _type: "ComponentTypeHighlight"
+      namePlural: "inference-engines"
+      fields:
+        - _type: "ComponentTypeField"
+          fieldId: "health"
+          label:
+            title: "Health"
+          valueExtractor:
+            _type: "HealthSource"
+          display:
+            _type: "HealthBadgeDisplay"
+        - _type: "ComponentTypeField"
+          fieldId: "type"
+          label:
+            title: "Type"
+          valueExtractor:
+            _type: "ComponentTypeSource"
+          display:
+            _type: "TagDisplay"
+        - _type: "ComponentTypeField"
+          fieldId: "labels"
+          label:
+            title: "Labels"
+          valueExtractor:
+            _type: "TagsSource"
+          display:
+            _type: "TagDisplay"
+            singular: "label"
+      about:
+        _type: "ComponentTypeAbout"
+        fields: ["health", "type", "labels"]
+      events:
+        _type: "ComponentTypeEvents"
+        showEvents: true
+      showLogs: false
+      showLastChange: false
+      externalComponent:
+        _type: "ComponentTypeExternalComponent"
+        showConfiguration: false
+        showStatus: false
+        externalIdSelector: "^suse-ai:"
+      relatedResources: []
+      metrics:
+        - _type: "ComponentTypeMetricCategory"
+          name: "Metrics"
+          description: "Metrics"
+          bindings:
+            - "urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-request-rate"
+            - "urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-top-models"
+            - "urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-avg-tokens-per-total-requests"
+            - "urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-avg-usage-cost"
+            - "urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-avg-total-usage-cost"
+            - "urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-total-usage-tokens"
+            - "urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-total-usage-tokens-line"
+            - "urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-request-total-success"
+            - "urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-avg-usage-cost-per-model"
+          defaultExpanded: true
+
+  - _type: "ComponentType"
+    id: -5003
+    identifier: "urn:stackpack:suse-ai:shared:component-type:vectordb.qdrant"
+    name: "vectordb.qdrant"
+    iconbase64: data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iQXJ0d29yayIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2aWV3Qm94PSIwIDAgNDAgNDAiPgogIDxkZWZzPgogICAgPHN0eWxlPgogICAgICAuY2xzLTEgewogICAgICAgIGZpbGw6ICMwYzMyMmM7CiAgICAgIH0KCiAgICAgIC5jbHMtMSwgLmNscy0yIHsKICAgICAgICBzdHJva2Utd2lkdGg6IDBweDsKICAgICAgfQoKICAgICAgLmNscy0yIHsKICAgICAgICBmaWxsOiAjZmU3YzNmOwogICAgICB9CiAgICA8L3N0eWxlPgogIDwvZGVmcz4KICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0yMC4zMiwzM2gtLjY0Yy0xLjYxLDAtMy4xNS0uNy00LjIxLTEuOTJsLTMuMS0zLjU2Yy0uODktMS4wMi0xLjM4LTIuMzMtMS4zOC0zLjY5di00LjgzYzAtNC45Niw0LjA0LTksOS05czksNC4wNCw5LDl2NC44M2MwLDEuMzYtLjQ5LDIuNjctMS4zOCwzLjY5bC0zLjEsMy41N2MtMS4wNiwxLjIxLTIuNTgsMS45MS00LjE5LDEuOTFaTTIwLDEyYy0zLjg2LDAtNywzLjE0LTcsN3Y0LjgzYzAsLjg3LjMyLDEuNzIuODksMi4zOGwzLjEsMy41NmMuNjguNzgsMS42NiwxLjIzLDIuNywxLjIzaC42NGMxLjAzLDAsMi4wMS0uNDUsMi42OC0xLjIybDMuMS0zLjU3Yy41Ny0uNjYuODktMS41Ljg5LTIuMzh2LTQuODNjMC0zLjg2LTMuMTQtNy03LTdaIi8+CiAgPHJlY3QgY2xhc3M9ImNscy0xIiB4PSIxNCIgeT0iMjkiIHdpZHRoPSIyIiBoZWlnaHQ9IjgiLz4KICA8cmVjdCBjbGFzcz0iY2xzLTEiIHg9IjI0IiB5PSIyOSIgd2lkdGg9IjIiIGhlaWdodD0iOCIvPgogIDxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTUiIHk9IjE4IiB3aWR0aD0iMiIgaGVpZ2h0PSI3Ii8+CiAgPHJlY3QgY2xhc3M9ImNscy0yIiB4PSIxOSIgeT0iMTUiIHdpZHRoPSIyIiBoZWlnaHQ9IjEwIi8+CiAgPHJlY3QgY2xhc3M9ImNscy0yIiB4PSIyMyIgeT0iMTgiIHdpZHRoPSIyIiBoZWlnaHQ9IjciLz4KICA8cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0yOS4xOSwzMy40NGwtMS40MS0xLjQxLDMuNTQtMy41NC0xLjUyLTEuNTIuNDItLjY3Yy42Ny0xLjA5LDEuMTctMi4yOCwxLjQ2LTMuNTJsLjE4LS43N2gyLjE1di00aC0yLjE1bC0uMTgtLjc3Yy0uMjktMS4yNC0uNzktMi40My0xLjQ2LTMuNTJsLS40Mi0uNjcsMS41Mi0xLjUyLTIuODMtMi44My0xLjUyLDEuNTItLjY3LS40MmMtMS4wOS0uNjgtMi4yOC0xLjE3LTMuNTItMS40NmwtLjc3LS4xOHYtMi4xNWgtNHYyLjE1bC0uNzcuMThjLTEuMjQuMjktMi40My43OS0zLjUyLDEuNDZsLS42Ny40Mi0xLjUyLTEuNTItMi44MywyLjgzLDEuNTIsMS41Mi0uNDIuNjdjLS42NywxLjA5LTEuMTcsMi4yOC0xLjQ2LDMuNTJsLS4xOC43N2gtMi4xNXY0aDIuMTVsLjE4Ljc3Yy4yOSwxLjI0Ljc4LDIuNDMsMS40NiwzLjUybC40Mi42Ny0xLjUyLDEuNTIsMy41NCwzLjU0LTEuNDEsMS40MS00Ljk1LTQuOTUsMS44NC0xLjg0Yy0uNDYtLjg1LS44My0xLjczLTEuMS0yLjY1aC0yLjU5di04aDIuNTljLjI3LS45Mi42NC0xLjgsMS4xLTIuNjVsLTEuODQtMS44NCw1LjY2LTUuNjYsMS44NCwxLjg0Yy44NC0uNDYsMS43My0uODMsMi42NS0xLjF2LTIuNTloOHYyLjU5Yy45Mi4yNywxLjguNjQsMi42NSwxLjFsMS44NC0xLjg0LDUuNjYsNS42Ni0xLjg0LDEuODRjLjQ2Ljg1LjgzLDEuNzMsMS4xLDIuNjVoMi41OXY4aC0yLjU5Yy0uMjcuOTItLjY0LDEuOC0xLjEsMi42NWwxLjg0LDEuODQtNC45NSw0Ljk1WiIvPgo8L3N2Zz4=
+    highlights:
+      _type: "ComponentTypeHighlight"
+      namePlural: "vectordbs"
+      fields:
+        - _type: "ComponentTypeField"
+          fieldId: "health"
+          label:
+            title: "Health"
+          valueExtractor:
+            _type: "HealthSource"
+          display:
+            _type: "HealthBadgeDisplay"
+        - _type: "ComponentTypeField"
+          fieldId: "type"
+          label:
+            title: "Type"
+          valueExtractor:
+            _type: "ComponentTypeSource"
+          display:
+            _type: "TagDisplay"
+        - _type: "ComponentTypeField"
+          fieldId: "labels"
+          label:
+            title: "Labels"
+          valueExtractor:
+            _type: "TagsSource"
+          display:
+            _type: "TagDisplay"
+            singular: "label"
+      about:
+        _type: "ComponentTypeAbout"
+        fields: ["health", "type", "labels"]
+      events:
+        _type: "ComponentTypeEvents"
+        showEvents: true
+      showLogs: false
+      showLastChange: false
+      externalComponent:
+        _type: "ComponentTypeExternalComponent"
+        showConfiguration: false
+        showStatus: false
+        externalIdSelector: "^suse-ai:"
+      relatedResources: []
+      metrics: []
+
+  - _type: "ComponentType"
+    id: -5004
+    identifier: "urn:stackpack:suse-ai:shared:component-type:vectordb.milvus"
+    name: "vectordb.milvus"
+    iconbase64: data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iQXJ0d29yayIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2aWV3Qm94PSIwIDAgNDAgNDAiPgogIDxkZWZzPgogICAgPHN0eWxlPgogICAgICAuY2xzLTEgewogICAgICAgIGZpbGw6ICMwYzMyMmM7CiAgICAgIH0KCiAgICAgIC5jbHMtMSwgLmNscy0yIHsKICAgICAgICBzdHJva2Utd2lkdGg6IDBweDsKICAgICAgfQoKICAgICAgLmNscy0yIHsKICAgICAgICBmaWxsOiAjZmU3YzNmOwogICAgICB9CiAgICA8L3N0eWxlPgogIDwvZGVmcz4KICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0yMC4zMiwzM2gtLjY0Yy0xLjYxLDAtMy4xNS0uNy00LjIxLTEuOTJsLTMuMS0zLjU2Yy0uODktMS4wMi0xLjM4LTIuMzMtMS4zOC0zLjY5di00LjgzYzAtNC45Niw0LjA0LTksOS05czksNC4wNCw5LDl2NC44M2MwLDEuMzYtLjQ5LDIuNjctMS4zOCwzLjY5bC0zLjEsMy41N2MtMS4wNiwxLjIxLTIuNTgsMS45MS00LjE5LDEuOTFaTTIwLDEyYy0zLjg2LDAtNywzLjE0LTcsN3Y0LjgzYzAsLjg3LjMyLDEuNzIuODksMi4zOGwzLjEsMy41NmMuNjguNzgsMS42NiwxLjIzLDIuNywxLjIzaC42NGMxLjAzLDAsMi4wMS0uNDUsMi42OC0xLjIybDMuMS0zLjU3Yy41Ny0uNjYuODktMS41Ljg5LTIuMzh2LTQuODNjMC0zLjg2LTMuMTQtNy03LTdaIi8+CiAgPHJlY3QgY2xhc3M9ImNscy0xIiB4PSIxNCIgeT0iMjkiIHdpZHRoPSIyIiBoZWlnaHQ9IjgiLz4KICA8cmVjdCBjbGFzcz0iY2xzLTEiIHg9IjI0IiB5PSIyOSIgd2lkdGg9IjIiIGhlaWdodD0iOCIvPgogIDxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTUiIHk9IjE4IiB3aWR0aD0iMiIgaGVpZ2h0PSI3Ii8+CiAgPHJlY3QgY2xhc3M9ImNscy0yIiB4PSIxOSIgeT0iMTUiIHdpZHRoPSIyIiBoZWlnaHQ9IjEwIi8+CiAgPHJlY3QgY2xhc3M9ImNscy0yIiB4PSIyMyIgeT0iMTgiIHdpZHRoPSIyIiBoZWlnaHQ9IjciLz4KICA8cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0yOS4xOSwzMy40NGwtMS40MS0xLjQxLDMuNTQtMy41NC0xLjUyLTEuNTIuNDItLjY3Yy42Ny0xLjA5LDEuMTctMi4yOCwxLjQ2LTMuNTJsLjE4LS43N2gyLjE1di00aC0yLjE1bC0uMTgtLjc3Yy0uMjktMS4yNC0uNzktMi40My0xLjQ2LTMuNTJsLS40Mi0uNjcsMS41Mi0xLjUyLTIuODMtMi44My0xLjUyLDEuNTItLjY3LS40MmMtMS4wOS0uNjgtMi4yOC0xLjE3LTMuNTItMS40NmwtLjc3LS4xOHYtMi4xNWgtNHYyLjE1bC0uNzcuMThjLTEuMjQuMjktMi40My43OS0zLjUyLDEuNDZsLS42Ny40Mi0xLjUyLTEuNTItMi44MywyLjgzLDEuNTIsMS41Mi0uNDIuNjdjLS42NywxLjA5LTEuMTcsMi4yOC0xLjQ2LDMuNTJsLS4xOC43N2gtMi4xNXY0aDIuMTVsLjE4Ljc3Yy4yOSwxLjI0Ljc4LDIuNDMsMS40NiwzLjUybC40Mi42Ny0xLjUyLDEuNTIsMy41NCwzLjU0LTEuNDEsMS40MS00Ljk1LTQuOTUsMS44NC0xLjg0Yy0uNDYtLjg1LS44My0xLjczLTEuMS0yLjY1aC0yLjU5di04aDIuNTljLjI3LS45Mi42NC0xLjgsMS4xLTIuNjVsLTEuODQtMS44NCw1LjY2LTUuNjYsMS44NCwxLjg0Yy44NC0uNDYsMS43My0uODMsMi42NS0xLjF2LTIuNTloOHYyLjU5Yy45Mi4yNywxLjguNjQsMi42NSwxLjFsMS44NC0xLjg0LDUuNjYsNS42Ni0xLjg0LDEuODRjLjQ2Ljg1LjgzLDEuNzMsMS4xLDIuNjVoMi41OXY4aC0yLjU5Yy0uMjcuOTItLjY0LDEuOC0xLjEsMi42NWwxLjg0LDEuODQtNC45NSw0Ljk1WiIvPgo8L3N2Zz4=
+    highlights:
+      _type: "ComponentTypeHighlight"
+      namePlural: "vectordbs"
+      fields:
+        - _type: "ComponentTypeField"
+          fieldId: "health"
+          label:
+            title: "Health"
+          valueExtractor:
+            _type: "HealthSource"
+          display:
+            _type: "HealthBadgeDisplay"
+        - _type: "ComponentTypeField"
+          fieldId: "type"
+          label:
+            title: "Type"
+          valueExtractor:
+            _type: "ComponentTypeSource"
+          display:
+            _type: "TagDisplay"
+        - _type: "ComponentTypeField"
+          fieldId: "labels"
+          label:
+            title: "Labels"
+          valueExtractor:
+            _type: "TagsSource"
+          display:
+            _type: "TagDisplay"
+            singular: "label"
+      about:
+        _type: "ComponentTypeAbout"
+        fields: ["health", "type", "labels"]
+      events:
+        _type: "ComponentTypeEvents"
+        showEvents: true
+      showLogs: false
+      showLastChange: false
+      externalComponent:
+        _type: "ComponentTypeExternalComponent"
+        showConfiguration: false
+        showStatus: false
+        externalIdSelector: "^suse-ai:"
+      relatedResources: []
+      metrics:
+        - _type: "ComponentTypeMetricCategory"
+          name: "Metrics"
+          description: "Metrics"
+          bindings:
+            - "urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-system-request-rate"
+            - "urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-system-request-total-success"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vectordb-system-request-latency-p99"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vectordb-system-average-request-latency"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vectordb-system-invsert-vector-count-rate"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vectordb-system-insert-vector-search-rate"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vectordb-system-search-latency"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vectordb-system-average-search-latency"
+            - "urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-system-request-sucess-rate"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vectordb-system-request-failed-rate"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vectordb-system-failed-requests-count"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vectordb-system-mutation-send-latency"
+            - "urn:stackpack:suse-ai:shared:metric-binding:vectordb-system-average-mutation-send-latency"
+            - "urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-operation-total"
+          defaultExpanded: true
+
+  - _type: "ComponentType"
+    id: -5005
+    identifier: "urn:stackpack:suse-ai:shared:component-type:search-engine.opensearch"
+    name: "search-engine.opensearch"
+    iconbase64: data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iQXJ0d29yayIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2aWV3Qm94PSIwIDAgNDAgNDAiPgogIDxkZWZzPgogICAgPHN0eWxlPgogICAgICAuY2xzLTEgewogICAgICAgIGZpbGw6ICMwYzMyMmM7CiAgICAgIH0KCiAgICAgIC5jbHMtMSwgLmNscy0yIHsKICAgICAgICBzdHJva2Utd2lkdGg6IDBweDsKICAgICAgfQoKICAgICAgLmNscy0yIHsKICAgICAgICBmaWxsOiAjZmU3YzNmOwogICAgICB9CiAgICA8L3N0eWxlPgogIDwvZGVmcz4KICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0yMC4zMiwzM2gtLjY0Yy0xLjYxLDAtMy4xNS0uNy00LjIxLTEuOTJsLTMuMS0zLjU2Yy0uODktMS4wMi0xLjM4LTIuMzMtMS4zOC0zLjY5di00LjgzYzAtNC45Niw0LjA0LTksOS05czksNC4wNCw5LDl2NC44M2MwLDEuMzYtLjQ5LDIuNjctMS4zOCwzLjY5bC0zLjEsMy41N2MtMS4wNiwxLjIxLTIuNTgsMS45MS00LjE5LDEuOTFaTTIwLDEyYy0zLjg2LDAtNywzLjE0LTcsN3Y0LjgzYzAsLjg3LjMyLDEuNzIuODksMi4zOGwzLjEsMy41NmMuNjguNzgsMS42NiwxLjIzLDIuNywxLjIzaC42NGMxLjAzLDAsMi4wMS0uNDUsMi42OC0xLjIybDMuMS0zLjU3Yy41Ny0uNjYuODktMS41Ljg5LTIuMzh2LTQuODNjMC0zLjg2LTMuMTQtNy03LTdaIi8+CiAgPHJlY3QgY2xhc3M9ImNscy0xIiB4PSIxNCIgeT0iMjkiIHdpZHRoPSIyIiBoZWlnaHQ9IjgiLz4KICA8cmVjdCBjbGFzcz0iY2xzLTEiIHg9IjI0IiB5PSIyOSIgd2lkdGg9IjIiIGhlaWdodD0iOCIvPgogIDxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTUiIHk9IjE4IiB3aWR0aD0iMiIgaGVpZ2h0PSI3Ii8+CiAgPHJlY3QgY2xhc3M9ImNscy0yIiB4PSIxOSIgeT0iMTUiIHdpZHRoPSIyIiBoZWlnaHQ9IjEwIi8+CiAgPHJlY3QgY2xhc3M9ImNscy0yIiB4PSIyMyIgeT0iMTgiIHdpZHRoPSIyIiBoZWlnaHQ9IjciLz4KICA8cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0yOS4xOSwzMy40NGwtMS40MS0xLjQxLDMuNTQtMy41NC0xLjUyLTEuNTIuNDItLjY3Yy42Ny0xLjA5LDEuMTctMi4yOCwxLjQ2LTMuNTJsLjE4LS43N2gyLjE1di00aC0yLjE1bC0uMTgtLjc3Yy0uMjktMS4yNC0uNzktMi40My0xLjQ2LTMuNTJsLS40Mi0uNjcsMS41Mi0xLjUyLTIuODMtMi44My0xLjUyLDEuNTItLjY3LS40MmMtMS4wOS0uNjgtMi4yOC0xLjE3LTMuNTItMS40NmwtLjc3LS4xOHYtMi4xNWgtNHYyLjE1bC0uNzcuMThjLTEuMjQuMjktMi40My43OS0zLjUyLDEuNDZsLS42Ny40Mi0xLjUyLTEuNTItMi44MywyLjgzLDEuNTIsMS41Mi0uNDIuNjdjLS42NywxLjA5LTEuMTcsMi4yOC0xLjQ2LDMuNTJsLS4xOC43N2gtMi4xNXY0aDIuMTVsLjE4Ljc3Yy4yOSwxLjI0Ljc4LDIuNDMsMS40NiwzLjUybC40Mi42Ny0xLjUyLDEuNTIsMy41NCwzLjU0LTEuNDEsMS40MS00Ljk1LTQuOTUsMS44NC0xLjg0Yy0uNDYtLjg1LS44My0xLjczLTEuMS0yLjY1aC0yLjU5di04aDIuNTljLjI3LS45Mi42NC0xLjgsMS4xLTIuNjVsLTEuODQtMS44NCw1LjY2LTUuNjYsMS44NCwxLjg0Yy44NC0uNDYsMS43My0uODMsMi42NS0xLjF2LTIuNTloOHYyLjU5Yy45Mi4yNywxLjguNjQsMi42NSwxLjFsMS44NC0xLjg0LDUuNjYsNS42Ni0xLjg0LDEuODRjLjQ2Ljg1LjgzLDEuNzMsMS4xLDIuNjVoMi41OXY4aC0yLjU5Yy0uMjcuOTItLjY0LDEuOC0xLjEsMi42NWwxLjg0LDEuODQtNC45NSw0Ljk1WiIvPgo8L3N2Zz4=
+    highlights:
+      _type: "ComponentTypeHighlight"
+      namePlural: "search-engines"
+      fields:
+        - _type: "ComponentTypeField"
+          fieldId: "health"
+          label:
+            title: "Health"
+          valueExtractor:
+            _type: "HealthSource"
+          display:
+            _type: "HealthBadgeDisplay"
+        - _type: "ComponentTypeField"
+          fieldId: "type"
+          label:
+            title: "Type"
+          valueExtractor:
+            _type: "ComponentTypeSource"
+          display:
+            _type: "TagDisplay"
+        - _type: "ComponentTypeField"
+          fieldId: "labels"
+          label:
+            title: "Labels"
+          valueExtractor:
+            _type: "TagsSource"
+          display:
+            _type: "TagDisplay"
+            singular: "label"
+      about:
+        _type: "ComponentTypeAbout"
+        fields: ["health", "type", "labels"]
+      events:
+        _type: "ComponentTypeEvents"
+        showEvents: true
+      showLogs: false
+      showLastChange: false
+      externalComponent:
+        _type: "ComponentTypeExternalComponent"
+        showConfiguration: false
+        showStatus: false
+        externalIdSelector: "^suse-ai:"
+      relatedResources: []
+      metrics: []
+
+  - _type: "ComponentType"
+    id: -5006
+    identifier: "urn:stackpack:suse-ai:shared:component-type:ui.open-webui"
+    name: "ui.open-webui"
+    iconbase64: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB4PSI4IiB5PSIxMiIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQwIiByeD0iNCIgc3Ryb2tlPSIjRkZGRkZGIiBzdHJva2Utd2lkdGg9IjQiLz48cGF0aCBkPSJNOCA0MGg0OCIgc3Ryb2tlPSIjRkZGRkZGIiBzdHJva2Utd2lkdGg9IjIiLz48L3N2Zz4="
+    highlights:
+      _type: "ComponentTypeHighlight"
+      namePlural: "uis"
+      fields:
+        - _type: "ComponentTypeField"
+          fieldId: "health"
+          label:
+            title: "Health"
+          valueExtractor:
+            _type: "HealthSource"
+          display:
+            _type: "HealthBadgeDisplay"
+        - _type: "ComponentTypeField"
+          fieldId: "type"
+          label:
+            title: "Type"
+          valueExtractor:
+            _type: "ComponentTypeSource"
+          display:
+            _type: "TagDisplay"
+        - _type: "ComponentTypeField"
+          fieldId: "labels"
+          label:
+            title: "Labels"
+          valueExtractor:
+            _type: "TagsSource"
+          display:
+            _type: "TagDisplay"
+            singular: "label"
+      about:
+        _type: "ComponentTypeAbout"
+        fields: ["health", "type", "labels"]
+      events:
+        _type: "ComponentTypeEvents"
+        showEvents: true
+      showLogs: false
+      showLastChange: false
+      externalComponent:
+        _type: "ComponentTypeExternalComponent"
+        showConfiguration: false
+        showStatus: false
+        externalIdSelector: "^suse-ai:"
+      relatedResources: []
+      metrics: []
+
+  - _type: "ComponentType"
+    id: -5007
+    identifier: "urn:stackpack:suse-ai:shared:component-type:model-proxy.litellm"
+    name: "model-proxy.litellm"
+    iconbase64: data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iQXJ0d29yayIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2aWV3Qm94PSIwIDAgNDAgNDAiPgogIDxkZWZzPgogICAgPHN0eWxlPgogICAgICAuY2xzLTEgewogICAgICAgIGZpbGw6ICMwYzMyMmM7CiAgICAgIH0KCiAgICAgIC5jbHMtMSwgLmNscy0yIHsKICAgICAgICBzdHJva2Utd2lkdGg6IDBweDsKICAgICAgfQoKICAgICAgLmNscy0yIHsKICAgICAgICBmaWxsOiAjZmU3YzNmOwogICAgICB9CiAgICA8L3N0eWxlPgogIDwvZGVmcz4KICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0yMC4zMiwzM2gtLjY0Yy0xLjYxLDAtMy4xNS0uNy00LjIxLTEuOTJsLTMuMS0zLjU2Yy0uODktMS4wMi0xLjM4LTIuMzMtMS4zOC0zLjY5di00LjgzYzAtNC45Niw0LjA0LTksOS05czksNC4wNCw5LDl2NC44M2MwLDEuMzYtLjQ5LDIuNjctMS4zOCwzLjY5bC0zLjEsMy41N2MtMS4wNiwxLjIxLTIuNTgsMS45MS00LjE5LDEuOTFaTTIwLDEyYy0zLjg2LDAtNywzLjE0LTcsN3Y0LjgzYzAsLjg3LjMyLDEuNzIuODksMi4zOGwzLjEsMy41NmMuNjguNzgsMS42NiwxLjIzLDIuNywxLjIzaC42NGMxLjAzLDAsMi4wMS0uNDUsMi42OC0xLjIybDMuMS0zLjU3Yy41Ny0uNjYuODktMS41Ljg5LTIuMzh2LTQuODNjMC0zLjg2LTMuMTQtNy03LTdaIi8+CiAgPHJlY3QgY2xhc3M9ImNscy0xIiB4PSIxNCIgeT0iMjkiIHdpZHRoPSIyIiBoZWlnaHQ9IjgiLz4KICA8cmVjdCBjbGFzcz0iY2xzLTEiIHg9IjI0IiB5PSIyOSIgd2lkdGg9IjIiIGhlaWdodD0iOCIvPgogIDxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTUiIHk9IjE4IiB3aWR0aD0iMiIgaGVpZ2h0PSI3Ii8+CiAgPHJlY3QgY2xhc3M9ImNscy0yIiB4PSIxOSIgeT0iMTUiIHdpZHRoPSIyIiBoZWlnaHQ9IjEwIi8+CiAgPHJlY3QgY2xhc3M9ImNscy0yIiB4PSIyMyIgeT0iMTgiIHdpZHRoPSIyIiBoZWlnaHQ9IjciLz4KICA8cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0yOS4xOSwzMy40NGwtMS40MS0xLjQxLDMuNTQtMy41NC0xLjUyLTEuNTIuNDItLjY3Yy42Ny0xLjA5LDEuMTctMi4yOCwxLjQ2LTMuNTJsLjE4LS43N2gyLjE1di00aC0yLjE1bC0uMTgtLjc3Yy0uMjktMS4yNC0uNzktMi40My0xLjQ2LTMuNTJsLS40Mi0uNjcsMS41Mi0xLjUyLTIuODMtMi44My0xLjUyLDEuNTItLjY3LS40MmMtMS4wOS0uNjgtMi4yOC0xLjE3LTMuNTItMS40NmwtLjc3LS4xOHYtMi4xNWgtNHYyLjE1bC0uNzcuMThjLTEuMjQuMjktMi40My43OS0zLjUyLDEuNDZsLS42Ny40Mi0xLjUyLTEuNTItMi44MywyLjgzLDEuNTIsMS41Mi0uNDIuNjdjLS42NywxLjA5LTEuMTcsMi4yOC0xLjQ2LDMuNTJsLS4xOC43N2gtMi4xNXY0aDIuMTVsLjE4Ljc3Yy4yOSwxLjI0Ljc4LDIuNDMsMS40NiwzLjUybC40Mi42Ny0xLjUyLDEuNTIsMy41NCwzLjU0LTEuNDEsMS40MS00Ljk1LTQuOTUsMS44NC0xLjg0Yy0uNDYtLjg1LS44My0xLjczLTEuMS0yLjY1aC0yLjU5di04aDIuNTljLjI3LS45Mi42NC0xLjgsMS4xLTIuNjVsLTEuODQtMS44NCw1LjY2LTUuNjYsMS44NCwxLjg0Yy44NC0uNDYsMS43My0uODMsMi42NS0xLjF2LTIuNTloOHYyLjU5Yy45Mi4yNywxLjguNjQsMi42NSwxLjFsMS44NC0xLjg0LDUuNjYsNS42Ni0xLjg0LDEuODRjLjQ2Ljg1LjgzLDEuNzMsMS4xLDIuNjVoMi41OXY4aC0yLjU5Yy0uMjcuOTItLjY0LDEuOC0xLjEsMi42NWwxLjg0LDEuODQtNC45NSw0Ljk1WiIvPgo8L3N2Zz4=
+    highlights:
+      _type: "ComponentTypeHighlight"
+      namePlural: "model-proxies"
+      fields:
+        - _type: "ComponentTypeField"
+          fieldId: "health"
+          label:
+            title: "Health"
+          valueExtractor:
+            _type: "HealthSource"
+          display:
+            _type: "HealthBadgeDisplay"
+        - _type: "ComponentTypeField"
+          fieldId: "type"
+          label:
+            title: "Type"
+          valueExtractor:
+            _type: "ComponentTypeSource"
+          display:
+            _type: "TagDisplay"
+        - _type: "ComponentTypeField"
+          fieldId: "labels"
+          label:
+            title: "Labels"
+          valueExtractor:
+            _type: "TagsSource"
+          display:
+            _type: "TagDisplay"
+            singular: "label"
+      about:
+        _type: "ComponentTypeAbout"
+        fields: ["health", "type", "labels"]
+      events:
+        _type: "ComponentTypeEvents"
+        showEvents: true
+      showLogs: false
+      showLastChange: false
+      externalComponent:
+        _type: "ComponentTypeExternalComponent"
+        showConfiguration: false
+        showStatus: false
+        externalIdSelector: "^suse-ai:"
+      relatedResources: []
+      metrics: []
+
+  - _type: "ComponentType"
+    id: -5008
+    identifier: "urn:stackpack:suse-ai:shared:component-type:ml-registry.mlflow"
+    name: "ml-registry.mlflow"
+    iconbase64: data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iQXJ0d29yayIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2aWV3Qm94PSIwIDAgNDAgNDAiPgogIDxkZWZzPgogICAgPHN0eWxlPgogICAgICAuY2xzLTEgewogICAgICAgIGZpbGw6ICMwYzMyMmM7CiAgICAgIH0KCiAgICAgIC5jbHMtMSwgLmNscy0yIHsKICAgICAgICBzdHJva2Utd2lkdGg6IDBweDsKICAgICAgfQoKICAgICAgLmNscy0yIHsKICAgICAgICBmaWxsOiAjZmU3YzNmOwogICAgICB9CiAgICA8L3N0eWxlPgogIDwvZGVmcz4KICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0yMC4zMiwzM2gtLjY0Yy0xLjYxLDAtMy4xNS0uNy00LjIxLTEuOTJsLTMuMS0zLjU2Yy0uODktMS4wMi0xLjM4LTIuMzMtMS4zOC0zLjY5di00LjgzYzAtNC45Niw0LjA0LTksOS05czksNC4wNCw5LDl2NC44M2MwLDEuMzYtLjQ5LDIuNjctMS4zOCwzLjY5bC0zLjEsMy41N2MtMS4wNiwxLjIxLTIuNTgsMS45MS00LjE5LDEuOTFaTTIwLDEyYy0zLjg2LDAtNywzLjE0LTcsN3Y0LjgzYzAsLjg3LjMyLDEuNzIuODksMi4zOGwzLjEsMy41NmMuNjguNzgsMS42NiwxLjIzLDIuNywxLjIzaC42NGMxLjAzLDAsMi4wMS0uNDUsMi42OC0xLjIybDMuMS0zLjU3Yy41Ny0uNjYuODktMS41Ljg5LTIuMzh2LTQuODNjMC0zLjg2LTMuMTQtNy03LTdaIi8+CiAgPHJlY3QgY2xhc3M9ImNscy0xIiB4PSIxNCIgeT0iMjkiIHdpZHRoPSIyIiBoZWlnaHQ9IjgiLz4KICA8cmVjdCBjbGFzcz0iY2xzLTEiIHg9IjI0IiB5PSIyOSIgd2lkdGg9IjIiIGhlaWdodD0iOCIvPgogIDxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTUiIHk9IjE4IiB3aWR0aD0iMiIgaGVpZ2h0PSI3Ii8+CiAgPHJlY3QgY2xhc3M9ImNscy0yIiB4PSIxOSIgeT0iMTUiIHdpZHRoPSIyIiBoZWlnaHQ9IjEwIi8+CiAgPHJlY3QgY2xhc3M9ImNscy0yIiB4PSIyMyIgeT0iMTgiIHdpZHRoPSIyIiBoZWlnaHQ9IjciLz4KICA8cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0yOS4xOSwzMy40NGwtMS40MS0xLjQxLDMuNTQtMy41NC0xLjUyLTEuNTIuNDItLjY3Yy42Ny0xLjA5LDEuMTctMi4yOCwxLjQ2LTMuNTJsLjE4LS43N2gyLjE1di00aC0yLjE1bC0uMTgtLjc3Yy0uMjktMS4yNC0uNzktMi40My0xLjQ2LTMuNTJsLS40Mi0uNjcsMS41Mi0xLjUyLTIuODMtMi44My0xLjUyLDEuNTItLjY3LS40MmMtMS4wOS0uNjgtMi4yOC0xLjE3LTMuNTItMS40NmwtLjc3LS4xOHYtMi4xNWgtNHYyLjE1bC0uNzcuMThjLTEuMjQuMjktMi40My43OS0zLjUyLDEuNDZsLS42Ny40Mi0xLjUyLTEuNTItMi44MywyLjgzLDEuNTIsMS41Mi0uNDIuNjdjLS42NywxLjA5LTEuMTcsMi4yOC0xLjQ2LDMuNTJsLS4xOC43N2gtMi4xNXY0aDIuMTVsLjE4Ljc3Yy4yOSwxLjI0Ljc4LDIuNDMsMS40NiwzLjUybC40Mi42Ny0xLjUyLDEuNTIsMy41NCwzLjU0LTEuNDEsMS40MS00Ljk1LTQuOTUsMS44NC0xLjg0Yy0uNDYtLjg1LS44My0xLjczLTEuMS0yLjY1aC0yLjU5di04aDIuNTljLjI3LS45Mi42NC0xLjgsMS4xLTIuNjVsLTEuODQtMS44NCw1LjY2LTUuNjYsMS44NCwxLjg0Yy44NC0uNDYsMS43My0uODMsMi42NS0xLjF2LTIuNTloOHYyLjU5Yy45Mi4yNywxLjguNjQsMi42NSwxLjFsMS44NC0xLjg0LDUuNjYsNS42Ni0xLjg0LDEuODRjLjQ2Ljg1LjgzLDEuNzMsMS4xLDIuNjVoMi41OXY4aC0yLjU5Yy0uMjcuOTItLjY0LDEuOC0xLjEsMi42NWwxLjg0LDEuODQtNC45NSw0Ljk1WiIvPgo8L3N2Zz4=
+    highlights:
+      _type: "ComponentTypeHighlight"
+      namePlural: "ml-registries"
+      fields:
+        - _type: "ComponentTypeField"
+          fieldId: "health"
+          label:
+            title: "Health"
+          valueExtractor:
+            _type: "HealthSource"
+          display:
+            _type: "HealthBadgeDisplay"
+        - _type: "ComponentTypeField"
+          fieldId: "type"
+          label:
+            title: "Type"
+          valueExtractor:
+            _type: "ComponentTypeSource"
+          display:
+            _type: "TagDisplay"
+        - _type: "ComponentTypeField"
+          fieldId: "labels"
+          label:
+            title: "Labels"
+          valueExtractor:
+            _type: "TagsSource"
+          display:
+            _type: "TagDisplay"
+            singular: "label"
+      about:
+        _type: "ComponentTypeAbout"
+        fields: ["health", "type", "labels"]
+      events:
+        _type: "ComponentTypeEvents"
+        showEvents: true
+      showLogs: false
+      showLastChange: false
+      externalComponent:
+        _type: "ComponentTypeExternalComponent"
+        showConfiguration: false
+        showStatus: false
+        externalIdSelector: "^suse-ai:"
+      relatedResources: []
+      metrics: []

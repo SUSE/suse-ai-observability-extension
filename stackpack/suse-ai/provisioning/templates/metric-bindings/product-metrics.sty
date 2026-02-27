@@ -1,0 +1,2172 @@
+  - id: -500
+    name: End-to-End Request Latency (P99)
+    queries:
+      - expression: histogram_quantile(0.99, sum by(le, model_name) (rate({__name__=~"vllm:e2e_request_latency_seconds_bucket|vllm_e2e_request_latency_seconds_bucket"}[${__rate_interval}])))
+        alias: '${model_name}'
+        primary: true
+    scope: type = "inference-engine.vllm"
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:e2e-latency-p99
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -501
+    name: End-to-End Request Latency (P95)
+    queries:
+      - expression: histogram_quantile(0.95, sum by(le, model_name) (rate({__name__=~"vllm:e2e_request_latency_seconds_bucket|vllm_e2e_request_latency_seconds_bucket"}[${__rate_interval}])))
+        alias: '${model_name}'
+        primary: true
+    scope: type = "inference-engine.vllm"
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:e2e-latency-p95
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -502
+    name: End-to-End Request Latency (P90)
+    queries:
+      - expression: histogram_quantile(0.90, sum by(le, model_name) (rate({__name__=~"vllm:e2e_request_latency_seconds_bucket|vllm_e2e_request_latency_seconds_bucket"}[${__rate_interval}])))
+        alias: '${model_name}'
+        primary: true
+    scope: type = "inference-engine.vllm"
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:e2e-latency-p90
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+  - id: -503
+    name: End-to-End Request Latency (P50)
+    queries:
+      - expression: histogram_quantile(0.50, sum by(le, model_name) (rate({__name__=~"vllm:e2e_request_latency_seconds_bucket|vllm_e2e_request_latency_seconds_bucket"}[${__rate_interval}])))
+        alias: '${model_name}'
+        primary: true
+    scope: type = "inference-engine.vllm"
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:e2e-latency-p50
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+  - id: -504
+    name: End-to-End Request Latency (Average)
+    queries:
+      - expression: rate({__name__=~"vllm:e2e_request_latency_seconds_sum|vllm_e2e_request_latency_seconds_sum"}[${__rate_interval}])/rate({__name__=~"vllm:e2e_request_latency_seconds_count|vllm_e2e_request_latency_seconds_count"}[${__rate_interval}])
+        alias: '${model_name}'
+        primary: true
+    scope: type = "inference-engine.vllm"
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:e2e-latency-avg
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -505
+    name: Token Throughput (Prompt)
+    queries:
+      - expression: rate({__name__=~"vllm:prompt_tokens_total|vllm_prompt_tokens_total"}[${__rate_interval}])
+        alias: '${model_name} tokens/sec'
+        primary: true
+    scope: type = "inference-engine.vllm"
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:token-throughput-prompt
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Throughput
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+  - id: -506
+    name: Token Throughput (Generation)
+    queries:
+      - expression: rate({__name__=~"vllm:generation_tokens_total|vllm_generation_tokens_total"}[${__rate_interval}])
+        alias: '${model_name} tokens/sec'
+        primary: true
+    scope: type = "inference-engine.vllm"
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:token-throughput-generation
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Throughput
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+  - id: -507
+    name: GPU Cache Usage
+    queries:
+      - expression: vllm_gpu_cache_usage_perc{} or vllm:gpu_cache_usage_perc{}
+        alias: '${model_name}'
+        primary: true
+    scope: type = "inference-engine.vllm"
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:gpu-cache-usage
+    unit: percentunit
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Cache Utilization
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -508
+    name: Time To First Token Latency (P99)
+    queries:
+      - expression: histogram_quantile(0.99, sum by(le, model_name) (rate({__name__=~"vllm:time_to_first_token_seconds_bucket|vllm_time_to_first_token_seconds_bucket"}[${__rate_interval}])))
+        alias: '${model_name}'
+        primary: true
+    scope: type = "inference-engine.vllm"
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:ttft-latency-p99
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -509
+    name: Time To First Token Latency (P95)
+    queries:
+      - expression: histogram_quantile(0.95, sum by(le, model_name) (rate({__name__=~"vllm:time_to_first_token_seconds_bucket|vllm_time_to_first_token_seconds_bucket"}[${__rate_interval}])))
+        alias: '${model_name}'
+        primary: true
+    scope: type = "inference-engine.vllm"
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:ttft-latency-p95
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -510
+    name: Time To First Token Latency (P90)
+    queries:
+      - expression: histogram_quantile(0.90, sum by(le, model_name) (rate({__name__=~"vllm:time_to_first_token_seconds_bucket|vllm_time_to_first_token_seconds_bucket"}[${__rate_interval}])))
+        alias: '${model_name}'
+        primary: true
+    scope: type = "inference-engine.vllm"
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:ttft-latency-p90
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+  - id: -511
+    name: Time To First Token Latency (P50)
+    queries:
+      - expression: histogram_quantile(0.50, sum by(le, model_name) (rate({__name__=~"vllm:time_to_first_token_seconds_bucket|vllm_time_to_first_token_seconds_bucket"}[${__rate_interval}])))
+        alias: '${model_name}'
+        primary: true
+    scope: type = "inference-engine.vllm"
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:ttft-latency-p50
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -512
+    name: Time To First Token Latency (Average)
+    queries:
+      - expression: rate({__name__=~"vllm:time_to_first_token_seconds_sum|vllm_time_to_first_token_seconds_sum"}[${__rate_interval}])/rate({__name__=~"vllm:time_to_first_token_seconds_count|vllm_time_to_first_token_seconds_count"}[${__rate_interval}])
+        alias: '${model_name}'
+        primary: true
+    scope: type = "inference-engine.vllm"
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:ttft-latency-avg
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -513
+    name: Number of Requests Running
+    queries:
+      - expression: vllm_num_requests_running{model_name=~".+"} or vllm:num_requests_running{model_name=~".+"}
+        alias: '${model_name} req'
+        primary: true
+    scope: type = "inference-engine.vllm"
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:req-running
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Scheduler
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -514
+    name: Number of Requests Waiting
+    queries:
+      - expression: vllm_num_requests_waiting{model_name=~".+"} or vllm:num_requests_waiting{model_name=~".+"}
+        alias: '${model_name} req'
+        primary: true
+    scope: type = "inference-engine.vllm"
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:req-waiting
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Scheduler
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -515
+    name: Time Per Output Token Latency (P99)
+    queries:
+      - expression: histogram_quantile(0.99, sum by(le, model_name) (rate({__name__=~"vllm:time_per_output_token_seconds_bucket|vllm_time_per_output_token_seconds_bucket"}[${__rate_interval}])))
+        alias: '${model_name}'
+        primary: true
+    scope: type = "inference-engine.vllm"
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:tpot-latency-p99
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -516
+    name: Time Per Output Token Latency (P95)
+    queries:
+      - expression: histogram_quantile(0.95, sum by(le, model_name) (rate({__name__=~"vllm:time_per_output_token_seconds_bucket|vllm_time_per_output_token_seconds_bucket"}[${__rate_interval}])))
+        alias: '${model_name}'
+        primary: true
+    scope: type = "inference-engine.vllm"
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:tpot-latency-p95
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -517
+    name: Time Per Output Token Latency (P90)
+    queries:
+      - expression: histogram_quantile(0.90, sum by(le, model_name) (rate({__name__=~"vllm:time_per_output_token_seconds_bucket|vllm_time_per_output_token_seconds_bucket"}[${__rate_interval}])))
+        alias: '${model_name}'
+        primary: true
+    scope: type = "inference-engine.vllm"
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:tpot-latency-p90
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+  - id: -518
+    name: Time Per Output Token Latency (P50)
+    queries:
+      - expression: histogram_quantile(0.50, sum by(le, model_name) (rate({__name__=~"vllm:time_per_output_token_seconds_bucket|vllm_time_per_output_token_seconds_bucket"}[${__rate_interval}])))
+        alias: '${model_name}'
+        primary: true
+    scope: type = "inference-engine.vllm"
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:tpot-latency-p50
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -519
+    name: Time Per Output Token Latency (Average)
+    queries:
+      - expression: rate({__name__=~"vllm:time_per_output_token_seconds_sum|vllm_time_per_output_token_seconds_sum"}[${__rate_interval}])/rate({__name__=~"vllm:time_per_output_token_seconds_count|vllm_time_per_output_token_seconds_count"}[${__rate_interval}])
+        alias: '${model_name}'
+        primary: true
+    scope: type = "inference-engine.vllm"
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:tpot-latency-avg
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+  - id: -520
+    name: End-to-End Request Latency (P99)
+    queries:
+      - expression: histogram_quantile(0.99, sum by(le) (rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_bucket", model_name="${name}" }[${__rate_interval}])))
+        alias: 'P99 Latency'
+        primary: true
+    scope: (type = "genai-model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:e2e-latency-p99
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -521
+    name: End-to-End Request Latency (P95)
+    queries:
+      - expression: histogram_quantile(0.95, sum by(le) (rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_bucket", model_name="${name}" }[${__rate_interval}])))
+        alias: 'P95 Latency'
+        primary: true
+    scope: (type = "genai-model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:e2e-latency-p95
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -522
+    name: End-to-End Request Latency (P90)
+    queries:
+      - expression: histogram_quantile(0.90, sum by(le) (rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_bucket", model_name="${name}" }[${__rate_interval}])))
+        alias: 'P90 Latency'
+        primary: true
+    scope: (type = "genai-model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:e2e-latency-p90
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+  - id: -523
+    name: End-to-End Request Latency (P50)
+    queries:
+      - expression: histogram_quantile(0.50, sum by(le) (rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_bucket", model_name="${name}" }[${__rate_interval}])))
+        alias: 'P50 Latency'
+        primary: true
+    scope: (type = "genai-model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:e2e-latency-p50
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+  - id: -524
+    name: End-to-End Request Latency (Average)
+    queries:
+      - expression: rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_sum", model_name="${name}" }[${__rate_interval}])/rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_count", model_name="${name}" }[${__rate_interval}])
+        alias: 'Average'
+        primary: true
+    scope: (type = "genai-model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:e2e-latency-avg
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -525
+    name: Token Throughput (Prompt)
+    queries:
+      - expression: rate({__name__=~"vllm(:|_)prompt_tokens_total", model_name="${name}"}[${__rate_interval}])
+        alias: 'Prompt Tokens/Sec'
+        primary: true
+    scope: (type = "genai-model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:token-throughput-prompt
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Throughput
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+  - id: -526
+    name: Token Throughput (Generation)
+    queries:
+      - expression: rate({__name__=~"vllm(:|_)generation_tokens_total", model_name="${name}"}[${__rate_interval}])
+        alias: 'Generation Tokens/Sec'
+        primary: true
+    scope: (type = "genai-model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:token-throughput-generation
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Throughput
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+  - id: -527
+    name: GPU Cache Usage
+    queries:
+      - expression: vllm_gpu_cache_usage_perc{model_name="${name}"} or vllm:gpu_cache_usage_perc{model_name="${name}"}
+        alias: 'GPU Cache Usage'
+        primary: true
+    scope: (type = "genai-model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:gpu-cache-usage
+    unit: percentunit
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Cache Utilization
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -528
+    name: Time To First Token Latency (P99)
+    queries:
+      - expression: histogram_quantile(0.99, sum by(le) (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
+        alias: 'P99'
+        primary: true
+    scope: (type = "genai-model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:ttft-latency-p99
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -529
+    name: Time To First Token Latency (P95)
+    queries:
+      - expression: histogram_quantile(0.95, sum by(le) (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
+        alias: 'P95'
+        primary: true
+    scope: (type = "genai-model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:ttft-latency-p95
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -530
+    name: Time To First Token Latency (P90)
+    queries:
+      - expression: histogram_quantile(0.90, sum by(le) (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
+        alias: 'P90'
+        primary: true
+    scope: (type = "genai-model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:ttft-latency-p90
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+  - id: -531
+    name: Time To First Token Latency (P50)
+    queries:
+      - expression: histogram_quantile(0.50, sum by(le) (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
+        alias: 'P50'
+        primary: true
+    scope: (type = "genai-model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:ttft-latency-p50
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+  - id: -532
+    name: Time To First Token Latency (Average)
+    queries:
+      - expression: rate({__name__=~"vllm(:|_)time_to_first_token_seconds_sum", model_name="${name}"}[${__rate_interval}])/rate({__name__=~"vllm(:|_)time_to_first_token_seconds_count", model_name="${name}"}[${__rate_interval}])
+        alias: 'Average'
+        primary: true
+    scope: (type = "genai-model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:ttft-latency-avg
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -533
+    name: Number of Requests Running
+    queries:
+      - expression: vllm_num_requests_running{model_name="${name}"} or vllm:num_requests_running{model_name="${name}"}
+        alias: 'req'
+        primary: true
+    scope: (type = "genai-model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:req-running
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Scheduler
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -534
+    name: Number of Requests Waiting
+    queries:
+      - expression: vllm_num_requests_waiting{model_name="${name}"} or vllm:num_requests_waiting{model_name="${name}"}
+        alias: 'req'
+        primary: true
+    scope: (type = "genai-model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:req-waiting
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Scheduler
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -535
+    name: Time Per Ouput Token Latency (P99)
+    queries:
+      - expression: histogram_quantile(0.99, sum by(le) (rate({__name__=~"vllm(:|_)time_per_output_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
+        alias: 'P99'
+        primary: true
+    scope: (type = "genai-model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:tpot-latency-p99
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -536
+    name: Time Per Ouput Token Latency (P95)
+    queries:
+      - expression: histogram_quantile(0.95, sum by(le) (rate({__name__=~"vllm(:|_)time_per_output_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
+        alias: 'P95'
+        primary: true
+    scope: (type = "genai-model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:tpot-latency-p95
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -537
+    name: Time Per Ouput Token Latency (P90)
+    queries:
+      - expression: histogram_quantile(0.90, sum by(le) (rate({__name__=~"vllm(:|_)time_per_output_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
+        alias: 'P90'
+        primary: true
+    scope: (type = "genai-model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:tpot-latency-p90
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+  - id: -538
+    name: Time Per Ouput Token Latency (P50)
+    queries:
+      - expression: histogram_quantile(0.50, sum by(le) (rate({__name__=~"vllm(:|_)time_per_output_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
+        alias: 'P50'
+        primary: true
+    scope: (type = "genai-model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:tpot-latency-p50
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+  - id: -539
+    name: Time Per Ouput Token Latency (Average)
+    queries:
+      - expression: rate({__name__=~"vllm(:|_)time_per_output_token_seconds_sum", model_name="${name}"}[${__rate_interval}])/rate({__name__=~"vllm(:|_)time_per_output_token_seconds_count", model_name="${name}"}[${__rate_interval}])
+        alias: 'Average'
+        primary: true
+    scope: (type = "genai-model" and label = "vllm_metrics_available")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:tpot-latency-avg
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+  - id: -540
+    name: DB Request Rate
+    queries:
+      - expression: sum(rate(db_requests_total{ db_system="${name}" }[${__rate_interval}]))
+        alias: Request Rate
+        primary: true
+    scope:  type in ("vectordb.milvus")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:vectordb-system-request-rate
+    unit: reqps
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Request
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -541
+    name: Total Successful DB Requests
+    queries:
+      - expression: sum by() (db_requests_total{ db_system="${name}" })
+        alias: Requests
+        primary: true
+    scope:  type in ("vectordb.milvus")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:vectordb-system-request-total-success
+    unit: short
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Request
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -542
+    name: Request Latency (P99)
+    queries:
+      - expression: histogram_quantile(0.99, sum by (le, pod, node_id, function_name) (rate(milvus_proxy_req_latency_bucket{ service_name="${name}" }[${__rate_interval}])))
+        alias: '${function_name}'
+        primary: true
+    scope:  type in ("vectordb.milvus")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:vectordb-system-request-latency-p99
+    unit: s
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Latency
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+
+  - id: -543
+    name: Average Request Latency
+    queries:
+      - expression: sum by(function_name) (increase(milvus_proxy_req_latency_sum{ service_name="${name}" }[${__rate_interval}]))  / sum by(function_name) (increase(milvus_proxy_req_latency_count{ service_name="${name}" }[${__rate_interval}]))
+        alias: '${function_name}'
+        primary: true
+    scope:  type in ("vectordb.milvus")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:vectordb-system-average-request-latency
+    unit: s
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Latency
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -544
+    name: Insert Vector Count Rate
+    description: "The average number of vectors inserted per second"
+    queries:
+      - expression: sum(rate(milvus_proxy_insert_vectors_count_total{service_name="${name}"}[${__rate_interval}]))
+        alias: Count Rate
+        primary: true
+    scope:  type in ("vectordb.milvus")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:vectordb-system-invsert-vector-count-rate
+    unit: cps
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Utilization
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -545
+    name: Search Vector Count Rate
+    description: "The average number of vectors queried per second"
+    queries:
+      - expression: sum(rate(milvus_proxy_search_vectors_count_total{service_name=~"${name}"}[${__rate_interval}]))
+        alias: Count Rate
+        primary: true
+    scope:  type in ("vectordb.milvus")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:vectordb-system-insert-vector-search-rate
+    unit: cps
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Utilization
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -546
+    name: Search Latency (P99)
+    description: "The 99th percentile of the latency of receiving search and query requests"
+    queries:
+      - expression: histogram_quantile(0.99, sum by (le) (rate(milvus_proxy_sq_latency_bucket{service_name=~"${name}"}[${__rate_interval}])))
+        alias: Latency
+        primary: true
+    scope:  type in ("vectordb.milvus")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:vectordb-system-search-latency
+    unit: s
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Latency
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -547
+    name: Average Search Latency
+    description: "The average latency of the receiving search and query requests"
+    queries:
+      - expression: sum by (query_type) (increase(milvus_proxy_sq_latency_sum{service_name=~"${name}"}[${__interval}]))  / sum by (query_type) (increase(milvus_proxy_sq_latency_count{service_name=~"${name}"}[${__interval}]))
+        alias: '${query_type}'
+        primary: true
+    scope:  type in ("vectordb.milvus")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:vectordb-system-average-search-latency
+    unit: s
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Latency
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -548
+    name: Request Success Rate
+    description: "The number of successful requests received per second, with a detailed breakdown of each request type."
+    queries:
+      - expression: sum(rate(milvus_proxy_req_count_total{service_name=~"${name}"}[${__rate_interval}])) by(function_name)
+        alias: '${function_name}'
+        primary: true
+    scope:  type in ("vectordb.milvus")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:vectordb-system-request-sucess-rate
+    unit: reqps
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Request
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -549
+    name: Request Failed Rate
+    description: "The number of failed requests received per second, with a detailed breakdown of each request type."
+    queries:
+      - expression: sum(rate(milvus_proxy_req_count_total{service_name=~"${name}", status=~"fail"}[${__rate_interval}])) by(function_name)
+        alias: '${function_name}'
+        primary: true
+    scope:  type in ("vectordb.milvus")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:vectordb-system-request-failed-rate
+    unit: reqps
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Request
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -550
+    name: Failed Requests Count
+    description: "The total number of failed vector database requests"
+    queries:
+      - expression: sum(milvus_proxy_req_count_total{service_name=~"${name}", status="fail"})
+        alias: Failure Count
+        primary: true
+    scope:  type in ("vectordb.milvus")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:vectordb-system-failed-requests-count
+    unit: short
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Request
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -551
+    name: Mutation Send Latency  (P99)
+    description: "The 99th percentile of the latency of sending insertion or deletion requests"
+    queries:
+      - expression: histogram_quantile(0.99, sum by (le, msg_type) (rate(milvus_proxy_mutation_send_latency_bucket{service_name=~"${name}"}[${__interval}])))
+        alias: '${msg_type}'
+        primary: true
+    scope:  type in ("vectordb.milvus")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:vectordb-system-mutation-send-latency
+    unit: s
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Latency
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -552
+    name: Average Mutation Send Latency
+    description: "The average latency of sending insertion or deletion requests"
+    queries:
+      - expression: sum by (msg_type) (increase(milvus_proxy_mutation_send_latency_sum{service_name=~"${name}"}[${__interval}])) / sum by(msg_type) (increase(milvus_proxy_mutation_send_latency_count{service_name=~"${name}"}[${__interval}]))
+        alias: '${msg_type}'
+        primary: true
+    scope:  type in ("vectordb.milvus")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:vectordb-system-average-mutation-send-latency
+    unit: s
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Latency
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -553
+    name: Total Calls
+    queries:
+      - expression: sum by() (db_requests_total{ db_operation="${name}" })
+        alias: Tota Calls
+        primary: true
+    scope:  type in ("vectordb.milvus")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:vectordb-operation-total
+    unit: short
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Utilization
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+  - id: -554
+    name: Pending Tasks
+    description: "The total number of pending tasks"
+    queries:
+      - expression: sum(elasticsearch_cluster_pending_tasks{elasticsearch_cluster_name="opensearch-cluster"})
+        alias: Pending tasks count
+        primary: true
+    scope:  type in ("genai.dbsystem.opensearch")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:vectordb-pending-tasks-count
+    unit: short
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Request
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+  - id: -555
+    name: Cluster Status (Green)
+    description: "Green"
+    queries:
+      - expression: elasticsearch_cluster_health{elasticsearch_cluster_name="opensearch-cluster", status="green"}
+        alias: Cluster is Green (no issues)
+        primary: true
+    scope:  type in ("genai.dbsystem.opensearch")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:vectordb-green
+    unit: short
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Status
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+  - id: -556
+    name: Cluster Status (Yellow)
+    description: "Yellow"
+    queries:
+      - expression: elasticsearch_cluster_health{elasticsearch_cluster_name="opensearch-cluster", status="yellow"}
+        alias: Cluster is Yellow (deviating)
+        primary: true
+    scope:  type in ("genai.dbsystem.opensearch")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:vectordb-yellow
+    unit: short
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Status
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+  - id: -557
+    name: Cluster Status (Red)
+    description: "Red"
+    queries:
+      - expression: elasticsearch_cluster_health{elasticsearch_cluster_name="opensearch-cluster", status="red"}
+        alias: Cluster is Red (attention required)
+        primary: true
+    scope:  type in ("genai.dbsystem.opensearch")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:vectordb-red
+    unit: short
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Status
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+  - id: -558
+    name: Free Disk (%)
+    description: "Returns % of disk free per node"
+    queries:
+      - expression: (elasticsearch_node_fs_disk_free_bytes{elasticsearch_cluster_name="opensearch-cluster"} / elasticsearch_node_fs_disk_total_bytes{elasticsearch_cluster_name="opensearch-cluster"}) * 100
+        alias: '${elasticsearch_node_name}'
+        primary: true
+    scope:  type in ("genai.dbsystem.opensearch")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:vectordb-free-space
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Disk Space
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+  - id: -559
+    name: Completed Operations Count
+    description: "Returns the amount of operations completed"
+    queries:
+      - expression: sum(elasticsearch_index_operations_completed_total{elasticsearch_cluster_name="opensearch-cluster"}) by (operation)
+        alias: '${operation}'
+        primary: true
+    scope:  type in ("genai.dbsystem.opensearch")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:vectordb-operation
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Operations
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+  - id: -560
+    name: LLM Request Rate
+    queries:
+      - expression: sum(rate(gen_ai_requests_total{ gen_ai_system="${name}" }[${__rate_interval}]))
+        alias: Request Rate
+        primary: true
+    scope:  type in ("inference-engine.ollama", "inference-engine")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:genai-system-request-rate
+    unit: reqps
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Utilization
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+  - id: -561
+    name: Top models by usage
+    queries:
+      - expression: topk(5, sum by(gen_ai_request_model) (gen_ai_requests_total{ gen_ai_system="${name}" }))
+        alias: "${gen_ai_request_model}"
+        primary: true
+    scope:  type in ("inference-engine.ollama", "inference-engine")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:genai-system-top-models
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Models
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+  - id: -562
+    name: Average Token Consumption vs. Average Usage Cost Comparison
+    queries:
+      - expression: avg(gen_ai_usage_input_tokens_total{ gen_ai_system="${name}" })
+        alias: Prompt Tokens
+      - expression: avg(gen_ai_usage_output_tokens_total{ gen_ai_system="${name}" })
+        alias: Completion Tokens
+      - expression: avg(gen_ai_usage_cost_USD_bucket{ gen_ai_system="${name}" })
+        alias: Usage Dollar Cost
+    scope:  type in ("inference-engine.ollama", "inference-engine")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:genai-system-avg-tokens-per-total-requests
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Tokens
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+  - id: -563
+    name: Average Usage Cost
+    queries:
+      - expression: avg by() (gen_ai_usage_cost_USD_sum{ gen_ai_system="${name}" })
+        alias: Usage Dollar Cost
+    scope:  type in ("inference-engine.ollama", "inference-engine")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:genai-system-avg-usage-cost
+    unit: currencyUSD
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Cost
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+  - id: -564
+    name: Total Usage Cost
+    queries:
+      - expression: sum(gen_ai_usage_cost_USD_sum{ gen_ai_system="${name}" })
+        alias: Usage Dollar Cost
+    scope:  type in ("inference-engine.ollama", "inference-engine")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:genai-system-avg-total-usage-cost
+    unit: currencyUSD
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Cost
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+  - id: -565
+    name: Total Usage Tokens
+    queries:
+      - expression: sum(gen_ai_usage_tokens_total{ gen_ai_system="${name}" })
+        alias: Total Usage Tokens
+    scope:  type in ("inference-engine.ollama", "inference-engine")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:genai-system-total-usage-tokens
+    unit: short
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Tokens
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+  - id: -566
+    name: Total Usage Tokens
+    queries:
+      - expression: sum(gen_ai_usage_tokens_total{ gen_ai_system="${name}" })
+        alias: Total Usage Tokens
+    scope:  type in ("inference-engine.ollama", "inference-engine")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:genai-system-total-usage-tokens-line
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Tokens
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+  - id: -567
+    name: Total Successful GenAI Requests
+    queries:
+      - expression: sum by() (gen_ai_requests_total{ gen_ai_system="${name}" })
+        alias: Requests
+        primary: true
+    scope:  type in ("inference-engine.ollama", "inference-engine")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:genai-system-request-total-success
+    unit: short
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Utilization
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -568
+    name: Average Usage Cost per model
+    queries:
+      - expression: avg by(gen_ai_request_model) (gen_ai_usage_cost_USD_sum{ gen_ai_system="${name}" })/100
+        alias: '${gen_ai_request_model}'
+    scope: type in ("inference-engine.ollama", "inference-engine")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:genai-system-avg-usage-cost-per-model
+    unit: currencyUSD
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Cost
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+  - id: -569
+    name: LLM Request Rate
+    queries:
+      - expression: sum(rate(gen_ai_requests_total{ service_name="${name}" }[${__rate_interval}]))
+        alias: Request Rate
+        primary: true
+    scope:  type in ("otel service", "genai.app") AND label in ("gen_ai_app")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:genai-app-request-rate
+    unit: reqps
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Utilization
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+  - id: -570
+    name: Top models by usage
+    queries:
+      - expression: topk(5, sum by(gen_ai_request_model) (gen_ai_requests_total{ service_name="${name}" }))
+        alias: "${gen_ai_request_model}"
+        primary: true
+    scope:  type in ("otel service", "genai.app") AND label in ("gen_ai_app")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:genai-app-top-models
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Models
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+  - id: -571
+    name: Average Token Consumption vs. Average Usage Cost Comparison
+    queries:
+      - expression: avg(gen_ai_usage_input_tokens_total{ service_name="${name}" })
+        alias: Prompt Tokens
+      - expression: avg(gen_ai_usage_output_tokens_total{ service_name="${name}" })
+        alias: Completion Tokens
+      - expression: avg(gen_ai_usage_cost_USD_bucket{ service_name="${name}" })
+        alias: Usage Dollar Cost
+    scope:  type in ("otel service", "genai.app") AND label in ("gen_ai_app")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:genai-app-avg-tokens-per-total-requests
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Tokens
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+  - id: -572
+    name: Average Usage Cost
+    queries:
+      - expression: avg by() (gen_ai_usage_cost_USD_sum{ service_name="${name}" })
+        alias: Usage Dollar Cost
+    scope:  type in ("otel service", "genai.app") AND label in ("gen_ai_app")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:genai-app-avg-usage-cost
+    unit: currencyUSD
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Cost
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+  - id: -573
+    name: Total Usage Cost
+    queries:
+      - expression: sum(gen_ai_usage_cost_USD_sum{ service_name="${name}" })
+        alias: Usage Dollar Cost
+    scope:  type in ("otel service", "genai.app") AND label in ("gen_ai_app")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:genai-app-avg-total-usage-cost
+    unit: currencyUSD
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Cost
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+  - id: -574
+    name: Total Usage Tokens
+    queries:
+      - expression: sum(gen_ai_usage_tokens_total{ service_name="${name}" })
+        alias: Total Usage Tokens
+    scope:  type in ("otel service", "genai.app") AND label in ("gen_ai_app")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:genai-app-total-usage-tokens
+    unit: short
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Tokens
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+  - id: -575
+    name: Total Usage Tokens
+    queries:
+      - expression: sum(gen_ai_usage_tokens_total{ service_name="${name}" })
+        alias: Total Usage Tokens
+    scope:  type in ("otel service", "genai.app") AND label in ("gen_ai_app")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:genai-app-total-usage-tokens-line
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Tokens
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+  - id: -576
+    name: Total Successful GenAI Requests
+    queries:
+      - expression: sum by() (gen_ai_requests_total{ service_name="${name}" })
+        alias: Requests
+        primary: true
+    scope:  type in ("otel service", "genai.app") AND label in ("gen_ai_app")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:genai-app-request-total-success
+    unit: short
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Utilization
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -577
+    name: Average Usage Cost per model
+    queries:
+      - expression: avg by(gen_ai_request_model) (gen_ai_usage_cost_USD_sum{ service_name="${name}" })/100
+        alias: '${gen_ai_request_model}'
+    scope: type in ("otel service", "genai.app") AND label in ("gen_ai_app")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:genai-app-avg-usage-cost-per-model
+    unit: currencyUSD
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Cost
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -578
+    name: DB Request Rate
+    queries:
+      - expression: sum(rate(db_requests_total{ service_name="${name}" }[${__rate_interval}]))
+        alias: Request Rate
+        primary: true
+    scope:  type in ("otel service", "genai.app") AND label in ("gen_ai_app")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:genai-app-vectordb-request-rate
+    unit: reqps
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Request
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -579
+    name: Average Tokens per Request
+    description: Input and output tokens per inference call. Indicates verbosity or prompt inflation. Higher values drive cost and latency.
+    queries:
+      - expression: sum(rate(gen_ai_usage_tokens_total{service_name="${name}"}[5m])) / sum(rate(gen_ai_requests_total{service_name="${name}"}[5m]))
+        alias: "AVG Tokens/Request"
+        primary: true
+    scope:  type in ("otel service", "genai.app") AND label in ("gen_ai_app")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:genai-app-average-tokens-per-request
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Tokens
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -580
+    name: Token Throughput
+    description: Aggregate input + output tokens processed per second. Similar to a GPU-workload proxy.
+    queries:
+      - expression: sum by(gen_ai_request_model) (rate(gen_ai_usage_tokens_total{service_name="${name}"}[${__interval}]))/sum(rate(gen_ai_requests_total{service_name="${name}"}[${__interval}]))
+        alias: "${gen_ai_request_model}"
+        primary: true
+    scope:  type in ("otel service", "genai.app") AND label in ("gen_ai_app")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:genai-app-tokens-throughput
+    unit: cps
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Tokens
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -581
+    name: Cost per 1 K Tokens (USD)
+    description: Expenditure to 1000-token chunks, enabling cross-model cost benchmarking.
+    queries:
+      - expression: (sum by (gen_ai_request_model) (rate(gen_ai_usage_cost_USD_sum{service_name="${name}"}[${__rate_interval}])) / sum by(gen_ai_request_model) (rate(gen_ai_usage_tokens_total{service_name="${name}"}[${__rate_interval}]))) * 1000
+        alias: "${gen_ai_request_model}"
+        primary: true
+    scope:  type in ("otel service", "genai.app") AND label in ("gen_ai_app")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:genai-app-cost-per-1k-tokens
+    unit: currencyUSD
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Cost
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -582
+    name: Top Vector Databases by Usage
+    queries:
+      - expression: sum by(db_system) (db_requests_total{service_name="${name}"})
+        alias: "${db_system}"
+        primary: true
+    scope:  type in ("otel service", "genai.app") AND label in ("gen_ai_app")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:genai-app-vectordb-top-vectordb-by-usage
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Usage
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -583
+    name: Total Database Operations
+    queries:
+      - expression: sum(db_requests_total{service_name="${name}"})
+        alias: Total Operations
+        primary: true
+    scope:  type in ("otel service", "genai.app") AND label in ("gen_ai_app")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:genai-app-vectordb-total-database-operations
+    unit: short
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Usage
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+  - id: -584
+    name: GPU Temperature Average
+    queries:
+      - expression: avg(DCGM_FI_DEV_GPU_TEMP{ k8s_node_name="${tags.node-name}", pod_name="${name}" })
+        alias: Temperature
+        primary: true
+    scope: type IN ("pod")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:pod-gpu-avg-temp
+    unit: celsius
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Temperature
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -585
+    name: GPU Power Total
+    queries:
+      - expression: sum(DCGM_FI_DEV_POWER_USAGE{ k8s_node_name="${tags.node-name}", pod_name="${name}" })
+        alias: Power
+        primary: true
+    scope: type IN ("pod")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:pod-gpu-power-total
+    unit: kwatt
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Power
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -586
+    name: GPU Temperature
+    queries:
+      - expression: DCGM_FI_DEV_GPU_TEMP{ k8s_node_name="${tags.node-name}", pod_name="${name}" }
+        alias: GPU ${gpu}
+        primary: true
+    scope: type IN ("pod")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:pod-gpu-temperature
+    unit: kwatt
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Temperature
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -587
+    name: GPU Power Usage
+    queries:
+      - expression: DCGM_FI_DEV_POWER_USAGE{ k8s_node_name="${tags.node-name}", pod_name="${name}" }
+        alias: GPU ${gpu}
+        primary: true
+    scope: type IN ("pod")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:pod-gpu-power-usage
+    unit: kwatt
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Power
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -588
+    name: GPU SM Clocks
+    queries:
+      - expression: DCGM_FI_DEV_SM_CLOCK{ k8s_node_name="${tags.node-name}", pod_name="${name}" } * 1000000
+        alias: GPU ${gpu}
+        primary: true
+    scope: type IN ("pod")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:pod-gpu-sm-clocks
+    unit: hertz
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Utilization
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
+
+  - id: -589
+    name: GPU Utilization
+    queries:
+      - expression: DCGM_FI_DEV_GPU_UTIL{ k8s_node_name="${tags.node-name}", pod_name="${name}" }
+        alias: GPU ${gpu}
+        primary: true
+    scope: type IN ("pod")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:pod-gpu-utilization
+    unit: percent
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Utilization
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
+
+  - id: -590
+    name: Tensor Core Utilization
+    queries:
+      - expression: DCGM_FI_PROF_PIPE_TENSOR_ACTIVE{ k8s_node_name="${tags.node-name}", pod_name="${name}" }
+        alias: GPU ${gpu}
+        primary: true
+    scope: type IN ("pod")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:pod-gpu-tensor-core-utilization
+    unit: percent
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Utilization
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
+
+  - id: -591
+    name: GPU Framebuffer Mem Used
+    queries:
+      - expression: DCGM_FI_DEV_FB_USED{ k8s_node_name="${tags.node-name}", pod_name="${name}" }
+        alias: GPU ${gpu}
+        primary: true
+    scope: type IN ("pod")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:pod-gpu-framebuffer-mem-used
+    unit: bytes
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Utilization
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
+
+  - id: -592
+    name: Average GPU Utilization
+    description: Share of time the GPU is busy running kernels.
+    queries:
+      - expression: avg_over_time(DCGM_FI_DEV_GPU_UTIL{ k8s_node_name="${tags.node-name}", pod_name="${name}" }[${__rate_interval}])
+        alias: GPU ${gpu}
+        primary: true
+    scope: type IN ("pod")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:pod-gpu-average-utilization
+    unit: percent
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Utilization
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -593
+    name: GPU Memory Utilisation (%)
+    description: Portion of on-board memory currently allocated.
+    queries:
+      - expression: 100 * (DCGM_FI_DEV_FB_USED{ k8s_node_name="${tags.node-name}", pod_name="${name}" }) / (DCGM_FI_DEV_FB_USED{ k8s_node_name="${tags.node-name}", pod_name="${name}" } + DCGM_FI_DEV_FB_FREE{ k8s_node_name="${tags.node-name}", pod_name="${name}" })
+        alias: GPU ${gpu}
+        primary: true
+    scope: type IN ("pod")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:pod-gpu-memory-utilization
+    unit: percent
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Utilization
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -594
+    name: Average Power Draw
+    description: Average GPU power consumption in watts.
+    queries:
+      - expression: avg_over_time(DCGM_FI_DEV_POWER_USAGE{ k8s_node_name="${tags.node-name}", pod_name="${name}" }[${__rate_interval}])
+        alias: GPU ${gpu}
+        primary: true
+    scope: type IN ("pod")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:pod-gpu-average-power-draw
+    unit: watt
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Power
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+  - id: -595
+    name: GPU Temperature Average
+    queries:
+      - expression: avg(DCGM_FI_DEV_GPU_TEMP{ k8s_node_name="${name}" })
+        alias: Temperature
+        primary: true
+    scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-avg-temp
+    unit: celsius
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Temperature
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -596
+    name: GPU Power Total
+    queries:
+      - expression: sum(DCGM_FI_DEV_POWER_USAGE{ k8s_node_name="${name}" })
+        alias: Power
+        primary: true
+    scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-power-total
+    unit: kwatt
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Power
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -597
+    name: GPU Temperature
+    queries:
+      - expression: DCGM_FI_DEV_GPU_TEMP{ k8s_node_name="${name}" }
+        alias: GPU ${gpu}
+        primary: true
+    scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-temperature
+    unit: kwatt
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Temperature
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -598
+    name: GPU Power Usage
+    queries:
+      - expression: DCGM_FI_DEV_POWER_USAGE{ k8s_node_name="${name}" }
+        alias: GPU ${gpu}
+        primary: true
+    scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-power-usage
+    unit: kwatt
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Power
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -599
+    name: GPU SM Clocks
+    queries:
+      - expression: DCGM_FI_DEV_SM_CLOCK{ k8s_node_name="${name}" } * 1000000
+        alias: GPU ${gpu}
+        primary: true
+    scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-sm-clocks
+    unit: hertz
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Utilization
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
+
+  - id: -600
+    name: GPU Utilization
+    queries:
+      - expression: DCGM_FI_DEV_GPU_UTIL{ k8s_node_name="${name}" }
+        alias: GPU ${gpu}
+        primary: true
+    scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-utilization
+    unit: percent
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Utilization
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
+
+  - id: -601
+    name: Tensor Core Utilization
+    queries:
+      - expression: DCGM_FI_PROF_PIPE_TENSOR_ACTIVE{ k8s_node_name="${name}" }
+        alias: GPU ${gpu}
+        primary: true
+    scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-tensor-core-utilization
+    unit: percent
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Utilization
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
+
+  - id: -602
+    name: GPU Framebuffer Mem Used
+    queries:
+      - expression: DCGM_FI_DEV_FB_USED{ k8s_node_name="${name}" }
+        alias: GPU ${gpu}
+        primary: true
+    scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-framebuffer-mem-used
+    unit: bytes
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Utilization
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
+
+  - id: -603
+    name: Average GPU Utilization
+    description: Share of time the GPU is busy running kernels.
+    queries:
+      - expression: avg_over_time(DCGM_FI_DEV_GPU_UTIL{ k8s_node_name="${name}" }[${__rate_interval}])
+        alias: GPU ${gpu}
+        primary: true
+    scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-average-utilization
+    unit: percent
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Utilization
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -604
+    name: GPU Memory Utilisation (%)
+    description: Portion of on-board memory currently allocated.
+    queries:
+      - expression: 100 * (DCGM_FI_DEV_FB_USED{ k8s_node_name="${name}" }) / (DCGM_FI_DEV_FB_USED{ k8s_node_name="${name}" } + DCGM_FI_DEV_FB_FREE{ k8s_node_name="${name}" })
+        alias: GPU ${gpu}
+        primary: true
+    scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-memory-utilization
+    unit: percent
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Utilization
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -605
+    name: Average Power Draw
+    description: Average GPU power consumption in watts.
+    queries:
+      - expression: avg_over_time(DCGM_FI_DEV_POWER_USAGE{ k8s_node_name="${name}" }[${__rate_interval}])
+        alias: GPU ${gpu}
+        primary: true
+    scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-average-power-draw
+    unit: watt
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Power
+      componentSummary:
+        weight: 3
+    _type: MetricBinding

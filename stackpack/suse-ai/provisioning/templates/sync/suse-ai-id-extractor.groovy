@@ -1,42 +1,34 @@
 // IdExtractorFunction for SUSE AI components
-// It ensures that SUSE AI components are separated from OTel components by adding a prefix
-// But only for those that are specifically marked or inferred as AI components
+// It mirrors OTel elements by adding a 'suse-ai:' prefix
+// This creates a separate graph structure for AI observability
 
 if (topologyElement == null) {
     return null
 }
 
-def data = topologyElement.data ?: [:]
 def externalId = topologyElement.externalId
-
 if (externalId == null) {
     return null
 }
 
 def extIdStr = externalId.toString()
+def typeName = topologyElement.type?.name?.toString() ?: "unknown"
 
-// Check for SUSE AI management
-boolean isManaged = false
-def rawTags = data.tags
-
-if (rawTags instanceof Map) {
-    if (rawTags.containsKey("suse.ai.managed") || rawTags["telemetry.sdk.name"] == "suse-ai" || rawTags.keySet().any { it.toString().contains("suse.ai") }) {
-        isManaged = true
+// Only process elements that are relevant to services or relations
+// This avoids duplicating low-level infra like processes if not needed
+if (typeName != "service" && typeName != "service-instance" && typeName != "pod" && 
+    !topologyElement.data?.containsKey("sourceExternalId")) {
+    // Check if it has AI tags even if it's not a service
+    def tags = topologyElement.data?.tags
+    boolean hasAiTags = false
+    if (tags instanceof Map) {
+        hasAiTags = tags.keySet().any { it.toString().contains("suse.ai") }
+    } else if (tags instanceof List) {
+        hasAiTags = tags.any { it.toString().contains("suse.ai") }
     }
-} else if (rawTags instanceof List) {
-    if (rawTags.any { it.toString().contains("suse.ai") || it.toString().contains("telemetry.sdk.name:suse-ai") }) {
-        isManaged = true
-    }
+    
+    if (!hasAiTags) return null
 }
 
-// Special case for Open WebUI
-if (extIdStr.contains("Open WebUI")) {
-    isManaged = true
-}
-
-if (isManaged) {
-    def newExternalId = "suse-ai:" + extIdStr
-    return Sts.createId(newExternalId, new HashSet(), topologyElement.type?.name?.toString() ?: "unknown")
-}
-
-return null
+def newExternalId = "suse-ai:" + extIdStr
+return Sts.createId(newExternalId, new HashSet(), typeName)
