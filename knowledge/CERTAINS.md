@@ -4,7 +4,7 @@
 *   **Fact**: `ComponentType` and `ViewType` icons in STY files must be valid base64 strings.
 *   **Fact**: PNG format with the `data:image/png;base64,` prefix is reliably accepted by the StackState backend. 
 *   **Fact**: SVG format requires the `data:image/svg+xml;base64,` prefix.
-*   **Fact**: Large base64 icon strings in `products.sty` must be single-line strings enclosed in double quotes. Multiline base64 strings without proper YAML folding (like `>`) can cause validation failures like `iconbase64: Must be a valid icon.`.
+*   **Fact**: Large base64 icon strings in `products.sty` must be single-line strings. Multiline base64 strings without proper YAML folding (like `>`) can cause validation failures like `iconbase64: Must be a valid icon.`.
 
 ## 2. Provisioning Constraints
 *   **Fact**: `importSnapshot` using an empty node list (`nodes: []`) is NOT allowed and will result in a provisioning error.
@@ -28,17 +28,18 @@
 *   **Fact**: The `IdExtractorFunction` API signature is `Sts.createId(String externalId, Set<String> identifiers, String typeName)`.
 *   **Fact**: Merging multiple STY files into a single `importSnapshot` master file prevents `NamespaceSnapshotException` caused by cross-file references.
 
-## 6. Data Flow
+## 6. Data Flow & Categorization
 *   **Fact**: The SUSE AI synchronization uses a `suse-ai:` prefix for all components to ensure they remain separate from standard OTel components.
-*   **Fact**: To create relations between AI components and original OTel components, the `RelationTemplateFunction` must correctly resolve target URNs, often requiring identifiers to be passed through the mapping function.
+*   **Fact**: Multiplexed mapping is achieved by having two `Sync` nodes: one for Core mirroring (`suse-ai:<URN>`) and one for Product grouping (`suse-ai:product:<type>:<name>`).
+*   **Fact**: The `component-mapping-function.groovy` adds a `suse.ai.category` label to all managed components (e.g., `suse.ai.category:application`, `suse.ai.category:vectordb`).
+*   **Fact**: `QueryView` queries in `shared.sty` use `label = 'suse.ai.category:<category>'` instead of `type STARTSWITH` (which is unsupported in STQL) to correctly group specialized product types in the UI menus.
 
-## 7. Product Component Types
-*   **Fact**: Product-specific component types (e.g., inference-engine.vllm, vectordb.qdrant) are defined in `products.sty` with fields for health, type (ComponentTypeSource), and labels (TagsSource).
-*   **Fact**: Metric bindings for product components are migrated from old definitions (`setup/stackpack/metrics/`) into `product-metrics.sty`. These MUST use product-scoped identifiers (e.g., `urn:stackpack:suse-ai:shared:metric-binding:vllm:e2e-latency-avg`) to avoid global URN collisions.
-*   **Fact**: All STY files included in the master `suse-ai.sty` should NOT contain their own `nodes:` key. The `nodes:` key should only appear once at the root of the rendered template.
-*   **Fact**: Top-level list items in included STY files MUST be indented with exactly 2 spaces (`  - _type: ...`). Failing to indent list items will break the YAML block mapping of the `nodes:` key in the parent file.
-*   **Fact**: UI QueryView includes both generic `ui` type and product-specific `ui.*` types using `type STARTSWITH 'ui.'` clause.
+## 7. Product Component Types & Metric Bindings
+*   **Fact**: Product-specific component types (e.g., inference-engine.vllm, vectordb.milvus) are defined in `products.sty`.
+*   **Fact**: Metric bindings in `product-metrics.sty` use unique product-scoped identifiers (e.g., `urn:stackpack:suse-ai:shared:metric-binding:vllm:e2e-latency-avg`) to avoid global URN collisions.
+*   **Fact**: All 170+ metric bindings in `product-metrics.sty` have unique negative IDs ranging from -500 downwards.
+*   **Fact**: Top-level list items in included STY files MUST be indented with exactly 2 spaces (`  - _type: ...`).
+*   **Fact**: The `genai-system-active` monitor uses the aligned URN pattern: `suse-ai:product:inference-engine:${gen_ai_system}`.
 
 ## 8. Taskfile Commands
-*   **Fact**: The `stackpack-uninstall` task in `Taskfile.yaml` uses `sts stackpack list-instances --name suse-ai -o json` and `jq` to filter instances with status 'INSTALLED' or 'ERROR', then loops to uninstall each instance with `sts stackpack uninstall --id "$ID" --name suse-ai`.
-*   **Fact**: The uninstall task will uninstall all installed instances of the SUSE AI Observability stackpack, not just the first found.
+*   **Fact**: The `stackpack-uninstall` task in `Taskfile.yaml` correctly uninstalls all instances with status 'INSTALLED' or 'ERROR'.

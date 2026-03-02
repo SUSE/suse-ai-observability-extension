@@ -51,6 +51,27 @@
       mergeStrategy: MergePreferTheirs
       type: default_relation_mapping
 
+  - _type: Sync
+    name: "SUSE AI Products"
+    identifier: "urn:stackpack:suse-ai:shared:sync:suse-ai-products"
+    relationActions: []
+    extTopology: -1001
+    topologyDataQuery:
+      _type: Sts.StsTopologyElementsQuery
+      relationIdExtractorFunction: -1100
+      componentIdExtractorFunction: -1104
+      id: -1005
+      consumerOffsetStartAtEarliest: true
+    id: -1007
+    defaultComponentAction:
+      _type: SyncActionCreateComponent
+      mappingFunction: -1101
+      templateFunction: -1102
+      id: -11
+      mergeStrategy: MergePreferMine
+      type: product_component_mapping
+    componentActions: []
+
   - _type: IdExtractorFunction
     id: -1100
     identifier: urn:stackpack:suse-ai:shared:id-extractor-function:suse-ai-id-extractor
@@ -63,6 +84,19 @@
         system: true
         type: STRUCT_TYPE
     groovyScript: "{{ include "templates/sync/suse-ai-id-extractor.groovy" }}"
+
+  - _type: IdExtractorFunction
+    id: -1104
+    identifier: urn:stackpack:suse-ai:shared:id-extractor-function:suse-ai-product-id-extractor
+    name: SUSE AI Product ID extractor
+    parameters:
+      - _type: Parameter
+        multiple: false
+        name: topologyElement
+        required: true
+        system: true
+        type: STRUCT_TYPE
+    groovyScript: "{{ include "templates/sync/suse-ai-product-id-extractor.groovy" }}"
 
   - _type: ComponentMappingFunction
     id: -1101

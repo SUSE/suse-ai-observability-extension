@@ -8,14 +8,16 @@ if (rawTags instanceof List) {
         if (it instanceof String) {
             def parts = it.split(':', 2)
             if (parts.length == 2) {
-                tags[parts[0]] = parts[1]
+                tags[parts[0].toString()] = parts[1].toString()
             } else {
-                tags[it] = true
+                tags[it.toString()] = "true"
             }
         }
     }
 } else if (rawTags instanceof Map) {
-    tags = rawTags
+    rawTags.each { k, v ->
+        tags[k.toString()] = v?.toString() ?: ""
+    }
 }
 
 // Identity Promotion
@@ -27,12 +29,12 @@ if (tags.containsKey('suse.ai.component.name')) {
 
 // Identify if it is a managed SUSE AI Component
 boolean isManaged = tags['suse.ai.managed'] == 'true' || 
-                   tags['suse.ai.managed'] == true || 
+                   tags['suse.ai.managed'] == "true" || 
                    tags['telemetry.sdk.name'] == 'suse-ai' ||
-                   tags.keySet().any { it instanceof String && it.startsWith('suse.ai.') }
+                   tags.keySet().any { it.toString().startsWith('suse.ai.') }
 
 // Determine component type
-def currentType = element.type?.name ?: "application"
+def currentType = element.type?.name?.toString() ?: "application"
 
 if (isManaged) {
     tags['suse.ai.managed'] = 'true'
@@ -44,24 +46,33 @@ if (isManaged) {
     }
 
     // Map common aliases
-    switch(currentType) {
+    def category = currentType
+    switch(currentType.toLowerCase()) {
         case 'ui':
         case 'frontend':
-            currentType = 'ui'
+            category = 'ui'
             break
         case 'app':
+        case 'application':
         case 'service':
-            currentType = 'application'
+            category = 'application'
+            break
+        case 'agent':
+            category = 'agent'
             break
         case 'llm':
         case 'model':
-            currentType = 'genai.model'
+            category = 'genai.model'
             break
         case 'db':
+        case 'vectordb':
         case 'vector-db':
-            currentType = 'vectordb'
+            category = 'vectordb'
             break
     }
+    
+    tags['suse.ai.category'] = category.toString()
+    currentType = category
 
     // Product-specific specialization
     def productName = tags['suse.ai.component.name']?.toString()?.toLowerCase()
@@ -69,23 +80,24 @@ if (isManaged) {
         switch(productName) {
             case 'vllm':
             case 'ollama':
-                currentType = "inference-engine.${productName}"
+                currentType = "inference-engine.${productName}".toString()
                 break
             case 'qdrant':
             case 'milvus':
-                currentType = "vectordb.${productName}"
+                currentType = "vectordb.${productName}".toString()
                 break
             case 'opensearch':
-                currentType = "search-engine.${productName}"
+                currentType = "search-engine.${productName}".toString()
                 break
             case 'open-webui':
-                currentType = "ui.open-webui"
+            case 'open webui':
+                currentType = "ui.open-webui".toString()
                 break
             case 'litellm':
-                currentType = "model-proxy.litellm"
+                currentType = "model-proxy.litellm".toString()
                 break
             case 'mlflow':
-                currentType = "ml-registry.mlflow"
+                currentType = "ml-registry.mlflow".toString()
                 break
         }
     }
@@ -95,12 +107,9 @@ if (isManaged) {
     if (!aiTypes.contains(currentType) && !currentType.contains('.')) {
         currentType = 'application'
     }
-} else {
-    // For non-managed mirrored components, keep original OTel types if possible
-    // This ensures relations (vLLM -> Service) still work
 }
 
-element.type.name = currentType
+element.type.name = currentType.toString()
 data.tags = tags
 element.data = data
 

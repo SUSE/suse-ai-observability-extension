@@ -45,7 +45,15 @@
         showStatus: false
         externalIdSelector: "^suse-ai:"
       relatedResources: []
-      metrics: []
+      metrics:
+        - _type: "ComponentTypeMetricCategory"
+          name: "GenAI"
+          description: "GenAI Usage Metrics"
+          bindings:
+            - "urn:stackpack:suse-ai:shared:metric-binding:request-rate"
+            - "urn:stackpack:suse-ai:shared:metric-binding:average-tokens-per-request"
+            - "urn:stackpack:suse-ai:shared:metric-binding:total-usage-cost"
+          defaultExpanded: true
 
   - _type: "ComponentType"
     identifier: "urn:stackpack:suse-ai:shared:component-type:agent"
@@ -77,7 +85,15 @@
         showStatus: false
         externalIdSelector: "^suse-ai:"
       relatedResources: []
-      metrics: []
+      metrics:
+        - _type: "ComponentTypeMetricCategory"
+          name: "GenAI"
+          description: "GenAI Usage Metrics"
+          bindings:
+            - "urn:stackpack:suse-ai:shared:metric-binding:request-rate"
+            - "urn:stackpack:suse-ai:shared:metric-binding:average-tokens-per-request"
+            - "urn:stackpack:suse-ai:shared:metric-binding:total-usage-cost"
+          defaultExpanded: true
 
   - _type: "ComponentType"
     identifier: "urn:stackpack:suse-ai:shared:component-type:ui"
@@ -109,4 +125,12 @@
         showStatus: false
         externalIdSelector: "^suse-ai:"
       relatedResources: []
-      metrics: []
+      metrics:
+        - _type: "ComponentTypeMetricCategory"
+          name: "GenAI"
+          description: "GenAI Usage Metrics"
+          bindings:
+            - "urn:stackpack:suse-ai:shared:metric-binding:request-rate"
+            - "urn:stackpack:suse-ai:shared:metric-binding:average-tokens-per-request"
+            - "urn:stackpack:suse-ai:shared:metric-binding:total-usage-cost"
+          defaultExpanded: true
