@@ -31,7 +31,7 @@ if (tags.containsKey('suse.ai.component.name')) {
 boolean isManaged = tags['suse.ai.managed'] == 'true' || 
                    tags['suse.ai.managed'] == "true" || 
                    tags['telemetry.sdk.name'] == 'suse-ai' ||
-                   tags.keySet().any { it.toString().startsWith('suse.ai.') }
+                   tags.keySet().any { it.toString().toLowerCase().startsWith('suse.ai.') }
 
 // Determine component type
 def currentType = element.type?.name?.toString() ?: "application"
@@ -71,7 +71,15 @@ if (isManaged) {
             break
     }
     
-    tags['suse.ai.category'] = category.toString()
+    // UI DUPLICATION FIX:
+    // Only add the category label to logical PRODUCT components.
+    // This hides mirrored instances from the category menus (AI Applications, etc.)
+    // but keeps the logical products visible.
+    def extId = element.externalId?.toString() ?: ""
+    if (extId.startsWith("suse-ai:product:")) {
+        tags['suse.ai.category'] = category.toString()
+    }
+    
     currentType = category
 
     // Product-specific specialization
@@ -91,13 +99,13 @@ if (isManaged) {
                 break
             case 'open-webui':
             case 'open webui':
-                currentType = "ui.open-webui".toString()
+                currentType = "ui.open-webui"
                 break
             case 'litellm':
-                currentType = "model-proxy.litellm".toString()
+                currentType = "model-proxy.litellm"
                 break
             case 'mlflow':
-                currentType = "ml-registry.mlflow".toString()
+                currentType = "ml-registry.mlflow"
                 break
         }
     }

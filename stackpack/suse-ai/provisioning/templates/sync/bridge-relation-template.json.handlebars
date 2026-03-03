@@ -1,0 +1,18 @@
+{
+  "_type": "Relation",
+  "labels": [
+    {
+        "_type": "Label",
+        "name": "suse.ai.managed:true"
+    },
+    {
+        "_type": "Label",
+        "name": "suse.ai.bridge:true"
+    }
+  ],
+  "name": "\{{ element.externalId \}} is \{{ element.data.suseAiProductName \}}",
+  "type": \{{ get "urn:stackpack:suse-ai:shared:relation-type:is" \}},
+  "dependencyDirection": "ONE_WAY",
+  "source": \{{ resolve element.externalId \}},
+  "target": \{{ resolve (concat "suse-ai:product:" (if element.data.suseAiProductType element.data.suseAiProductType "application") ":" element.data.suseAiProductName) \}}
+}

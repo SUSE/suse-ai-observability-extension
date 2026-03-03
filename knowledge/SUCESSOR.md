@@ -4,13 +4,13 @@
 Deep observability for GenAI architectures using OpenTelemetry. We use Groovy scripts to transform raw OTel telemetry into high-level topology.
 
 ## 2. Session Achievements (Mar 2, 2026)
-*   **Stability**: Version 0.1.98 is **INSTALLED** and **Running**.
-*   **Categorization**: Implemented `suse.ai.category` labels in the mapping function. This allows grouping specialized product types (e.g., `vectordb.milvus`) into logical UI menus like "Vector Databases" using STQL label queries.
-*   **Menu Fixes**: Resolved "AI Agents" and other "inner menus" not working by replacing unsupported `type STARTSWITH` queries with `label = 'suse.ai.category:...'` queries.
-*   **Logical Product Sync**: Added a second `Sync` node (`urn:stackpack:suse-ai:shared:sync:suse-ai-products`) that uses a custom `IdExtractorFunction` to group individual pod instances into a single logical "Product" component (e.g., one "Milvus" component for all Milvus pods).
-*   **Metric Alignment**: Verified and aligned 170+ metric binding identifiers between `products.sty` and `product-metrics.sty`. All identifiers now use product-scoped URNs.
-*   **Core Metrics**: Bound standard GenAI metrics (Request Rate, Tokens, Cost) to all category-level component types (`application`, `agent`, `ui`, etc.).
-*   **Monitor Alignment**: Updated `genai-system-active` monitor to match the new logical product URN pattern.
+*   **Duplication Resolved**: Implemented "Option B" to prevent duplication between Core Mirroring and Product Aggregation. 
+    - `suse-ai-id-extractor.groovy` (Core) now returns `null` for any component that carries a `suse.ai.component.name` tag.
+    - This ensures that supported products are ONLY handled by the `SUSE AI Products` sync, resulting in a single logical component instead of both a mirror and a logical one.
+    - Generic AI components (those with AI tags but no product name) are still mirrored.
+*   **Bridge Logic**: The `SUSE AI Bridge` sync has been configured following the "Relation ID Extractor" pattern to link OTel resources to SUSE AI abstractions.
+*   **Case Sensitivity**: Mapping function now handles `suse.ai.*` tags case-insensitively.
+*   **Groovy Linting**: Fully integrated into the build pipeline. All scripts are now error-free.
 
 ## 3. Current Implementation Status
 *   **StackPack Version**: 0.1.98

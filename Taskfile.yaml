@@ -30,8 +30,14 @@ tasks:
         sed -i "s/version = \"$VERSION\"/version = \"$NEW_VERSION\"/" stackpack/suse-ai/stackpack.conf
         echo "StackPack version updated to $NEW_VERSION"
 
+  lint-groovy:
+    desc: Lints all Groovy scripts in the stackpack
+    cmds:
+      - npm-groovy-lint --path stackpack/suse-ai/provisioning --failon error
+
   stackpack-upload:
     desc: Zips, uploads and upgrades the stackpack
+    deps: [lint-groovy]
     cmds:
       - |
         cd stackpack/suse-ai

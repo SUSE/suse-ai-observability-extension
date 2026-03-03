@@ -1,6 +1,5 @@
-// Product ID Extractor for SUSE AI
-// Creates a single logical component for each named AI product
-// (e.g., all Milvus instances merge into one 'Milvus' component)
+// Bridge ID Extractor for SUSE AI
+// Creates relations between OTel resources and SUSE AI abstractions
 
 if (topologyElement == null) {
     return null
@@ -8,7 +7,11 @@ if (topologyElement == null) {
 
 def data = topologyElement.data ?: [:]
 def tags = data.tags ?: [:]
-def typeName = topologyElement.type?.name?.toString() ?: 'unknown'
+def externalId = topologyElement.externalId?.toString()
+
+if (!externalId) {
+    return null
+}
 
 // Normalize tags to map
 def normalizedTags = [:]
@@ -30,13 +33,16 @@ if (tags instanceof List) {
 def productName = normalizedTags['suse.ai.component.name']?.toString()
 def productType = normalizedTags['suse.ai.component.type']?.toString() ?: 'application'
 
-if (productName) {
-    // Create a deterministic ID for the product
-    def newExternalId = "suse-ai:product:${productType}:${productName}".toString()
+// If this is a component element (it doesn't have source/target in data)
+// AND it belongs to a SUSE AI product, create a relation ID for it.
+if (productName && !data.containsKey('sourceExternalId')) {
+    def relationExternalId = 'suse-ai:bridge:' + externalId
     
-    // Use the original OTel type if we want the mapper to handle it
-    // Or just use 'application' as base
-    return Sts.createId(newExternalId, [] as Set, typeName)
+    // Store metadata for the template
+    data.put('suseAiProductName', productName)
+    data.put('suseAiProductType', productType)
+    
+    return Sts.createId(relationExternalId, [] as Set, 'is')
 }
 
 return null

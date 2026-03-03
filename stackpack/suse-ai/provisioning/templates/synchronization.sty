@@ -58,7 +58,7 @@
     extTopology: -1001
     topologyDataQuery:
       _type: Sts.StsTopologyElementsQuery
-      relationIdExtractorFunction: -1100
+      relationIdExtractorFunction: -1107
       componentIdExtractorFunction: -1104
       id: -1005
       consumerOffsetStartAtEarliest: true
@@ -71,6 +71,46 @@
       mergeStrategy: MergePreferMine
       type: product_component_mapping
     componentActions: []
+
+  - _type: Sync
+    name: "SUSE AI Bridge"
+    identifier: "urn:stackpack:suse-ai:shared:sync:suse-ai-bridge"
+    relationActions: []
+    extTopology: -1001
+    topologyDataQuery:
+      _type: Sts.StsTopologyElementsQuery
+      relationIdExtractorFunction: -1105
+      componentIdExtractorFunction: -1107
+      id: -1009
+      consumerOffsetStartAtEarliest: true
+    id: -1008
+    defaultComponentAction:
+      _type: SyncActionCreateComponent
+      mappingFunction: -1101
+      templateFunction: -1102
+      id: -12
+      mergeStrategy: MergePreferMine
+      type: default_component_mapping
+    componentActions: []
+    defaultRelationAction:
+      _type: SyncActionCreateRelation
+      templateFunction: -1106
+      id: -13
+      mergeStrategy: MergePreferTheirs
+      type: bridge_relation_mapping
+
+  - _type: IdExtractorFunction
+    id: -1107
+    identifier: urn:stackpack:suse-ai:shared:id-extractor-function:always-null
+    name: Always Null
+    parameters:
+      - _type: Parameter
+        multiple: false
+        name: topologyElement
+        required: true
+        system: true
+        type: STRUCT_TYPE
+    groovyScript: "return null"
 
   - _type: IdExtractorFunction
     id: -1100
@@ -98,6 +138,19 @@
         type: STRUCT_TYPE
     groovyScript: "{{ include "templates/sync/suse-ai-product-id-extractor.groovy" }}"
 
+  - _type: IdExtractorFunction
+    id: -1105
+    identifier: urn:stackpack:suse-ai:shared:id-extractor-function:suse-ai-bridge-id-extractor
+    name: SUSE AI Bridge ID extractor
+    parameters:
+      - _type: Parameter
+        multiple: false
+        name: topologyElement
+        required: true
+        system: true
+        type: STRUCT_TYPE
+    groovyScript: "{{ include "templates/sync/suse-ai-bridge-id-extractor.groovy" }}"
+
   - _type: ComponentMappingFunction
     id: -1101
     identifier: urn:stackpack:suse-ai:shared:component-mapping-function:suse-ai-mapper
@@ -109,6 +162,20 @@
         required: true
         system: true
         type: STRUCT_TYPE
+    script: "{{ include "templates/sync/component-mapping-function.groovy" }}"
+
+  - _type: "RelationTemplateFunction"
+    handlebarsTemplate: "{{ include "templates/sync/bridge-relation-template.json.handlebars" }}"
+    id: -1106
+    identifier: "urn:stackpack:suse-ai:shared:relation-template-function:suse-ai-bridge-relation"
+    name: "SUSE AI Bridge Relation Template"
+    parameters:
+      - _type: "Parameter"
+        multiple: false
+        name: "element"
+        required: true
+        system: false
+        type: "STRUCT_TYPE"
     script: "{{ include "templates/sync/component-mapping-function.groovy" }}"
 
   - _type: ComponentTemplateFunction
