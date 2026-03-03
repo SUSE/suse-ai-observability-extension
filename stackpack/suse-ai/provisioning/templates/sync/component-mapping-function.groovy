@@ -95,6 +95,7 @@ if (isManaged) {
                 currentType = "vectordb.${productName}".toString()
                 break
             case 'opensearch':
+            case 'elasticsearch':
                 currentType = "search-engine.${productName}".toString()
                 break
             case 'open-webui':
