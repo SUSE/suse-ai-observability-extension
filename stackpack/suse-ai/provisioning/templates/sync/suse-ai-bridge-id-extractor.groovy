@@ -1,17 +1,13 @@
 // Bridge ID Extractor for SUSE AI
 // Creates relations between OTel resources and SUSE AI abstractions
 
-if (topologyElement == null) {
+if (topologyElement == null || topologyElement.externalId == null) {
     return null
 }
 
 def data = topologyElement.data ?: [:]
 def tags = data.tags ?: [:]
-def externalId = topologyElement.externalId?.toString()
-
-if (!externalId) {
-    return null
-}
+def externalId = topologyElement.externalId.toString()
 
 // Normalize tags to map
 def normalizedTags = [:]
@@ -33,16 +29,12 @@ if (tags instanceof List) {
 def productName = normalizedTags['suse.ai.component.name']?.toString()
 def productType = normalizedTags['suse.ai.component.type']?.toString() ?: 'application'
 
-// If this is a component element (it doesn't have source/target in data)
-// AND it belongs to a SUSE AI product, create a relation ID for it.
 if (productName && !data.containsKey('sourceExternalId')) {
-    def relationExternalId = 'suse-ai:bridge:' + externalId
-    
     // Store metadata for the template
     data.put('suseAiProductName', productName)
     data.put('suseAiProductType', productType)
     
-    return Sts.createId(relationExternalId, [] as Set, 'is')
+    return Sts.createId('suse-ai:bridge:' + externalId, [] as Set, 'is')
 }
 
 return null
