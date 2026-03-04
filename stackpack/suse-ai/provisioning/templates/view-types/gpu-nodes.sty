@@ -1,0 +1,92 @@
+  - id: -6000
+    name: GPU Nodes
+    iconbase64: data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMi4xNzQgMS40MzgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjIwIiBoZWlnaHQ9IjEzLjIyNCI+PHBhdGggZD0iTTAuODEgMC40MjlWMC4yOTlxMC4wMTkgLTAuMDAxIDAuMDM4IC0wLjAwMkMxLjIwNCAwLjI4NiAxLjQzNyAwLjYwMyAxLjQzNyAwLjYwM3MtMC4yNTEgMC4zNDkgLTAuNTIxIDAuMzQ5cS0wLjA1NCAwIC0wLjEwNSAtMC4wMTdWMC41NDJjMC4xMzggMC4wMTcgMC4xNjYgMC4wNzggMC4yNDkgMC4yMTZsMC4xODUgLTAuMTU1cy0wLjEzNSAtMC4xNzcgLTAuMzYyIC0wLjE3N2EwLjY2NyAwLjY2NyAwIDAgMCAtMC4wNzIgMC4wMDNtMCAtMC40Mjl2MC4xOTRsMC4wMzggLTAuMDAyYzAuNDk0IC0wLjAxNyAwLjgxNiAwLjQwNSAwLjgxNiAwLjQwNVMxLjI5NSAxLjA0NiAwLjkxIDEuMDQ2cS0wLjA1IDAgLTAuMDk5IC0wLjAwOXYwLjEycTAuMDQxIDAuMDA1IDAuMDgyIDAuMDA2YzAuMzU4IDAgMC42MTggLTAuMTgzIDAuODY5IC0wLjM5OSAwLjA0MiAwLjAzNCAwLjIxMiAwLjExNCAwLjI0NyAwLjE1IC0wLjIzOCAwLjIgLTAuNzk0IDAuMzYxIC0xLjExIDAuMzYxYTEgMSAwIDAgMSAtMC4wODggLTAuMDA1djAuMTY5SDIuMTczVjB6bTAgMC45MzV2MC4xMDJjLTAuMzMxIC0wLjA1OSAtMC40MjMgLTAuNDA0IC0wLjQyMyAtMC40MDRzMC4xNTkgLTAuMTc2IDAuNDIzIC0wLjIwNXYwLjExMmgtMC4wMDFjLTAuMTM4IC0wLjAxNyAtMC4yNDcgMC4xMTMgLTAuMjQ3IDAuMTEzczAuMDYyIDAuMjE4IDAuMjQ4IDAuMjgyTTAuMjIyIDAuNjE5czAuMTk2IC0wLjI5IDAuNTg5IC0wLjMyVjAuMTk0QzAuMzc2IDAuMjI5IDAgMC41OTcgMCAwLjU5N3MwLjIxMyAwLjYxNiAwLjgxIDAuNjcyVjEuMTU3QzAuMzcyIDEuMTAyIDAuMjIyIDAuNjE5IDAuMjIyIDAuNjE5IiBmaWxsPSIjNzZiOTAwIi8+PC9zdmc+
+    overview:
+      columns:
+        - _type: ViewTypeTableColHealth
+        - title: Node
+          width: 140
+          _type: ViewTypeTableColName
+        - title: Status
+          path:
+            - properties
+            - status
+          width: 100
+          _type: ViewTypeTableColText
+        - title: GPUs
+          path: ["tags", "nvidia.com/gpu.count"]
+          width: 110
+          _type: ViewTypeTableColText
+        - title: Model
+          path: ["tags", "nvidia.com/gpu.product"]
+          width: 140
+          _type: ViewTypeTableColText
+        - title: Family
+          path: ["tags", "nvidia.com/gpu.family"]
+          width: 100
+          _type: ViewTypeTableColText
+        - title: Node OS
+          labelPrefix: feature.node.kubernetes.io/system-os_release.ID
+          path: ["tags", "feature.node.kubernetes.io/system-os_release.ID"]
+          width: 130
+          _type: ViewTypeTableColText
+        - title: OS Version
+          path: ["tags", "feature.node.kubernetes.io/system-os_release.VERSION_ID"]
+          width: 140
+          _type: ViewTypeTableColText
+        - title: CUDA Version
+          path: ["tags", "nvidia.com/cuda.runtime-version.full"]
+          width: 140
+          _type: ViewTypeTableColText
+        - title: Driver Version
+          path: ["tags", "nvidia.com/cuda.driver-version.full"]
+          width: 140
+          _type: ViewTypeTableColText
+        - title: GPU Memory
+          path: ["tags", "nvidia.com/gpu.memory"]
+          width: 160
+          _type: ViewTypeTableColText
+        - title: GPU Temperature Average
+          metricBindingIdentifier: urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-avg-temp
+          width: 160
+          _type: ViewTypeTableColMetricBinding
+        - title: GPU Power Total
+          metricBindingIdentifier: urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-power-total
+          width: 160
+          _type: ViewTypeTableColMetricBinding
+        - title: GPU Utilization
+          metricBindingIdentifier: urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-utilization
+          width: 160
+          _type: ViewTypeTableColMetricBinding
+        - title: GPU Memory Utilization
+          metricBindingIdentifier: urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-memory-utilization
+          width: 160
+          _type: ViewTypeTableColMetricBinding
+        - title: CPU Usage
+          metricBindingIdentifier: urn:stackpack:stackstate-k8s-agent-v2:shared:metric-binding:host-cpu-time-summary
+          width: 160
+          _type: ViewTypeTableColMetricBinding
+        - title: Usable Memory
+          metricBindingIdentifier: urn:stackpack:stackstate-k8s-agent-v2:shared:metric-binding:host-memory
+          width: 150
+          _type: ViewTypeTableColMetricBinding
+        - title: Cluster
+          labelPrefix: cluster-name
+          pathToIdentifier:
+            - properties
+            - clusterNameIdentifier
+          width: 150
+          _type: ViewTypeTableColComponentLink
+      _type: ViewTypeOverview
+    flags:
+      - NoTopologyFilters
+    filters:
+      - prefix: cluster-name
+        name: cluster-name
+        _type: LabelPrefixedFilter
+      - tabs:
+          - EVENTS
+          - TRACES
+        _type: TopologyFilters
+    identifier: urn:stackpack:suse-ai:shared:view-type:gpu-nodes
+    _type: ViewType
