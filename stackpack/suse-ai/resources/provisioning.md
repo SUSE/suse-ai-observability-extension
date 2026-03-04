@@ -1,0 +1,3 @@
+## Provisioning...
+
+Provisioning SUSE AI Observability monitoring. Please wait a moment. You can already start configuring your applications for [GenAI observability](https://l.stackstate.com/suse-ai-setup).
