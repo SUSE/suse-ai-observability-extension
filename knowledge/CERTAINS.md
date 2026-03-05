@@ -45,3 +45,14 @@
 
 ## 8. Taskfile Commands
 *   **Fact**: The `stackpack-uninstall` task in `Taskfile.yaml` correctly uninstalls all instances with status 'INSTALLED' or 'ERROR'.
+
+## 9. Documentation
+
+*   **Fact**: The StackPack's user‑facing markdown files (`overview.md`, `detailed‑overview.md`, `configuration.md`, `provisioning.md`, `waitingfordata.md`, `enabled.md`, `RELEASE.md`) reside in `stackpack/suse‑ai/resources/` and are referenced via `configurationUrls` in `stackpack.conf`.
+*   **Fact**: The `configurationUrls` mapping follows the state machine: `NOT_INSTALLED` → `configuration.md`, `PROVISIONING` → `provisioning.md`, `WAITING_FOR_DATA` → `waitingfordata.md`, `INSTALLED` → `enabled.md`, `DEPROVISIONING` → `configuration.md`, `ERROR` → `configuration.md`.
+*   **Fact**: The `overviewUrl`, `detailedOverviewUrl`, and `releaseNotes` fields in `stackpack.conf` point to markdown files at the StackPack root (`stackpack/suse‑ai/`), which provide catalog descriptions and release notes.
+
+## 10. View Types
+*   **Fact**: The GPU Nodes ViewType (`urn:stackpack:suse-ai:shared:view-type:gpu-nodes`) provides a detailed table with GPU-specific columns and metrics, extending the existing QueryView.
+*   **Fact**: ViewType columns can reference metric bindings from both the SUSE AI stackpack (`urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-*`) and external stackpacks (`urn:stackpack:stackstate-k8s-agent-v2:shared:metric-binding:host-*`).
+*   **Fact**: The `pathToIdentifier` for label‑based columns must point to a unique component identifier (e.g., `internalIP` for nodes) to correctly resolve component links.
