@@ -3,19 +3,15 @@ version: '3'
 dotenv: ['./.env']
 
 vars:
-  IMAGE: "genai-observability"
+  IMAGE: "suse-ai-observability"
   VERSION: latest
 
 tasks:
-  podman-build-runtime:
-    cmds:
-      - podman build -f Dockerfile.runtime -t {{.IMAGE}}-runtime:{{.VERSION}} .
   podman-build-setup:
     cmds:
       - podman build -f Dockerfile.setup -t {{.IMAGE}}-setup:{{.VERSION}} .
   push-images:
     cmds:
-      - podman push {{.IMAGE}}-runtime:{{.VERSION}}
       - podman push {{.IMAGE}}-setup:{{.VERSION}}
 
   version-up:
