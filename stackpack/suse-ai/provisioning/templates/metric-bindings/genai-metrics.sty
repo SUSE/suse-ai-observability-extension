@@ -8,10 +8,10 @@
     enabled: true
     scope: label IN ("suse.ai.managed:true")
     queries:
-      - expression: sum(rate(gen_ai_requests_total{ service_name="${name}" }[${__rate_interval}]))
-        alias: App Request Rate
-      - expression: sum(rate(gen_ai_requests_total{ gen_ai_system="${name}" }[${__rate_interval}]))
-        alias: System Request Rate
+      - expression: sum(rate(gen_ai_client_request_count_total{ service_name="${name}" }[${__rate_interval}]))
+        alias: Request Rate
+      - expression: sum(rate(gen_ai_client_request_count_total{ gen_ai_provider_name="${name}" }[${__rate_interval}]))
+        alias: Provider Request Rate
     layout:
       metricPerspective:
         tab: LLM
@@ -29,10 +29,10 @@
     enabled: true
     scope: label IN ("suse.ai.managed:true")
     queries:
-      - expression: sum(rate(gen_ai_usage_tokens_total{service_name="${name}"}[5m])) / sum(rate(gen_ai_requests_total{service_name="${name}"}[5m]))
-        alias: "AVG Tokens/Request (App)"
-      - expression: sum(rate(gen_ai_usage_tokens_total{gen_ai_system="${name}"}[5m])) / sum(rate(gen_ai_requests_total{gen_ai_system="${name}"}[5m]))
-        alias: "AVG Tokens/Request (System)"
+      - expression: sum(rate(gen_ai_client_token_usage_sum{service_name="${name}"}[5m])) / sum(rate(gen_ai_client_request_count_total{service_name="${name}"}[5m]))
+        alias: "AVG Tokens/Request"
+      - expression: sum(rate(gen_ai_client_token_usage_sum{gen_ai_provider_name="${name}"}[5m])) / sum(rate(gen_ai_client_request_count_total{gen_ai_provider_name="${name}"}[5m]))
+        alias: "Provider AVG Tokens/Request"
     layout:
       metricPerspective:
         tab: LLM
@@ -50,13 +50,55 @@
     enabled: true
     scope: label IN ("suse.ai.managed:true")
     queries:
-      - expression: sum(gen_ai_usage_cost_USD_sum{ service_name="${name}" })
-        alias: App Cost
-      - expression: sum(gen_ai_usage_cost_USD_sum{ gen_ai_system="${name}" })
-        alias: System Cost
+      - expression: sum(gen_ai_client_operation_cost_sum{ service_name="${name}" })
+        alias: Cost
+      - expression: sum(gen_ai_client_operation_cost_sum{ gen_ai_provider_name="${name}" })
+        alias: Provider Cost
     layout:
       metricPerspective:
         tab: LLM
         section: Cost
       componentSummary:
         weight: 3
+
+  - _type: MetricBinding
+    id: -2003
+    name: Operation Duration (P95)
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:operation-duration-p95
+    unit: s
+    chartType: line
+    priority: high
+    enabled: true
+    scope: label IN ("suse.ai.managed:true")
+    queries:
+      - expression: histogram_quantile(0.95, sum(rate(gen_ai_client_operation_duration_bucket{service_name="${name}"}[5m])) by (le))
+        alias: P95 Duration
+      - expression: histogram_quantile(0.95, sum(rate(gen_ai_client_operation_duration_bucket{gen_ai_provider_name="${name}"}[5m])) by (le))
+        alias: Provider P95 Duration
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Performance
+      componentSummary:
+        weight: 3
+
+  - _type: MetricBinding
+    id: -2004
+    name: Token Usage by Type
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:token-usage-by-type
+    unit: short
+    chartType: line
+    priority: medium
+    enabled: true
+    scope: label IN ("suse.ai.managed:true")
+    queries:
+      - expression: sum(rate(gen_ai_client_token_usage_sum{service_name="${name}", gen_ai_token_type="input"}[5m]))
+        alias: Input Tokens
+      - expression: sum(rate(gen_ai_client_token_usage_sum{service_name="${name}", gen_ai_token_type="output"}[5m]))
+        alias: Output Tokens
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Tokens
+      componentSummary:
+        weight: 2
