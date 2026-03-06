@@ -1,10 +1,11 @@
 """
 title: SUSE AI Monitoring Pipeline
 author: Thiago Bertoldi (SUSE)
-date: 2025-10-20
-version: 1.1.0
+date: 2026-03-06
+version: 1.2.1
 license: Apache 2.0
-description: A pipeline for generating chat telemetry data for SUSE AI
+description: A pipeline for generating chat telemetry data for SUSE AI, aligned with OpenTelemetry GenAI semantic conventions
+Fixed for Open WebUI 0.6.41+ compatibility with immediate initialization and graceful fallback
 """
 
 from typing import Optional, List
@@ -70,6 +71,9 @@ class Pipeline:
         )
         self.local_sdk_name = "suse-ai"
 
+        # Initialize telemetry immediately to handle Open WebUI 0.6.41+ lifecycle
+        self.setup()
+
     def get_chat_model_cost(self, model, prompt, completion):
         try:
             cost = (
@@ -88,19 +92,27 @@ class Pipeline:
         return self.valves.capture_message_content
 
     def setup(self):
-        resource = Resource.create(
-            attributes={
-                ResourceAttributes.SERVICE_NAME: self.valves.otlp_service_name,
-                ResourceAttributes.SERVICE_VERSION: "1.0",
-                ResourceAttributes.DEPLOYMENT_ENVIRONMENT: "default",
-                ResourceAttributes.TELEMETRY_SDK_NAME: self.local_sdk_name,
-                "suse.ai.managed": "true",
-                "suse.ai.component.name": "Open WebUI",
-                "suse.ai.component.type": "ui",
-            }
-        )
-        self._setup_meter(resource)
-        self._setup_tracer(resource)
+        try:
+            resource = Resource.create(
+                attributes={
+                    ResourceAttributes.SERVICE_NAME: self.valves.otlp_service_name,
+                    ResourceAttributes.SERVICE_VERSION: "1.0",
+                    ResourceAttributes.DEPLOYMENT_ENVIRONMENT: "default",
+                    ResourceAttributes.TELEMETRY_SDK_NAME: self.local_sdk_name,
+                    "suse.ai.managed": "true",
+                    "suse.ai.component.name": "Open WebUI",
+                    "suse.ai.component.type": "ui",
+                }
+            )
+            self._setup_meter(resource)
+            self._setup_tracer(resource)
+            self.log("Telemetry setup completed successfully")
+        except Exception as e:
+            print(f"[ERROR] Failed to initialize telemetry: {e}")
+            # Set to None to indicate failure
+            self.tracer = None
+            self.meter = None
+            self.metrics = {}
 
     def _setup_tracer(self, resource):
         tracer_provider = TracerProvider(resource=resource)
@@ -109,7 +121,7 @@ class Pipeline:
                 OTLPSpanExporter(endpoint=self.valves.otlp_endpoint + "/v1/traces")
             )
         )
-        self.tracer = tracer_provider.get_tracer("openlit.otel.tracing")
+        self.tracer = tracer_provider.get_tracer(self.local_sdk_name)
 
     def _setup_meter(self, resource):
         metric_exporter = OTLPMetricExporter(
@@ -122,11 +134,11 @@ class Pipeline:
             resource=resource, metric_readers=[metric_reader]
         )
 
-        self.meter = meter_provider.get_meter(__name__, version="1.0.0")
+        self.meter = meter_provider.get_meter(self.local_sdk_name)
 
         self.metrics = {
-            # OTel Semconv
-            "genai_client_usage_tokens": self.meter.create_histogram(
+            # OTel Semconv - Standard Metrics
+            "genai_client_token_usage": self.meter.create_histogram(
                 name=SemanticConvention.GEN_AI_CLIENT_TOKEN_USAGE,
                 description="Measures number of input and output tokens used",
                 unit="{token}",
@@ -138,30 +150,15 @@ class Pipeline:
                 unit="s",
                 explicit_bucket_boundaries_advisory=_GEN_AI_CLIENT_OPERATION_DURATION_BUCKETS,
             ),
-            # Extra
+            # Custom Metrics - SUSE AI Extensions
             "genai_requests": self.meter.create_counter(
-                name=SemanticConvention.GEN_AI_REQUESTS,
-                description="Number of requests to GenAI",
-                unit="1",
-            ),
-            "genai_prompt_tokens": self.meter.create_counter(
-                name=SemanticConvention.GEN_AI_USAGE_INPUT_TOKENS,
-                description="Number of prompt tokens processed.",
-                unit="1",
-            ),
-            "genai_completion_tokens": self.meter.create_counter(
-                name=SemanticConvention.GEN_AI_USAGE_OUTPUT_TOKENS,
-                description="Number of completion tokens processed.",
-                unit="1",
-            ),
-            "genai_usage_tokens_total": self.meter.create_counter(
-                name="gen_ai_usage_tokens_total",
-                description="Number of tokens processed.",
-                unit="1",
+                name="gen_ai.client.request.count",
+                description="Number of requests to GenAI providers",
+                unit="{request}",
             ),
             "genai_cost": self.meter.create_histogram(
-                name=SemanticConvention.GEN_AI_USAGE_COST,
-                description="The distribution of GenAI request costs.",
+                name="gen_ai.client.operation.cost",
+                description="Cost of GenAI operations in USD",
                 unit="USD",
             ),
         }
@@ -179,6 +176,12 @@ class Pipeline:
 
     async def inlet(self, body: dict, user: Optional[dict] = None) -> dict:
         self.log(f"Inlet function called with body: {body} and user: {user}")
+
+        # Ensure telemetry is initialized
+        if self.tracer is None or self.meter is None:
+            self.log("Telemetry not initialized, calling setup()")
+            self.setup()
+
         metadata = body.get("metadata", {})
         task = metadata.get("task", "")
 
@@ -205,6 +208,12 @@ class Pipeline:
                 pass
 
         model = body.get("model", "default")
+
+        # Skip telemetry if tracer is not available
+        if self.tracer is None:
+            self.log("Tracer not available, skipping telemetry in inlet")
+            return body
+
         parent = self.chats.get(chat_id, None)
         if parent is None:
             parent = self.tracer.start_span(f"{chat_id}")
@@ -213,25 +222,19 @@ class Pipeline:
 
         parent_context = trace.set_span_in_context(parent)
         with self.tracer.start_as_current_span("user", context=parent_context) as span:
-            # Set attributes on the span
+            # Set attributes on the span (OTel Semconv)
             span.set_attribute(SemanticConvention.GEN_AI_OPERATION, "chat")
-            span.set_attribute(SemanticConvention.GEN_AI_SYSTEM, provider)
+            span.set_attribute(SemanticConvention.GEN_AI_PROVIDER_NAME, provider)
             span.set_attribute(SemanticConvention.GEN_AI_CONVERSATION_ID, chat_id)
             span.set_attribute(SemanticConvention.GEN_AI_REQUEST_MODEL, model)
-
-            # Matching demo
-            span.set_attribute("gen_ai.environment", "default")
-            span.set_attribute("gen_ai.request.is_stream", body.get("stream"))
-            span.set_attribute("telemetry.sdk.name", self.local_sdk_name)
-            span.set_attribute("gen_ai.application_name", self.valves.otlp_service_name)
-            span.set_attribute("gen_ai.endpoint", f"{provider}.chat")
+            span.set_attribute(SemanticConvention.GEN_AI_REQUEST_IS_STREAM, body.get("stream", False))
 
             if self.capture_messages():
                 message = get_last_user_message(body["messages"])
                 span.add_event(
                     SemanticConvention.GEN_AI_USER_MESSAGE,
                     attributes={
-                        SemanticConvention.GEN_AI_SYSTEM: provider,
+                        SemanticConvention.GEN_AI_PROVIDER_NAME: provider,
                         SemanticConvention.CONTENT: message,
                     },
                 )
@@ -241,6 +244,12 @@ class Pipeline:
 
     async def outlet(self, body: dict, user: Optional[dict] = None) -> dict:
         self.log(f"Outlet function called with body: {body} and user {user}")
+
+        # Ensure telemetry is initialized
+        if self.tracer is None or self.meter is None:
+            self.log("Telemetry not initialized in outlet, calling setup()")
+            self.setup()
+
         token_counts_available = True
         model = body.get("model") or "undefined"
         chat_id = body.get("chat_id", None)
@@ -252,23 +261,29 @@ class Pipeline:
             token_counts_available = False
         if token_counts_available:
             total_tokens = input_tokens + output_tokens
+
+        # Skip telemetry if tracer/meter not available
+        if self.tracer is None or self.meter is None:
+            self.log("Tracer/Meter not available, skipping telemetry in outlet")
+            return body
+
         if parent := self.chats.get(chat_id, None):
             provider = self.chat_model_provider.get((chat_id, model), "default")
             context = trace.set_span_in_context(parent)
             with self.tracer.start_as_current_span(
                 "ai_system", context=context
             ) as span:
+                # Set attributes on the span (OTel Semconv)
                 span.set_attribute(SemanticConvention.GEN_AI_OPERATION, "chat")
-                span.set_attribute(SemanticConvention.GEN_AI_SYSTEM, provider)
+                span.set_attribute(SemanticConvention.GEN_AI_PROVIDER_NAME, provider)
+                span.set_attribute(SemanticConvention.GEN_AI_REQUEST_MODEL, model)
+                span.set_attribute(SemanticConvention.GEN_AI_RESPONSE_MODEL, model)
 
-                # Set attributes on the span
-                span.set_attribute(
-                    "gen_ai.application_name", self.valves.otlp_service_name
-                )
-                span.set_attribute("gen_ai.endpoint", f"{provider}.chat")
-                span.set_attribute("gen_ai.environment", "default")
-                span.set_attribute("gen_ai.request.model", model)
                 if token_counts_available:
+                    span.set_attribute(SemanticConvention.GEN_AI_USAGE_INPUT_TOKENS, input_tokens)
+                    span.set_attribute(SemanticConvention.GEN_AI_USAGE_OUTPUT_TOKENS, output_tokens)
+
+                    # Custom cost attribute (non-standard)
                     cost = 0
                     try:
                         cost = self.get_chat_model_cost(
@@ -276,16 +291,17 @@ class Pipeline:
                         )
                     except UndefinedPriceError:
                         self.log(f"Undefined price for model {model}")
-                    span.set_attribute("gen_ai.usage.cost", cost)
-                    span.set_attribute("gen_ai.usage.input_tokens", input_tokens)
-                    span.set_attribute("gen_ai.usage.output_tokens", output_tokens)
-                    span.set_attribute("gen_ai.usage.total_tokens", total_tokens)
-                span.set_attribute("telemetry.sdk.name", self.local_sdk_name)
+                    if cost > 0:
+                        span.set_attribute("gen_ai.usage.cost", cost)
+
                 if self.capture_messages():
                     message = get_last_assistant_message(body["messages"])
                     span.add_event(
-                        SemanticConvention.GEN_AI_CONTENT_PROMPT,
-                        attributes={"gen_ai.generation": f"user: {message}"},
+                        SemanticConvention.GEN_AI_ASSISTANT_MESSAGE,
+                        attributes={
+                            SemanticConvention.GEN_AI_PROVIDER_NAME: provider,
+                            SemanticConvention.CONTENT: message,
+                        },
                     )
                     span.set_attribute(
                         SemanticConvention.GEN_AI_ASSISTANT_MESSAGE, message
@@ -300,37 +316,58 @@ class Pipeline:
             self.log("No parent span")
             return body
 
-        metrics_attributes = create_metrics_attributes(
-            service_name=self.valves.otlp_service_name,
-            deployment_environment="default",
+        # Base attributes for all metrics
+        base_attrs = create_metrics_attributes(
             operation=SemanticConvention.GEN_AI_OPERATION_TYPE_CHAT,
-            system=provider,
+            provider=provider,
             request_model=model,
             response_model=model,
-            app_name=self.valves.otlp_service_name,
         )
 
         if token_counts_available:
-            self.metrics["genai_client_usage_tokens"].record(
-                total_tokens, metrics_attributes
+            # Record input tokens with token.type="input"
+            input_attrs = create_metrics_attributes(
+                operation=SemanticConvention.GEN_AI_OPERATION_TYPE_CHAT,
+                provider=provider,
+                request_model=model,
+                response_model=model,
+                token_type="input",
             )
-            self.metrics["genai_completion_tokens"].add(
-                output_tokens, metrics_attributes
+            self.metrics["genai_client_token_usage"].record(
+                input_tokens, input_attrs
             )
-            self.metrics["genai_prompt_tokens"].add(input_tokens, metrics_attributes)
+
+            # Record output tokens with token.type="output"
+            output_attrs = create_metrics_attributes(
+                operation=SemanticConvention.GEN_AI_OPERATION_TYPE_CHAT,
+                provider=provider,
+                request_model=model,
+                response_model=model,
+                token_type="output",
+            )
+            self.metrics["genai_client_token_usage"].record(
+                output_tokens, output_attrs
+            )
+
+            # Record operation duration (convert nanoseconds to seconds)
+            duration_ns = info.get("total_duration", 0)
+            if duration_ns and duration_ns > 0:
+                duration_seconds = duration_ns / 1_000_000_000.0
+                self.metrics["genai_client_operation_duration"].record(
+                    duration_seconds, base_attrs
+                )
+
+            # Record cost (custom metric)
             cost = 0
             try:
                 cost = self.get_chat_model_cost(model, input_tokens, output_tokens)
             except UndefinedPriceError:
                 self.log(f"Undefined price for model {model}")
-            self.metrics["genai_cost"].record(cost, metrics_attributes)
-            self.metrics["genai_usage_tokens_total"].add(
-                total_tokens, metrics_attributes
-            )
-            self.metrics["genai_client_operation_duration"].record(
-                info.get("total_duration"), metrics_attributes
-            )
-        self.metrics["genai_requests"].add(1, metrics_attributes)
+            if cost > 0:
+                self.metrics["genai_cost"].record(cost, base_attrs)
+
+        # Always record request count
+        self.metrics["genai_requests"].add(1, base_attrs)
         return body
 
     def log(self, message: str):
@@ -361,29 +398,34 @@ def get_last_assistant_message_obj(messages: List[dict]) -> dict:
 
 
 def create_metrics_attributes(
-    service_name: str,
-    deployment_environment: str,
     operation: str,
-    system: str,
+    provider: str,
     request_model: str,
     response_model: str,
-    app_name: str,
+    token_type: str = None,
 ):
     """
-    Returns OTel metrics attributes.
-    """
+    Returns OTel metrics attributes following GenAI semantic conventions.
 
-    return {
-        ResourceAttributes.TELEMETRY_SDK_NAME: "openlit",
-        ResourceAttributes.SERVICE_NAME: service_name,
-        ResourceAttributes.DEPLOYMENT_ENVIRONMENT: deployment_environment,
+    Args:
+        operation: GenAI operation name (e.g., "chat")
+        provider: GenAI provider name (e.g., "openai", "ollama", "vllm")
+        request_model: Model name requested
+        response_model: Model name that responded
+        token_type: Token type for token.usage metric ("input" or "output")
+    """
+    attrs = {
         SemanticConvention.GEN_AI_OPERATION: operation,
-        SemanticConvention.GEN_AI_SYSTEM: system,
+        SemanticConvention.GEN_AI_PROVIDER_NAME: provider,
         SemanticConvention.GEN_AI_REQUEST_MODEL: request_model,
         SemanticConvention.GEN_AI_RESPONSE_MODEL: response_model,
-        SemanticConvention.GEN_AI_ENVIRONMENT: "default",
-        SemanticConvention.GEN_AI_APPLICATION_NAME: app_name,
     }
+
+    # Add token type for token usage metrics
+    if token_type:
+        attrs[SemanticConvention.GEN_AI_TOKEN_TYPE] = token_type
+
+    return attrs
 
 
 # Credits to OpenLIT SDK
@@ -418,7 +460,8 @@ class SemanticConvention:
 
     # GenAI Request Attributes (OTel Semconv)
     GEN_AI_OPERATION = "gen_ai.operation.name"
-    GEN_AI_SYSTEM = "gen_ai.system"
+    GEN_AI_SYSTEM = "gen_ai.provider.name"  # Deprecated: use GEN_AI_PROVIDER_NAME
+    GEN_AI_PROVIDER_NAME = "gen_ai.provider.name"
     GEN_AI_OUTPUT_TYPE = "gen_ai.output.type"
     GEN_AI_ENDPOINT = "gen_ai.endpoint"
     GEN_AI_REQUEST_MODEL = "gen_ai.request.model"
