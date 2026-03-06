@@ -1,0 +1,84 @@
+
+  - _type: Monitor
+    id: -3007
+    name: vLLM High GPU Cache Usage
+    identifier: urn:stackpack:suse-ai:shared:monitor:vllm-high-gpu-cache-usage
+    description: Indicates if vLLM GPU cache usage is approaching capacity.
+    intervalSeconds: 60
+    status: ENABLED
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      threshold: 0.90
+      comparator: GT
+      failureState: CRITICAL
+      metric:
+        aliasTemplate: "GPU Cache ${model_name}"
+        query: >-
+          max(vllm_gpu_cache_usage_perc or vllm:gpu_cache_usage_perc) by (model_name)
+        unit: percentunit
+      titleTemplate: "vLLM High GPU Cache Usage"
+      urnTemplate: "suse-ai:product:inference-engine:vllm"
+    remediationHint: {{ include "templates/monitors/vllm/remediation-gpu-cache.md.hbs" "identity" }}
+
+  - _type: Monitor
+    id: -3008
+    name: vLLM High End-to-End Latency
+    identifier: urn:stackpack:suse-ai:shared:monitor:vllm-high-e2e-latency
+    description: Indicates if vLLM end-to-end request latency exceeds acceptable thresholds.
+    intervalSeconds: 60
+    status: ENABLED
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      threshold: 30.0
+      comparator: GT
+      failureState: DEVIATING
+      metric:
+        aliasTemplate: "E2E Latency P99 ${model_name}"
+        query: >-
+          histogram_quantile(0.99, sum by (le, model_name) (rate({__name__=~"vllm:e2e_request_latency_seconds_bucket|vllm_e2e_request_latency_seconds_bucket"}[5m])))
+        unit: s
+      titleTemplate: "vLLM High End-to-End Latency"
+      urnTemplate: "suse-ai:product:inference-engine:vllm"
+    remediationHint: {{ include "templates/monitors/vllm/remediation-latency.md.hbs" "identity" }}
+
+  - _type: Monitor
+    id: -3009
+    name: vLLM Request Queue Buildup
+    identifier: urn:stackpack:suse-ai:shared:monitor:vllm-request-queue-buildup
+    description: Indicates if vLLM has excessive requests waiting in the queue.
+    intervalSeconds: 60
+    status: ENABLED
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      threshold: 10.0
+      comparator: GT
+      failureState: DEVIATING
+      metric:
+        aliasTemplate: "Requests Waiting ${model_name}"
+        query: >-
+          max(vllm_num_requests_waiting or vllm:num_requests_waiting) by (model_name)
+        unit: short
+      titleTemplate: "vLLM Request Queue Buildup"
+      urnTemplate: "suse-ai:product:inference-engine:vllm"
+    remediationHint: {{ include "templates/monitors/vllm/remediation-queue.md.hbs" "identity" }}
+
+  - _type: Monitor
+    id: -3010
+    name: vLLM High Time to First Token
+    identifier: urn:stackpack:suse-ai:shared:monitor:vllm-high-ttft
+    description: Indicates if vLLM Time to First Token latency is too high.
+    intervalSeconds: 60
+    status: ENABLED
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      threshold: 5.0
+      comparator: GT
+      failureState: DEVIATING
+      metric:
+        aliasTemplate: "TTFT P99 ${model_name}"
+        query: >-
+          histogram_quantile(0.99, sum by (le, model_name) (rate({__name__=~"vllm:time_to_first_token_seconds_bucket|vllm_time_to_first_token_seconds_bucket"}[5m])))
+        unit: s
+      titleTemplate: "vLLM High Time to First Token"
+      urnTemplate: "suse-ai:product:inference-engine:vllm"
+    remediationHint: {{ include "templates/monitors/vllm/remediation-ttft.md.hbs" "identity" }}

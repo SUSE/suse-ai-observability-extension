@@ -1,0 +1,56 @@
+# vLLM High Time to First Token (TTFT)
+
+The vLLM inference engine **{{componentName}}** is experiencing high Time to First Token latency (P99: **{{currentValue}}s**).
+
+Threshold: **{{threshold}}s**
+
+## Potential Impacts
+- Slow initial response for streaming LLM outputs
+- Poor user experience in chat applications
+- Increased perceived latency
+
+## Diagnosis Steps
+1. **Analyze Prompt Lengths**:
+   - Check if long input prompts are causing high TTFT
+   - Review `prompt_tokens_total` metrics
+2. **Check Prefill Performance**:
+   - TTFT is dominated by prompt processing (prefill phase)
+   - Longer prompts = higher TTFT
+3. **Monitor Queue Wait Time**:
+   - High `vllm_num_requests_waiting` increases TTFT
+   - Check if requests are waiting before processing
+4. **Review GPU Utilization**:
+   ```bash
+   kubectl exec -it <vllm-pod> -- nvidia-smi
+   ```
+
+## Remediation Actions
+1. **Reduce Input Prompt Length**:
+   - Implement prompt compression or summarization
+   - Remove unnecessary context from prompts
+   - Use smaller system prompts
+2. **Optimize Batching for Prefill**:
+   - Adjust `--max-num-batched-tokens`
+   - Balance between throughput and TTFT
+   - Lower values reduce TTFT but may decrease throughput
+3. **Use Continuous Batching**:
+   - Ensure vLLM is using continuous batching (enabled by default)
+   - Allows new requests to start processing immediately
+4. **Enable Chunked Prefill** (vLLM 0.4.0+):
+   - Set `--enable-chunked-prefill`
+   - Breaks large prefills into smaller chunks
+   - Reduces TTFT for long prompts
+5. **Optimize Model Loading**:
+   - Use FP16/BF16 instead of FP32
+   - Consider quantization (AWQ, GPTQ) for faster computation
+6. **Scale Inference Capacity**:
+   ```bash
+   kubectl scale deployment/vllm --replicas=3
+   ```
+   - More instances = less queueing = lower TTFT
+7. **Use Tensor Parallelism**:
+   - For large models, use `--tensor-parallel-size` to distribute across GPUs
+   - Can improve prefill performance
+8. **Implement Request Routing**:
+   - Route short prompts to dedicated instances
+   - Separate traffic by prompt length

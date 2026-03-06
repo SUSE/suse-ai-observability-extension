@@ -1,0 +1,35 @@
+# Milvus Request Failures Detected
+
+The Milvus vector database **{{componentName}}** is experiencing request failures.
+
+## Potential Impacts
+- Failed vector insertions or searches
+- Data inconsistency or loss
+- Application errors and degraded user experience
+
+## Diagnosis Steps
+1. **Check Milvus Logs**:
+   ```bash
+   kubectl logs -l app=milvus --tail=100
+   ```
+2. **Check Request Status**:
+   - Review the `function_name` label to identify which operations are failing (Insert, Search, Query, etc.)
+   - Check for error patterns in logs
+3. **Verify Resource Availability**:
+   - Check if Milvus has sufficient memory and CPU
+   - Verify storage availability
+4. **Check Dependencies**:
+   - Verify etcd health (Milvus metadata storage)
+   - Verify MinIO/S3 health (Milvus data storage)
+   - Check message queue health (Kafka/Pulsar)
+
+## Remediation Actions
+1. **Review Error Types**: Check Milvus logs for specific error messages
+2. **Restart Failed Components**: If specific Milvus components are failing, restart them:
+   ```bash
+   kubectl rollout restart deployment/milvus-proxy
+   kubectl rollout restart deployment/milvus-querynode
+   ```
+3. **Scale Resources**: If resource-related failures, scale up replicas or increase resource limits
+4. **Check Data Integrity**: Run Milvus health check commands if available
+5. **Verify Network Connectivity**: Ensure all Milvus components can communicate

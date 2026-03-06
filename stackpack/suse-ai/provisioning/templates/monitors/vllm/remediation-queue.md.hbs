@@ -1,0 +1,59 @@
+# vLLM Request Queue Buildup
+
+The vLLM inference engine **{{componentName}}** has excessive requests waiting in the queue (**{{currentValue}}** requests).
+
+Threshold: **{{threshold}}** requests
+
+## Potential Impacts
+- Increased wait times for new requests
+- Potential request timeouts
+- Poor user experience
+- System overload
+
+## Diagnosis Steps
+1. **Check Queue vs Running Requests**:
+   ```
+   vllm_num_requests_waiting: Current waiting requests
+   vllm_num_requests_running: Currently processing requests
+   ```
+2. **Analyze Request Patterns**:
+   - Check request arrival rate
+   - Review request sequence lengths
+   - Identify traffic spikes or patterns
+3. **Check System Resources**:
+   ```bash
+   kubectl top pods -l app=vllm
+   kubectl exec -it <vllm-pod> -- nvidia-smi
+   ```
+4. **Review Processing Rate**:
+   - Check throughput metrics (tokens/second)
+   - Compare with historical baselines
+
+## Remediation Actions
+1. **Scale Horizontally**:
+   ```bash
+   kubectl scale deployment/vllm --replicas=5
+   ```
+   - Add more vLLM instances to handle load
+   - Use load balancer to distribute requests
+2. **Increase Concurrent Requests**:
+   - Adjust `--max-num-seqs` to allow more parallel processing
+   - Note: This may increase latency per request
+3. **Optimize Batch Processing**:
+   - Tune `--max-num-batched-tokens` for better throughput
+   - Balance between throughput and latency
+4. **Implement Request Prioritization**:
+   - Add application-level queue with priority
+   - Route urgent requests to dedicated instances
+5. **Add Rate Limiting**:
+   - Implement rate limiting at the application/API gateway level
+   - Prevent queue overflow with 429 responses
+6. **Use Shorter Context Windows**:
+   - Reduce `--max-model-len` if long contexts aren't needed
+   - Enables more concurrent requests
+7. **Enable Request Cancellation**:
+   - Implement timeout and cancellation in client
+   - Free up resources from abandoned requests
+8. **Review and Reject Invalid Requests**:
+   - Validate request parameters before queuing
+   - Reject requests that exceed reasonable limits

@@ -1,0 +1,63 @@
+
+  - _type: Monitor
+    id: -3004
+    name: Milvus Request Failed Rate
+    identifier: urn:stackpack:suse-ai:shared:monitor:milvus-request-failed-rate
+    description: Indicates if Milvus is experiencing request failures.
+    intervalSeconds: 60
+    status: ENABLED
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      threshold: 0.0
+      comparator: GT
+      failureState: CRITICAL
+      metric:
+        aliasTemplate: "Failed Requests ${service_name}"
+        query: >-
+          sum(rate(milvus_proxy_req_count_total{status="fail"}[5m])) by (service_name)
+        unit: reqps
+      titleTemplate: "Milvus Request Failures"
+      urnTemplate: "suse-ai:product:vectordb:${service_name}"
+    remediationHint: {{ include "templates/monitors/milvus/remediation-failures.md.hbs" "identity" }}
+
+  - _type: Monitor
+    id: -3005
+    name: Milvus High Request Latency
+    identifier: urn:stackpack:suse-ai:shared:monitor:milvus-high-request-latency
+    description: Indicates if Milvus request latency exceeds acceptable thresholds.
+    intervalSeconds: 60
+    status: ENABLED
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      threshold: 5.0
+      comparator: GT
+      failureState: DEVIATING
+      metric:
+        aliasTemplate: "Request Latency P99 ${service_name}"
+        query: >-
+          histogram_quantile(0.99, sum by (le, service_name, function_name) (rate(milvus_proxy_req_latency_bucket[5m])))
+        unit: s
+      titleTemplate: "Milvus High Request Latency"
+      urnTemplate: "suse-ai:product:vectordb:${service_name}"
+    remediationHint: {{ include "templates/monitors/milvus/remediation-latency.md.hbs" "identity" }}
+
+  - _type: Monitor
+    id: -3006
+    name: Milvus High Search Latency
+    identifier: urn:stackpack:suse-ai:shared:monitor:milvus-high-search-latency
+    description: Indicates if Milvus search operations are experiencing high latency.
+    intervalSeconds: 60
+    status: ENABLED
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      threshold: 3.0
+      comparator: GT
+      failureState: DEVIATING
+      metric:
+        aliasTemplate: "Search Latency P99 ${service_name}"
+        query: >-
+          histogram_quantile(0.99, sum by (le, service_name) (rate(milvus_proxy_sq_latency_bucket[5m])))
+        unit: s
+      titleTemplate: "Milvus High Search Latency"
+      urnTemplate: "suse-ai:product:vectordb:${service_name}"
+    remediationHint: {{ include "templates/monitors/milvus/remediation-search-latency.md.hbs" "identity" }}

@@ -1,0 +1,51 @@
+# vLLM High End-to-End Latency
+
+The vLLM inference engine **{{componentName}}** is experiencing high end-to-end latency (P99: **{{currentValue}}s**).
+
+Threshold: **{{threshold}}s**
+
+## Potential Impacts
+- Slow response times for LLM requests
+- User-facing timeouts
+- Poor application performance
+- Reduced throughput
+
+## Diagnosis Steps
+1. **Break Down Latency Components**:
+   - Check Time to First Token (TTFT) metrics
+   - Check Time Per Output Token (TPOT) metrics
+   - Identify which component is the bottleneck
+2. **Check Request Queue**:
+   - Monitor `vllm_num_requests_waiting`
+   - Monitor `vllm_num_requests_running`
+3. **Review GPU Utilization**:
+   ```bash
+   kubectl exec -it <vllm-pod> -- nvidia-smi
+   ```
+4. **Check Request Patterns**:
+   - Review request sequence lengths (input + output)
+   - Check if specific models have higher latency
+
+## Remediation Actions
+1. **Optimize Batching**:
+   - Adjust `--max-num-batched-tokens` for better throughput
+   - Tune `--max-num-seqs` to balance latency vs throughput
+2. **Reduce Output Length**:
+   - Set reasonable `max_tokens` limits in requests
+   - Use streaming responses when possible
+3. **Enable Speculative Decoding** (if supported):
+   - Use draft models for faster generation
+   - Requires vLLM 0.3.0+ and compatible model pairs
+4. **Use Quantization**:
+   - Deploy INT8/INT4 quantized models (e.g., AWQ, GPTQ)
+   - Reduces memory bandwidth and speeds up inference
+5. **Scale Inference Instances**:
+   ```bash
+   kubectl scale deployment/vllm --replicas=3
+   ```
+6. **Upgrade GPU Hardware**:
+   - Use newer GPUs (A100, H100) with higher memory bandwidth
+   - Ensure GPU has sufficient VRAM for the model
+7. **Check for GPU Throttling**:
+   - Verify GPU temperature and power limits
+   - Ensure adequate cooling

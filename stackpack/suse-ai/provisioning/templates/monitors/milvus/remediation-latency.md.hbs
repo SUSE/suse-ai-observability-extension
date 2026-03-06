@@ -1,0 +1,43 @@
+# Milvus High Request Latency
+
+The Milvus vector database **{{componentName}}** is experiencing high request latency (P99 > {{threshold}}s).
+
+Current latency: **{{currentValue}}s**
+
+## Potential Impacts
+- Slow application response times
+- Timeout errors
+- Poor user experience
+
+## Diagnosis Steps
+1. **Identify Slow Operations**:
+   - Check which `function_name` has the highest latency (Insert, Search, Query, Flush, etc.)
+   - Review Milvus metrics dashboard for latency trends
+2. **Check Resource Utilization**:
+   ```bash
+   kubectl top pods -l app=milvus
+   ```
+3. **Review Query Patterns**:
+   - Check if specific collections or queries are causing slowness
+   - Verify index types are optimal for your query patterns
+4. **Check Network Latency**:
+   - Verify network connectivity between Milvus components
+   - Check if storage backend (MinIO/S3) has high latency
+
+## Remediation Actions
+1. **Optimize Indexes**:
+   - Ensure collections have appropriate indexes (IVF_FLAT, IVF_SQ8, HNSW)
+   - Consider rebuilding indexes if they're outdated
+2. **Scale QueryNodes**:
+   ```bash
+   kubectl scale deployment/milvus-querynode --replicas=3
+   ```
+3. **Increase Resource Limits**:
+   - Adjust CPU and memory limits for Milvus components
+   - Enable GPU acceleration if available for vector operations
+4. **Optimize Queries**:
+   - Reduce search `nprobe` or `ef` parameters if too high
+   - Use appropriate `topK` values in searches
+5. **Check Collection Segments**:
+   - Run compaction to merge small segments
+   - Flush data to reduce memory pressure
