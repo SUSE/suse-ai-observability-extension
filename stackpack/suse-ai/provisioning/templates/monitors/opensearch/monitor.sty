@@ -1,0 +1,46 @@
+
+  - _type: Monitor
+    id: -3002
+    name: OpenSearch Cluster Red Status
+    identifier: urn:stackpack:suse-ai:shared:monitor:opensearch-cluster-red
+    description: Indicates if the OpenSearch cluster status is red.
+    intervalSeconds: 60
+    status: ENABLED
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      threshold: 0.0
+      comparator: GT
+      failureState: CRITICAL
+      metric:
+        aliasTemplate: "Cluster ${elasticsearch_cluster_name} is Red"
+        query: >-
+          sum(label_replace(elasticsearch_cluster_health{status="red"}, "product_name", "$1", "elasticsearch_cluster_name", "([^-]*)(-cluster)?")) by (product_name, elasticsearch_cluster_name) 
+          or 
+          (sum(label_replace(elasticsearch_cluster_health, "product_name", "$1", "elasticsearch_cluster_name", "([^-]*)(-cluster)?")) by (product_name, elasticsearch_cluster_name) * 0)
+        unit: short
+      titleTemplate: "OpenSearch Cluster Red Status"
+      urnTemplate: "suse-ai:product:search-engine:${product_name}"
+    remediationHint: {{ include "templates/monitors/opensearch/remediation-red.md.hbs" "identity" }}
+
+  - _type: Monitor
+    id: -3003
+    name: OpenSearch Cluster Yellow Status
+    identifier: urn:stackpack:suse-ai:shared:monitor:opensearch-cluster-yellow
+    description: Indicates if the OpenSearch cluster status is yellow.
+    intervalSeconds: 60
+    status: ENABLED
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      threshold: 0.0
+      comparator: GT
+      failureState: DEVIATING
+      metric:
+        aliasTemplate: "Cluster ${elasticsearch_cluster_name} is Yellow"
+        query: >-
+          sum(label_replace(elasticsearch_cluster_health{status="yellow"}, "product_name", "$1", "elasticsearch_cluster_name", "([^-]*)(-cluster)?")) by (product_name, elasticsearch_cluster_name) 
+          or 
+          (sum(label_replace(elasticsearch_cluster_health, "product_name", "$1", "elasticsearch_cluster_name", "([^-]*)(-cluster)?")) by (product_name, elasticsearch_cluster_name) * 0)
+        unit: short
+      titleTemplate: "OpenSearch Cluster Yellow Status"
+      urnTemplate: "suse-ai:product:search-engine:${product_name}"
+    remediationHint: {{ include "templates/monitors/opensearch/remediation-yellow.md.hbs" "identity" }}

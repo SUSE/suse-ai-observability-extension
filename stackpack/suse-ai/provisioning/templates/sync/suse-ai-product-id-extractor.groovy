@@ -33,10 +33,13 @@ def productType = normalizedTags['suse.ai.component.type']?.toString() ?: 'appli
 if (productName) {
     // Create a deterministic ID for the product
     def newExternalId = "suse-ai:product:${productType}:${productName}".toString()
-    
+
+    // Add the external ID as an identifier so monitors can find it
+    def identifiers = [newExternalId] as Set
+
     // Use the original OTel type if we want the mapper to handle it
     // Or just use 'application' as base
-    return Sts.createId(newExternalId, [] as Set, typeName)
+    return Sts.createId(newExternalId, identifiers, typeName)
 }
 
 return null

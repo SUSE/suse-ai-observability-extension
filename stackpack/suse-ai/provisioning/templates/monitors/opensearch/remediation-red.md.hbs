@@ -1,0 +1,23 @@
+# OpenSearch Cluster RED Status
+
+The OpenSearch cluster **{{componentName}}** is currently in **RED** status. This means that at least one primary shard and its replicas are not allocated to any node.
+
+## Potential Impacts
+- Data is missing or inaccessible.
+- Indexing and search operations may fail.
+
+## Diagnosis Steps
+1. **Check Cluster Health API**:
+   `GET /_cluster/health?pretty`
+2. **Identify Unassigned Shards**:
+   `GET /_cat/shards?v&h=index,shard,prirep,state,unassigned.reason&s=state`
+3. **Check Node Status**:
+   Verify if any nodes have recently left the cluster or are failing.
+4. **Check Disk Space**:
+   Low disk space (high watermark) can prevent shard allocation.
+
+## Remediation Actions
+1. **Restart Failed Nodes**: If nodes are down, restart them.
+2. **Free up Disk Space**: If disk space is the issue, delete old indices or increase disk capacity.
+3. **Manually Assign Shards**: If shards are unassigned due to max retries, you may need to retry allocation:
+   `POST /_cluster/reroute?retry_failed=true`

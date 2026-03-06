@@ -56,3 +56,11 @@
 *   **Fact**: The GPU Nodes ViewType (`urn:stackpack:suse-ai:shared:view-type:gpu-nodes`) provides a detailed table with GPU-specific columns and metrics, extending the existing QueryView.
 *   **Fact**: ViewType columns can reference metric bindings from both the SUSE AI stackpack (`urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-*`) and external stackpacks (`urn:stackpack:stackstate-k8s-agent-v2:shared:metric-binding:host-*`).
 *   **Fact**: The `pathToIdentifier` for label‑based columns must point to a unique component identifier (e.g., `internalIP` for nodes) to correctly resolve component links.
+
+## 11. Monitors
+*   **Fact**: The OpenSearch cluster status monitors (red and yellow) are defined in `templates/monitors/opensearch/monitor.sty` with IDs -3002 and -3003.
+*   **Fact**: The red monitor triggers a CRITICAL state when `elasticsearch_cluster_health{status="red"} > 0`, extracting component name via `label_replace`.
+*   **Fact**: The yellow monitor triggers a DEVIATING state when `elasticsearch_cluster_health{status="yellow"} > 0`, extracting component name via `label_replace`.
+*   **Fact**: Both monitors use `label_replace` to transform `elasticsearch_cluster_name` labels (e.g., "opensearch-cluster" → "opensearch") into `product_name` for URN matching.
+*   **Fact**: Monitors attach to product components using URN pattern `suse-ai:product:search-engine:${product_name}` where `product_name` is derived from metric labels.
+*   **Fact**: Remediation hints for OpenSearch monitors are located in `templates/monitors/opensearch/remediation-red.md.hbs` and `remediation-yellow.md.hbs` and are included using the Handlebars helper: `{{ include "templates/monitors/opensearch/remediation-red.md.hbs" "identity" }}`

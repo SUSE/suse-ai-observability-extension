@@ -34,3 +34,4 @@
         query: sum(sum_over_time(gen_ai_requests_total{}[5m])) by (gen_ai_system)
         unit: short
       urnTemplate: "suse-ai:product:inference-engine:${gen_ai_system}"
+

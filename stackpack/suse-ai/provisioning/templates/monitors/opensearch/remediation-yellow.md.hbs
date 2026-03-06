@@ -1,0 +1,21 @@
+# OpenSearch Cluster YELLOW Status
+
+The OpenSearch cluster **{{componentName}}** is currently in **YELLOW** status. This means that all primary shards are allocated, but at least one replica shard is not allocated.
+
+## Potential Impacts
+- Reduced data redundancy.
+- Potential performance impact if a node fails.
+
+## Diagnosis Steps
+1. **Check Cluster Health API**:
+   `GET /_cluster/health?pretty`
+2. **Identify Unassigned Replica Shards**:
+   `GET /_cat/shards?v&h=index,shard,prirep,state,unassigned.reason&s=state | grep UNASSIGNED`
+3. **Check Node Count**:
+   Ensure you have enough nodes to satisfy your replica requirements.
+
+## Remediation Actions
+1. **Wait for Recovery**: If the cluster was recently restarted, it might still be allocating shards.
+2. **Add Nodes**: If you don't have enough nodes to hold all replicas, add more nodes.
+3. **Reduce Replicas**: If you intentionally have fewer nodes than replicas, adjust the index settings:
+   `PUT /my-index/_settings { "index": { "number_of_replicas": 1 } }`
