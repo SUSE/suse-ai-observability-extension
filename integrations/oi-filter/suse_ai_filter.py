@@ -68,7 +68,7 @@ class Pipeline:
         self.cost_estimation = fetch_json_from_url_stdlib(
             self.valves.pricing_information
         )
-        self.local_sdk_name = "openlit"
+        self.local_sdk_name = "suse-ai"
 
     def get_chat_model_cost(self, model, prompt, completion):
         try:
@@ -94,6 +94,9 @@ class Pipeline:
                 ResourceAttributes.SERVICE_VERSION: "1.0",
                 ResourceAttributes.DEPLOYMENT_ENVIRONMENT: "default",
                 ResourceAttributes.TELEMETRY_SDK_NAME: self.local_sdk_name,
+                "suse.ai.managed": "true",
+                "suse.ai.component.name": "Open WebUI",
+                "suse.ai.component.type": "ui",
             }
         )
         self._setup_meter(resource)

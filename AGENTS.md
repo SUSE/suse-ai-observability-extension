@@ -20,6 +20,7 @@
 
 *   **Type Safety**: StackState Groovy APIs are strict. Convert all URNs and Names to raw Strings using `.toString()`.
 *   **Template Resolution**: The `resolve` and `get` helpers in Handlebars will cause synchronization errors if the target URN does not exist. Use `resolveOrCreate` if the URN might be missing.
+*   Never attempt to change the "iconbase64" fields in the Component Types.
 
 ## 5. Tooling & Validation
 *   **Groovy Linting**: Always use `npm-groovy-lint` before finalizing changes to Groovy scripts to ensure syntax and style compliance.
