@@ -479,6 +479,12 @@
       events:
         _type: "ComponentTypeEvents"
         showEvents: true
+        relatedResourcesTemplate: |
+            (withNeighborsOf(direction = "up", components = (type = "otel service instance" and label = "suse.ai.component.name:open-webui"), levels = "1") and type = "otel service")
+              OR
+            (type = "otel service instance" and label = "suse.ai.component.name:open-webui")
+              OR
+            id = "{COMPONENT_ID}"
       showLogs: false
       showLastChange: false
       externalComponent:
@@ -653,7 +659,7 @@
     filter:
       attributes:
         suse.ai.component.name: ["open-webui"]
-    scope: (label = "stackpack:suse-ai" and type = "ui.open-webui")
+    scope: (type = "ui.open-webui")
 
   # Show a link to Open WebUI component on span details
   - _type: SpanToComponentBinding
