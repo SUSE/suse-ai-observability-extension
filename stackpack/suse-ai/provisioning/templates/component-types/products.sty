@@ -443,6 +443,7 @@
     identifier: "urn:stackpack:suse-ai:shared:component-type:ui.open-webui"
     name: "ui.open-webui"
     iconbase64: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAclBMVEX///8AAADc3NxhYWGlpaXGxsb5+fm+vr5bW1vY2Ni0tLTf3985OTns7Ox/f3+oqKifn5/n5+fy8vKNjY15eXnNzc0+Pj4YGBiZmZlxcXFmZmaurq6ysrKTk5MfHx90dHQNDQ1GRkYyMjJQUFAqKio8PDzzUqt5AAAEO0lEQVR4nO2ca1viMBBGW7kUUJCrgMAK4v7/v7iA6y5pJmnaypOxnPPVdJyXXJqZTJokAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABwYfjQGWye25tBtph0qzw/bufIvt3Hyky286fUYNnbLUrKfEjz9G7jbWmy9S/Lt0+Oq0kJO7bC1s18LsHDyKHuLy/b4J5UqXDw7td3YT4MM6ZQ4SZA3oW3oMGqTmHmmn0SowCDyhROeyX0nSle+XUpzErqO7tbtOSoUliwgDro+40qUjgMWUElxl6zehQ+VtR3Yu6zq0Zhp7pA/z5Mi8JBHYFp+uS2rERhhUXU5MVpWofCfl2BnoGqQmGNReY/bw7jKhQuv0Nh+iwb16Cw5fd8f1yPVu3ZvPXkb5c+itYVKHz2eT3KpldN++ODp+1SNB9f4cTtcq8jNF+5279K9uMrdPZKSx51vk5fCK2jK3S9CZdC/33RnTse+hAax1bYdfjq3Wq6X6DCJjy2wp3saWFg2z3KD9rRYmyFsp+uGXiNPFJXVrvICseim2FZtJn4rNUsssIaAh29aO1s4ioUYyZpyZeR5uKvfKO4CiUXd+GPT6UfKJ+2iapwKDj4u4wBKTGQz6FGVdgWHHwoZUFKr+aaRFUoBAshWewrpFGQ2wzFVChNo2nxYwZCinVmtoipUJhFJbtQ/JVyWamYCoVXdshmxuS1aBzEVGjnuD1JQRfCQDAnYkSFQljRrmDGtmLuTSMqFIL78oNUyvKYkVdEhfb42lcxY0f8ZnY4okL7NLtSGYgQDBt/j6jQXkpnxQ/ZCNPZCIMjKrRf1ptKdmyFRvgVUeHa+tee5JMHe+9n1GhEVGi/q8Mjw2vsEMxYkiMqtJf5cnHFF3Z8YdhpQB8e1PahPQ+rlUXamz8t89BeSx3nYwVYZtSspc1/HzZ/T9P8fek3xRb2kqwmtmh+fNj8GP8O8jQ3yrXlsuYxFUrnv83KlyYvtTtRec77Ds4tpB5wFxkKqD97av75oXwGHJ7LOAhPKzsDrneObweYqbpz/DuoxXDU04RcaJIvZ6irp3HVRBXOxa6jKFVfTZSjE4ve/K66NiE4ia7QVZu4r1Kb+C40jq4wOTi8TXuuQEPaCn2isr70DmqEPV1yYt6AOm95+3zteG+0G7dXu7UQihjIm3YNCrv7AtfDcFzS06DQNxXDcdVNq1CYLOoL1H3vqfblPF+WTonC5t8/rHkD8egxrEZhnTuIa59dPQqTyUdFgf68hyKFSfJWSWDB2bgqhU3/pkKSTIVjCC8/7bsYJxZlZmPIsbg6hUmyDb0WPP+Z36c5kxVFEZf+CzzEUanw5JacKvzHcfCzvxN1YTFyzcheu8wZnF6FJ4YD6XttJY3o/V7bF8PHRbY9f3Ov02/eN/cAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAG7NH8GVL0h69wHIAAAAAElFTkSuQmCC
+    viewTypeIdentifier: "urn:stackpack:suse-ai:shared:view-type:ui.open-webui"
     highlights:
       _type: "ComponentTypeHighlight"
       namePlural: "uis"
@@ -627,3 +628,35 @@
           stql: 'withNeighborsOf(direction = "up", components = (type = "otel service instance" and label = "suse.ai.component.name:mlflow"), levels = "1") and type = "otel service"'
           viewTypeIdentifier: "urn:stackpack:open-telemetry:shared:view-type:service"
       metrics: []
+
+  # ViewType for ui.open-webui with traces support
+  - _type: "ViewType"
+    name: "Open WebUI view definition"
+    identifier: "urn:stackpack:suse-ai:shared:view-type:ui.open-webui"
+    filters:
+      - _type: "TopologyFilters"
+        tabs:
+          - "EVENTS"
+          - "TRACES"
+    flags:
+      - "NoTopologyFilters"
+    overview:
+      columns:
+        - _type: "ViewTypeTableColHealth"
+        - _type: "ViewTypeTableColName"
+          title: "Component"
+
+  # Define which traces to show for Open WebUI component
+  - _type: TraceBinding
+    name: Traces for Open WebUI
+    identifier: urn:stackpack:suse-ai:shared:trace-binding:ui.open-webui
+    filter:
+      attributes:
+        suse.ai.component.name: ["open-webui"]
+    scope: (label = "stackpack:suse-ai" and type = "ui.open-webui")
+
+  # Show a link to Open WebUI component on span details
+  - _type: SpanToComponentBinding
+    name: Span binding to Open WebUI
+    identifier: urn:stackpack:suse-ai:shared:span-to-component-binding:ui.open-webui
+    urnTemplate: "suse-ai:product:ui:open-webui"

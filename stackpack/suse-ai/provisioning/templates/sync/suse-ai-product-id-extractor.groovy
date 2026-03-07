@@ -37,9 +37,35 @@ if (productName) {
     // Add the external ID as an identifier so monitors can find it
     def identifiers = [newExternalId] as Set
 
-    // Use the original OTel type if we want the mapper to handle it
-    // Or just use 'application' as base
-    return Sts.createId(newExternalId, identifiers, typeName)
+    // Determine specific product type based on product name
+    def specificType = productType
+    def productNameLower = productName?.toString()?.toLowerCase()
+    switch(productNameLower) {
+        case 'vllm':
+        case 'ollama':
+            specificType = "inference-engine.${productNameLower}"
+            break
+        case 'qdrant':
+        case 'milvus':
+            specificType = "vectordb.${productNameLower}"
+            break
+        case 'opensearch':
+        case 'elasticsearch':
+            specificType = "search-engine.${productNameLower}"
+            break
+        case 'open-webui':
+        case 'open webui':
+            specificType = "ui.open-webui"
+            break
+        case 'litellm':
+            specificType = "model-proxy.litellm"
+            break
+        case 'mlflow':
+            specificType = "ml-registry.mlflow"
+            break
+    }
+
+    return Sts.createId(newExternalId, identifiers, specificType)
 }
 
 return null

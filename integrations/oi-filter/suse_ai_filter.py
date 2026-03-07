@@ -100,7 +100,7 @@ class Pipeline:
                     ResourceAttributes.DEPLOYMENT_ENVIRONMENT: "default",
                     ResourceAttributes.TELEMETRY_SDK_NAME: self.local_sdk_name,
                     "suse.ai.managed": "true",
-                    "suse.ai.component.name": "Open WebUI",
+                    "suse.ai.component.name": "open-webui",
                     "suse.ai.component.type": "ui",
                 }
             )
@@ -350,7 +350,8 @@ class Pipeline:
             )
 
             # Record operation duration (convert nanoseconds to seconds)
-            duration_ns = info.get("total_duration", 0)
+            # Ollama returns total_duration at message level, not in usage object
+            duration_ns = assistant_message_obj.get("total_duration", 0)
             if duration_ns and duration_ns > 0:
                 duration_seconds = duration_ns / 1_000_000_000.0
                 self.metrics["genai_client_operation_duration"].record(
@@ -361,10 +362,15 @@ class Pipeline:
             cost = 0
             try:
                 cost = self.get_chat_model_cost(model, input_tokens, output_tokens)
+                self.log(f"Calculated cost {cost} for model {model}")
             except UndefinedPriceError:
-                self.log(f"Undefined price for model {model}")
+                self.log(f"Undefined price for model '{model}' - not in pricing.json")
+            except Exception as e:
+                self.log(f"Error calculating cost for model '{model}': {e}")
             if cost > 0:
                 self.metrics["genai_cost"].record(cost, base_attrs)
+            else:
+                self.log(f"Cost is 0 or negative ({cost}) for model '{model}', not recording")
 
         # Always record request count
         self.metrics["genai_requests"].add(1, base_attrs)
@@ -419,6 +425,8 @@ def create_metrics_attributes(
         SemanticConvention.GEN_AI_PROVIDER_NAME: provider,
         SemanticConvention.GEN_AI_REQUEST_MODEL: request_model,
         SemanticConvention.GEN_AI_RESPONSE_MODEL: response_model,
+        # Add component name as metric attribute so it appears as Prometheus label
+        "suse.ai.component.name": "open-webui",
     }
 
     # Add token type for token usage metrics
