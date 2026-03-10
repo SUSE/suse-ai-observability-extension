@@ -1,13 +1,25 @@
 
 
+  # =============================================
+  # vLLM System Scope (inference-engine.vllm)
+  # =============================================
+
   - id: -501
-    name: End-to-End Request Latency (P95)
+    name: End-to-End Request Latency
     queries:
+      - expression: histogram_quantile(0.99, sum by(le, model_name) (rate({__name__=~"vllm:e2e_request_latency_seconds_bucket|vllm_e2e_request_latency_seconds_bucket"}[${__rate_interval}])))
+        alias: '${model_name} P99'
       - expression: histogram_quantile(0.95, sum by(le, model_name) (rate({__name__=~"vllm:e2e_request_latency_seconds_bucket|vllm_e2e_request_latency_seconds_bucket"}[${__rate_interval}])))
-        alias: '${model_name}'
+        alias: '${model_name} P95'
         primary: true
+      - expression: histogram_quantile(0.90, sum by(le, model_name) (rate({__name__=~"vllm:e2e_request_latency_seconds_bucket|vllm_e2e_request_latency_seconds_bucket"}[${__rate_interval}])))
+        alias: '${model_name} P90'
+      - expression: histogram_quantile(0.50, sum by(le, model_name) (rate({__name__=~"vllm:e2e_request_latency_seconds_bucket|vllm_e2e_request_latency_seconds_bucket"}[${__rate_interval}])))
+        alias: '${model_name} P50'
+      - expression: rate({__name__=~"vllm:e2e_request_latency_seconds_sum|vllm_e2e_request_latency_seconds_sum"}[${__rate_interval}])/rate({__name__=~"vllm:e2e_request_latency_seconds_count|vllm_e2e_request_latency_seconds_count"}[${__rate_interval}])
+        alias: '${model_name} Avg'
     scope: type = "inference-engine.vllm"
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:e2e-latency-p95
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:e2e-latency
     unit: seconds
     chartType: line
     priority: high
@@ -21,51 +33,21 @@
     _type: MetricBinding
 
   - id: -502
-    name: End-to-End Request Latency (P90)
+    name: Time To First Token Latency
     queries:
-      - expression: histogram_quantile(0.90, sum by(le, model_name) (rate({__name__=~"vllm:e2e_request_latency_seconds_bucket|vllm_e2e_request_latency_seconds_bucket"}[${__rate_interval}])))
-        alias: '${model_name}'
+      - expression: histogram_quantile(0.99, sum by(le, model_name) (rate({__name__=~"vllm:time_to_first_token_seconds_bucket|vllm_time_to_first_token_seconds_bucket"}[${__rate_interval}])))
+        alias: '${model_name} P99'
+      - expression: histogram_quantile(0.95, sum by(le, model_name) (rate({__name__=~"vllm:time_to_first_token_seconds_bucket|vllm_time_to_first_token_seconds_bucket"}[${__rate_interval}])))
+        alias: '${model_name} P95'
         primary: true
+      - expression: histogram_quantile(0.90, sum by(le, model_name) (rate({__name__=~"vllm:time_to_first_token_seconds_bucket|vllm_time_to_first_token_seconds_bucket"}[${__rate_interval}])))
+        alias: '${model_name} P90'
+      - expression: histogram_quantile(0.50, sum by(le, model_name) (rate({__name__=~"vllm:time_to_first_token_seconds_bucket|vllm_time_to_first_token_seconds_bucket"}[${__rate_interval}])))
+        alias: '${model_name} P50'
+      - expression: rate({__name__=~"vllm:time_to_first_token_seconds_sum|vllm_time_to_first_token_seconds_sum"}[${__rate_interval}])/rate({__name__=~"vllm:time_to_first_token_seconds_count|vllm_time_to_first_token_seconds_count"}[${__rate_interval}])
+        alias: '${model_name} Avg'
     scope: type = "inference-engine.vllm"
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:e2e-latency-p90
-    unit: seconds
-    chartType: line
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: Performance
-        section: Latency
-      componentSummary:
-        weight: 8
-    _type: MetricBinding
-  - id: -503
-    name: End-to-End Request Latency (P50)
-    queries:
-      - expression: histogram_quantile(0.50, sum by(le, model_name) (rate({__name__=~"vllm:e2e_request_latency_seconds_bucket|vllm_e2e_request_latency_seconds_bucket"}[${__rate_interval}])))
-        alias: '${model_name}'
-        primary: true
-    scope: type = "inference-engine.vllm"
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:e2e-latency-p50
-    unit: seconds
-    chartType: line
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: Performance
-        section: Latency
-      componentSummary:
-        weight: 8
-    _type: MetricBinding
-  - id: -504
-    name: End-to-End Request Latency (Average)
-    queries:
-      - expression: rate({__name__=~"vllm:e2e_request_latency_seconds_sum|vllm_e2e_request_latency_seconds_sum"}[${__rate_interval}])/rate({__name__=~"vllm:e2e_request_latency_seconds_count|vllm_e2e_request_latency_seconds_count"}[${__rate_interval}])
-        alias: '${model_name}'
-        primary: true
-    scope: type = "inference-engine.vllm"
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:e2e-latency-avg
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:ttft-latency
     unit: seconds
     chartType: line
     priority: high
@@ -78,7 +60,35 @@
         weight: 8
     _type: MetricBinding
 
-  - id: -505
+  - id: -503
+    name: Time Per Output Token Latency
+    queries:
+      - expression: histogram_quantile(0.99, sum by(le, model_name) (rate({__name__=~"vllm:time_per_output_token_seconds_bucket|vllm_time_per_output_token_seconds_bucket"}[${__rate_interval}])))
+        alias: '${model_name} P99'
+      - expression: histogram_quantile(0.95, sum by(le, model_name) (rate({__name__=~"vllm:time_per_output_token_seconds_bucket|vllm_time_per_output_token_seconds_bucket"}[${__rate_interval}])))
+        alias: '${model_name} P95'
+        primary: true
+      - expression: histogram_quantile(0.90, sum by(le, model_name) (rate({__name__=~"vllm:time_per_output_token_seconds_bucket|vllm_time_per_output_token_seconds_bucket"}[${__rate_interval}])))
+        alias: '${model_name} P90'
+      - expression: histogram_quantile(0.50, sum by(le, model_name) (rate({__name__=~"vllm:time_per_output_token_seconds_bucket|vllm_time_per_output_token_seconds_bucket"}[${__rate_interval}])))
+        alias: '${model_name} P50'
+      - expression: rate({__name__=~"vllm:time_per_output_token_seconds_sum|vllm_time_per_output_token_seconds_sum"}[${__rate_interval}])/rate({__name__=~"vllm:time_per_output_token_seconds_count|vllm_time_per_output_token_seconds_count"}[${__rate_interval}])
+        alias: '${model_name} Avg'
+    scope: type = "inference-engine.vllm"
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:tpot-latency
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -504
     name: Token Throughput (Prompt)
     queries:
       - expression: rate({__name__=~"vllm:prompt_tokens_total|vllm_prompt_tokens_total"}[${__rate_interval}])
@@ -97,7 +107,7 @@
       componentSummary:
         weight: 8
     _type: MetricBinding
-  - id: -506
+  - id: -505
     name: Token Throughput (Generation)
     queries:
       - expression: rate({__name__=~"vllm:generation_tokens_total|vllm_generation_tokens_total"}[${__rate_interval}])
@@ -116,7 +126,7 @@
       componentSummary:
         weight: 8
     _type: MetricBinding
-  - id: -507
+  - id: -506
     name: GPU Cache Usage
     queries:
       - expression: vllm_gpu_cache_usage_perc{} or vllm:gpu_cache_usage_perc{}
@@ -136,106 +146,7 @@
         weight: 8
     _type: MetricBinding
 
-  - id: -508
-    name: Time To First Token Latency (P99)
-    queries:
-      - expression: histogram_quantile(0.99, sum by(le, model_name) (rate({__name__=~"vllm:time_to_first_token_seconds_bucket|vllm_time_to_first_token_seconds_bucket"}[${__rate_interval}])))
-        alias: '${model_name}'
-        primary: true
-    scope: type = "inference-engine.vllm"
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:ttft-latency-p99
-    unit: seconds
-    chartType: line
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: Performance
-        section: Latency
-      componentSummary:
-        weight: 8
-    _type: MetricBinding
-
-  - id: -509
-    name: Time To First Token Latency (P95)
-    queries:
-      - expression: histogram_quantile(0.95, sum by(le, model_name) (rate({__name__=~"vllm:time_to_first_token_seconds_bucket|vllm_time_to_first_token_seconds_bucket"}[${__rate_interval}])))
-        alias: '${model_name}'
-        primary: true
-    scope: type = "inference-engine.vllm"
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:ttft-latency-p95
-    unit: seconds
-    chartType: line
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: Performance
-        section: Latency
-      componentSummary:
-        weight: 8
-    _type: MetricBinding
-
-  - id: -510
-    name: Time To First Token Latency (P90)
-    queries:
-      - expression: histogram_quantile(0.90, sum by(le, model_name) (rate({__name__=~"vllm:time_to_first_token_seconds_bucket|vllm_time_to_first_token_seconds_bucket"}[${__rate_interval}])))
-        alias: '${model_name}'
-        primary: true
-    scope: type = "inference-engine.vllm"
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:ttft-latency-p90
-    unit: seconds
-    chartType: line
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: Performance
-        section: Latency
-      componentSummary:
-        weight: 8
-    _type: MetricBinding
-  - id: -511
-    name: Time To First Token Latency (P50)
-    queries:
-      - expression: histogram_quantile(0.50, sum by(le, model_name) (rate({__name__=~"vllm:time_to_first_token_seconds_bucket|vllm_time_to_first_token_seconds_bucket"}[${__rate_interval}])))
-        alias: '${model_name}'
-        primary: true
-    scope: type = "inference-engine.vllm"
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:ttft-latency-p50
-    unit: seconds
-    chartType: line
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: Performance
-        section: Latency
-      componentSummary:
-        weight: 8
-    _type: MetricBinding
-
-  - id: -512
-    name: Time To First Token Latency (Average)
-    queries:
-      - expression: rate({__name__=~"vllm:time_to_first_token_seconds_sum|vllm_time_to_first_token_seconds_sum"}[${__rate_interval}])/rate({__name__=~"vllm:time_to_first_token_seconds_count|vllm_time_to_first_token_seconds_count"}[${__rate_interval}])
-        alias: '${model_name}'
-        primary: true
-    scope: type = "inference-engine.vllm"
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:ttft-latency-avg
-    unit: seconds
-    chartType: line
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: Performance
-        section: Latency
-      componentSummary:
-        weight: 8
-    _type: MetricBinding
-
-  - id: -513
+  - id: -507
     name: Number of Requests Running
     queries:
       - expression: vllm_num_requests_running{model_name=~".+"} or vllm:num_requests_running{model_name=~".+"}
@@ -255,7 +166,7 @@
         weight: 8
     _type: MetricBinding
 
-  - id: -514
+  - id: -508
     name: Number of Requests Waiting
     queries:
       - expression: vllm_num_requests_waiting{model_name=~".+"} or vllm:num_requests_waiting{model_name=~".+"}
@@ -275,112 +186,26 @@
         weight: 8
     _type: MetricBinding
 
-  - id: -515
-    name: Time Per Output Token Latency (P99)
-    queries:
-      - expression: histogram_quantile(0.99, sum by(le, model_name) (rate({__name__=~"vllm:time_per_output_token_seconds_bucket|vllm_time_per_output_token_seconds_bucket"}[${__rate_interval}])))
-        alias: '${model_name}'
-        primary: true
-    scope: type = "inference-engine.vllm"
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:tpot-latency-p99
-    unit: seconds
-    chartType: line
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: Performance
-        section: Latency
-      componentSummary:
-        weight: 8
-    _type: MetricBinding
+  # =============================================
+  # vLLM Model Scope (genai.model with vllm label)
+  # =============================================
 
-  - id: -516
-    name: Time Per Output Token Latency (P95)
-    queries:
-      - expression: histogram_quantile(0.95, sum by(le, model_name) (rate({__name__=~"vllm:time_per_output_token_seconds_bucket|vllm_time_per_output_token_seconds_bucket"}[${__rate_interval}])))
-        alias: '${model_name}'
-        primary: true
-    scope: type = "inference-engine.vllm"
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:tpot-latency-p95
-    unit: seconds
-    chartType: line
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: Performance
-        section: Latency
-      componentSummary:
-        weight: 8
-    _type: MetricBinding
-
-  - id: -517
-    name: Time Per Output Token Latency (P90)
-    queries:
-      - expression: histogram_quantile(0.90, sum by(le, model_name) (rate({__name__=~"vllm:time_per_output_token_seconds_bucket|vllm_time_per_output_token_seconds_bucket"}[${__rate_interval}])))
-        alias: '${model_name}'
-        primary: true
-    scope: type = "inference-engine.vllm"
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:tpot-latency-p90
-    unit: seconds
-    chartType: line
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: Performance
-        section: Latency
-      componentSummary:
-        weight: 8
-    _type: MetricBinding
-  - id: -518
-    name: Time Per Output Token Latency (P50)
-    queries:
-      - expression: histogram_quantile(0.50, sum by(le, model_name) (rate({__name__=~"vllm:time_per_output_token_seconds_bucket|vllm_time_per_output_token_seconds_bucket"}[${__rate_interval}])))
-        alias: '${model_name}'
-        primary: true
-    scope: type = "inference-engine.vllm"
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:tpot-latency-p50
-    unit: seconds
-    chartType: line
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: Performance
-        section: Latency
-      componentSummary:
-        weight: 8
-    _type: MetricBinding
-
-  - id: -519
-    name: Time Per Output Token Latency (Average)
-    queries:
-      - expression: rate({__name__=~"vllm:time_per_output_token_seconds_sum|vllm_time_per_output_token_seconds_sum"}[${__rate_interval}])/rate({__name__=~"vllm:time_per_output_token_seconds_count|vllm_time_per_output_token_seconds_count"}[${__rate_interval}])
-        alias: '${model_name}'
-        primary: true
-    scope: type = "inference-engine.vllm"
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:tpot-latency-avg
-    unit: seconds
-    chartType: line
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: Performance
-        section: Latency
-      componentSummary:
-        weight: 8
-    _type: MetricBinding
   - id: -520
-    name: End-to-End Request Latency (P99)
+    name: End-to-End Request Latency
     queries:
       - expression: histogram_quantile(0.99, sum by(le) (rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_bucket", model_name="${name}" }[${__rate_interval}])))
-        alias: 'P99 Latency'
+        alias: 'P99'
+      - expression: histogram_quantile(0.95, sum by(le) (rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_bucket", model_name="${name}" }[${__rate_interval}])))
+        alias: 'P95'
         primary: true
+      - expression: histogram_quantile(0.90, sum by(le) (rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_bucket", model_name="${name}" }[${__rate_interval}])))
+        alias: 'P90'
+      - expression: histogram_quantile(0.50, sum by(le) (rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_bucket", model_name="${name}" }[${__rate_interval}])))
+        alias: 'P50'
+      - expression: rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_sum", model_name="${name}" }[${__rate_interval}])/rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_count", model_name="${name}" }[${__rate_interval}])
+        alias: 'Average'
     scope: (type = "genai.model" and label = "vllm_metrics_available")
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:e2e-latency-p99
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:e2e-latency
     unit: seconds
     chartType: line
     priority: high
@@ -394,13 +219,21 @@
     _type: MetricBinding
 
   - id: -521
-    name: End-to-End Request Latency (P95)
+    name: Time To First Token Latency
     queries:
-      - expression: histogram_quantile(0.95, sum by(le) (rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_bucket", model_name="${name}" }[${__rate_interval}])))
-        alias: 'P95 Latency'
+      - expression: histogram_quantile(0.99, sum by(le) (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
+        alias: 'P99'
+      - expression: histogram_quantile(0.95, sum by(le) (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
+        alias: 'P95'
         primary: true
+      - expression: histogram_quantile(0.90, sum by(le) (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
+        alias: 'P90'
+      - expression: histogram_quantile(0.50, sum by(le) (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
+        alias: 'P50'
+      - expression: rate({__name__=~"vllm(:|_)time_to_first_token_seconds_sum", model_name="${name}"}[${__rate_interval}])/rate({__name__=~"vllm(:|_)time_to_first_token_seconds_count", model_name="${name}"}[${__rate_interval}])
+        alias: 'Average'
     scope: (type = "genai.model" and label = "vllm_metrics_available")
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:e2e-latency-p95
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:ttft-latency
     unit: seconds
     chartType: line
     priority: high
@@ -414,51 +247,21 @@
     _type: MetricBinding
 
   - id: -522
-    name: End-to-End Request Latency (P90)
+    name: Time Per Output Token Latency
     queries:
-      - expression: histogram_quantile(0.90, sum by(le) (rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_bucket", model_name="${name}" }[${__rate_interval}])))
-        alias: 'P90 Latency'
+      - expression: histogram_quantile(0.99, sum by(le) (rate({__name__=~"vllm(:|_)time_per_output_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
+        alias: 'P99'
+      - expression: histogram_quantile(0.95, sum by(le) (rate({__name__=~"vllm(:|_)time_per_output_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
+        alias: 'P95'
         primary: true
-    scope: (type = "genai.model" and label = "vllm_metrics_available")
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:e2e-latency-p90
-    unit: seconds
-    chartType: line
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: Performance
-        section: Latency
-      componentSummary:
-        weight: 8
-    _type: MetricBinding
-  - id: -523
-    name: End-to-End Request Latency (P50)
-    queries:
-      - expression: histogram_quantile(0.50, sum by(le) (rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_bucket", model_name="${name}" }[${__rate_interval}])))
-        alias: 'P50 Latency'
-        primary: true
-    scope: (type = "genai.model" and label = "vllm_metrics_available")
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:e2e-latency-p50
-    unit: seconds
-    chartType: line
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: Performance
-        section: Latency
-      componentSummary:
-        weight: 8
-    _type: MetricBinding
-  - id: -524
-    name: End-to-End Request Latency (Average)
-    queries:
-      - expression: rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_sum", model_name="${name}" }[${__rate_interval}])/rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_count", model_name="${name}" }[${__rate_interval}])
+      - expression: histogram_quantile(0.90, sum by(le) (rate({__name__=~"vllm(:|_)time_per_output_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
+        alias: 'P90'
+      - expression: histogram_quantile(0.50, sum by(le) (rate({__name__=~"vllm(:|_)time_per_output_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
+        alias: 'P50'
+      - expression: rate({__name__=~"vllm(:|_)time_per_output_token_seconds_sum", model_name="${name}"}[${__rate_interval}])/rate({__name__=~"vllm(:|_)time_per_output_token_seconds_count", model_name="${name}"}[${__rate_interval}])
         alias: 'Average'
-        primary: true
     scope: (type = "genai.model" and label = "vllm_metrics_available")
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:e2e-latency-avg
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:tpot-latency
     unit: seconds
     chartType: line
     priority: high
@@ -471,7 +274,7 @@
         weight: 8
     _type: MetricBinding
 
-  - id: -525
+  - id: -523
     name: Token Throughput (Prompt)
     queries:
       - expression: rate({__name__=~"vllm(:|_)prompt_tokens_total", model_name="${name}"}[${__rate_interval}])
@@ -490,7 +293,7 @@
       componentSummary:
         weight: 8
     _type: MetricBinding
-  - id: -526
+  - id: -524
     name: Token Throughput (Generation)
     queries:
       - expression: rate({__name__=~"vllm(:|_)generation_tokens_total", model_name="${name}"}[${__rate_interval}])
@@ -509,7 +312,7 @@
       componentSummary:
         weight: 8
     _type: MetricBinding
-  - id: -527
+  - id: -525
     name: GPU Cache Usage
     queries:
       - expression: vllm_gpu_cache_usage_perc{model_name="${name}"} or vllm:gpu_cache_usage_perc{model_name="${name}"}
@@ -529,105 +332,7 @@
         weight: 8
     _type: MetricBinding
 
-  - id: -528
-    name: Time To First Token Latency (P99)
-    queries:
-      - expression: histogram_quantile(0.99, sum by(le) (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
-        alias: 'P99'
-        primary: true
-    scope: (type = "genai.model" and label = "vllm_metrics_available")
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:ttft-latency-p99
-    unit: seconds
-    chartType: line
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: Performance
-        section: Latency
-      componentSummary:
-        weight: 8
-    _type: MetricBinding
-
-  - id: -529
-    name: Time To First Token Latency (P95)
-    queries:
-      - expression: histogram_quantile(0.95, sum by(le) (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
-        alias: 'P95'
-        primary: true
-    scope: (type = "genai.model" and label = "vllm_metrics_available")
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:ttft-latency-p95
-    unit: seconds
-    chartType: line
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: Performance
-        section: Latency
-      componentSummary:
-        weight: 8
-    _type: MetricBinding
-
-  - id: -530
-    name: Time To First Token Latency (P90)
-    queries:
-      - expression: histogram_quantile(0.90, sum by(le) (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
-        alias: 'P90'
-        primary: true
-    scope: (type = "genai.model" and label = "vllm_metrics_available")
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:ttft-latency-p90
-    unit: seconds
-    chartType: line
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: Performance
-        section: Latency
-      componentSummary:
-        weight: 8
-    _type: MetricBinding
-  - id: -531
-    name: Time To First Token Latency (P50)
-    queries:
-      - expression: histogram_quantile(0.50, sum by(le) (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
-        alias: 'P50'
-        primary: true
-    scope: (type = "genai.model" and label = "vllm_metrics_available")
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:ttft-latency-p50
-    unit: seconds
-    chartType: line
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: Performance
-        section: Latency
-      componentSummary:
-        weight: 8
-    _type: MetricBinding
-  - id: -532
-    name: Time To First Token Latency (Average)
-    queries:
-      - expression: rate({__name__=~"vllm(:|_)time_to_first_token_seconds_sum", model_name="${name}"}[${__rate_interval}])/rate({__name__=~"vllm(:|_)time_to_first_token_seconds_count", model_name="${name}"}[${__rate_interval}])
-        alias: 'Average'
-        primary: true
-    scope: (type = "genai.model" and label = "vllm_metrics_available")
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:ttft-latency-avg
-    unit: seconds
-    chartType: line
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: Performance
-        section: Latency
-      componentSummary:
-        weight: 8
-    _type: MetricBinding
-
-  - id: -533
+  - id: -526
     name: Number of Requests Running
     queries:
       - expression: vllm_num_requests_running{model_name="${name}"} or vllm:num_requests_running{model_name="${name}"}
@@ -647,7 +352,7 @@
         weight: 8
     _type: MetricBinding
 
-  - id: -534
+  - id: -527
     name: Number of Requests Waiting
     queries:
       - expression: vllm_num_requests_waiting{model_name="${name}"} or vllm:num_requests_waiting{model_name="${name}"}
@@ -663,104 +368,6 @@
       metricPerspective:
         tab: Performance
         section: Scheduler
-      componentSummary:
-        weight: 8
-    _type: MetricBinding
-
-  - id: -535
-    name: Time Per Ouput Token Latency (P99)
-    queries:
-      - expression: histogram_quantile(0.99, sum by(le) (rate({__name__=~"vllm(:|_)time_per_output_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
-        alias: 'P99'
-        primary: true
-    scope: (type = "genai.model" and label = "vllm_metrics_available")
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:tpot-latency-p99
-    unit: seconds
-    chartType: line
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: Performance
-        section: Latency
-      componentSummary:
-        weight: 8
-    _type: MetricBinding
-
-  - id: -536
-    name: Time Per Ouput Token Latency (P95)
-    queries:
-      - expression: histogram_quantile(0.95, sum by(le) (rate({__name__=~"vllm(:|_)time_per_output_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
-        alias: 'P95'
-        primary: true
-    scope: (type = "genai.model" and label = "vllm_metrics_available")
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:tpot-latency-p95
-    unit: seconds
-    chartType: line
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: Performance
-        section: Latency
-      componentSummary:
-        weight: 8
-    _type: MetricBinding
-
-  - id: -537
-    name: Time Per Ouput Token Latency (P90)
-    queries:
-      - expression: histogram_quantile(0.90, sum by(le) (rate({__name__=~"vllm(:|_)time_per_output_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
-        alias: 'P90'
-        primary: true
-    scope: (type = "genai.model" and label = "vllm_metrics_available")
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:tpot-latency-p90
-    unit: seconds
-    chartType: line
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: Performance
-        section: Latency
-      componentSummary:
-        weight: 8
-    _type: MetricBinding
-  - id: -538
-    name: Time Per Ouput Token Latency (P50)
-    queries:
-      - expression: histogram_quantile(0.50, sum by(le) (rate({__name__=~"vllm(:|_)time_per_output_token_seconds_bucket", model_name="${name}"}[${__rate_interval}])))
-        alias: 'P50'
-        primary: true
-    scope: (type = "genai.model" and label = "vllm_metrics_available")
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:tpot-latency-p50
-    unit: seconds
-    chartType: line
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: Performance
-        section: Latency
-      componentSummary:
-        weight: 8
-    _type: MetricBinding
-  - id: -539
-    name: Time Per Ouput Token Latency (Average)
-    queries:
-      - expression: rate({__name__=~"vllm(:|_)time_per_output_token_seconds_sum", model_name="${name}"}[${__rate_interval}])/rate({__name__=~"vllm(:|_)time_per_output_token_seconds_count", model_name="${name}"}[${__rate_interval}])
-        alias: 'Average'
-        primary: true
-    scope: (type = "genai.model" and label = "vllm_metrics_available")
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:tpot-latency-avg
-    unit: seconds
-    chartType: line
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: Performance
-        section: Latency
       componentSummary:
         weight: 8
     _type: MetricBinding

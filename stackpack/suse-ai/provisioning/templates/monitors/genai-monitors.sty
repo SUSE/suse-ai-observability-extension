@@ -35,3 +35,22 @@
         unit: short
       urnTemplate: "suse-ai:product:inference-engine:${gen_ai_system}"
 
+  - _type: Monitor
+    id: -3002
+    name: GenAI Application Metric Stream Active
+    identifier: urn:stackpack:suse-ai:shared:monitor:genai-app-metric-stream-active
+    description: Indicates if GenAI application metrics are being received from a component.
+    intervalSeconds: 60
+    status: ENABLED
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      threshold: 1.0
+      comparator: LTE
+      failureState: DEVIATING
+      metric:
+        aliasTemplate: "Requests ${service_name}"
+        query: sum(sum_over_time(gen_ai_client_request_count_total{}[5m])) by (service_name)
+        unit: short
+      titleTemplate: "No GenAI data from ${service_name}"
+      urnTemplate: "suse-ai:application:${service_name}"
+
