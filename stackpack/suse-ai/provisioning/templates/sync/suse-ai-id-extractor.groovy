@@ -33,7 +33,7 @@ if (tags instanceof List) {
     normalizedTags = tags
 }
 
-// DUPLICATION FIX (Option B): If a component has a 'suse.ai.component.name' tag, 
+// DUPLICATION FIX (Option B): If a component has a 'suse.ai.component.name' tag,
 // it will be handled by the "SUSE AI Products" sync (Aggregation).
 // We should NOT create a mirrored instance here to avoid duplicates.
 if (normalizedTags.containsKey('suse.ai.component.name')) {

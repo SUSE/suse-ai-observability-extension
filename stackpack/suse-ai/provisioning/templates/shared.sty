@@ -14,11 +14,8 @@
     items:
       - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:all-genai"
       - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:application"
-      - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:agent"
-      - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:ui"
       - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:inference-engine"
       - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:vectordb"
-      - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:genai.model"
       - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:model-proxy"
       - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:search-engine"
       - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:mcp-server"
@@ -31,7 +28,7 @@
     identifier: "urn:stackpack:suse-ai:shared:query-view:all-genai"
     name: "All GenAI Components"
     description: "Overview of all GenAI-related components."
-    query: "(label IN ('suse.ai.managed:true') OR type IN ('genai.model'))"
+    query: "(label IN ('suse.ai.managed:true') OR type IN ('genai.model')) AND type != 'otel service instance'"
     queryVersion: "0.0.1"
     autoGrouping: true
     connectedComponents: true
@@ -45,40 +42,11 @@
     id: -210
     identifier: "urn:stackpack:suse-ai:shared:query-view:application"
     name: "AI Applications"
-    description: "User workloads consuming GenAI services."
-    query: "label = 'suse.ai.category:application'"
+    description: "Applications, agents, and frontends consuming GenAI services."
+    query: "label IN ('suse.ai.category:application', 'suse.ai.category:agent', 'suse.ai.category:ui') AND type != 'otel service instance'"
     queryVersion: "0.0.1"
     autoGrouping: true
-    connectedComponents: true
-    groupedByDomains: true
-    groupedByLayers: true
-    groupingEnabled: true
-    flags:
-    - HideFromViewsOverview
-
-  - _type: "QueryView"
-    id: -211
-    identifier: "urn:stackpack:suse-ai:shared:query-view:agent"
-    name: "AI Agents"
-    description: "Autonomous agents performing tasks using LLMs."
-    query: "label = 'suse.ai.category:agent'"
-    queryVersion: "0.0.1"
-    autoGrouping: true
-    connectedComponents: true
-    groupedByDomains: true
-    groupedByLayers: true
-    groupingEnabled: true
-    flags:
-    - HideFromViewsOverview
-
-  - _type: "QueryView"
-    id: -212
-    identifier: "urn:stackpack:suse-ai:shared:query-view:ui"
-    name: "AI Frontends"
-    description: "User interfaces for interacting with GenAI systems."
-    query: "label = 'suse.ai.category:ui'"
-    queryVersion: "0.0.1"
-    autoGrouping: true
+    viewType: urn:stackpack:suse-ai:shared:view-type:ai-applications
     connectedComponents: true
     groupedByDomains: true
     groupedByLayers: true
@@ -91,7 +59,7 @@
     identifier: "urn:stackpack:suse-ai:shared:query-view:inference-engine"
     name: "Inference Engines"
     description: "Backends serving LLMs (vLLM, Ollama, etc.)."
-    query: "label = 'suse.ai.category:inference-engine'"
+    query: "label = 'suse.ai.category:inference-engine' AND type != 'otel service instance'"
     queryVersion: "0.0.1"
     autoGrouping: true
     connectedComponents: true
@@ -106,22 +74,7 @@
     identifier: "urn:stackpack:suse-ai:shared:query-view:vectordb"
     name: "Vector Databases"
     description: "Databases for storing and retrieving high-dimensional vectors."
-    query: "label = 'suse.ai.category:vectordb'"
-    queryVersion: "0.0.1"
-    autoGrouping: true
-    connectedComponents: true
-    groupedByDomains: true
-    groupedByLayers: true
-    groupingEnabled: true
-    flags:
-    - HideFromViewsOverview
-
-  - _type: "QueryView"
-    id: -215
-    identifier: "urn:stackpack:suse-ai:shared:query-view:genai.model"
-    name: "AI Models"
-    description: "Large Language Models and other AI models."
-    query: "label = 'suse.ai.category:genai.model'"
+    query: "label = 'suse.ai.category:vectordb' AND type != 'otel service instance'"
     queryVersion: "0.0.1"
     autoGrouping: true
     connectedComponents: true
@@ -136,7 +89,7 @@
     identifier: "urn:stackpack:suse-ai:shared:query-view:model-proxy"
     name: "Model Proxies"
     description: "Proxies and gateways for AI models."
-    query: "label = 'suse.ai.category:model-proxy'"
+    query: "label = 'suse.ai.category:model-proxy' AND type != 'otel service instance'"
     queryVersion: "0.0.1"
     autoGrouping: true
     connectedComponents: true
@@ -151,7 +104,7 @@
     identifier: "urn:stackpack:suse-ai:shared:query-view:search-engine"
     name: "Search Engines"
     description: "Traditional and AI-powered search engines."
-    query: "label = 'suse.ai.category:search-engine'"
+    query: "label = 'suse.ai.category:search-engine' AND type != 'otel service instance'"
     queryVersion: "0.0.1"
     autoGrouping: true
     connectedComponents: true
@@ -166,7 +119,7 @@
     identifier: "urn:stackpack:suse-ai:shared:query-view:mcp-server"
     name: "MCP Servers"
     description: "Model Context Protocol servers."
-    query: "label = 'suse.ai.category:mcp-server'"
+    query: "label = 'suse.ai.category:mcp-server' AND type != 'otel service instance'"
     queryVersion: "0.0.1"
     autoGrouping: true
     connectedComponents: true
@@ -181,7 +134,7 @@
     identifier: "urn:stackpack:suse-ai:shared:query-view:workflow-engine"
     name: "Workflow Engines"
     description: "Engines for orchestrating AI workflows."
-    query: "label = 'suse.ai.category:workflow-engine'"
+    query: "label = 'suse.ai.category:workflow-engine' AND type != 'otel service instance'"
     queryVersion: "0.0.1"
     autoGrouping: true
     connectedComponents: true
@@ -196,7 +149,7 @@
     identifier: "urn:stackpack:suse-ai:shared:query-view:ml-registry"
     name: "ML Registries"
     description: "Registries for managing ML models."
-    query: "label = 'suse.ai.category:ml-registry'"
+    query: "label = 'suse.ai.category:ml-registry' AND type != 'otel service instance'"
     queryVersion: "0.0.1"
     autoGrouping: true
     connectedComponents: true

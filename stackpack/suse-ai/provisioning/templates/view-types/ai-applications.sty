@@ -1,0 +1,65 @@
+  - id: -6001
+    name: AI Applications
+    iconbase64: data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjAgMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTEwIDJDNS41ODkgMiAyIDUuNTg5IDIgMTBzMy41ODkgOCA4IDggOC0zLjU4OSA4LThTMTQuNDExIDIgMTAgMnptMCAyYzMuMzMgMCA2IDIuNjcgNiA2cy0yLjY3IDYtNiA2LTYtMi42Ny02LTYgMi42Ny02IDYtNnptLTEgMnYzSDZ2MmgzdjNoMnYtM2gzdi0yaC0zVjZoLTJ6IiBmaWxsPSIjMzBiYTc4Ii8+PC9zdmc+
+    overview:
+      columns:
+        - _type: ViewTypeTableColHealth
+        - title: Application
+          width: 180
+          _type: ViewTypeTableColName
+        - title: Type
+          path: ["type", "name"]
+          width: 140
+          _type: ViewTypeTableColText
+        - title: Service Name
+          path: ["tags", "service.name"]
+          width: 180
+          _type: ViewTypeTableColText
+        - title: Namespace
+          path: ["tags", "k8s.namespace.name"]
+          width: 140
+          _type: ViewTypeTableColText
+        - title: Request Rate
+          metricBindingIdentifier: urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-request-rate
+          width: 140
+          _type: ViewTypeTableColMetricBinding
+        - title: Success Rate
+          metricBindingIdentifier: urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-request-total-success
+          width: 140
+          _type: ViewTypeTableColMetricBinding
+        - title: Tokens/Request
+          metricBindingIdentifier: urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-average-tokens-per-request
+          width: 140
+          _type: ViewTypeTableColMetricBinding
+        - title: Token Throughput
+          metricBindingIdentifier: urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-tokens-throughput
+          width: 160
+          _type: ViewTypeTableColMetricBinding
+        - title: Cost/1K Tokens
+          metricBindingIdentifier: urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-cost-per-1k-tokens
+          width: 140
+          _type: ViewTypeTableColMetricBinding
+        - title: Total Cost
+          metricBindingIdentifier: urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-avg-total-usage-cost
+          width: 140
+          _type: ViewTypeTableColMetricBinding
+        - title: Top Models
+          metricBindingIdentifier: urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-top-models
+          width: 200
+          _type: ViewTypeTableColMetricBinding
+      _type: ViewTypeOverview
+    flags:
+      - NoTopologyFilters
+    filters:
+      - prefix: k8s.namespace.name
+        name: Namespace
+        _type: LabelPrefixedFilter
+      - prefix: suse.ai.category
+        name: Category
+        _type: LabelPrefixedFilter
+      - tabs:
+          - EVENTS
+          - TRACES
+        _type: TopologyFilters
+    identifier: urn:stackpack:suse-ai:shared:view-type:ai-applications
+    _type: ViewType
