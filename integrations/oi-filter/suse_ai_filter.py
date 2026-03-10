@@ -15,6 +15,8 @@ import urllib.request
 import json
 import os
 import uuid
+import time
+import threading
 
 from utils.pipelines.main import get_last_user_message, get_last_assistant_message
 
@@ -64,8 +66,10 @@ class Pipeline:
         self.tracer = None
         self.meter = None
         self.chats = {}
+        self.chat_timestamps = {}
         self.chat_model_provider = {}
         self.metrics = {}
+        self._lock = threading.Lock()
         self.cost_estimation = fetch_json_from_url_stdlib(
             self.valves.pricing_information
         )
@@ -177,7 +181,6 @@ class Pipeline:
     async def inlet(self, body: dict, user: Optional[dict] = None) -> dict:
         self.log(f"Inlet function called with body: {body} and user: {user}")
 
-        # Ensure telemetry is initialized
         if self.tracer is None or self.meter is None:
             self.log("Telemetry not initialized, calling setup()")
             self.setup()
@@ -195,7 +198,6 @@ class Pipeline:
             metadata["chat_id"] = chat_id
             body["metadata"] = metadata
 
-        # Possible values: unknown, ollama, openai, vllm
         provider = "unknown"
         try:
             provider = body["metadata"]["model"]["owned_by"]
@@ -209,114 +211,108 @@ class Pipeline:
 
         model = body.get("model", "default")
 
-        # Skip telemetry if tracer is not available
         if self.tracer is None:
             self.log("Tracer not available, skipping telemetry in inlet")
             return body
 
-        parent = self.chats.get(chat_id, None)
-        if parent is None:
-            parent = self.tracer.start_span(f"{chat_id}")
-        self.chats[chat_id] = parent
         self.chat_model_provider[(chat_id, model)] = provider
 
-        parent_context = trace.set_span_in_context(parent)
-        with self.tracer.start_as_current_span("user", context=parent_context) as span:
-            # Set attributes on the span (OTel Semconv)
-            span.set_attribute(SemanticConvention.GEN_AI_OPERATION, "chat")
-            span.set_attribute(SemanticConvention.GEN_AI_PROVIDER_NAME, provider)
-            span.set_attribute(SemanticConvention.GEN_AI_CONVERSATION_ID, chat_id)
-            span.set_attribute(SemanticConvention.GEN_AI_REQUEST_MODEL, model)
-            span.set_attribute(SemanticConvention.GEN_AI_REQUEST_IS_STREAM, body.get("stream", False))
+        start_time = time.time()
 
-            if self.capture_messages():
-                message = get_last_user_message(body["messages"])
-                span.add_event(
-                    SemanticConvention.GEN_AI_USER_MESSAGE,
-                    attributes={
-                        SemanticConvention.GEN_AI_PROVIDER_NAME: provider,
-                        SemanticConvention.CONTENT: message,
-                    },
-                )
-                span.set_attribute(SemanticConvention.GEN_AI_USER_MESSAGE, message)
-            span.set_status(Status(StatusCode.OK))
+        span_name = f"chat {model}"
+        span = self.tracer.start_span(span_name)
+        span.set_attribute(SemanticConvention.GEN_AI_OPERATION, "chat")
+        span.set_attribute(SemanticConvention.GEN_AI_PROVIDER_NAME, provider)
+        span.set_attribute(SemanticConvention.GEN_AI_CONVERSATION_ID, chat_id)
+        span.set_attribute(SemanticConvention.GEN_AI_REQUEST_MODEL, model)
+        span.set_attribute(SemanticConvention.GEN_AI_REQUEST_IS_STREAM, body.get("stream", False))
+
+        if self.capture_messages():
+            messages = body.get("messages", [])
+            formatted_messages = [format_message_for_otel(msg) for msg in messages]
+            span.set_attribute(
+                SemanticConvention.GEN_AI_INPUT_MESSAGES,
+                json.dumps(formatted_messages)
+            )
+
+        with self._lock:
+            self.chats[chat_id] = span
+            self.chat_timestamps[chat_id] = start_time
+
         return body
 
     async def outlet(self, body: dict, user: Optional[dict] = None) -> dict:
         self.log(f"Outlet function called with body: {body} and user {user}")
 
-        # Ensure telemetry is initialized
         if self.tracer is None or self.meter is None:
             self.log("Telemetry not initialized in outlet, calling setup()")
             self.setup()
 
-        token_counts_available = True
         model = body.get("model") or "undefined"
         chat_id = body.get("chat_id", None)
         assistant_message_obj = get_last_assistant_message_obj(body["messages"])
         info = assistant_message_obj.get("usage", {})
         input_tokens = info.get("prompt_eval_count") or info.get("prompt_tokens")
         output_tokens = info.get("eval_count") or info.get("completion_tokens")
-        if input_tokens is None or output_tokens is None:
-            token_counts_available = False
-        if token_counts_available:
-            total_tokens = input_tokens + output_tokens
+        
+        token_counts_available = input_tokens is not None and output_tokens is not None
 
-        # Skip telemetry if tracer/meter not available
         if self.tracer is None or self.meter is None:
             self.log("Tracer/Meter not available, skipping telemetry in outlet")
             return body
 
-        if parent := self.chats.get(chat_id, None):
+        span = None
+        start_time = None
+        
+        with self._lock:
+            span = self.chats.pop(chat_id, None)
+            start_time = self.chat_timestamps.pop(chat_id, None)
+
+        if span:
             provider = self.chat_model_provider.get((chat_id, model), "default")
-            context = trace.set_span_in_context(parent)
-            with self.tracer.start_as_current_span(
-                "ai_system", context=context
-            ) as span:
-                # Set attributes on the span (OTel Semconv)
-                span.set_attribute(SemanticConvention.GEN_AI_OPERATION, "chat")
-                span.set_attribute(SemanticConvention.GEN_AI_PROVIDER_NAME, provider)
-                span.set_attribute(SemanticConvention.GEN_AI_REQUEST_MODEL, model)
-                span.set_attribute(SemanticConvention.GEN_AI_RESPONSE_MODEL, model)
+            
+            span.set_attribute(SemanticConvention.GEN_AI_RESPONSE_MODEL, model)
 
-                if token_counts_available:
-                    span.set_attribute(SemanticConvention.GEN_AI_USAGE_INPUT_TOKENS, input_tokens)
-                    span.set_attribute(SemanticConvention.GEN_AI_USAGE_OUTPUT_TOKENS, output_tokens)
+            response_id = assistant_message_obj.get("id") or body.get("id") or ""
+            if response_id:
+                span.set_attribute(SemanticConvention.GEN_AI_RESPONSE_ID, response_id)
 
-                    # Custom cost attribute (non-standard)
-                    cost = 0
-                    try:
-                        cost = self.get_chat_model_cost(
-                            model, input_tokens, output_tokens
-                        )
-                    except UndefinedPriceError:
-                        self.log(f"Undefined price for model {model}")
-                    if cost > 0:
-                        span.set_attribute("gen_ai.usage.cost", cost)
+            finish_reason = assistant_message_obj.get("finish_reason") or "stop"
+            span.set_attribute(
+                SemanticConvention.GEN_AI_RESPONSE_FINISH_REASON,
+                format_finish_reason(finish_reason)
+            )
 
-                if self.capture_messages():
-                    message = get_last_assistant_message(body["messages"])
-                    span.add_event(
-                        SemanticConvention.GEN_AI_ASSISTANT_MESSAGE,
-                        attributes={
-                            SemanticConvention.GEN_AI_PROVIDER_NAME: provider,
-                            SemanticConvention.CONTENT: message,
-                        },
-                    )
-                    span.set_attribute(
-                        SemanticConvention.GEN_AI_ASSISTANT_MESSAGE, message
-                    )
-                span.set_status(Status(StatusCode.OK))
-            parent.set_status(Status(StatusCode.OK))
-            parent.end()
-            self.chats.pop(chat_id, None)
-            for key in [k for k in self.chat_model_provider if k[0] == chat_id]:
-                self.chat_model_provider.pop(key, None)
+            if token_counts_available:
+                span.set_attribute(SemanticConvention.GEN_AI_USAGE_INPUT_TOKENS, input_tokens)
+                span.set_attribute(SemanticConvention.GEN_AI_USAGE_OUTPUT_TOKENS, output_tokens)
+
+                cost = 0
+                try:
+                    cost = self.get_chat_model_cost(model, input_tokens, output_tokens)
+                except UndefinedPriceError:
+                    self.log(f"Undefined price for model {model}")
+                if cost > 0:
+                    span.set_attribute("gen_ai.usage.cost", cost)
+
+            if self.capture_messages():
+                formatted_output = format_message_for_otel(assistant_message_obj)
+                formatted_output["finish_reason"] = finish_reason
+                span.set_attribute(
+                    SemanticConvention.GEN_AI_OUTPUT_MESSAGES,
+                    json.dumps([formatted_output])
+                )
+
+            span.set_status(Status(StatusCode.OK))
+            span.end()
+            
+            with self._lock:
+                for key in [k for k in self.chat_model_provider if k[0] == chat_id]:
+                    self.chat_model_provider.pop(key, None)
         else:
-            self.log("No parent span")
+            self.log("No span found for chat_id")
             return body
 
-        # Base attributes for all metrics
         base_attrs = create_metrics_attributes(
             operation=SemanticConvention.GEN_AI_OPERATION_TYPE_CHAT,
             provider=provider,
@@ -325,7 +321,6 @@ class Pipeline:
         )
 
         if token_counts_available:
-            # Record input tokens with token.type="input"
             input_attrs = create_metrics_attributes(
                 operation=SemanticConvention.GEN_AI_OPERATION_TYPE_CHAT,
                 provider=provider,
@@ -333,11 +328,8 @@ class Pipeline:
                 response_model=model,
                 token_type="input",
             )
-            self.metrics["genai_client_token_usage"].record(
-                input_tokens, input_attrs
-            )
+            self.metrics["genai_client_token_usage"].record(input_tokens, input_attrs)
 
-            # Record output tokens with token.type="output"
             output_attrs = create_metrics_attributes(
                 operation=SemanticConvention.GEN_AI_OPERATION_TYPE_CHAT,
                 provider=provider,
@@ -345,20 +337,8 @@ class Pipeline:
                 response_model=model,
                 token_type="output",
             )
-            self.metrics["genai_client_token_usage"].record(
-                output_tokens, output_attrs
-            )
+            self.metrics["genai_client_token_usage"].record(output_tokens, output_attrs)
 
-            # Record operation duration (convert nanoseconds to seconds)
-            # Ollama returns total_duration at message level, not in usage object
-            duration_ns = assistant_message_obj.get("total_duration", 0)
-            if duration_ns and duration_ns > 0:
-                duration_seconds = duration_ns / 1_000_000_000.0
-                self.metrics["genai_client_operation_duration"].record(
-                    duration_seconds, base_attrs
-                )
-
-            # Record cost (custom metric)
             cost = 0
             try:
                 cost = self.get_chat_model_cost(model, input_tokens, output_tokens)
@@ -372,7 +352,18 @@ class Pipeline:
             else:
                 self.log(f"Cost is 0 or negative ({cost}) for model '{model}', not recording")
 
-        # Always record request count
+        duration_seconds = None
+        duration_ns = assistant_message_obj.get("total_duration", 0)
+        if duration_ns and duration_ns > 0:
+            duration_seconds = duration_ns / 1_000_000_000.0
+        elif start_time is not None:
+            end_time = time.time()
+            duration_seconds = end_time - start_time
+            self.log(f"Calculated duration from timestamps: {duration_seconds}s")
+
+        if duration_seconds is not None and duration_seconds > 0:
+            self.metrics["genai_client_operation_duration"].record(duration_seconds, base_attrs)
+
         self.metrics["genai_requests"].add(1, base_attrs)
         return body
 
@@ -401,6 +392,58 @@ def get_last_assistant_message_obj(messages: List[dict]) -> dict:
         if message["role"] == "assistant":
             return message
     return {}
+
+
+def format_message_for_otel(message: dict) -> dict:
+    """
+    Format a single message according to OTel GenAI input/output message schema.
+    
+    Args:
+        message: A message dict with 'role' and 'content' keys
+        
+    Returns:
+        dict with 'role' and 'parts' keys following OTel spec
+    """
+    role = message.get("role", "user")
+    content = message.get("content", "")
+    
+    formatted = {
+        "role": role,
+        "parts": [
+            {
+                "type": "text",
+                "content": content
+            }
+        ]
+    }
+    
+    if "tool_calls" in message and message["tool_calls"]:
+        formatted["parts"] = []
+        for tc in message["tool_calls"]:
+            tc_part = {
+                "type": "tool_call",
+                "id": tc.get("id", ""),
+                "name": tc.get("function", {}).get("name", ""),
+                "arguments": tc.get("function", {}).get("arguments", {})
+            }
+            formatted["parts"].append(tc_part)
+    
+    if role == "tool":
+        tool_call_id = message.get("tool_call_id", "")
+        formatted["parts"] = [
+            {
+                "type": "tool_call_response",
+                "id": tool_call_id,
+                "result": content
+            }
+        ]
+    
+    return formatted
+
+
+def format_finish_reason(reason: str) -> list:
+    """Format finish reason as a list per OTel spec."""
+    return [reason] if reason else ["stop"]
 
 
 def create_metrics_attributes(
@@ -592,6 +635,10 @@ class SemanticConvention:
     GEN_AI_USAGE_COST = "gen_ai.usage.cost"
     GEN_AI_RESPONSE_IMAGE = "gen_ai.response.image"
     GEN_AI_TOOL_CALLS = "gen_ai.response.tool_calls"
+
+    # GenAI Input/Output Messages (Opt-In per OTel spec)
+    GEN_AI_INPUT_MESSAGES = "gen_ai.input.messages"
+    GEN_AI_OUTPUT_MESSAGES = "gen_ai.output.messages"
 
     # GenAI Content
     CONTENT = "content"

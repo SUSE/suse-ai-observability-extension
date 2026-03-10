@@ -5,47 +5,27 @@
       columns:
         - _type: ViewTypeTableColHealth
         - title: Application
-          width: 180
+          width: 200
           _type: ViewTypeTableColName
-        - title: Type
-          path: ["type", "name"]
-          width: 140
+        - title: Category
+          path: ["tags", "suse.ai.category"]
+          width: 120
           _type: ViewTypeTableColText
         - title: Service Name
           path: ["tags", "service.name"]
-          width: 180
+          width: 200
           _type: ViewTypeTableColText
         - title: Namespace
           path: ["tags", "k8s.namespace.name"]
-          width: 140
+          width: 160
           _type: ViewTypeTableColText
         - title: Request Rate
-          metricBindingIdentifier: urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-request-rate
-          width: 140
-          _type: ViewTypeTableColMetricBinding
-        - title: Success Rate
-          metricBindingIdentifier: urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-request-total-success
-          width: 140
-          _type: ViewTypeTableColMetricBinding
-        - title: Tokens/Request
-          metricBindingIdentifier: urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-average-tokens-per-request
-          width: 140
-          _type: ViewTypeTableColMetricBinding
-        - title: Token Throughput
-          metricBindingIdentifier: urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-tokens-throughput
-          width: 160
-          _type: ViewTypeTableColMetricBinding
-        - title: Cost/1K Tokens
-          metricBindingIdentifier: urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-cost-per-1k-tokens
+          metricBindingIdentifier: urn:stackpack:suse-ai:shared:metric-binding:request-rate
           width: 140
           _type: ViewTypeTableColMetricBinding
         - title: Total Cost
-          metricBindingIdentifier: urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-avg-total-usage-cost
+          metricBindingIdentifier: urn:stackpack:suse-ai:shared:metric-binding:total-usage-cost
           width: 140
-          _type: ViewTypeTableColMetricBinding
-        - title: Top Models
-          metricBindingIdentifier: urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-top-models
-          width: 200
           _type: ViewTypeTableColMetricBinding
       _type: ViewTypeOverview
     flags:

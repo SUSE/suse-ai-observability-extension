@@ -2,7 +2,7 @@
   - id: -569
     name: LLM Request Rate
     queries:
-      - expression: sum(rate(gen_ai_requests_total{ service_name="${name}" }[${__rate_interval}]))
+      - expression: sum(rate(gen_ai_client_request_count_total{ service_name="${name}" }[${__rate_interval}]))
         alias: Request Rate
         primary: true
     scope:  type in ("service", "application") AND label IN ("suse.ai.category:application")
@@ -21,7 +21,7 @@
   - id: -570
     name: Top models by usage
     queries:
-      - expression: topk(5, sum by(gen_ai_request_model) (gen_ai_requests_total{ service_name="${name}" }))
+      - expression: topk(5, sum by(gen_ai_request_model) (gen_ai_client_request_count_total{ service_name="${name}" }))
         alias: "${gen_ai_request_model}"
         primary: true
     scope:  type in ("service", "application") AND label IN ("suse.ai.category:application")
@@ -40,11 +40,11 @@
   - id: -571
     name: Average Token Consumption vs. Average Usage Cost Comparison
     queries:
-      - expression: avg(gen_ai_usage_input_tokens_total{ service_name="${name}" })
+      - expression: avg(gen_ai_client_token_usage_sum{service_name="${name}", gen_ai_token_type="input"})
         alias: Prompt Tokens
-      - expression: avg(gen_ai_usage_output_tokens_total{ service_name="${name}" })
+      - expression: avg(gen_ai_client_token_usage_sum{service_name="${name}", gen_ai_token_type="output"})
         alias: Completion Tokens
-      - expression: avg(gen_ai_usage_cost_USD_bucket{ service_name="${name}" })
+      - expression: avg(gen_ai_client_operation_cost_USD_bucket{ service_name="${name}" })
         alias: Usage Dollar Cost
     scope:  type in ("service", "application") AND label IN ("suse.ai.category:application")
     identifier: urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-avg-tokens-per-total-requests
@@ -62,7 +62,7 @@
   - id: -572
     name: Average Usage Cost
     queries:
-      - expression: avg by() (gen_ai_usage_cost_USD_sum{ service_name="${name}" })
+      - expression: avg by() (gen_ai_client_operation_cost_USD_sum{ service_name="${name}" })
         alias: Usage Dollar Cost
     scope:  type in ("service", "application") AND label IN ("suse.ai.category:application")
     identifier: urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-avg-usage-cost
@@ -83,7 +83,7 @@
   - id: -573
     name: Total Usage Cost
     queries:
-      - expression: sum(gen_ai_usage_cost_USD_sum{ service_name="${name}" })
+      - expression: sum(gen_ai_client_operation_cost_USD_sum{ service_name="${name}" })
         alias: Usage Dollar Cost
     scope:  type in ("service", "application") AND label IN ("suse.ai.category:application")
     identifier: urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-avg-total-usage-cost
@@ -104,7 +104,7 @@
   - id: -574
     name: Total Usage Tokens
     queries:
-      - expression: sum(gen_ai_usage_tokens_total{ service_name="${name}" })
+      - expression: sum(gen_ai_client_token_usage_sum{ service_name="${name}" })
         alias: Total Usage Tokens
     scope:  type in ("service", "application") AND label IN ("suse.ai.category:application")
     identifier: urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-total-usage-tokens
@@ -125,7 +125,7 @@
   - id: -575
     name: Total Usage Tokens
     queries:
-      - expression: sum(gen_ai_usage_tokens_total{ service_name="${name}" })
+      - expression: sum(gen_ai_client_token_usage_sum{ service_name="${name}" })
         alias: Total Usage Tokens
     scope:  type in ("service", "application") AND label IN ("suse.ai.category:application")
     identifier: urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-total-usage-tokens-line
@@ -143,7 +143,7 @@
   - id: -576
     name: Total Successful GenAI Requests
     queries:
-      - expression: sum by() (gen_ai_requests_total{ service_name="${name}" })
+      - expression: sum by() (gen_ai_client_request_count_total{ service_name="${name}" })
         alias: Requests
         primary: true
     scope:  type in ("service", "application") AND label IN ("suse.ai.category:application")
@@ -166,7 +166,7 @@
   - id: -577
     name: Average Usage Cost per model
     queries:
-      - expression: avg by(gen_ai_request_model) (gen_ai_usage_cost_USD_sum{ service_name="${name}" })/100
+      - expression: avg by(gen_ai_request_model) (gen_ai_client_operation_cost_USD_sum{ service_name="${name}" })/100
         alias: '${gen_ai_request_model}'
     scope: type in ("service", "application") AND label IN ("suse.ai.category:application")
     identifier: urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-avg-usage-cost-per-model
@@ -206,7 +206,7 @@
     name: Average Tokens per Request
     description: Input and output tokens per inference call. Indicates verbosity or prompt inflation. Higher values drive cost and latency.
     queries:
-      - expression: sum(rate(gen_ai_usage_tokens_total{service_name="${name}"}[5m])) / sum(rate(gen_ai_requests_total{service_name="${name}"}[5m]))
+      - expression: sum(rate(gen_ai_client_token_usage_sum{service_name="${name}"}[5m])) / sum(rate(gen_ai_client_request_count_total{service_name="${name}"}[5m]))
         alias: "AVG Tokens/Request"
         primary: true
     scope:  type in ("service", "application") AND label IN ("suse.ai.category:application")
@@ -227,7 +227,7 @@
     name: Token Throughput
     description: Aggregate input + output tokens processed per second. Similar to a GPU-workload proxy.
     queries:
-      - expression: sum by(gen_ai_request_model) (rate(gen_ai_usage_tokens_total{service_name="${name}"}[${__interval}]))/sum(rate(gen_ai_requests_total{service_name="${name}"}[${__interval}]))
+      - expression: sum by(gen_ai_request_model) (rate(gen_ai_client_token_usage_sum{service_name="${name}"}[${__interval}]))/sum(rate(gen_ai_client_request_count_total{service_name="${name}"}[${__interval}]))
         alias: "${gen_ai_request_model}"
         primary: true
     scope:  type in ("service", "application") AND label IN ("suse.ai.category:application")
@@ -248,7 +248,7 @@
     name: Cost per 1 K Tokens (USD)
     description: Expenditure to 1000-token chunks, enabling cross-model cost benchmarking.
     queries:
-      - expression: (sum by (gen_ai_request_model) (rate(gen_ai_usage_cost_USD_sum{service_name="${name}"}[${__rate_interval}])) / sum by(gen_ai_request_model) (rate(gen_ai_usage_tokens_total{service_name="${name}"}[${__rate_interval}]))) * 1000
+      - expression: (sum by (gen_ai_request_model) (rate(gen_ai_client_operation_cost_USD_sum{service_name="${name}"}[${__rate_interval}])) / sum by(gen_ai_request_model) (rate(gen_ai_client_token_usage_sum{service_name="${name}"}[${__rate_interval}]))) * 1000
         alias: "${gen_ai_request_model}"
         primary: true
     scope:  type in ("service", "application") AND label IN ("suse.ai.category:application")
@@ -261,6 +261,27 @@
       metricPerspective:
         tab: LLM
         section: Cost
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -584
+    name: Operation Duration (P95)
+    description: 95th percentile latency of GenAI inference calls. Helps detect slow models or degraded backends.
+    queries:
+      - expression: histogram_quantile(0.95, sum by (gen_ai_request_model, le) (rate(gen_ai_client_operation_duration_seconds_bucket{service_name="${name}"}[5m])))
+        alias: "${gen_ai_request_model}"
+        primary: true
+    scope:  type in ("service", "application") AND label IN ("suse.ai.category:application")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-operation-duration-p95
+    unit: s
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Performance
       componentSummary:
         weight: 3
     _type: MetricBinding
