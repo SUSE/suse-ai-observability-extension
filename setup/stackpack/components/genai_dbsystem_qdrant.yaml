@@ -1,0 +1,95 @@
+nodes:
+  - id: -100
+    name: genai.dbsystem.qdrant
+    iconbase64: data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICA8Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iI0RDMjQ0QyIvPgogIDxwYXRoIGQ9Ik01MCAxNSBMNzUgMzUgTDc1IDY1IEw1MCA4NSBMMjUgNjUgTDI1IDM1IFoiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjkiLz4KICA8cGF0aCBkPSJNNTAgMjUgTDY4IDM4IEw2OCA2MiBMNTAgNzUgTDMyIDYyIEwzMiAzOCBaIiBmaWxsPSIjREMyNDRDIi8+CiAgPGxpbmUgeDE9IjUwIiB5MT0iMjUiIHgyPSI1MCIgeTI9IjUwIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiLz4KICA8bGluZSB4MT0iNjgiIHkxPSIzOCIgeDI9IjUwIiB5Mj0iNTAiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIvPgogIDxsaW5lIHgxPSI2OCIgeTE9IjYyIiB4Mj0iNTAiIHkyPSI1MCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPGxpbmUgeDE9IjUwIiB5MT0iNzUiIHgyPSI1MCIgeTI9IjUwIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiLz4KICA8bGluZSB4MT0iMzIiIHkxPSI2MiIgeDI9IjUwIiB5Mj0iNTAiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIvPgogIDxsaW5lIHgxPSIzMiIgeTE9IjM4IiB4Mj0iNTAiIHkyPSI1MCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIi8+Cjwvc3ZnPgo=
+    identifier: urn:system:auto:component-type:genai.dbsystem.qdrant
+    highlights:
+      namePlural: db_systems
+      fields:
+        - fieldId: type
+          label:
+            title: Type
+          valueExtractor:
+            _type: ComponentTypeSource
+          display:
+            _type: TagDisplay
+          _type: ComponentTypeField
+        - fieldId: health
+          label:
+            title: Health
+          valueExtractor:
+            _type: HealthSource
+          display:
+            _type: HealthBadgeDisplay
+          _type: ComponentTypeField
+        - fieldId: labels
+          label:
+            title: Labels
+          valueExtractor:
+            _type: TagsSource
+          display:
+            singular: label
+            _type: TagDisplay
+          _type: ComponentTypeField
+      about:
+        fields:
+          - type
+          - health
+          - labels
+        _type: ComponentTypeAbout
+      events:
+        showEvents: false
+        _type: ComponentTypeEvents
+      showLogs: false
+      showLastChange: false
+      externalComponent:
+        showConfiguration: false
+        showStatus: false
+        externalIdSelector: "^openlit:urn:open-telemetry:"
+        _type: ComponentTypeExternalComponent
+      relatedResources:
+        - resourceType: genai.dboperation
+          title: Operations
+          stql: (withNeighborsOf(direction = "down", components = (id = "{COMPONENT_ID}"),
+            levels = "1")) and type = "genai.dboperation"
+          _type: ComponentTypeRelatedResources
+        - resourceType: otel service
+          title: Related Open Telemetry services
+          stql: (withNeighborsOf(direction = "up", components = (id = "{COMPONENT_ID}"),
+            levels = "1")) and type = "otel service"
+          viewTypeIdentifier: urn:stackpack:open-telemetry:shared:view-type:service
+          _type: ComponentTypeRelatedResources
+
+      metrics:
+        - name: Collections
+          description: Collection and vector counts
+          bindings:
+          - urn:stackpack:qdrant:shared:metric-binding:vectordb-collections-total
+          - urn:stackpack:qdrant:shared:metric-binding:vectordb-vectors-total
+          defaultExpanded: true
+          _type: ComponentTypeMetricCategory
+        - name: REST API
+          description: REST API response metrics
+          bindings:
+          - urn:stackpack:qdrant:shared:metric-binding:vectordb-rest-responses-total
+          - urn:stackpack:qdrant:shared:metric-binding:vectordb-rest-responses-fail
+          - urn:stackpack:qdrant:shared:metric-binding:vectordb-rest-responses-avg-duration
+          defaultExpanded: true
+          _type: ComponentTypeMetricCategory
+        - name: gRPC API
+          description: gRPC API response metrics
+          bindings:
+          - urn:stackpack:qdrant:shared:metric-binding:vectordb-grpc-responses-total
+          - urn:stackpack:qdrant:shared:metric-binding:vectordb-grpc-responses-fail
+          - urn:stackpack:qdrant:shared:metric-binding:vectordb-grpc-responses-avg-duration
+          defaultExpanded: true
+          _type: ComponentTypeMetricCategory
+        - name: Hardware
+          description: Process resource utilization
+          bindings:
+          - urn:stackpack:qdrant:shared:metric-binding:vectordb-cpu-usage
+          - urn:stackpack:qdrant:shared:metric-binding:vectordb-memory-active
+          defaultExpanded: true
+          _type: ComponentTypeMetricCategory
+      _type: ComponentTypeHighlights
+    _type: ComponentType

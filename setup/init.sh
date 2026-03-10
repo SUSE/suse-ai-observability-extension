@@ -90,6 +90,7 @@ declare -a SETTING_FILES=(
   "/mnt/components/genai_model.yaml"
   "/mnt/components/genai_dbsystem_milvus.yaml"
   "/mnt/components/genai_dbsystem_opensearch.yaml"
+  "/mnt/components/genai_dbsystem_qdrant.yaml"
   "/mnt/metrics/gpu_nodes.yaml"
   "/mnt/metrics/gpu_pods.yaml"
   "/mnt/metrics/genai_systems.yaml"
@@ -98,6 +99,7 @@ declare -a SETTING_FILES=(
   "/mnt/metrics/vllm.yaml"
   "/mnt/metrics/vllm_model.yaml"
   "/mnt/metrics/opensearch.yaml"
+  "/mnt/metrics/qdrant.yaml"
 )
 
 for file in "${SETTING_FILES[@]}"; do
