@@ -29,4 +29,17 @@
         showStatus: false
         externalIdSelector: "^suse-ai:"
       relatedResources: []
-      metrics: []
+      metrics:
+        - _type: "ComponentTypeMetricCategory"
+          name: "Performance"
+          description: "vLLM Model Performance Metrics"
+          bindings:
+            - "urn:stackpack:suse-ai:shared:metric-binding:genai-model:e2e-latency"
+            - "urn:stackpack:suse-ai:shared:metric-binding:genai-model:ttft-latency"
+            - "urn:stackpack:suse-ai:shared:metric-binding:genai-model:tpot-latency"
+            - "urn:stackpack:suse-ai:shared:metric-binding:genai-model:token-throughput-prompt"
+            - "urn:stackpack:suse-ai:shared:metric-binding:genai-model:token-throughput-generation"
+            - "urn:stackpack:suse-ai:shared:metric-binding:genai-model:gpu-cache-usage"
+            - "urn:stackpack:suse-ai:shared:metric-binding:genai-model:req-running"
+            - "urn:stackpack:suse-ai:shared:metric-binding:genai-model:req-waiting"
+          defaultExpanded: true

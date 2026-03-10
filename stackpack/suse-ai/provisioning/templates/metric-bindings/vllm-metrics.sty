@@ -7,17 +7,17 @@
   - id: -501
     name: End-to-End Request Latency
     queries:
-      - expression: histogram_quantile(0.99, sum by(le, model_name) (rate({__name__=~"vllm:e2e_request_latency_seconds_bucket|vllm_e2e_request_latency_seconds_bucket"}[${__rate_interval}])))
-        alias: '${model_name} P99'
-      - expression: histogram_quantile(0.95, sum by(le, model_name) (rate({__name__=~"vllm:e2e_request_latency_seconds_bucket|vllm_e2e_request_latency_seconds_bucket"}[${__rate_interval}])))
-        alias: '${model_name} P95'
+      - expression: histogram_quantile(0.99, sum by(le) (rate({__name__=~"vllm:e2e_request_latency_seconds_bucket|vllm_e2e_request_latency_seconds_bucket"}[${__rate_interval}])))
+        alias: 'P99'
+      - expression: histogram_quantile(0.95, sum by(le) (rate({__name__=~"vllm:e2e_request_latency_seconds_bucket|vllm_e2e_request_latency_seconds_bucket"}[${__rate_interval}])))
+        alias: 'P95'
         primary: true
-      - expression: histogram_quantile(0.90, sum by(le, model_name) (rate({__name__=~"vllm:e2e_request_latency_seconds_bucket|vllm_e2e_request_latency_seconds_bucket"}[${__rate_interval}])))
-        alias: '${model_name} P90'
-      - expression: histogram_quantile(0.50, sum by(le, model_name) (rate({__name__=~"vllm:e2e_request_latency_seconds_bucket|vllm_e2e_request_latency_seconds_bucket"}[${__rate_interval}])))
-        alias: '${model_name} P50'
-      - expression: rate({__name__=~"vllm:e2e_request_latency_seconds_sum|vllm_e2e_request_latency_seconds_sum"}[${__rate_interval}])/rate({__name__=~"vllm:e2e_request_latency_seconds_count|vllm_e2e_request_latency_seconds_count"}[${__rate_interval}])
-        alias: '${model_name} Avg'
+      - expression: histogram_quantile(0.90, sum by(le) (rate({__name__=~"vllm:e2e_request_latency_seconds_bucket|vllm_e2e_request_latency_seconds_bucket"}[${__rate_interval}])))
+        alias: 'P90'
+      - expression: histogram_quantile(0.50, sum by(le) (rate({__name__=~"vllm:e2e_request_latency_seconds_bucket|vllm_e2e_request_latency_seconds_bucket"}[${__rate_interval}])))
+        alias: 'P50'
+      - expression: sum(rate({__name__=~"vllm:e2e_request_latency_seconds_sum|vllm_e2e_request_latency_seconds_sum"}[${__rate_interval}]))/sum(rate({__name__=~"vllm:e2e_request_latency_seconds_count|vllm_e2e_request_latency_seconds_count"}[${__rate_interval}]))
+        alias: 'Avg'
     scope: type = "inference-engine.vllm"
     identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:e2e-latency
     unit: seconds
@@ -35,17 +35,17 @@
   - id: -502
     name: Time To First Token Latency
     queries:
-      - expression: histogram_quantile(0.99, sum by(le, model_name) (rate({__name__=~"vllm:time_to_first_token_seconds_bucket|vllm_time_to_first_token_seconds_bucket"}[${__rate_interval}])))
-        alias: '${model_name} P99'
-      - expression: histogram_quantile(0.95, sum by(le, model_name) (rate({__name__=~"vllm:time_to_first_token_seconds_bucket|vllm_time_to_first_token_seconds_bucket"}[${__rate_interval}])))
-        alias: '${model_name} P95'
+      - expression: histogram_quantile(0.99, sum by(le) (rate({__name__=~"vllm:time_to_first_token_seconds_bucket|vllm_time_to_first_token_seconds_bucket"}[${__rate_interval}])))
+        alias: 'P99'
+      - expression: histogram_quantile(0.95, sum by(le) (rate({__name__=~"vllm:time_to_first_token_seconds_bucket|vllm_time_to_first_token_seconds_bucket"}[${__rate_interval}])))
+        alias: 'P95'
         primary: true
-      - expression: histogram_quantile(0.90, sum by(le, model_name) (rate({__name__=~"vllm:time_to_first_token_seconds_bucket|vllm_time_to_first_token_seconds_bucket"}[${__rate_interval}])))
-        alias: '${model_name} P90'
-      - expression: histogram_quantile(0.50, sum by(le, model_name) (rate({__name__=~"vllm:time_to_first_token_seconds_bucket|vllm_time_to_first_token_seconds_bucket"}[${__rate_interval}])))
-        alias: '${model_name} P50'
-      - expression: rate({__name__=~"vllm:time_to_first_token_seconds_sum|vllm_time_to_first_token_seconds_sum"}[${__rate_interval}])/rate({__name__=~"vllm:time_to_first_token_seconds_count|vllm_time_to_first_token_seconds_count"}[${__rate_interval}])
-        alias: '${model_name} Avg'
+      - expression: histogram_quantile(0.90, sum by(le) (rate({__name__=~"vllm:time_to_first_token_seconds_bucket|vllm_time_to_first_token_seconds_bucket"}[${__rate_interval}])))
+        alias: 'P90'
+      - expression: histogram_quantile(0.50, sum by(le) (rate({__name__=~"vllm:time_to_first_token_seconds_bucket|vllm_time_to_first_token_seconds_bucket"}[${__rate_interval}])))
+        alias: 'P50'
+      - expression: sum(rate({__name__=~"vllm:time_to_first_token_seconds_sum|vllm_time_to_first_token_seconds_sum"}[${__rate_interval}]))/sum(rate({__name__=~"vllm:time_to_first_token_seconds_count|vllm_time_to_first_token_seconds_count"}[${__rate_interval}]))
+        alias: 'Avg'
     scope: type = "inference-engine.vllm"
     identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:ttft-latency
     unit: seconds
@@ -63,17 +63,17 @@
   - id: -503
     name: Time Per Output Token Latency
     queries:
-      - expression: histogram_quantile(0.99, sum by(le, model_name) (rate({__name__=~"vllm:time_per_output_token_seconds_bucket|vllm_time_per_output_token_seconds_bucket"}[${__rate_interval}])))
-        alias: '${model_name} P99'
-      - expression: histogram_quantile(0.95, sum by(le, model_name) (rate({__name__=~"vllm:time_per_output_token_seconds_bucket|vllm_time_per_output_token_seconds_bucket"}[${__rate_interval}])))
-        alias: '${model_name} P95'
+      - expression: histogram_quantile(0.99, sum by(le) (rate({__name__=~"vllm:time_per_output_token_seconds_bucket|vllm_time_per_output_token_seconds_bucket"}[${__rate_interval}])))
+        alias: 'P99'
+      - expression: histogram_quantile(0.95, sum by(le) (rate({__name__=~"vllm:time_per_output_token_seconds_bucket|vllm_time_per_output_token_seconds_bucket"}[${__rate_interval}])))
+        alias: 'P95'
         primary: true
-      - expression: histogram_quantile(0.90, sum by(le, model_name) (rate({__name__=~"vllm:time_per_output_token_seconds_bucket|vllm_time_per_output_token_seconds_bucket"}[${__rate_interval}])))
-        alias: '${model_name} P90'
-      - expression: histogram_quantile(0.50, sum by(le, model_name) (rate({__name__=~"vllm:time_per_output_token_seconds_bucket|vllm_time_per_output_token_seconds_bucket"}[${__rate_interval}])))
-        alias: '${model_name} P50'
-      - expression: rate({__name__=~"vllm:time_per_output_token_seconds_sum|vllm_time_per_output_token_seconds_sum"}[${__rate_interval}])/rate({__name__=~"vllm:time_per_output_token_seconds_count|vllm_time_per_output_token_seconds_count"}[${__rate_interval}])
-        alias: '${model_name} Avg'
+      - expression: histogram_quantile(0.90, sum by(le) (rate({__name__=~"vllm:time_per_output_token_seconds_bucket|vllm_time_per_output_token_seconds_bucket"}[${__rate_interval}])))
+        alias: 'P90'
+      - expression: histogram_quantile(0.50, sum by(le) (rate({__name__=~"vllm:time_per_output_token_seconds_bucket|vllm_time_per_output_token_seconds_bucket"}[${__rate_interval}])))
+        alias: 'P50'
+      - expression: sum(rate({__name__=~"vllm:time_per_output_token_seconds_sum|vllm_time_per_output_token_seconds_sum"}[${__rate_interval}]))/sum(rate({__name__=~"vllm:time_per_output_token_seconds_count|vllm_time_per_output_token_seconds_count"}[${__rate_interval}]))
+        alias: 'Avg'
     scope: type = "inference-engine.vllm"
     identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:tpot-latency
     unit: seconds
@@ -84,6 +84,26 @@
       metricPerspective:
         tab: Performance
         section: Latency
+      componentSummary:
+        weight: 8
+    _type: MetricBinding
+
+  - id: -509
+    name: Top Models by Usage
+    queries:
+      - expression: topk(5, sum by(model_name) (({__name__=~"vllm:prompt_tokens_total|vllm_prompt_tokens_total"}) + ({__name__=~"vllm:generation_tokens_total|vllm_generation_tokens_total"})))
+        alias: '${model_name}'
+        primary: true
+    scope: type = "inference-engine.vllm"
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:vllm:top-models-by-usage
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Performance
+        section: Models
       componentSummary:
         weight: 8
     _type: MetricBinding
