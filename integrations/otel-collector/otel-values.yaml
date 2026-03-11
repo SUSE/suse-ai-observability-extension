@@ -145,6 +145,27 @@ config:
       - key: service.instance.id
         from_attribute: k8s.pod.uid
         action: insert
+    # Infer inference engines from GenAI client metrics.
+    # When Open WebUI sends metrics with gen_ai.provider.name (e.g., "ollama", "vllm"),
+    # this pipeline creates separate topology elements for each provider.
+    filter/genai-metrics-only:
+      error_mode: ignore
+      metrics:
+        metric:
+          - not(IsMatch(name, "gen_ai\\..*"))
+    groupbyattrs/infer-providers:
+      keys:
+        - gen_ai.provider.name
+    transform/infer-providers:
+      error_mode: ignore
+      metric_statements:
+        - context: resource
+          statements:
+            - set(attributes["service.name"], attributes["gen_ai.provider.name"]) where attributes["gen_ai.provider.name"] != nil
+            - set(attributes["service.instance.id"], attributes["gen_ai.provider.name"]) where attributes["gen_ai.provider.name"] != nil
+            - set(attributes["suse.ai.managed"], "true") where attributes["gen_ai.provider.name"] != nil
+            - set(attributes["suse.ai.component.name"], attributes["gen_ai.provider.name"]) where attributes["gen_ai.provider.name"] != nil
+            - set(attributes["suse.ai.component.type"], "inference-engine") where attributes["gen_ai.provider.name"] != nil
     filter/dropMissingK8sAttributes:
       error_mode: ignore
       traces:
@@ -182,6 +203,13 @@ config:
         receivers: [otlp, spanmetrics, prometheus]
         processors: [memory_limiter, transform/milvus, transform/vllm, resource, batch]
         exporters: [debug, otlp]
+      # Infer inference engines from GenAI client metrics sent by applications.
+      # Groups metrics by gen_ai.provider.name and creates inference-engine
+      # topology elements for each provider (e.g., ollama, vllm, openai).
+      metrics/infer-providers:
+        receivers: [otlp]
+        processors: [filter/genai-metrics-only, groupbyattrs/infer-providers, transform/infer-providers, resource, batch]
+        exporters: [otlp]
       metrics/elasticsearch:
         receivers: [elasticsearch]
         processors: [memory_limiter, resource/elasticsearch, resource, batch]

@@ -1,6 +1,11 @@
 // Product ID Extractor for SUSE AI
 // Creates a single logical component for each named AI product
 // (e.g., all Milvus instances merge into one 'Milvus' component)
+//
+// Cross-stackpack linking: adds the suse-ai:-prefixed OTel externalId
+// as an identifier so that relations created by the main sync
+// (which use suse-ai:<otel-urn> for source/target) can resolve
+// to these product components.
 
 if (topologyElement == null) {
     return null
@@ -36,6 +41,18 @@ if (productName) {
 
     // Add the external ID as an identifier so monitors can find it
     def identifiers = [newExternalId] as Set
+
+    // Cross-stackpack linking: add the suse-ai:-prefixed original OTel
+    // externalId so that relations from the main sync can resolve to
+    // this product component. The main sync creates relations like:
+    //   source: suse-ai:urn:opentelemetry:namespace/X:service/Y
+    //   target: suse-ai:urn:opentelemetry:namespace/X:service/Z
+    // By adding this identifier, the system can match the relation
+    // endpoints to the product component.
+    def originalExternalId = topologyElement.externalId?.toString()
+    if (originalExternalId) {
+        identifiers.add("suse-ai:${originalExternalId}".toString())
+    }
 
     // Determine specific product type based on product name
     def specificType = productType
