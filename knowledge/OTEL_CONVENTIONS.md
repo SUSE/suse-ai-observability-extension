@@ -53,3 +53,35 @@ Resource attributes identify the entity producing the telemetry (the "Applicatio
 *   `gen_ai.provider.name`
 *   `gen_ai.request.model`
 *   `error.type`
+
+## 4. OTel-to-Prometheus Metric Name Conversion
+
+When OTel metrics are exported via the Prometheus exporter, the names are transformed:
+
+### Naming Rules
+*   Dots (`.`) become underscores (`_`): `gen_ai.client.token.usage` → `gen_ai_client_token_usage`
+*   Unit suffixes are appended automatically: a histogram with `unit="USD"` gets `_USD` appended → `gen_ai_client_operation_cost_USD_bucket`
+*   Histogram metrics get three series: `_bucket`, `_sum`, `_count`
+*   Counter metrics get `_total` suffix: `gen_ai.client.request.count` → `gen_ai_client_request_count_total`
+
+### Actual Prometheus Metric Names (from our filter)
+| OTel Name | Prometheus Name(s) |
+| :--- | :--- |
+| `gen_ai.client.request.count` | `gen_ai_client_request_count_total` |
+| `gen_ai.client.token.usage` | `gen_ai_client_token_usage_sum`, `_bucket`, `_count` |
+| `gen_ai.client.operation.duration` (unit=s) | `gen_ai_client_operation_duration_seconds_bucket`, `_sum`, `_count` |
+| `gen_ai.client.operation.cost` (unit=USD) | `gen_ai_client_operation_cost_USD_bucket`, `_sum`, `_count` |
+
+### Token Type Filtering
+*   Input tokens: `gen_ai_client_token_usage_sum{gen_ai_token_type="input"}`
+*   Output tokens: `gen_ai_client_token_usage_sum{gen_ai_token_type="output"}`
+*   Total tokens: `gen_ai_client_token_usage_sum` (no filter)
+
+## 5. Span Attributes vs Events
+
+Per OTel GenAI semconv:
+*   `gen_ai.usage.input_tokens` and `gen_ai.usage.output_tokens` → span attributes (kept)
+*   `gen_ai.usage.total_tokens` → NOT a standard attribute, should NOT be set on spans
+*   `gen_ai.output.type` → NOT a standard attribute, should NOT be set on spans
+*   `gen_ai.input.messages` and `gen_ai.output.messages` → opt-in, JSON-serialized arrays
+*   `finish_reason` → belongs inside the output message object, not as a span attribute

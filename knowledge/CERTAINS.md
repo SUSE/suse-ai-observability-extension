@@ -46,16 +46,22 @@
 ## 8. Taskfile Commands
 *   **Fact**: The `stackpack-uninstall` task in `Taskfile.yaml` correctly uninstalls all instances with status 'INSTALLED' or 'ERROR'.
 
-## 9. Documentation
+## 9. Documentation & Packaging
 
 *   **Fact**: The StackPack's user‑facing markdown files (`overview.md`, `detailed‑overview.md`, `configuration.md`, `provisioning.md`, `waitingfordata.md`, `enabled.md`, `RELEASE.md`) reside in `stackpack/suse‑ai/resources/` and are referenced via `configurationUrls` in `stackpack.conf`.
 *   **Fact**: The `configurationUrls` mapping follows the state machine: `NOT_INSTALLED` → `configuration.md`, `PROVISIONING` → `provisioning.md`, `WAITING_FOR_DATA` → `waitingfordata.md`, `INSTALLED` → `enabled.md`, `DEPROVISIONING` → `configuration.md`, `ERROR` → `configuration.md`.
-*   **Fact**: The `overviewUrl`, `detailedOverviewUrl`, and `releaseNotes` fields in `stackpack.conf` point to markdown files at the StackPack root (`stackpack/suse‑ai/`), which provide catalog descriptions and release notes.
+*   **Fact**: The `overviewUrl`, `detailedOverviewUrl`, and `releaseNotes` fields in `stackpack.conf` resolve relative to the `resources/` directory inside the packaged `.sts` zip.
+*   **Fact**: The `logoUrl` in `stackpack.conf` also resolves relative to `resources/`. The logo file MUST be placed in `stackpack/suse-ai/resources/logo.png`, not at the stackpack root.
+*   **Fact**: The `stackpack-upload` task in `Taskfile.yaml` zips only `stackpack.conf`, `provisioning/`, and `resources/`. Files at the stackpack root (outside these directories) are NOT included in the `.sts` package.
+*   **Fact**: Any markdown or asset files at the stackpack root (e.g., `stackpack/suse-ai/logo.png`, `stackpack/suse-ai/overview.md`) are unused duplicates — only the copies under `resources/` are packaged and served.
 
 ## 10. View Types
 *   **Fact**: The GPU Nodes ViewType (`urn:stackpack:suse-ai:shared:view-type:gpu-nodes`) provides a detailed table with GPU-specific columns and metrics, extending the existing QueryView.
 *   **Fact**: ViewType columns can reference metric bindings from both the SUSE AI stackpack (`urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-*`) and external stackpacks (`urn:stackpack:stackstate-k8s-agent-v2:shared:metric-binding:host-*`).
 *   **Fact**: The `pathToIdentifier` for label‑based columns must point to a unique component identifier (e.g., `internalIP` for nodes) to correctly resolve component links.
+*   **Fact**: ViewType files must be included in `suse-ai.sty` via `{{ include "templates/view-types/<file>.sty" "yaml" }}` to be provisioned. Creating the file alone is not sufficient.
+*   **Fact**: QueryViews reference ViewTypes via `viewType: urn:stackpack:suse-ai:shared:view-type:<name>`. Without this reference, the QueryView uses the default table layout (no icon, no custom columns).
+*   **Fact**: ViewType IDs use the -6000 range (e.g., -6001 for AI Applications, -6002 for All GenAI Components, up to -6009 for ML Registries).
 
 ## 11. Monitors
 *   **Fact**: The OpenSearch cluster status monitors (red and yellow) are defined in `templates/monitors/opensearch/monitor.sty` with IDs -3002 and -3003.
