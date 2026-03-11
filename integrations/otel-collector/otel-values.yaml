@@ -4,6 +4,8 @@ global:
 extraEnvs:
   - name: K8S_CLUSTER_NAME
     value: "local"  # Update to match your cluster name
+  - name: SUSE_AI_NAMESPACE
+    value: "suse-private-ai"  # Update to match the SUSE AI namespace
 extraEnvsFrom:
   - secretRef:
       name: open-telemetry-collector
@@ -90,7 +92,10 @@ config:
           value: "opensearch"
           action: insert
         - key: service.namespace
-          value: "suse-private-ai" # Update if it lives in a different namespace
+          value: ${env:SUSE_AI_NAMESPACE}
+          action: insert
+        - key: k8s.namespace.name
+          value: ${env:SUSE_AI_NAMESPACE}
           action: insert
         - key: service.instance.id
           value: "opensearch-cluster" # Hardcoded fallback instance ID
@@ -111,6 +116,7 @@ config:
             - set(attributes["suse.ai.managed"], "true") where attributes["service.name"] == "milvus"
             - set(attributes["suse.ai.component.name"], "milvus") where attributes["service.name"] == "milvus"
             - set(attributes["suse.ai.component.type"], "vectordb") where attributes["service.name"] == "milvus"
+            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["service.name"] == "milvus"
     tail_sampling:
       decision_wait: 10s
       policies:
@@ -166,6 +172,7 @@ config:
             - set(attributes["suse.ai.managed"], "true") where attributes["gen_ai.provider.name"] != nil
             - set(attributes["suse.ai.component.name"], attributes["gen_ai.provider.name"]) where attributes["gen_ai.provider.name"] != nil
             - set(attributes["suse.ai.component.type"], "inference-engine") where attributes["gen_ai.provider.name"] != nil
+            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["gen_ai.provider.name"] != nil and attributes["k8s.namespace.name"] == nil
     filter/dropMissingK8sAttributes:
       error_mode: ignore
       traces:
