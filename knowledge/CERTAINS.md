@@ -43,8 +43,10 @@
 *   **Fact**: Top-level list items in included STY files MUST be indented with exactly 2 spaces (`  - _type: ...`).
 *   **Fact**: The `genai-system-active` monitor uses the aligned URN pattern: `suse-ai:product:inference-engine:${gen_ai_system}`.
 
-## 8. Taskfile Commands
+## 8. Taskfile Commands & Test Environment
 *   **Fact**: The `stackpack-uninstall` task in `Taskfile.yaml` correctly uninstalls all instances with status 'INSTALLED' or 'ERROR'.
+*   **Fact**: `integrations/otel-collector/otel-values.yaml` is the OTel collector Helm values file for the **test environment**. It contains hard-coded endpoints, credentials, and namespace references (`suse-private-ai`) specific to the test setup — not production-ready.
+*   **Fact**: The test collector uses `K8S_CLUSTER_NAME` env var (default `"local"`) with `action: insert` so it only sets the cluster name if not already present from K8s metadata.
 
 ## 9. Documentation & Packaging
 

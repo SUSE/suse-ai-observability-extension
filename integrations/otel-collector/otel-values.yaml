@@ -1,0 +1,188 @@
+global:
+  imagePullSecrets:
+  - application-collection
+extraEnvs:
+  - name: K8S_CLUSTER_NAME
+    value: "local"  # Update to match your cluster name
+extraEnvsFrom:
+  - secretRef:
+      name: open-telemetry-collector
+mode: deployment
+image:
+  registry: ghcr.io
+  repository: thbertoldi/otelcol-suse-ai
+  tag: latest
+  pullPolicy: Always
+ports:
+  metrics:
+    enabled: true
+presets:
+  kubernetesAttributes:
+    enabled: true
+    extractAllPodLabels: true
+config:
+  receivers:
+    elasticsearch:
+      endpoint: "http://opensearch-cluster-master-headless.suse-private-ai.svc.cluster.local:9200"
+      # If you have basic auth enabled:
+      username: "admin"
+      password: "MySecurePass123"
+      # If using self-signed certs or internal CAs:
+      tls:
+        insecure_skip_verify: true
+      collection_interval: 10s
+      # Optional: Enable detailed node metrics
+      metrics:
+        elasticsearch.node.fs.disk.total:
+          enabled: true
+        elasticsearch.node.fs.disk.available:
+          enabled: true
+    prometheus:
+      config:
+        scrape_configs:
+          - job_name: 'gpu-metrics'
+            scrape_interval: 10s
+            scheme: http
+            kubernetes_sd_configs:
+              - role: endpoints
+                namespaces:
+                  names:
+                    - gpu-operator
+          - job_name: 'milvus'
+            scrape_interval: 15s
+            metrics_path: '/metrics'
+
+            static_configs:
+              - targets: ['milvus.suse-private-ai.svc.cluster.local:9091']
+          - job_name: 'vllm'
+            scrape_interval: 10s
+            scheme: http
+            kubernetes_sd_configs:
+              - role: service
+            relabel_configs:
+              - source_labels: [__meta_kubernetes_namespace]
+                action: keep
+                regex: 'suse-private-ai'
+
+              - source_labels: [__meta_kubernetes_service_name]
+                action: keep
+                regex: '.*vllm.*'
+  exporters:
+    otlp:
+      endpoint: http://suse-observability-otel-collector.suse-observability.svc.cluster.local:4317
+      headers:
+        Authorization: "SUSEObservability ${env:API_KEY}"
+      tls:
+        insecure: true
+  processors:
+    resource/elasticsearch:
+      attributes:
+        - key: suse.ai.managed
+          value: "true"
+          action: insert
+        - key: suse.ai.component.name
+          value: "opensearch"
+          action: insert
+        - key: suse.ai.component.type
+          value: "search-engine"
+          action: insert
+        - key: service.name
+          value: "opensearch"
+          action: insert
+        - key: service.namespace
+          value: "suse-private-ai" # Update if it lives in a different namespace
+          action: insert
+        - key: service.instance.id
+          value: "opensearch-cluster" # Hardcoded fallback instance ID
+          action: insert
+    transform/vllm:
+      error_mode: ignore
+      metric_statements:
+        - context: resource
+          statements:
+            - set(attributes["suse.ai.managed"], "true") where attributes["service.name"] == "vllm"
+            - set(attributes["suse.ai.component.name"], "vllm") where attributes["service.name"] == "vllm"
+            - set(attributes["suse.ai.component.type"], "inference-engine") where attributes["service.name"] == "vllm"
+    transform/milvus:
+      error_mode: ignore
+      metric_statements:
+        - context: resource
+          statements:
+            - set(attributes["suse.ai.managed"], "true") where attributes["service.name"] == "milvus"
+            - set(attributes["suse.ai.component.name"], "milvus") where attributes["service.name"] == "milvus"
+            - set(attributes["suse.ai.component.type"], "vectordb") where attributes["service.name"] == "milvus"
+    tail_sampling:
+      decision_wait: 10s
+      policies:
+      - name: rate-limited-composite
+        type: composite
+        composite:
+          max_total_spans_per_second: 500
+          policy_order: [errors, slow-traces, rest]
+          composite_sub_policy:
+          - name: errors
+            type: status_code
+            status_code:
+              status_codes: [ ERROR ]
+          - name: slow-traces
+            type: latency
+            latency:
+              threshold_ms: 1000
+          - name: rest
+            type: always_sample
+          rate_allocation:
+          - policy: errors
+            percent: 33
+          - policy: slow-traces
+            percent: 33
+          - policy: rest
+            percent: 34
+    resource:
+      attributes:
+      - key: k8s.cluster.name
+        action: insert
+        value: ${env:K8S_CLUSTER_NAME}
+      - key: service.instance.id
+        from_attribute: k8s.pod.uid
+        action: insert
+    filter/dropMissingK8sAttributes:
+      error_mode: ignore
+      traces:
+        span:
+          - resource.attributes["k8s.node.name"] == nil
+          - resource.attributes["k8s.pod.uid"] == nil
+          - resource.attributes["k8s.namespace.name"] == nil
+          - resource.attributes["k8s.pod.name"] == nil
+  connectors:
+    spanmetrics:
+      metrics_expiration: 5m
+      namespace: otel_span
+    routing/traces:
+      error_mode: ignore
+      table:
+      - statement: route()
+        pipelines: [traces/sampling, traces/spanmetrics]
+  service:
+    extensions:
+      - health_check
+    pipelines:
+      traces:
+        receivers: [otlp, jaeger]
+        processors: [filter/dropMissingK8sAttributes, memory_limiter, resource]
+        exporters: [routing/traces]
+      traces/spanmetrics:
+        receivers: [routing/traces]
+        processors: []
+        exporters: [spanmetrics]
+      traces/sampling:
+        receivers: [routing/traces]
+        processors: [tail_sampling, batch]
+        exporters: [debug, otlp]
+      metrics:
+        receivers: [otlp, spanmetrics, prometheus]
+        processors: [memory_limiter, transform/milvus, transform/vllm, resource, batch]
+        exporters: [debug, otlp]
+      metrics/elasticsearch:
+        receivers: [elasticsearch]
+        processors: [memory_limiter, resource/elasticsearch, resource, batch]
+        exporters: [debug, otlp]
