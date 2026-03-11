@@ -9,4 +9,4 @@ The SUSE AI Observability StackPack expects OpenTelemetry traces and metrics fro
    - `suse.ai.component.name` – logical name (if distinct from `service.name`).
 3. **Configure the OpenTelemetry collector** to forward telemetry to SUSE Observability.
 
-See the [SUSE AI Observability documentation](https://l.stackstate.com/suse-ai-setup) for detailed setup instructions.
+See the [SUSE AI Observability documentation](https://documentation.suse.com/suse-ai/1.0/html/AI-monitoring/index.html) for detailed setup instructions.

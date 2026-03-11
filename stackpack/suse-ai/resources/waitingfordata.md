@@ -1,9 +1,17 @@
-## The SUSE AI Observability StackPack is installed
+## Waiting for data
 
-### What's next
+The SUSE AI Observability StackPack is installed and waiting for GenAI telemetry data to arrive.
 
-Instrument your GenAI applications with OpenTelemetry SDKs that emit GenAI semantic conventions and SUSE AI resource attributes. Install and configure the OpenTelemetry collector to send data to SUSE Observability. See the [SUSE AI Observability documentation](https://l.stackstate.com/suse-ai-setup) for details.
+### Checklist
 
-To send data to SUSE Observability a service token is needed.
+To start seeing AI components in SUSE Observability:
 
-<button value="/#serviceToken" style="width: 100%">CREATE NEW SERVICE TOKEN</button>
+1. **Instrument your applications** with OpenTelemetry SDKs that support [GenAI semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/) (e.g., `gen_ai.operation.name`, `gen_ai.provider.name`).
+2. **Add SUSE AI resource attributes** to distinguish components:
+   - `suse.ai.component.type` -- functional role (e.g., `inference-engine`, `vectordb`, `agent`).
+   - `suse.ai.component.name` -- logical name (if distinct from `service.name`).
+3. **Configure the OpenTelemetry collector** to forward traces and metrics to SUSE Observability.
+
+Once data arrives, components will appear automatically in the **AI Applications** view.
+
+See the [SUSE AI Observability documentation](https://documentation.suse.com/suse-ai/1.0/html/AI-monitoring/index.html) for detailed setup instructions.
