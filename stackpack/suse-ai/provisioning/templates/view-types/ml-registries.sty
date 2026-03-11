@@ -1,0 +1,30 @@
+  - id: -6009
+    name: ML Registries
+    iconbase64: data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB4PSIxNCIgeT0iMTAiIHdpZHRoPSIzNiIgaGVpZ2h0PSI0NCIgcng9IjMiIGZpbGw9IiM0QTkwRTIiIG9wYWNpdHk9IjAuOSIvPgogIDxyZWN0IHg9IjEyIiB5PSIxMiIgd2lkdGg9IjM2IiBoZWlnaHQ9IjQ0IiByeD0iMyIgZmlsbD0iIzRBOTBFMiIvPgogIDxsaW5lIHgxPSIyMiIgeTE9IjEyIiB4Mj0iMjIiIHkyPSI1NiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBvcGFjaXR5PSIwLjQiLz4KICA8cmVjdCB4PSIyNiIgeT0iMjAiIHdpZHRoPSIxNiIgaGVpZ2h0PSIyIiByeD0iMSIgZmlsbD0id2hpdGUiIG9wYWNpdHk9IjAuNiIvPgogIDxyZWN0IHg9IjI2IiB5PSIyNiIgd2lkdGg9IjEyIiBoZWlnaHQ9IjIiIHJ4PSIxIiBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iMC40Ii8+CiAgPHJlY3QgeD0iMjYiIHk9IjM0IiB3aWR0aD0iMTYiIGhlaWdodD0iMiIgcng9IjEiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjYiLz4KICA8cmVjdCB4PSIyNiIgeT0iNDAiIHdpZHRoPSIxMiIgaGVpZ2h0PSIyIiByeD0iMSIgZmlsbD0id2hpdGUiIG9wYWNpdHk9IjAuNCIvPgogIDxjaXJjbGUgY3g9IjE3IiBjeT0iMjAiIHI9IjIiIGZpbGw9IiNFOUEyMjciLz4KICA8Y2lyY2xlIGN4PSIxNyIgY3k9IjM0IiByPSIyIiBmaWxsPSIjRTlBMjI3Ii8+CiAgPGNpcmNsZSBjeD0iMTciIGN5PSI0OCIgcj0iMiIgZmlsbD0iI0U5QTIyNyIvPgo8L3N2Zz4K
+    overview:
+      columns:
+        - _type: ViewTypeTableColHealth
+        - title: Component
+          width: 200
+          _type: ViewTypeTableColName
+        - title: Service Name
+          path: ["tags", "service.name"]
+          width: 200
+          _type: ViewTypeTableColText
+        - title: Namespace
+          path: ["tags", "k8s.namespace.name"]
+          width: 160
+          _type: ViewTypeTableColText
+      _type: ViewTypeOverview
+    flags:
+      - NoTopologyFilters
+    filters:
+      - prefix: k8s.namespace.name
+        name: Namespace
+        _type: LabelPrefixedFilter
+      - tabs:
+          - EVENTS
+          - TRACES
+        _type: TopologyFilters
+    identifier: urn:stackpack:suse-ai:shared:view-type:ml-registries
+    _type: ViewType

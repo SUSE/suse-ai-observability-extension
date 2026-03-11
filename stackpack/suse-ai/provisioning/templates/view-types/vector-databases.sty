@@ -1,0 +1,30 @@
+  - id: -6004
+    name: Vector Databases
+    iconbase64: data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZWxsaXBzZSBjeD0iMzIiIGN5PSIxNiIgcng9IjE4IiByeT0iNiIgZmlsbD0iIzRBOTBFMiIvPgogIDxwYXRoIGQ9Ik0xNCAxNnYzMmMwIDMuMyA4IDYgMTggNnMxOC0yLjcgMTgtNlYxNiIgc3Ryb2tlPSIjNEE5MEUyIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiLz4KICA8ZWxsaXBzZSBjeD0iMzIiIGN5PSI0OCIgcng9IjE4IiByeT0iNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNEE5MEUyIiBzdHJva2Utd2lkdGg9IjIiLz4KICA8ZWxsaXBzZSBjeD0iMzIiIGN5PSIzMiIgcng9IjE4IiByeT0iNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNEE5MEUyIiBzdHJva2Utd2lkdGg9IjIiIG9wYWNpdHk9IjAuNSIvPgogIDxsaW5lIHgxPSIyMiIgeTE9IjI2IiB4Mj0iMjIiIHkyPSIzOCIgc3Ryb2tlPSIjRTlBMjI3IiBzdHJva2Utd2lkdGg9IjIiLz4KICA8cG9seWdvbiBwb2ludHM9IjIyLDQwIDE5LDM2IDI1LDM2IiBmaWxsPSIjRTlBMjI3Ii8+CiAgPGxpbmUgeDE9IjMyIiB5MT0iMjQiIHgyPSIzMiIgeTI9IjQwIiBzdHJva2U9IiNFOUEyMjciIHN0cm9rZS13aWR0aD0iMiIvPgogIDxwb2x5Z29uIHBvaW50cz0iMzIsNDIgMjksMzggMzUsMzgiIGZpbGw9IiNFOUEyMjciLz4KICA8bGluZSB4MT0iNDIiIHkxPSIyNiIgeDI9IjQyIiB5Mj0iMzgiIHN0cm9rZT0iI0U5QTIyNyIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPHBvbHlnb24gcG9pbnRzPSI0Miw0MCAzOSwzNiA0NSwzNiIgZmlsbD0iI0U5QTIyNyIvPgo8L3N2Zz4K
+    overview:
+      columns:
+        - _type: ViewTypeTableColHealth
+        - title: Component
+          width: 200
+          _type: ViewTypeTableColName
+        - title: Service Name
+          path: ["tags", "service.name"]
+          width: 200
+          _type: ViewTypeTableColText
+        - title: Namespace
+          path: ["tags", "k8s.namespace.name"]
+          width: 160
+          _type: ViewTypeTableColText
+      _type: ViewTypeOverview
+    flags:
+      - NoTopologyFilters
+    filters:
+      - prefix: k8s.namespace.name
+        name: Namespace
+        _type: LabelPrefixedFilter
+      - tabs:
+          - EVENTS
+          - TRACES
+        _type: TopologyFilters
+    identifier: urn:stackpack:suse-ai:shared:view-type:vector-databases
+    _type: ViewType

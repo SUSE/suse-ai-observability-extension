@@ -1,0 +1,30 @@
+  - id: -6007
+    name: MCP Servers
+    iconbase64: data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB4PSIxNiIgeT0iMTAiIHdpZHRoPSIzMiIgaGVpZ2h0PSI0NCIgcng9IjQiIGZpbGw9IiM0QTkwRTIiIG9wYWNpdHk9IjAuOSIvPgogIDxyZWN0IHg9IjIyIiB5PSIxNiIgd2lkdGg9IjIwIiBoZWlnaHQ9IjYiIHJ4PSIxIiBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iMC4zIi8+CiAgPHJlY3QgeD0iMjIiIHk9IjI2IiB3aWR0aD0iMjAiIGhlaWdodD0iNiIgcng9IjEiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjMiLz4KICA8Y2lyY2xlIGN4PSIyNiIgY3k9IjE5IiByPSIxLjUiIGZpbGw9IiMzMEJBNzgiLz4KICA8Y2lyY2xlIGN4PSIyNiIgY3k9IjI5IiByPSIxLjUiIGZpbGw9IiMzMEJBNzgiLz4KICA8cmVjdCB4PSIyNiIgeT0iMzgiIHdpZHRoPSIxMiIgaGVpZ2h0PSIxMCIgcng9IjIiIGZpbGw9IiNFOUEyMjciLz4KICA8bGluZSB4MT0iMzAiIHkxPSI0MCIgeDI9IjMwIiB5Mj0iNDYiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgPGxpbmUgeDE9IjM0IiB5MT0iNDAiIHgyPSIzNCIgeTI9IjQ2IiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxsaW5lIHgxPSIyOCIgeTE9IjQzIiB4Mj0iMzYiIHkyPSI0MyIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KPC9zdmc+Cg==
+    overview:
+      columns:
+        - _type: ViewTypeTableColHealth
+        - title: Component
+          width: 200
+          _type: ViewTypeTableColName
+        - title: Service Name
+          path: ["tags", "service.name"]
+          width: 200
+          _type: ViewTypeTableColText
+        - title: Namespace
+          path: ["tags", "k8s.namespace.name"]
+          width: 160
+          _type: ViewTypeTableColText
+      _type: ViewTypeOverview
+    flags:
+      - NoTopologyFilters
+    filters:
+      - prefix: k8s.namespace.name
+        name: Namespace
+        _type: LabelPrefixedFilter
+      - tabs:
+          - EVENTS
+          - TRACES
+        _type: TopologyFilters
+    identifier: urn:stackpack:suse-ai:shared:view-type:mcp-servers
+    _type: ViewType

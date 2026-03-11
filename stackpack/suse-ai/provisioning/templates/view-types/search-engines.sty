@@ -1,0 +1,30 @@
+  - id: -6006
+    name: Search Engines
+    iconbase64: data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8Y2lyY2xlIGN4PSIyOCIgY3k9IjI4IiByPSIxNiIgc3Ryb2tlPSIjNEE5MEUyIiBzdHJva2Utd2lkdGg9IjMiIGZpbGw9Im5vbmUiLz4KICA8Y2lyY2xlIGN4PSIyOCIgY3k9IjI4IiByPSIxMCIgZmlsbD0iIzRBOTBFMiIgb3BhY2l0eT0iMC4zIi8+CiAgPGxpbmUgeDE9IjQwIiB5MT0iNDAiIHgyPSI1NCIgeTI9IjU0IiBzdHJva2U9IiM0QTkwRTIiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPGNpcmNsZSBjeD0iMjQiIGN5PSIyNCIgcj0iMi41IiBmaWxsPSIjRTlBMjI3Ii8+CiAgPGNpcmNsZSBjeD0iMzIiIGN5PSIyNCIgcj0iMi41IiBmaWxsPSIjRTlBMjI3Ii8+CiAgPGNpcmNsZSBjeD0iMjgiIGN5PSIzMSIgcj0iMi41IiBmaWxsPSIjRTlBMjI3Ii8+CiAgPGxpbmUgeDE9IjI0IiB5MT0iMjQiIHgyPSIzMiIgeTI9IjI0IiBzdHJva2U9IiNFOUEyMjciIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgPGxpbmUgeDE9IjI0IiB5MT0iMjQiIHgyPSIyOCIgeTI9IjMxIiBzdHJva2U9IiNFOUEyMjciIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgPGxpbmUgeDE9IjMyIiB5MT0iMjQiIHgyPSIyOCIgeTI9IjMxIiBzdHJva2U9IiNFOUEyMjciIHN0cm9rZS13aWR0aD0iMS41Ii8+Cjwvc3ZnPgo=
+    overview:
+      columns:
+        - _type: ViewTypeTableColHealth
+        - title: Component
+          width: 200
+          _type: ViewTypeTableColName
+        - title: Service Name
+          path: ["tags", "service.name"]
+          width: 200
+          _type: ViewTypeTableColText
+        - title: Namespace
+          path: ["tags", "k8s.namespace.name"]
+          width: 160
+          _type: ViewTypeTableColText
+      _type: ViewTypeOverview
+    flags:
+      - NoTopologyFilters
+    filters:
+      - prefix: k8s.namespace.name
+        name: Namespace
+        _type: LabelPrefixedFilter
+      - tabs:
+          - EVENTS
+          - TRACES
+        _type: TopologyFilters
+    identifier: urn:stackpack:suse-ai:shared:view-type:search-engines
+    _type: ViewType

@@ -1,0 +1,30 @@
+  - id: -6003
+    name: Inference Engines
+    iconbase64: data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB4PSIxNCIgeT0iMTIiIHdpZHRoPSIzNiIgaGVpZ2h0PSI0MCIgcng9IjQiIGZpbGw9IiM0QTkwRTIiIG9wYWNpdHk9IjAuOSIvPgogIDxyZWN0IHg9IjIwIiB5PSIxOCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjgiIHJ4PSIyIiBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iMC4zIi8+CiAgPHJlY3QgeD0iMjAiIHk9IjMwIiB3aWR0aD0iMjQiIGhlaWdodD0iOCIgcng9IjIiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjMiLz4KICA8Y2lyY2xlIGN4PSIyNCIgY3k9IjIyIiByPSIyIiBmaWxsPSIjRTlBMjI3Ii8+CiAgPGNpcmNsZSBjeD0iMjQiIGN5PSIzNCIgcj0iMiIgZmlsbD0iI0U5QTIyNyIvPgogIDxjaXJjbGUgY3g9IjQwIiBjeT0iMjIiIHI9IjIiIGZpbGw9IiMzMEJBNzgiLz4KICA8Y2lyY2xlIGN4PSI0MCIgY3k9IjM0IiByPSIyIiBmaWxsPSIjMzBCQTc4Ii8+CiAgPHBvbHlnb24gcG9pbnRzPSIzNCw0MiAyOCw1MCAzMiw1MCAzMCw1NiAzOCw0OCAzNCw0OCAzNiw0MiIgZmlsbD0iI0U5QTIyNyIvPgo8L3N2Zz4K
+    overview:
+      columns:
+        - _type: ViewTypeTableColHealth
+        - title: Component
+          width: 200
+          _type: ViewTypeTableColName
+        - title: Service Name
+          path: ["tags", "service.name"]
+          width: 200
+          _type: ViewTypeTableColText
+        - title: Namespace
+          path: ["tags", "k8s.namespace.name"]
+          width: 160
+          _type: ViewTypeTableColText
+      _type: ViewTypeOverview
+    flags:
+      - NoTopologyFilters
+    filters:
+      - prefix: k8s.namespace.name
+        name: Namespace
+        _type: LabelPrefixedFilter
+      - tabs:
+          - EVENTS
+          - TRACES
+        _type: TopologyFilters
+    identifier: urn:stackpack:suse-ai:shared:view-type:inference-engines
+    _type: ViewType

@@ -1,0 +1,30 @@
+  - id: -6005
+    name: Model Proxies
+    iconbase64: data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cGF0aCBkPSJNMzIgOEwxMiAxOHYxNmMwIDEyIDguNSAyMy4yIDIwIDI2IDExLjUtMi44IDIwLTE0IDIwLTI2VjE4TDMyIDh6IiBmaWxsPSIjNEE5MEUyIiBvcGFjaXR5PSIwLjkiLz4KICA8bGluZSB4MT0iMjAiIHkxPSIzMCIgeDI9IjMyIiB5Mj0iMzAiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIvPgogIDxsaW5lIHgxPSIzMiIgeTE9IjMwIiB4Mj0iNDQiIHkyPSIyNCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPGxpbmUgeDE9IjMyIiB5MT0iMzAiIHgyPSI0NCIgeTI9IjM2IiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiLz4KICA8Y2lyY2xlIGN4PSIyMCIgY3k9IjMwIiByPSIzIiBmaWxsPSIjRTlBMjI3Ii8+CiAgPGNpcmNsZSBjeD0iNDQiIGN5PSIyNCIgcj0iMyIgZmlsbD0iI0U5QTIyNyIvPgogIDxjaXJjbGUgY3g9IjQ0IiBjeT0iMzYiIHI9IjMiIGZpbGw9IiNFOUEyMjciLz4KICA8Y2lyY2xlIGN4PSIzMiIgY3k9IjMwIiByPSIzIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K
+    overview:
+      columns:
+        - _type: ViewTypeTableColHealth
+        - title: Component
+          width: 200
+          _type: ViewTypeTableColName
+        - title: Service Name
+          path: ["tags", "service.name"]
+          width: 200
+          _type: ViewTypeTableColText
+        - title: Namespace
+          path: ["tags", "k8s.namespace.name"]
+          width: 160
+          _type: ViewTypeTableColText
+      _type: ViewTypeOverview
+    flags:
+      - NoTopologyFilters
+    filters:
+      - prefix: k8s.namespace.name
+        name: Namespace
+        _type: LabelPrefixedFilter
+      - tabs:
+          - EVENTS
+          - TRACES
+        _type: TopologyFilters
+    identifier: urn:stackpack:suse-ai:shared:view-type:model-proxies
+    _type: ViewType
