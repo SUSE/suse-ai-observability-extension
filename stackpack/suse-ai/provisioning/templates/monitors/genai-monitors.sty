@@ -31,8 +31,8 @@
       failureState: DEVIATING
       metric:
         aliasTemplate: "Requests ${suse_ai_component_name}"
-        query: sum(sum_over_time(gen_ai_client_request_count_total{}[5m])) by (suse_ai_component_name, suse_ai_component_type)
-        unit: short
-      titleTemplate: "No GenAI data from ${suse_ai_component_name}"
+        query: sum(rate(gen_ai_client_request_count_total{}[5m])) by (suse_ai_component_name, suse_ai_component_type)
+        unit: reqps
+      titleTemplate: "GenAI data from ${suse_ai_component_name}"
       urnTemplate: "suse-ai:product:${suse_ai_component_type}:${suse_ai_component_name}"
 
