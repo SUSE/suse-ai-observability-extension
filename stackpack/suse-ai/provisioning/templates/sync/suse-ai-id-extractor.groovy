@@ -54,4 +54,7 @@ if (typeName != 'service' && typeName != 'service-instance' && typeName != 'pod'
 }
 
 def newExternalId = 'suse-ai:' + extIdStr
-return Sts.createId(newExternalId, [] as Set, typeName)
+// Include the original OTel external ID as an identifier so that:
+// 1. Relations can resolve source/target (they reference unprefixed OTel IDs)
+// 2. Cross-stackpack merging works (this component merges with the OTel original)
+return Sts.createId(newExternalId, [extIdStr] as Set, typeName)

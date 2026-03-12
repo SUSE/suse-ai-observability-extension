@@ -96,7 +96,7 @@ config:
           action: insert
         - key: k8s.namespace.name
           value: ${env:SUSE_AI_NAMESPACE}
-          action: insert
+          action: upsert
         - key: service.instance.id
           value: "opensearch-cluster" # Hardcoded fallback instance ID
           action: insert
@@ -108,6 +108,8 @@ config:
             - set(attributes["suse.ai.managed"], "true") where attributes["service.name"] == "vllm"
             - set(attributes["suse.ai.component.name"], "vllm") where attributes["service.name"] == "vllm"
             - set(attributes["suse.ai.component.type"], "inference-engine") where attributes["service.name"] == "vllm"
+            - set(attributes["service.instance.id"], "vllm") where attributes["service.name"] == "vllm"
+            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["service.name"] == "vllm"
     transform/milvus:
       error_mode: ignore
       metric_statements:
@@ -172,7 +174,45 @@ config:
             - set(attributes["suse.ai.managed"], "true") where attributes["gen_ai.provider.name"] != nil
             - set(attributes["suse.ai.component.name"], attributes["gen_ai.provider.name"]) where attributes["gen_ai.provider.name"] != nil
             - set(attributes["suse.ai.component.type"], "inference-engine") where attributes["gen_ai.provider.name"] != nil
-            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["gen_ai.provider.name"] != nil and attributes["k8s.namespace.name"] == nil
+            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["gen_ai.provider.name"] != nil
+    # Infer LLM models from GenAI client metrics.
+    # Groups metrics by gen_ai.request.model to create model topology elements.
+    groupbyattrs/infer-models:
+      keys:
+        - gen_ai.request.model
+        - gen_ai.provider.name
+    transform/infer-models:
+      error_mode: ignore
+      metric_statements:
+        - context: resource
+          statements:
+            - set(attributes["service.name"], attributes["gen_ai.request.model"]) where attributes["gen_ai.request.model"] != nil
+            - set(attributes["service.instance.id"], attributes["gen_ai.request.model"]) where attributes["gen_ai.request.model"] != nil
+            - set(attributes["suse.ai.managed"], "true") where attributes["gen_ai.request.model"] != nil
+            - set(attributes["suse.ai.component.name"], attributes["gen_ai.request.model"]) where attributes["gen_ai.request.model"] != nil
+            - set(attributes["suse.ai.component.type"], "llm-model") where attributes["gen_ai.request.model"] != nil
+            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["gen_ai.request.model"] != nil
+    # Create provider -> model relations from GenAI trace spans.
+    # Transforms spans so service.name = provider and peer.service = model,
+    # which StackState interprets as a service dependency.
+    filter/genai-spans:
+      error_mode: ignore
+      traces:
+        span:
+          - attributes["gen_ai.request.model"] == nil
+    groupbyattrs/model-relations:
+      keys:
+        - gen_ai.provider.name
+    transform/model-relations:
+      error_mode: ignore
+      trace_statements:
+        - context: resource
+          statements:
+            - set(attributes["service.name"], attributes["gen_ai.provider.name"]) where attributes["gen_ai.provider.name"] != nil
+            - set(attributes["service.instance.id"], attributes["gen_ai.provider.name"]) where attributes["gen_ai.provider.name"] != nil
+        - context: span
+          statements:
+            - set(attributes["peer.service"], attributes["gen_ai.request.model"]) where attributes["gen_ai.request.model"] != nil
     filter/dropMissingK8sAttributes:
       error_mode: ignore
       traces:
@@ -189,7 +229,7 @@ config:
       error_mode: ignore
       table:
       - statement: route()
-        pipelines: [traces/sampling, traces/spanmetrics]
+        pipelines: [traces/sampling, traces/spanmetrics, traces/model-relations]
   service:
     extensions:
       - health_check
@@ -216,6 +256,19 @@ config:
       metrics/infer-providers:
         receivers: [otlp]
         processors: [filter/genai-metrics-only, groupbyattrs/infer-providers, transform/infer-providers, resource, batch]
+        exporters: [otlp]
+      # Infer LLM models from GenAI client metrics sent by applications.
+      # Groups metrics by gen_ai.request.model and creates genai.model
+      # topology elements for each model (e.g., llama3.2, deepseek-r1:8b).
+      metrics/infer-models:
+        receivers: [otlp]
+        processors: [filter/genai-metrics-only, groupbyattrs/infer-models, transform/infer-models, resource, batch]
+        exporters: [otlp]
+      # Create provider -> model relations from trace spans.
+      # Transforms GenAI spans so StackState sees provider depending on model.
+      traces/model-relations:
+        receivers: [routing/traces]
+        processors: [filter/genai-spans, groupbyattrs/model-relations, transform/model-relations, batch]
         exporters: [otlp]
       metrics/elasticsearch:
         receivers: [elasticsearch]

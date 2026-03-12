@@ -62,7 +62,8 @@ if (isManaged) {
             break
         case 'llm':
         case 'model':
-            category = 'genai.model'
+        case 'llm-model':
+            category = 'llm-model'
             break
         case 'db':
         case 'vectordb':
@@ -112,7 +113,7 @@ if (isManaged) {
     }
     
     // Default to application if type is unknown among our AI types
-    def aiTypes = ['application', 'agent', 'ui', 'inference-engine', 'vectordb', 'genai.model', 'model-proxy', 'search-engine', 'mcp-server', 'workflow-engine', 'ml-registry']
+    def aiTypes = ['application', 'agent', 'ui', 'inference-engine', 'vectordb', 'llm-model', 'model-proxy', 'search-engine', 'mcp-server', 'workflow-engine', 'ml-registry']
     if (!aiTypes.contains(currentType) && !currentType.contains('.')) {
         currentType = 'application'
     }

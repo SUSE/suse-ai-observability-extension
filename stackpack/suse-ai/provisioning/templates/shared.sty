@@ -21,6 +21,7 @@
       - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:mcp-server"
       - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:workflow-engine"
       - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:ml-registry"
+      - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:genai-model"
       - viewIdentifier: "urn:stackpack:suse-ai:shared:query-view:gpu-nodes"
 
   - _type: "QueryView"
@@ -28,7 +29,7 @@
     identifier: "urn:stackpack:suse-ai:shared:query-view:all-genai"
     name: "All GenAI Components"
     description: "Overview of all GenAI-related components."
-    query: "(label IN ('suse.ai.managed:true') OR type IN ('genai.model')) AND type != 'otel service instance'"
+    query: "(label IN ('suse.ai.managed:true') OR type IN ('llm-model')) AND type != 'otel service instance'"
     queryVersion: "0.0.1"
     autoGrouping: true
     connectedComponents: true
@@ -160,6 +161,22 @@
     queryVersion: "0.0.1"
     autoGrouping: true
     viewType: urn:stackpack:suse-ai:shared:view-type:ml-registries
+    connectedComponents: true
+    groupedByDomains: true
+    groupedByLayers: true
+    groupingEnabled: true
+    flags:
+    - HideFromViewsOverview
+
+  - _type: "QueryView"
+    id: -221
+    identifier: "urn:stackpack:suse-ai:shared:query-view:genai-model"
+    name: "LLM Models"
+    description: "LLM models in use across inference engines."
+    query: "label = 'suse.ai.category:llm-model' AND type != 'otel service instance'"
+    queryVersion: "0.0.1"
+    autoGrouping: true
+    viewType: urn:stackpack:suse-ai:shared:view-type:llm-models
     connectedComponents: true
     groupedByDomains: true
     groupedByLayers: true

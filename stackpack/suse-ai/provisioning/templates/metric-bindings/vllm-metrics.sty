@@ -207,7 +207,7 @@
     _type: MetricBinding
 
   # =============================================
-  # vLLM Model Scope (genai.model with vllm label)
+  # vLLM Model Scope (llm-model with vllm label)
   # =============================================
 
   - id: -520
@@ -224,7 +224,7 @@
         alias: 'P50'
       - expression: rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_sum", model_name="${name}" }[${__rate_interval}])/rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_count", model_name="${name}" }[${__rate_interval}])
         alias: 'Average'
-    scope: (type = "genai.model" and label = "vllm_metrics_available")
+    scope: (type = "llm-model" and label = "gen_ai.provider.name:vllm")
     identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:e2e-latency
     unit: seconds
     chartType: line
@@ -252,7 +252,7 @@
         alias: 'P50'
       - expression: rate({__name__=~"vllm(:|_)time_to_first_token_seconds_sum", model_name="${name}"}[${__rate_interval}])/rate({__name__=~"vllm(:|_)time_to_first_token_seconds_count", model_name="${name}"}[${__rate_interval}])
         alias: 'Average'
-    scope: (type = "genai.model" and label = "vllm_metrics_available")
+    scope: (type = "llm-model" and label = "gen_ai.provider.name:vllm")
     identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:ttft-latency
     unit: seconds
     chartType: line
@@ -280,7 +280,7 @@
         alias: 'P50'
       - expression: rate({__name__=~"vllm(:|_)time_per_output_token_seconds_sum", model_name="${name}"}[${__rate_interval}])/rate({__name__=~"vllm(:|_)time_per_output_token_seconds_count", model_name="${name}"}[${__rate_interval}])
         alias: 'Average'
-    scope: (type = "genai.model" and label = "vllm_metrics_available")
+    scope: (type = "llm-model" and label = "gen_ai.provider.name:vllm")
     identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:tpot-latency
     unit: seconds
     chartType: line
@@ -300,7 +300,7 @@
       - expression: rate({__name__=~"vllm(:|_)prompt_tokens_total", model_name="${name}"}[${__rate_interval}])
         alias: 'Prompt Tokens/Sec'
         primary: true
-    scope: (type = "genai.model" and label = "vllm_metrics_available")
+    scope: (type = "llm-model" and label = "gen_ai.provider.name:vllm")
     identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:token-throughput-prompt
     unit: seconds
     chartType: line
@@ -319,7 +319,7 @@
       - expression: rate({__name__=~"vllm(:|_)generation_tokens_total", model_name="${name}"}[${__rate_interval}])
         alias: 'Generation Tokens/Sec'
         primary: true
-    scope: (type = "genai.model" and label = "vllm_metrics_available")
+    scope: (type = "llm-model" and label = "gen_ai.provider.name:vllm")
     identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:token-throughput-generation
     unit: seconds
     chartType: line
@@ -338,7 +338,7 @@
       - expression: vllm_gpu_cache_usage_perc{model_name="${name}"} or vllm:gpu_cache_usage_perc{model_name="${name}"}
         alias: 'GPU Cache Usage'
         primary: true
-    scope: (type = "genai.model" and label = "vllm_metrics_available")
+    scope: (type = "llm-model" and label = "gen_ai.provider.name:vllm")
     identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:gpu-cache-usage
     unit: percentunit
     chartType: line
@@ -358,7 +358,7 @@
       - expression: vllm_num_requests_running{model_name="${name}"} or vllm:num_requests_running{model_name="${name}"}
         alias: 'req'
         primary: true
-    scope: (type = "genai.model" and label = "vllm_metrics_available")
+    scope: (type = "llm-model" and label = "gen_ai.provider.name:vllm")
     identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:req-running
     unit: short
     chartType: line
@@ -378,7 +378,7 @@
       - expression: vllm_num_requests_waiting{model_name="${name}"} or vllm:num_requests_waiting{model_name="${name}"}
         alias: 'req'
         primary: true
-    scope: (type = "genai.model" and label = "vllm_metrics_available")
+    scope: (type = "llm-model" and label = "gen_ai.provider.name:vllm")
     identifier: urn:stackpack:suse-ai:shared:metric-binding:genai-model:req-waiting
     unit: short
     chartType: line
