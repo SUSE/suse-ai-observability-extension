@@ -213,6 +213,15 @@ config:
         - context: span
           statements:
             - set(attributes["peer.service"], attributes["gen_ai.request.model"]) where attributes["gen_ai.request.model"] != nil
+    # Create application -> provider relations from GenAI trace spans.
+    # Sets peer.service = provider name so StackState sees the app
+    # depending on the inference engine (e.g., open-webui -> ollama).
+    transform/provider-relations:
+      error_mode: ignore
+      trace_statements:
+        - context: span
+          statements:
+            - set(attributes["peer.service"], resource.attributes["gen_ai.provider.name"]) where resource.attributes["gen_ai.provider.name"] != nil
     filter/dropMissingK8sAttributes:
       error_mode: ignore
       traces:
@@ -229,7 +238,7 @@ config:
       error_mode: ignore
       table:
       - statement: route()
-        pipelines: [traces/sampling, traces/spanmetrics, traces/model-relations]
+        pipelines: [traces/sampling, traces/spanmetrics, traces/model-relations, traces/provider-relations]
   service:
     extensions:
       - health_check
@@ -269,6 +278,13 @@ config:
       traces/model-relations:
         receivers: [routing/traces]
         processors: [filter/genai-spans, groupbyattrs/model-relations, transform/model-relations, batch]
+        exporters: [otlp]
+      # Create application -> provider relations from trace spans.
+      # Sets peer.service to the provider name so StackState sees
+      # the application depending on the inference engine.
+      traces/provider-relations:
+        receivers: [routing/traces]
+        processors: [filter/genai-spans, transform/provider-relations, batch]
         exporters: [otlp]
       metrics/elasticsearch:
         receivers: [elasticsearch]

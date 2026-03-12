@@ -125,6 +125,18 @@ if (isManaged) {
         }
     }
 
+    // Assign layer based on category
+    switch(category) {
+        case 'application':
+        case 'agent':
+        case 'ui':
+            data.put('isApplicationLayer', 'true')
+            break
+        case 'llm-model':
+            data.put('isModelLayer', 'true')
+            break
+    }
+
     // Default to application if type is unknown among our AI types
     def aiTypes = ['application', 'agent', 'ui', 'inference-engine', 'vectordb', 'llm-model', 'model-proxy', 'search-engine', 'mcp-server', 'workflow-engine', 'ml-registry']
     if (!aiTypes.contains(currentType) && !currentType.contains('.')) {

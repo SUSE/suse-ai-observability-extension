@@ -186,7 +186,7 @@
   # Ollama Model Scope (llm-model with ollama label)
   # =============================================
 
-  - id: -570
+  - id: -610
     name: LLM Request Rate
     queries:
       - expression: sum by (gen_ai_request_model) (rate(gen_ai_client_request_count_total{ suse_ai_component_name="${name}" }[${__rate_interval}]))
@@ -206,7 +206,7 @@
         weight: 3
     _type: MetricBinding
 
-  - id: -571
+  - id: -611
     name: Average Tokens per Request
     queries:
       - expression: sum by (gen_ai_request_model) (rate(gen_ai_client_token_usage_sum{suse_ai_component_name="${name}"}[5m])) / sum by (gen_ai_request_model) (rate(gen_ai_client_request_count_total{suse_ai_component_name="${name}"}[5m]))
@@ -226,7 +226,7 @@
         weight: 3
     _type: MetricBinding
 
-  - id: -572
+  - id: -612
     name: Total Usage Cost
     queries:
       - expression: sum(gen_ai_client_operation_cost_USD_sum{ suse_ai_component_name="${name}" })
@@ -249,7 +249,7 @@
         weight: 3
     _type: MetricBinding
 
-  - id: -573
+  - id: -613
     name: Operation Duration (P95)
     queries:
       - expression: histogram_quantile(0.95, sum by (le) (rate(gen_ai_client_operation_duration_seconds_bucket{suse_ai_component_name="${name}"}[5m])))
@@ -269,7 +269,7 @@
         weight: 3
     _type: MetricBinding
 
-  - id: -574
+  - id: -614
     name: Token Usage by Type
     queries:
       - expression: sum(rate(gen_ai_client_token_usage_sum{suse_ai_component_name="${name}", gen_ai_token_type="input"}[5m]))
