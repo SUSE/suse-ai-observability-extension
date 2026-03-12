@@ -1,60 +1,81 @@
-// IdExtractorFunction for SUSE AI components
-// It mirrors OTel elements by adding a 'suse-ai:' prefix
-// This creates a separate graph structure for AI observability
+// IdExtractorFunction for SUSE AI components and relations
+// Adds a 'suse-ai:' prefix to component externalIds to keep them
+// separate from the standard OTel StackPack components.
+// The original OTel externalId is kept as an identifier to enable
+// cross-stackpack merging and relation source/target resolution.
 
 if (topologyElement == null) {
     return null
 }
 
-def data = topologyElement.data ?: [:]
-def tags = data.tags ?: [:]
-def externalId = topologyElement.externalId
+def elementMap = topologyElement.asReadonlyMap()
+def externalId = elementMap["externalId"]
 if (externalId == null) {
     return null
 }
 
 def extIdStr = externalId.toString()
-def typeName = topologyElement.type?.name?.toString() ?: 'unknown'
+def typeName = (elementMap["typeName"] ?: 'unknown').toString().toLowerCase()
 
-// Normalize tags to map for easier checking
-def normalizedTags = [:]
-if (tags instanceof List) {
-    tags.each { tag ->
-        if (tag instanceof String) {
-            def parts = tag.split(':', 2)
-            if (parts.length == 2) {
-                normalizedTags[parts[0]] = parts[1]
-            } else {
-                normalizedTags[tag] = true
+// Detect relation elements: they have sourceExternalId at the top level
+// (NOT inside the data map). Relations must be processed so that the
+// sync can create topology connections.
+def isRelation = elementMap.containsKey('sourceExternalId')
+
+if (!isRelation) {
+    // --- Component processing ---
+
+    def data = elementMap["data"] ?: [:]
+    def tags = data["tags"] ?: [:]
+
+    // Normalize tags to map for easier checking
+    def normalizedTags = [:]
+    if (tags instanceof List) {
+        tags.each { tag ->
+            if (tag instanceof String) {
+                def parts = tag.split(':', 2)
+                if (parts.length == 2) {
+                    normalizedTags[parts[0]] = parts[1]
+                } else {
+                    normalizedTags[tag] = true
+                }
             }
         }
+    } else if (tags instanceof Map) {
+        normalizedTags = tags
     }
-} else if (tags instanceof Map) {
-    normalizedTags = tags
-}
 
-// DUPLICATION FIX (Option B): If a component has a 'suse.ai.component.name' tag,
-// it will be handled by the "SUSE AI Products" sync (Aggregation).
-// We should NOT create a mirrored instance here to avoid duplicates.
-if (normalizedTags.containsKey('suse.ai.component.name')) {
-    return null
-}
+    // Components with suse.ai.component.name are handled by the
+    // "SUSE AI Products" sync (aggregation). Skip them here.
+    if (normalizedTags.containsKey('suse.ai.component.name')) {
+        return null
+    }
 
-// Only process elements that are relevant to services or relations
-// This avoids duplicating low-level infra like processes if not needed
-if (typeName != 'service' && typeName != 'service-instance' && typeName != 'pod' && 
-    !data.containsKey('sourceExternalId')) {
-    
-    // Check if it has any AI tags even if it's not a service
-    boolean hasAiTags = normalizedTags.keySet().any { tag -> tag.toString().toLowerCase().contains('suse.ai') }
-    
+    // Only process elements with AI-related tags
+    boolean hasAiTags = normalizedTags.keySet().any { tag ->
+        def t = tag.toString().toLowerCase()
+        t.contains('suse.ai') || t.startsWith('gen_ai.')
+    }
     if (!hasAiTags) {
         return null
     }
-}
 
-def newExternalId = 'suse-ai:' + extIdStr
-// Include the original OTel external ID as an identifier so that:
-// 1. Relations can resolve source/target (they reference unprefixed OTel IDs)
-// 2. Cross-stackpack merging works (this component merges with the OTel original)
-return Sts.createId(newExternalId, [extIdStr] as Set, typeName)
+    // Collect additional identifiers from the data
+    def identifiers = new HashSet()
+    if (data.containsKey("identifiers") && data["identifiers"] instanceof List) {
+        data["identifiers"].each { id -> identifiers.add(id) }
+    }
+    // Add the original OTel externalId so that:
+    // 1. Relations can resolve source/target (they reference unprefixed OTel URNs)
+    // 2. Cross-stackpack merging works with the OTel StackPack
+    identifiers.add(extIdStr)
+
+    def newExternalId = 'suse-ai:' + extIdStr
+    return Sts.createId(newExternalId, identifiers, typeName)
+} else {
+    // --- Relation processing ---
+    // Use the original externalId (no prefix needed for relations).
+    // The system resolves sourceId/targetId by matching against
+    // component externalIds and identifiers.
+    return Sts.createId(extIdStr, new HashSet(), typeName)
+}

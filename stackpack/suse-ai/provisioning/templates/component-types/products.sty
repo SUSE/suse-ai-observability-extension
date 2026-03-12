@@ -47,6 +47,10 @@
         externalIdSelector: "^suse-ai:"
       relatedResources:
         - _type: "ComponentTypeRelatedResources"
+          resourceType: "llm-model"
+          title: "Models"
+          stql: 'type = "llm-model.vllm"'
+        - _type: "ComponentTypeRelatedResources"
           resourceType: "service instance"
           title: "Related service instances"
           stql: 'type = "otel service instance" and label = "suse.ai.component.name:vllm"'
@@ -120,6 +124,10 @@
         showStatus: false
         externalIdSelector: "^suse-ai:"
       relatedResources:
+        - _type: "ComponentTypeRelatedResources"
+          resourceType: "llm-model"
+          title: "Models"
+          stql: 'type = "llm-model.ollama"'
         - _type: "ComponentTypeRelatedResources"
           resourceType: "service instance"
           title: "Related service instances"
@@ -717,7 +725,11 @@
         showConfiguration: false
         showStatus: false
         externalIdSelector: "^suse-ai:"
-      relatedResources: []
+      relatedResources:
+        - _type: "ComponentTypeRelatedResources"
+          resourceType: "inference-engine"
+          title: "Inference Engine"
+          stql: 'type = "inference-engine.vllm"'
       metrics:
         - _type: "ComponentTypeMetricCategory"
           name: "Performance"
@@ -780,7 +792,11 @@
         showConfiguration: false
         showStatus: false
         externalIdSelector: "^suse-ai:"
-      relatedResources: []
+      relatedResources:
+        - _type: "ComponentTypeRelatedResources"
+          resourceType: "inference-engine"
+          title: "Inference Engine"
+          stql: 'type = "inference-engine.ollama"'
       metrics:
         - _type: "ComponentTypeMetricCategory"
           name: "Metrics"

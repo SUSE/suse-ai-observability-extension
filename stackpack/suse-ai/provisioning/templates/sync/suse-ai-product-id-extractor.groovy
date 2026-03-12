@@ -2,10 +2,12 @@
 // Creates a single logical component for each named AI product
 // (e.g., all Milvus instances merge into one 'Milvus' component)
 //
-// Cross-stackpack linking: adds the suse-ai:-prefixed OTel externalId
-// as an identifier so that relations created by the main sync
-// (which use suse-ai:<otel-urn> for source/target) can resolve
-// to these product components.
+// Cross-sync linking: adds both the suse-ai:-prefixed and the
+// unprefixed OTel externalId as identifiers so that:
+// 1. The product component merges with the main sync component
+//    (which has externalId suse-ai:<otel-urn>)
+// 2. Relation source/target resolution works (relations reference
+//    unprefixed OTel URNs)
 
 if (topologyElement == null) {
     return null
@@ -39,16 +41,12 @@ if (productName) {
     // Create a deterministic ID for the product
     def newExternalId = "suse-ai:product:${productType}:${productName}".toString()
 
-    // Add the external ID as an identifier so monitors can find it
     def identifiers = [newExternalId] as Set
 
-    // Cross-stackpack linking: add the suse-ai:-prefixed original OTel
-    // externalId so that relations from the main sync can resolve to
-    // this product component. The main sync creates relations like:
-    //   source: suse-ai:urn:opentelemetry:namespace/X:service/Y
-    //   target: suse-ai:urn:opentelemetry:namespace/X:service/Z
-    // By adding this identifier, the system can match the relation
-    // endpoints to the product component.
+    // Add suse-ai:-prefixed OTel externalId so this product component
+    // merges with the main sync component (which has externalId suse-ai:<urn>).
+    // Do NOT add the unprefixed OTel URN — that would cause merging with
+    // the OTel StackPack's service component, breaking type and monitors.
     def originalExternalId = topologyElement.externalId?.toString()
     if (originalExternalId) {
         identifiers.add("suse-ai:${originalExternalId}".toString())
