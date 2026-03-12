@@ -6,7 +6,7 @@
     chartType: line
     priority: high
     enabled: true
-    scope: label IN ("suse.ai.managed:true")
+    scope: label IN ("suse.ai.managed:true") AND NOT type = "llm-model"
     queries:
       - expression: sum by (gen_ai_request_model) (rate(gen_ai_client_request_count_total{ suse_ai_component_name="${name}" }[${__rate_interval}]))
         alias: "${gen_ai_request_model}"
@@ -25,7 +25,7 @@
     chartType: line
     priority: high
     enabled: true
-    scope: label IN ("suse.ai.managed:true")
+    scope: label IN ("suse.ai.managed:true") AND NOT type = "llm-model"
     queries:
       - expression: sum by (gen_ai_request_model) (rate(gen_ai_client_token_usage_sum{suse_ai_component_name="${name}"}[5m])) / sum by (gen_ai_request_model) (rate(gen_ai_client_request_count_total{suse_ai_component_name="${name}"}[5m]))
         alias: "${gen_ai_request_model}"
@@ -47,7 +47,7 @@
       enableGaugeChart: "1"
     priority: high
     enabled: true
-    scope: label IN ("suse.ai.managed:true")
+    scope: label IN ("suse.ai.managed:true") AND NOT type = "llm-model"
     queries:
       - expression: sum(gen_ai_client_operation_cost_USD_sum{ suse_ai_component_name="${name}" })
         alias: Total Cost
@@ -66,7 +66,7 @@
     chartType: line
     priority: high
     enabled: true
-    scope: label IN ("suse.ai.managed:true")
+    scope: label IN ("suse.ai.managed:true") AND NOT type = "llm-model"
     queries:
       - expression: histogram_quantile(0.95, sum by (gen_ai_request_model, le) (rate(gen_ai_client_operation_duration_seconds_bucket{suse_ai_component_name="${name}"}[5m])))
         alias: "${gen_ai_request_model}"
@@ -85,7 +85,7 @@
     chartType: line
     priority: medium
     enabled: true
-    scope: label IN ("suse.ai.managed:true")
+    scope: label IN ("suse.ai.managed:true") AND NOT type = "llm-model"
     queries:
       - expression: sum by (gen_ai_request_model) (rate(gen_ai_client_token_usage_sum{suse_ai_component_name="${name}", gen_ai_token_type="input"}[5m]))
         alias: "${gen_ai_request_model} (Input)"

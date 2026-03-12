@@ -682,6 +682,16 @@
             - "urn:stackpack:suse-ai:shared:metric-binding:genai-model:req-running"
             - "urn:stackpack:suse-ai:shared:metric-binding:genai-model:req-waiting"
           defaultExpanded: true
+        - _type: "ComponentTypeMetricCategory"
+          name: "Metrics"
+          description: "Ollama Model Metrics"
+          bindings:
+            - "urn:stackpack:suse-ai:shared:metric-binding:ollama-model:request-rate"
+            - "urn:stackpack:suse-ai:shared:metric-binding:ollama-model:average-tokens-per-request"
+            - "urn:stackpack:suse-ai:shared:metric-binding:ollama-model:total-usage-cost"
+            - "urn:stackpack:suse-ai:shared:metric-binding:ollama-model:operation-duration-p95"
+            - "urn:stackpack:suse-ai:shared:metric-binding:ollama-model:token-usage-by-type"
+          defaultExpanded: true
 
   # ViewType for ui.open-webui with traces support
   - _type: "ViewType"
