@@ -112,6 +112,19 @@ if (isManaged) {
         }
     }
     
+    // Provider-specific specialization for llm-model
+    if (currentType == 'llm-model' && tags['gen_ai.provider.name']) {
+        def provider = tags['gen_ai.provider.name'].toString().toLowerCase()
+        switch(provider) {
+            case 'ollama':
+                currentType = "llm-model.ollama"
+                break
+            case 'vllm':
+                currentType = "llm-model.vllm"
+                break
+        }
+    }
+
     // Default to application if type is unknown among our AI types
     def aiTypes = ['application', 'agent', 'ui', 'inference-engine', 'vectordb', 'llm-model', 'model-proxy', 'search-engine', 'mcp-server', 'workflow-engine', 'ml-registry']
     if (!aiTypes.contains(currentType) && !currentType.contains('.')) {

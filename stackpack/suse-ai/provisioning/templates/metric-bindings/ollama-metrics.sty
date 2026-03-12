@@ -192,7 +192,7 @@
       - expression: sum by (gen_ai_request_model) (rate(gen_ai_client_request_count_total{ suse_ai_component_name="${name}" }[${__rate_interval}]))
         alias: "${gen_ai_request_model}"
         primary: true
-    scope: (type = "llm-model" and label = "gen_ai.provider.name:ollama")
+    scope: type = "llm-model.ollama"
     identifier: urn:stackpack:suse-ai:shared:metric-binding:ollama-model:request-rate
     unit: reqps
     chartType: line
@@ -212,7 +212,7 @@
       - expression: sum by (gen_ai_request_model) (rate(gen_ai_client_token_usage_sum{suse_ai_component_name="${name}"}[5m])) / sum by (gen_ai_request_model) (rate(gen_ai_client_request_count_total{suse_ai_component_name="${name}"}[5m]))
         alias: "${gen_ai_request_model}"
         primary: true
-    scope: (type = "llm-model" and label = "gen_ai.provider.name:ollama")
+    scope: type = "llm-model.ollama"
     identifier: urn:stackpack:suse-ai:shared:metric-binding:ollama-model:average-tokens-per-request
     unit: short
     chartType: line
@@ -232,7 +232,7 @@
       - expression: sum(gen_ai_client_operation_cost_USD_sum{ suse_ai_component_name="${name}" })
         alias: Total Cost
         primary: true
-    scope: (type = "llm-model" and label = "gen_ai.provider.name:ollama")
+    scope: type = "llm-model.ollama"
     identifier: urn:stackpack:suse-ai:shared:metric-binding:ollama-model:total-usage-cost
     unit: currencyUSD
     chartType: line
@@ -255,7 +255,7 @@
       - expression: histogram_quantile(0.95, sum by (le) (rate(gen_ai_client_operation_duration_seconds_bucket{suse_ai_component_name="${name}"}[5m])))
         alias: P95
         primary: true
-    scope: (type = "llm-model" and label = "gen_ai.provider.name:ollama")
+    scope: type = "llm-model.ollama"
     identifier: urn:stackpack:suse-ai:shared:metric-binding:ollama-model:operation-duration-p95
     unit: s
     chartType: line
@@ -276,7 +276,7 @@
         alias: "Input Tokens"
       - expression: sum(rate(gen_ai_client_token_usage_sum{suse_ai_component_name="${name}", gen_ai_token_type="output"}[5m]))
         alias: "Output Tokens"
-    scope: (type = "llm-model" and label = "gen_ai.provider.name:ollama")
+    scope: type = "llm-model.ollama"
     identifier: urn:stackpack:suse-ai:shared:metric-binding:ollama-model:token-usage-by-type
     unit: short
     chartType: line
