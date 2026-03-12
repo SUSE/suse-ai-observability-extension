@@ -135,15 +135,11 @@
           name: "Metrics"
           description: "Metrics"
           bindings:
-            - "urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-request-rate"
-            - "urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-top-models"
-            - "urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-avg-tokens-per-total-requests"
-            - "urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-avg-usage-cost"
-            - "urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-avg-total-usage-cost"
-            - "urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-total-usage-tokens"
-            - "urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-total-usage-tokens-line"
-            - "urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-request-total-success"
-            - "urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-avg-usage-cost-per-model"
+            - "urn:stackpack:suse-ai:shared:metric-binding:request-rate"
+            - "urn:stackpack:suse-ai:shared:metric-binding:average-tokens-per-request"
+            - "urn:stackpack:suse-ai:shared:metric-binding:total-usage-cost"
+            - "urn:stackpack:suse-ai:shared:metric-binding:operation-duration-p95"
+            - "urn:stackpack:suse-ai:shared:metric-binding:token-usage-by-type"
           defaultExpanded: true
 
   - _type: "ComponentType"
