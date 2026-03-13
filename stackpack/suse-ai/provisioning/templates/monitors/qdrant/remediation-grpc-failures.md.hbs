@@ -1,0 +1,37 @@
+# Qdrant gRPC API Failures Detected
+
+The Qdrant vector database **{{componentName}}** is returning failed gRPC API responses.
+
+## Potential Impacts
+- Failed vector operations from gRPC clients
+- Broken inter-node communication in distributed deployments
+- Application errors for services using the gRPC interface
+
+## Diagnosis Steps
+1. **Check Qdrant Logs**:
+   ```bash
+   kubectl logs -l app=qdrant --tail=100
+   ```
+2. **Verify gRPC Port Availability**:
+   ```bash
+   kubectl get svc -l app=qdrant
+   ```
+   Ensure port 6334 is exposed and reachable.
+3. **Check Cluster State** (distributed mode):
+   ```bash
+   curl http://<qdrant-host>:6333/cluster
+   ```
+4. **Review Resource Utilization**:
+   ```bash
+   kubectl top pods -l app=qdrant
+   ```
+
+## Remediation Actions
+1. **Check Inter-node Connectivity**: In distributed mode, gRPC is used for node-to-node communication. Verify all nodes can reach each other on port 6335.
+2. **Review TLS Configuration**: If TLS is enabled on gRPC, verify certificates are valid and not expired.
+3. **Check Memory Pressure**: gRPC failures can occur under heavy memory pressure. Review memory limits and active memory usage.
+4. **Restart Qdrant**:
+   ```bash
+   kubectl rollout restart statefulset/qdrant
+   ```
+5. **Scale Cluster**: If the cluster is overloaded, add more nodes to distribute the load.

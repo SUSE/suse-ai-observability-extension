@@ -38,6 +38,7 @@ nodes:
 {{ include "templates/metric-bindings/opensearch-metrics.sty" "yaml" }}
 {{ include "templates/metric-bindings/elasticsearch-metrics.sty" "yaml" }}
 {{ include "templates/metric-bindings/gpu-metrics.sty" "yaml" }}
+{{ include "templates/metric-bindings/qdrant-metrics.sty" "yaml" }}
 {{ include "templates/metric-bindings/common-metrics.sty" "yaml" }}
 
 # Monitors
@@ -45,3 +46,4 @@ nodes:
 {{ include "templates/monitors/opensearch/monitor.sty" "yaml" }}
 {{ include "templates/monitors/milvus/monitor.sty" "yaml" }}
 {{ include "templates/monitors/vllm/monitor.sty" "yaml" }}
+{{ include "templates/monitors/qdrant/monitor.sty" "yaml" }}

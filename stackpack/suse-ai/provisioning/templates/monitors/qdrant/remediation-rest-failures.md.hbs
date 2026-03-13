@@ -1,0 +1,36 @@
+# Qdrant REST API Failures Detected
+
+The Qdrant vector database **{{componentName}}** is returning failed REST API responses.
+
+## Potential Impacts
+- Failed vector insertions, searches, or collection operations
+- Application errors and degraded user experience
+- Data inconsistency if write operations are failing
+
+## Diagnosis Steps
+1. **Check Qdrant Logs**:
+   ```bash
+   kubectl logs -l app=qdrant --tail=100
+   ```
+2. **Verify Qdrant Health**:
+   ```bash
+   curl http://<qdrant-host>:6333/healthz
+   ```
+3. **Check Collection Status**:
+   ```bash
+   curl http://<qdrant-host>:6333/collections
+   ```
+4. **Review Resource Utilization**:
+   ```bash
+   kubectl top pods -l app=qdrant
+   ```
+
+## Remediation Actions
+1. **Check Disk Space**: Qdrant requires sufficient disk for WAL and storage. Verify available storage on the node.
+2. **Review Request Payloads**: Check if clients are sending malformed or oversized requests.
+3. **Restart Qdrant**: If the node is in a bad state:
+   ```bash
+   kubectl rollout restart statefulset/qdrant
+   ```
+4. **Check Memory Limits**: Ensure Qdrant has sufficient memory for the number of collections and vectors loaded.
+5. **Verify Network Connectivity**: Ensure clients can reach Qdrant on port 6333 (REST) and 6334 (gRPC).

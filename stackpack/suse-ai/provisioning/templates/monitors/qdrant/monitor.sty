@@ -1,0 +1,84 @@
+
+  - _type: Monitor
+    id: -3011
+    name: Qdrant REST API Failures
+    identifier: urn:stackpack:suse-ai:shared:monitor:qdrant-rest-api-failures
+    description: Indicates if Qdrant is returning failed REST API responses.
+    intervalSeconds: 60
+    status: ENABLED
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      threshold: 0.0
+      comparator: GT
+      failureState: CRITICAL
+      metric:
+        aliasTemplate: "REST Failures/s"
+        query: >-
+          sum(rate(rest_responses_fail_total{}[5m]))
+        unit: reqps
+      titleTemplate: "Qdrant REST API Failures"
+      urnTemplate: "suse-ai:product:vectordb:qdrant"
+    remediationHint: {{ include "templates/monitors/qdrant/remediation-rest-failures.md.hbs" "identity" }}
+
+  - _type: Monitor
+    id: -3012
+    name: Qdrant gRPC API Failures
+    identifier: urn:stackpack:suse-ai:shared:monitor:qdrant-grpc-api-failures
+    description: Indicates if Qdrant is returning failed gRPC API responses.
+    intervalSeconds: 60
+    status: ENABLED
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      threshold: 0.0
+      comparator: GT
+      failureState: CRITICAL
+      metric:
+        aliasTemplate: "gRPC Failures/s"
+        query: >-
+          sum(rate(grpc_responses_fail_total{}[5m]))
+        unit: reqps
+      titleTemplate: "Qdrant gRPC API Failures"
+      urnTemplate: "suse-ai:product:vectordb:qdrant"
+    remediationHint: {{ include "templates/monitors/qdrant/remediation-grpc-failures.md.hbs" "identity" }}
+
+  - _type: Monitor
+    id: -3013
+    name: Qdrant High REST API Latency
+    identifier: urn:stackpack:suse-ai:shared:monitor:qdrant-high-rest-latency
+    description: Indicates if Qdrant REST API average response duration is too high.
+    intervalSeconds: 60
+    status: ENABLED
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      threshold: 2.0
+      comparator: GT
+      failureState: DEVIATING
+      metric:
+        aliasTemplate: "REST Avg Duration"
+        query: >-
+          rest_responses_avg_duration_seconds{}
+        unit: s
+      titleTemplate: "Qdrant High REST API Latency"
+      urnTemplate: "suse-ai:product:vectordb:qdrant"
+    remediationHint: {{ include "templates/monitors/qdrant/remediation-rest-latency.md.hbs" "identity" }}
+
+  - _type: Monitor
+    id: -3014
+    name: Qdrant High Memory Usage
+    identifier: urn:stackpack:suse-ai:shared:monitor:qdrant-high-memory-usage
+    description: Indicates if Qdrant active memory allocation is approaching capacity.
+    intervalSeconds: 60
+    status: ENABLED
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      threshold: 4294967296
+      comparator: GT
+      failureState: DEVIATING
+      metric:
+        aliasTemplate: "Active Memory"
+        query: >-
+          memory_active_bytes{}
+        unit: bytes
+      titleTemplate: "Qdrant High Memory Usage"
+      urnTemplate: "suse-ai:product:vectordb:qdrant"
+    remediationHint: {{ include "templates/monitors/qdrant/remediation-memory.md.hbs" "identity" }}

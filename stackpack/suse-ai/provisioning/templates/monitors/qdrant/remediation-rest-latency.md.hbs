@@ -1,0 +1,45 @@
+# Qdrant High REST API Latency
+
+The Qdrant vector database **{{componentName}}** is experiencing high REST API response times (> {{threshold}}s).
+
+Current value: **{{currentValue}}s**
+
+## Potential Impacts
+- Slow application response times for vector search operations
+- Timeout errors in upstream services
+- Poor user experience in AI-powered features
+
+## Diagnosis Steps
+1. **Identify Slow Operations**:
+   - Check if specific endpoints (search, upsert, scroll) are slower than others
+   - Review Qdrant dashboard or metrics for operation-level breakdown
+2. **Check Resource Utilization**:
+   ```bash
+   kubectl top pods -l app=qdrant
+   ```
+3. **Review Collection Sizes**:
+   ```bash
+   curl http://<qdrant-host>:6333/collections
+   ```
+   Check vector counts and segment information for each collection.
+4. **Check Disk I/O**:
+   - Qdrant performance degrades with slow disk I/O, especially with large collections on disk
+
+## Remediation Actions
+1. **Optimize HNSW Index Parameters**:
+   - Increase `ef_construct` for better recall at the cost of build time
+   - Adjust `m` parameter based on dataset dimensionality
+   - Rebuild indexes after parameter changes
+2. **Enable Quantization**:
+   - Use scalar or product quantization to reduce memory usage and speed up searches
+   - Trade-off: slight reduction in recall accuracy
+3. **Scale Resources**:
+   ```bash
+   kubectl scale statefulset/qdrant --replicas=3
+   ```
+4. **Move Collections to RAM**:
+   - Configure `on_disk: false` for frequently accessed collections
+   - Ensure sufficient memory is available
+5. **Optimize Search Parameters**:
+   - Reduce `limit` in search requests if fewer results are acceptable
+   - Lower `hnsw_ef` search parameter for faster (but less accurate) results
