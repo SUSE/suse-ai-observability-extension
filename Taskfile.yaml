@@ -3,16 +3,20 @@ version: '3'
 dotenv: ['./.env']
 
 vars:
-  IMAGE: "suse-ai-observability"
-  VERSION: latest
+  IMAGE: '{{.IMAGE_NAME | default "suse-ai-observability"}}'
+  VERSION: '{{.IMAGE_VERSION | default "latest"}}'
+  RUNTIME: '{{.CONTAINER_RUNTIME | default "podman"}}'
 
 tasks:
-  podman-build-setup:
+  build:
+    desc: Build the setup container image
     cmds:
-      - podman build -f Dockerfile.setup -t {{.IMAGE}}-setup:{{.VERSION}} .
-  push-images:
+      - '{{.RUNTIME}} build -f Dockerfile -t {{.IMAGE}}:{{.VERSION}} .'
+
+  push:
+    desc: Push the setup container image
     cmds:
-      - podman push {{.IMAGE}}-setup:{{.VERSION}}
+      - '{{.RUNTIME}} push {{.IMAGE}}:{{.VERSION}}'
 
   version-up:
     desc: Increments the stackpack version (patch)
@@ -25,11 +29,6 @@ tasks:
         NEW_VERSION="$BASE.$NEW_PATCH"
         sed -i "s/version = \"$VERSION\"/version = \"$NEW_VERSION\"/" stackpack/suse-ai/stackpack.conf
         echo "StackPack version updated to $NEW_VERSION"
-
-  lint-groovy:
-    desc: Lints all Groovy scripts in the stackpack
-    cmds:
-      - npm-groovy-lint --path stackpack/suse-ai/provisioning --failon error
 
   stackpack-upload:
     desc: Zips, uploads and upgrades the stackpack

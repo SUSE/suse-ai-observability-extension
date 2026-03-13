@@ -13,3 +13,4 @@ conf_ravsts.yaml
 /stackpack/metricbindings.yaml
 /stackpack/view_types.yaml
 /genai-values.yaml
+/.resources/
