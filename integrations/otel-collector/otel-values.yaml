@@ -56,6 +56,11 @@ config:
 
             static_configs:
               - targets: ['milvus.suse-private-ai.svc.cluster.local:9091']
+          - job_name: 'qdrant'
+            scrape_interval: 10s
+            metrics_path: '/metrics'
+            static_configs:
+              - targets: ['qdrant.suse-private-ai.svc.cluster.local:6333']
           - job_name: 'vllm'
             scrape_interval: 10s
             scheme: http
@@ -110,6 +115,15 @@ config:
             - set(attributes["suse.ai.component.type"], "inference-engine") where attributes["service.name"] == "vllm"
             - set(attributes["service.instance.id"], "vllm") where attributes["service.name"] == "vllm"
             - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["service.name"] == "vllm"
+    transform/qdrant:
+      error_mode: ignore
+      metric_statements:
+        - context: resource
+          statements:
+            - set(attributes["suse.ai.managed"], "true") where attributes["service.name"] == "qdrant"
+            - set(attributes["suse.ai.component.name"], "qdrant") where attributes["service.name"] == "qdrant"
+            - set(attributes["suse.ai.component.type"], "vectordb") where attributes["service.name"] == "qdrant"
+            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["service.name"] == "qdrant"
     transform/milvus:
       error_mode: ignore
       metric_statements:
@@ -257,7 +271,7 @@ config:
         exporters: [debug, otlp]
       metrics:
         receivers: [otlp, spanmetrics, prometheus]
-        processors: [memory_limiter, transform/milvus, transform/vllm, resource, batch]
+        processors: [memory_limiter, transform/qdrant, transform/milvus, transform/vllm, resource, batch]
         exporters: [debug, otlp]
       # Infer inference engines from GenAI client metrics sent by applications.
       # Groups metrics by gen_ai.provider.name and creates inference-engine

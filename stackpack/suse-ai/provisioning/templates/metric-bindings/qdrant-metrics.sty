@@ -1,0 +1,216 @@
+
+  - id: -620
+    name: Collections Total
+    description: "Total number of collections"
+    queries:
+      - expression: collections_total{}
+        alias: Collections
+        primary: true
+    scope: type in ("vectordb.qdrant")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-collections-total
+    unit: short
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Collections
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -621
+    name: Vectors Total
+    description: "Total number of vectors across all collections"
+    queries:
+      - expression: collections_vector_total{}
+        alias: Vectors
+        primary: true
+    scope: type in ("vectordb.qdrant")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-vectors-total
+    unit: short
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Collections
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -622
+    name: REST Responses Total
+    description: "Total number of REST API responses"
+    queries:
+      - expression: sum(rate(rest_responses_total{}[${__rate_interval}]))
+        alias: Responses/s
+        primary: true
+    scope: type in ("vectordb.qdrant")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-rest-responses-total
+    unit: reqps
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: REST API
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -623
+    name: REST Responses Failed
+    description: "Total number of failed REST API responses"
+    queries:
+      - expression: sum(rate(rest_responses_fail_total{}[${__rate_interval}]))
+        alias: Failures/s
+        primary: true
+    scope: type in ("vectordb.qdrant")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-rest-responses-fail
+    unit: reqps
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: REST API
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -624
+    name: REST Average Response Duration
+    description: "Average duration of REST API responses"
+    queries:
+      - expression: rest_responses_avg_duration_seconds{}
+        alias: Avg Duration
+        primary: true
+    scope: type in ("vectordb.qdrant")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-rest-responses-avg-duration
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: REST API
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -625
+    name: gRPC Responses Total
+    description: "Total number of gRPC API responses"
+    queries:
+      - expression: sum(rate(grpc_responses_total{}[${__rate_interval}]))
+        alias: Responses/s
+        primary: true
+    scope: type in ("vectordb.qdrant")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-grpc-responses-total
+    unit: reqps
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: gRPC API
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -626
+    name: gRPC Responses Failed
+    description: "Total number of failed gRPC API responses"
+    queries:
+      - expression: sum(rate(grpc_responses_fail_total{}[${__rate_interval}]))
+        alias: Failures/s
+        primary: true
+    scope: type in ("vectordb.qdrant")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-grpc-responses-fail
+    unit: reqps
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: gRPC API
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -627
+    name: gRPC Average Response Duration
+    description: "Average duration of gRPC API responses"
+    queries:
+      - expression: grpc_responses_avg_duration_seconds{}
+        alias: Avg Duration
+        primary: true
+    scope: type in ("vectordb.qdrant")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-grpc-responses-avg-duration
+    unit: seconds
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: gRPC API
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -628
+    name: CPU Usage
+    description: "Total CPU time spent by the Qdrant process"
+    queries:
+      - expression: rate(app_info_cpu_usage{}[${__rate_interval}])
+        alias: CPU Usage
+        primary: true
+    scope: type in ("vectordb.qdrant")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-cpu-usage
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Hardware
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -629
+    name: Memory Active
+    description: "Active memory allocated by Qdrant (jemalloc)"
+    queries:
+      - expression: memory_active_bytes{}
+        alias: Active Memory
+        primary: true
+    scope: type in ("vectordb.qdrant")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-memory-active
+    unit: bytes
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: VectorDB
+        section: Hardware
+      componentSummary:
+        weight: 3
+    _type: MetricBinding

@@ -809,6 +809,96 @@
             - "urn:stackpack:suse-ai:shared:metric-binding:ollama-model:token-usage-by-type"
           defaultExpanded: true
 
+  - _type: "ComponentType"
+    id: -5014
+    identifier: "urn:stackpack:suse-ai:shared:component-type:vectordb.qdrant"
+    name: "vectordb.qdrant"
+    iconbase64: data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICA8Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iI0RDMjQ0QyIvPgogIDxwYXRoIGQ9Ik01MCAxNSBMNzUgMzUgTDc1IDY1IEw1MCA4NSBMMjUgNjUgTDI1IDM1IFoiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjkiLz4KICA8cGF0aCBkPSJNNTAgMjUgTDY4IDM4IEw2OCA2MiBMNTAgNzUgTDMyIDYyIEwzMiAzOCBaIiBmaWxsPSIjREMyNDRDIi8+CiAgPGxpbmUgeDE9IjUwIiB5MT0iMjUiIHgyPSI1MCIgeTI9IjUwIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiLz4KICA8bGluZSB4MT0iNjgiIHkxPSIzOCIgeDI9IjUwIiB5Mj0iNTAiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIvPgogIDxsaW5lIHgxPSI2OCIgeTE9IjYyIiB4Mj0iNTAiIHkyPSI1MCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPGxpbmUgeDE9IjUwIiB5MT0iNzUiIHgyPSI1MCIgeTI9IjUwIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiLz4KICA8bGluZSB4MT0iMzIiIHkxPSI2MiIgeDI9IjUwIiB5Mj0iNTAiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIvPgogIDxsaW5lIHgxPSIzMiIgeTE9IjM4IiB4Mj0iNTAiIHkyPSI1MCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIi8+Cjwvc3ZnPgo=
+    highlights:
+      _type: "ComponentTypeHighlight"
+      namePlural: "vectordbs"
+      fields:
+        - _type: "ComponentTypeField"
+          fieldId: "health"
+          label:
+            title: "Health"
+          valueExtractor:
+            _type: "HealthSource"
+          display:
+            _type: "HealthBadgeDisplay"
+        - _type: "ComponentTypeField"
+          fieldId: "type"
+          label:
+            title: "Type"
+          valueExtractor:
+            _type: "ComponentTypeSource"
+          display:
+            _type: "TagDisplay"
+        - _type: "ComponentTypeField"
+          fieldId: "labels"
+          label:
+            title: "Labels"
+          valueExtractor:
+            _type: "TagsSource"
+          display:
+            _type: "TagDisplay"
+            singular: "label"
+      about:
+        _type: "ComponentTypeAbout"
+        fields: ["health", "type", "labels"]
+      events:
+        _type: "ComponentTypeEvents"
+        showEvents: true
+      showLogs: false
+      showLastChange: false
+      externalComponent:
+        _type: "ComponentTypeExternalComponent"
+        showConfiguration: false
+        showStatus: false
+        externalIdSelector: "^suse-ai:"
+      relatedResources:
+        - _type: "ComponentTypeRelatedResources"
+          resourceType: "service instance"
+          title: "Related service instances"
+          stql: 'type = "otel service instance" and label = "suse.ai.component.name:qdrant"'
+          viewTypeIdentifier: "urn:stackpack:open-telemetry:shared:view-type:service-instance"
+        - _type: "ComponentTypeRelatedResources"
+          resourceType: "service"
+          title: "Related services"
+          stql: 'withNeighborsOf(direction = "up", components = (type = "otel service instance" and label = "suse.ai.component.name:qdrant"), levels = "1") and type = "otel service"'
+          viewTypeIdentifier: "urn:stackpack:open-telemetry:shared:view-type:service"
+      metrics:
+        - _type: "ComponentTypeMetricCategory"
+          name: "Collections"
+          description: "Collection and vector counts"
+          bindings:
+            - "urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-collections-total"
+            - "urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-vectors-total"
+          defaultExpanded: true
+        - _type: "ComponentTypeMetricCategory"
+          name: "REST API"
+          description: "REST API response metrics"
+          bindings:
+            - "urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-rest-responses-total"
+            - "urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-rest-responses-fail"
+            - "urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-rest-responses-avg-duration"
+          defaultExpanded: true
+        - _type: "ComponentTypeMetricCategory"
+          name: "gRPC API"
+          description: "gRPC API response metrics"
+          bindings:
+            - "urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-grpc-responses-total"
+            - "urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-grpc-responses-fail"
+            - "urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-grpc-responses-avg-duration"
+          defaultExpanded: true
+        - _type: "ComponentTypeMetricCategory"
+          name: "Hardware"
+          description: "Process resource utilization"
+          bindings:
+            - "urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-cpu-usage"
+            - "urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-memory-active"
+          defaultExpanded: true
+
   # ViewType for ui.open-webui with traces support
   - _type: "ViewType"
     name: "Open WebUI view definition"
