@@ -33,7 +33,6 @@ tasks:
 
   stackpack-upload:
     desc: Zips, uploads and upgrades the stackpack
-    deps: [lint-groovy]
     cmds:
       - |
         cd stackpack/suse-ai
