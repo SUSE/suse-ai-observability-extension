@@ -2,7 +2,7 @@
 title: SUSE AI Monitoring Pipeline
 author: Thiago Bertoldi (SUSE)
 date: 2026-03-06
-version: 1.2.1
+version: 2.0.0
 license: Apache 2.0
 description: A pipeline for generating chat telemetry data for SUSE AI, aligned with OpenTelemetry GenAI semantic conventions
 Fixed for Open WebUI 0.6.41+ compatibility with immediate initialization and graceful fallback
