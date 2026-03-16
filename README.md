@@ -36,6 +36,13 @@ It provides out-of-the-box metric bindings and health monitors for vLLM, Ollama,
 │   ├── otel-collector/         # OTel Collector Helm values (test environment)
 │   └── oi-filter/              # OTel Collector Python filters
 ├── knowledge/                  # Architecture docs, guides, conventions
+├── tests/
+│   ├── static/                 # Go static validation tests
+│   ├── init/                   # Bats tests for init.sh
+│   ├── integration/            # Integration test stubs
+│   ├── internal/               # Parsers, utilities, API client
+│   ├── testdata/snapshots/     # Golden files for regression detection
+│   └── infra/                  # K3d + Helm local test environment
 ├── Dockerfile                  # Multi-stage build for the setup container
 ├── init.sh                     # Install/uninstall script (runs inside the container)
 └── Taskfile.yaml               # Development task automation
@@ -148,6 +155,35 @@ sts script run --script "Topology.query('label = \"suse.ai.managed\"')"
 sts topology-sync list
 sts topology-sync describe --id <id>
 ```
+
+### Testing
+
+```bash
+task check              # Lint + static tests + init tests
+task check SILENT=1     # Minimal output
+task test-static        # 34 Go static validation tests
+task test-init          # 10 bats tests for init.sh
+task lint               # Groovy linting
+task lint-fix           # Auto-fix Groovy lint issues
+```
+
+### Local test environment
+
+Provision a K3d cluster with SUSE Observability, an OTel Collector, and AI components:
+
+```bash
+task infra-up           # QDrant + Ollama + demo apps by default
+task infra-status       # Show pod status
+task infra-down         # Tear down
+
+# Opt-in components
+DEPLOY_MILVUS=true DEPLOY_OPENSEARCH=true DEPLOY_VLLM=true task infra-up
+
+# Custom OTel collector image
+OTEL_COLLECTOR_IMAGE=ghcr.io/thbertoldi/otelcol-suse-ai:latest task infra-up
+```
+
+Requires `SUSE_OBSERVABILITY_LICENSE`, `APPCO_EMAIL`, and `APPCO_TOKEN` environment variables.
 
 ### Architecture reference
 
