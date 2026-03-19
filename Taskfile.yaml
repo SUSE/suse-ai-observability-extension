@@ -52,3 +52,30 @@ tasks:
     desc: Runs a Groovy script from a file (use FILE=path/to/script.groovy)
     cmds:
       - sts script run --file "{{.FILE}}"
+
+  test-static:
+    desc: Run static validation tests (no infrastructure needed)
+    dir: tests
+    cmds:
+      - go test ./static/... -v
+
+  test-integration:
+    desc: Run integration tests against a running StackState (set STACKSTATE_API_URL and STACKSTATE_API_TOKEN)
+    dir: tests
+    cmds:
+      - go test -tags=integration ./integration/... -v -timeout 10m
+
+  test-integration-local:
+    desc: Spin up local StackState and run integration tests
+    dir: tests
+    cmds:
+      - docker compose -f infra/docker-compose.yaml up -d
+      - bash infra/setup.sh
+      - go test -tags=integration ./integration/... -v -timeout 10m
+      - docker compose -f infra/docker-compose.yaml down
+
+  test-all:
+    desc: Run static tests, then integration tests
+    cmds:
+      - task: test-static
+      - task: test-integration
