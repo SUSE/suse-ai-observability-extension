@@ -14,3 +14,4 @@ conf_ravsts.yaml
 /stackpack/view_types.yaml
 /genai-values.yaml
 /.resources/
+/tests/**/testdata/fuzz/
