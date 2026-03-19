@@ -206,6 +206,24 @@ config:
             - set(attributes["suse.ai.component.name"], attributes["gen_ai.request.model"]) where attributes["gen_ai.request.model"] != nil
             - set(attributes["suse.ai.component.type"], "llm-model") where attributes["gen_ai.request.model"] != nil
             - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["gen_ai.request.model"] != nil
+    # Exclude services that already have suse.ai.component.name set
+    # (e.g., Open WebUI) to avoid creating duplicate application components.
+    filter/exclude-already-tagged:
+      error_mode: ignore
+      metrics:
+        resource:
+          - attributes["suse.ai.component.name"] != nil
+    # Infer application components from GenAI client metrics.
+    # Services emitting gen_ai.* metrics that don't already have
+    # suse.ai.component.name are tagged as SUSE AI applications.
+    transform/infer-applications:
+      error_mode: ignore
+      metric_statements:
+        - context: resource
+          statements:
+            - set(attributes["suse.ai.managed"], "true")
+            - set(attributes["suse.ai.component.type"], "application")
+            - set(attributes["suse.ai.component.name"], attributes["service.name"])
     # Create provider -> model relations from GenAI trace spans.
     # Transforms spans so service.name = provider and peer.service = model,
     # which StackState interprets as a service dependency.
@@ -286,6 +304,13 @@ config:
       metrics/infer-models:
         receivers: [otlp]
         processors: [filter/genai-metrics-only, groupbyattrs/infer-models, transform/infer-models, resource, batch]
+        exporters: [otlp]
+      # Infer application components from GenAI client metrics.
+      # Services emitting gen_ai.* metrics without suse.ai.component.name
+      # are automatically tagged as SUSE AI applications.
+      metrics/infer-applications:
+        receivers: [otlp]
+        processors: [filter/genai-metrics-only, filter/exclude-already-tagged, transform/infer-applications, resource, batch]
         exporters: [otlp]
       # Create provider -> model relations from trace spans.
       # Transforms GenAI spans so StackState sees provider depending on model.
