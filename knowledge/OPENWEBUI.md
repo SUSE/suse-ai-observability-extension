@@ -22,7 +22,6 @@ The filter runs as a pipeline in Open WebUI and captures all chat interactions.
 - `telemetry.sdk.name`: "suse-ai"
 
 **Metrics Generated** (OpenTelemetry semantic conventions):
-- `gen_ai.client.request.count` → Exported as `gen_ai_client_request_count_total`
 - `gen_ai.client.token.usage` → Exported as `gen_ai_client_token_usage_sum` (histogram)
 - `gen_ai.client.operation.duration` → Exported as `gen_ai_client_operation_duration_seconds_bucket` (histogram)
 - `gen_ai.client.operation.cost` → Exported as `gen_ai_client_operation_cost_USD_sum` (histogram)
@@ -81,13 +80,13 @@ The filter runs as a pipeline in Open WebUI and captures all chat interactions.
 All metrics filter by `suse_ai_component_name="${name}"` where `${name}` is the component name.
 
 ### 1. LLM Request Rate (ID: -2000)
-- **Query**: `sum by (gen_ai_request_model) (rate(gen_ai_client_request_count_total{suse_ai_component_name="${name}"}[${__rate_interval}]))`
+- **Query**: `sum by (gen_ai_request_model) (rate(gen_ai_client_operation_duration_seconds_count{suse_ai_component_name="${name}"}[${__rate_interval}]))`
 - **Unit**: reqps
 - **Shows**: Request rate per model
 - **Alias**: `${gen_ai_request_model}` (shows model names as separate lines)
 
 ### 2. Average Tokens per Request (ID: -2001)
-- **Query**: `sum by (gen_ai_request_model) (rate(gen_ai_client_token_usage_sum{...}[5m])) / sum by (gen_ai_request_model) (rate(gen_ai_client_request_count_total{...}[5m]))`
+- **Query**: `sum by (gen_ai_request_model) (rate(gen_ai_client_token_usage_sum{...}[5m])) / sum by (gen_ai_request_model) (rate(gen_ai_client_operation_duration_seconds_count{...}[5m]))`
 - **Unit**: short
 - **Shows**: Average tokens consumed per model
 - **Alias**: `${gen_ai_request_model}`

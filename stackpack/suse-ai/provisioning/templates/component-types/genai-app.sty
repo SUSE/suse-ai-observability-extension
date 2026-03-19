@@ -2,6 +2,7 @@
     identifier: "urn:stackpack:suse-ai:shared:component-type:application"
     name: "application"
     iconbase64: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIzMiIgY3k9IjMyIiByPSIxMiIgZmlsbD0iIzRBOTBFMiIvPjwvc3ZnPg=="
+    viewTypeIdentifier: "urn:stackpack:suse-ai:shared:view-type:application"
     highlights:
       _type: "ComponentTypeHighlight"
       namePlural: "applications"
@@ -37,6 +38,12 @@
       events:
         _type: "ComponentTypeEvents"
         showEvents: true
+        relatedResourcesTemplate: |
+            (withNeighborsOf(direction = "up", components = (type = "otel service instance" and label = "service.name:{COMPONENT_NAME}"), levels = "1") and type = "otel service")
+              OR
+            (type = "otel service instance" and label = "service.name:{COMPONENT_NAME}")
+              OR
+            id = "{COMPONENT_ID}"
       showLogs: false
       showLastChange: false
       externalComponent:
@@ -44,7 +51,17 @@
         showConfiguration: false
         showStatus: false
         externalIdSelector: "^suse-ai:"
-      relatedResources: []
+      relatedResources:
+        - _type: "ComponentTypeRelatedResources"
+          resourceType: "service instance"
+          title: "Related service instances"
+          stql: 'type = "otel service instance" and label = "service.name:{COMPONENT_NAME}"'
+          viewTypeIdentifier: "urn:stackpack:open-telemetry:shared:view-type:service-instance"
+        - _type: "ComponentTypeRelatedResources"
+          resourceType: "service"
+          title: "Related services"
+          stql: 'withNeighborsOf(direction = "up", components = (type = "otel service instance" and label = "service.name:{COMPONENT_NAME}"), levels = "1") and type = "otel service"'
+          viewTypeIdentifier: "urn:stackpack:open-telemetry:shared:view-type:service"
       metrics:
         - _type: "ComponentTypeMetricCategory"
           name: "GenAI"
@@ -54,8 +71,13 @@
             - "urn:stackpack:suse-ai:shared:metric-binding:operation-duration-p95"
             - "urn:stackpack:suse-ai:shared:metric-binding:average-tokens-per-request"
             - "urn:stackpack:suse-ai:shared:metric-binding:token-usage-by-type"
-            - "urn:stackpack:suse-ai:shared:metric-binding:total-usage-cost"
           defaultExpanded: true
+        - _type: "ComponentTypeMetricCategory"
+          name: "Extension Metrics"
+          description: "GenAI Usage Metrics"
+          bindings:
+            - "urn:stackpack:suse-ai:shared:metric-binding:total-usage-cost"
+          defaultExpanded: false
 
   - _type: "ComponentType"
     identifier: "urn:stackpack:suse-ai:shared:component-type:agent"

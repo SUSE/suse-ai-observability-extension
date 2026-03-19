@@ -155,11 +155,6 @@ class Pipeline:
                 explicit_bucket_boundaries_advisory=_GEN_AI_CLIENT_OPERATION_DURATION_BUCKETS,
             ),
             # Custom Metrics - SUSE AI Extensions
-            "genai_requests": self.meter.create_counter(
-                name="gen_ai.client.request.count",
-                description="Number of requests to GenAI providers",
-                unit="{request}",
-            ),
             "genai_cost": self.meter.create_histogram(
                 name="gen_ai.client.operation.cost",
                 description="Cost of GenAI operations in USD",
@@ -225,8 +220,6 @@ class Pipeline:
         span.set_attribute(SemanticConvention.GEN_AI_PROVIDER_NAME, provider)
         span.set_attribute(SemanticConvention.GEN_AI_CONVERSATION_ID, chat_id)
         span.set_attribute(SemanticConvention.GEN_AI_REQUEST_MODEL, model)
-        span.set_attribute(SemanticConvention.GEN_AI_REQUEST_IS_STREAM, body.get("stream", False))
-
         if self.capture_messages():
             messages = body.get("messages", [])
             formatted_messages = [format_message_for_otel(msg) for msg in messages]
@@ -364,7 +357,6 @@ class Pipeline:
         if duration_seconds is not None and duration_seconds > 0:
             self.metrics["genai_client_operation_duration"].record(duration_seconds, base_attrs)
 
-        self.metrics["genai_requests"].add(1, base_attrs)
         return body
 
     def log(self, message: str):
@@ -609,7 +601,6 @@ class SemanticConvention:
     GEN_AI_SYSTEM_PYDANTIC_AI = "pydantic_ai"
 
     # GenAI Request Attributes (Extra)
-    GEN_AI_REQUEST_IS_STREAM = "gen_ai.request.is_stream"
     GEN_AI_REQUEST_USER = "gen_ai.request.user"
     GEN_AI_REQUEST_EMBEDDING_DIMENSION = "gen_ai.request.embedding_dimension"
     GEN_AI_REQUEST_TOOL_CHOICE = "gen_ai.request.tool_choice"

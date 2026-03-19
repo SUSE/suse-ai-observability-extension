@@ -62,12 +62,11 @@ When OTel metrics are exported via the Prometheus exporter, the names are transf
 *   Dots (`.`) become underscores (`_`): `gen_ai.client.token.usage` → `gen_ai_client_token_usage`
 *   Unit suffixes are appended automatically: a histogram with `unit="USD"` gets `_USD` appended → `gen_ai_client_operation_cost_USD_bucket`
 *   Histogram metrics get three series: `_bucket`, `_sum`, `_count`
-*   Counter metrics get `_total` suffix: `gen_ai.client.request.count` → `gen_ai_client_request_count_total`
+*   Counter metrics get `_total` suffix: `my.counter` → `my_counter_total`
 
 ### Actual Prometheus Metric Names (from our filter)
 | OTel Name | Prometheus Name(s) |
 | :--- | :--- |
-| `gen_ai.client.request.count` | `gen_ai_client_request_count_total` |
 | `gen_ai.client.token.usage` | `gen_ai_client_token_usage_sum`, `_bucket`, `_count` |
 | `gen_ai.client.operation.duration` (unit=s) | `gen_ai_client_operation_duration_seconds_bucket`, `_sum`, `_count` |
 | `gen_ai.client.operation.cost` (unit=USD) | `gen_ai_client_operation_cost_USD_bucket`, `_sum`, `_count` |

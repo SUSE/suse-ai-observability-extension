@@ -9,7 +9,7 @@ The filter hooks into Open WebUI's request lifecycle via `inlet` (before the req
 ### Inlet (pre-request)
 
 - Starts a trace span named `chat <model>` (e.g., `chat llama3.2`)
-- Sets span attributes: `gen_ai.operation.name`, `gen_ai.provider.name`, `gen_ai.request.model`, `gen_ai.request.is_stream`, `gen_ai.conversation.id`
+- Sets span attributes: `gen_ai.operation.name`, `gen_ai.provider.name`, `gen_ai.request.model`, `gen_ai.conversation.id`
 - Optionally captures `gen_ai.input.messages` (controlled by `capture_message_content` valve)
 - Resolves the provider from Open WebUI model metadata (`owned_by` field)
 
@@ -32,7 +32,6 @@ Span name follows the convention: `{gen_ai.operation.name} {gen_ai.request.model
 | `gen_ai.provider.name` | Model metadata `owned_by` | Yes |
 | `gen_ai.request.model` | Request body `model` | Yes |
 | `gen_ai.response.model` | Response body `model` | Yes |
-| `gen_ai.request.is_stream` | Request body `stream` | No (extra) |
 | `gen_ai.conversation.id` | Open WebUI `chat_id` | No |
 | `gen_ai.response.id` | Response `id` | No |
 | `gen_ai.response.finish_reasons` | Response `finish_reason` (as list) | No |
@@ -48,7 +47,6 @@ Span name follows the convention: `{gen_ai.operation.name} {gen_ai.request.model
 |---|---|---|---|
 | `gen_ai.client.token.usage` | Histogram | `{token}` | Input and output token counts per request. Bucket boundaries: `[1, 4, 16, 64, 256, 1024, 4096, 16384, 65536, 262144, 1048576, 4194304, 16777216, 67108864]` |
 | `gen_ai.client.operation.duration` | Histogram | `s` | End-to-end request duration. Bucket boundaries: `[0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24, 20.48, 40.96, 81.92]` |
-| `gen_ai.client.request.count` | Counter | `{request}` | Total number of requests (custom, not in OTel semconv) |
 | `gen_ai.client.operation.cost` | Histogram | `USD` | Estimated cost per request (custom, not in OTel semconv) |
 
 All metrics include these attributes per OTel semconv:
@@ -117,7 +115,7 @@ What's new:
 * Histogram bucket boundaries follow OTel semconv recommendations.
 * Opt-in message content capture via `gen_ai.input.messages` / `gen_ai.output.messages`.
 * Custom `suse.ai.*` resource attributes for topology discovery.
-* Custom metrics: `gen_ai.client.request.count` (counter), `gen_ai.client.operation.cost` (histogram).
+* Custom metrics: `gen_ai.client.operation.cost` (histogram). Request counts are derived from `gen_ai.client.operation.duration`'s histogram `_count` series.
 * Cost estimation from configurable `pricing.json`.
 * Immediate telemetry initialization for Open WebUI 0.6.41+ compatibility.
 * Thread-safe span tracking.

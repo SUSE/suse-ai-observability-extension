@@ -2,7 +2,7 @@
   - id: -560
     name: LLM Request Rate
     queries:
-      - expression: sum(rate(gen_ai_requests_total{ gen_ai_system="${name}" }[${__rate_interval}]))
+      - expression: sum(rate(gen_ai_client_operation_duration_seconds_count{ suse_ai_component_name="${name}" }[${__rate_interval}]))
         alias: Request Rate
         primary: true
     scope:  type in ("inference-engine.ollama", "inference-engine")
@@ -21,7 +21,7 @@
   - id: -561
     name: Top models by usage
     queries:
-      - expression: topk(5, sum by(gen_ai_request_model) (gen_ai_requests_total{ gen_ai_system="${name}" }))
+      - expression: topk(5, sum by(gen_ai_request_model) (gen_ai_client_operation_duration_seconds_count{ suse_ai_component_name="${name}" }))
         alias: "${gen_ai_request_model}"
         primary: true
     scope:  type in ("inference-engine.ollama", "inference-engine")
@@ -40,11 +40,11 @@
   - id: -562
     name: Average Token Consumption vs. Average Usage Cost Comparison
     queries:
-      - expression: avg(gen_ai_usage_input_tokens_total{ gen_ai_system="${name}" })
+      - expression: avg(gen_ai_client_token_usage_sum{suse_ai_component_name="${name}", gen_ai_token_type="input"})
         alias: Prompt Tokens
-      - expression: avg(gen_ai_usage_output_tokens_total{ gen_ai_system="${name}" })
+      - expression: avg(gen_ai_client_token_usage_sum{suse_ai_component_name="${name}", gen_ai_token_type="output"})
         alias: Completion Tokens
-      - expression: avg(gen_ai_usage_cost_USD_bucket{ gen_ai_system="${name}" })
+      - expression: avg(gen_ai_client_operation_cost_USD_bucket{ suse_ai_component_name="${name}" })
         alias: Usage Dollar Cost
     scope:  type in ("inference-engine.ollama", "inference-engine")
     identifier: urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-avg-tokens-per-total-requests
@@ -62,7 +62,7 @@
   - id: -563
     name: Average Usage Cost
     queries:
-      - expression: avg by() (gen_ai_usage_cost_USD_sum{ gen_ai_system="${name}" })
+      - expression: avg by() (gen_ai_client_operation_cost_USD_sum{ suse_ai_component_name="${name}" })
         alias: Usage Dollar Cost
     scope:  type in ("inference-engine.ollama", "inference-engine")
     identifier: urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-avg-usage-cost
@@ -83,7 +83,7 @@
   - id: -564
     name: Total Usage Cost
     queries:
-      - expression: sum(gen_ai_usage_cost_USD_sum{ gen_ai_system="${name}" })
+      - expression: sum(gen_ai_client_operation_cost_USD_sum{ suse_ai_component_name="${name}" })
         alias: Usage Dollar Cost
     scope:  type in ("inference-engine.ollama", "inference-engine")
     identifier: urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-avg-total-usage-cost
@@ -104,7 +104,7 @@
   - id: -565
     name: Total Usage Tokens
     queries:
-      - expression: sum(gen_ai_usage_tokens_total{ gen_ai_system="${name}" })
+      - expression: sum(gen_ai_client_token_usage_sum{ suse_ai_component_name="${name}" })
         alias: Total Usage Tokens
     scope:  type in ("inference-engine.ollama", "inference-engine")
     identifier: urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-total-usage-tokens
@@ -125,7 +125,7 @@
   - id: -566
     name: Total Usage Tokens
     queries:
-      - expression: sum(gen_ai_usage_tokens_total{ gen_ai_system="${name}" })
+      - expression: sum(gen_ai_client_token_usage_sum{ suse_ai_component_name="${name}" })
         alias: Total Usage Tokens
     scope:  type in ("inference-engine.ollama", "inference-engine")
     identifier: urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-total-usage-tokens-line
@@ -143,7 +143,7 @@
   - id: -567
     name: Total Successful GenAI Requests
     queries:
-      - expression: sum by() (gen_ai_requests_total{ gen_ai_system="${name}" })
+      - expression: sum by() (gen_ai_client_operation_duration_seconds_count{ suse_ai_component_name="${name}" })
         alias: Requests
         primary: true
     scope:  type in ("inference-engine.ollama", "inference-engine")
@@ -166,7 +166,7 @@
   - id: -568
     name: Average Usage Cost per model
     queries:
-      - expression: avg by(gen_ai_request_model) (gen_ai_usage_cost_USD_sum{ gen_ai_system="${name}" })/100
+      - expression: avg by(gen_ai_request_model) (gen_ai_client_operation_cost_USD_sum{ suse_ai_component_name="${name}" })/100
         alias: '${gen_ai_request_model}'
     scope: type in ("inference-engine.ollama", "inference-engine")
     identifier: urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-avg-usage-cost-per-model
@@ -189,7 +189,7 @@
   - id: -610
     name: LLM Request Rate
     queries:
-      - expression: sum by (gen_ai_request_model) (rate(gen_ai_client_request_count_total{ suse_ai_component_name="${name}" }[${__rate_interval}]))
+      - expression: sum by (gen_ai_request_model) (rate(gen_ai_client_operation_duration_seconds_count{ suse_ai_component_name="${name}" }[${__rate_interval}]))
         alias: "${gen_ai_request_model}"
         primary: true
     scope: type = "llm-model.ollama"
@@ -209,7 +209,7 @@
   - id: -611
     name: Average Tokens per Request
     queries:
-      - expression: sum by (gen_ai_request_model) (rate(gen_ai_client_token_usage_sum{suse_ai_component_name="${name}"}[5m])) / sum by (gen_ai_request_model) (rate(gen_ai_client_request_count_total{suse_ai_component_name="${name}"}[5m]))
+      - expression: sum by (gen_ai_request_model) (rate(gen_ai_client_token_usage_sum{suse_ai_component_name="${name}"}[5m])) / sum by (gen_ai_request_model) (rate(gen_ai_client_operation_duration_seconds_count{suse_ai_component_name="${name}"}[5m]))
         alias: "${gen_ai_request_model}"
         primary: true
     scope: type = "llm-model.ollama"

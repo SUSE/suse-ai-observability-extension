@@ -2,7 +2,7 @@
   - id: -569
     name: LLM Request Rate
     queries:
-      - expression: sum(rate(gen_ai_client_request_count_total{ service_name="${name}" }[${__rate_interval}]))
+      - expression: sum(rate(gen_ai_client_operation_duration_seconds_count{ service_name="${name}" }[${__rate_interval}]))
         alias: Request Rate
         primary: true
     scope:  type in ("service", "application") AND label IN ("suse.ai.category:application")
@@ -21,7 +21,7 @@
   - id: -570
     name: Top models by usage
     queries:
-      - expression: topk(5, sum by(gen_ai_request_model) (gen_ai_client_request_count_total{ service_name="${name}" }))
+      - expression: topk(5, sum by(gen_ai_request_model) (gen_ai_client_operation_duration_seconds_count{ service_name="${name}" }))
         alias: "${gen_ai_request_model}"
         primary: true
     scope:  type in ("service", "application") AND label IN ("suse.ai.category:application")
@@ -143,7 +143,7 @@
   - id: -576
     name: Total Successful GenAI Requests
     queries:
-      - expression: sum by() (gen_ai_client_request_count_total{ service_name="${name}" })
+      - expression: sum by() (gen_ai_client_operation_duration_seconds_count{ service_name="${name}" })
         alias: Requests
         primary: true
     scope:  type in ("service", "application") AND label IN ("suse.ai.category:application")
@@ -182,31 +182,11 @@
         weight: 3
     _type: MetricBinding
 
-  - id: -578
-    name: DB Request Rate
-    queries:
-      - expression: sum(rate(db_requests_total{ service_name="${name}" }[${__rate_interval}]))
-        alias: Request Rate
-        primary: true
-    scope:  type in ("service", "application") AND label IN ("suse.ai.category:application")
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-vectordb-request-rate
-    unit: reqps
-    chartType: line
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: VectorDB
-        section: Request
-      componentSummary:
-        weight: 3
-    _type: MetricBinding
-
   - id: -579
     name: Average Tokens per Request
     description: Input and output tokens per inference call. Indicates verbosity or prompt inflation. Higher values drive cost and latency.
     queries:
-      - expression: sum(rate(gen_ai_client_token_usage_sum{service_name="${name}"}[5m])) / sum(rate(gen_ai_client_request_count_total{service_name="${name}"}[5m]))
+      - expression: sum(rate(gen_ai_client_token_usage_sum{service_name="${name}"}[5m])) / sum(rate(gen_ai_client_operation_duration_seconds_count{service_name="${name}"}[5m]))
         alias: "AVG Tokens/Request"
         primary: true
     scope:  type in ("service", "application") AND label IN ("suse.ai.category:application")
@@ -227,7 +207,7 @@
     name: Token Throughput
     description: Aggregate input + output tokens processed per second. Similar to a GPU-workload proxy.
     queries:
-      - expression: sum by(gen_ai_request_model) (rate(gen_ai_client_token_usage_sum{service_name="${name}"}[${__interval}]))/sum(rate(gen_ai_client_request_count_total{service_name="${name}"}[${__interval}]))
+      - expression: sum by(gen_ai_request_model) (rate(gen_ai_client_token_usage_sum{service_name="${name}"}[${__interval}]))/sum(rate(gen_ai_client_operation_duration_seconds_count{service_name="${name}"}[${__interval}]))
         alias: "${gen_ai_request_model}"
         primary: true
     scope:  type in ("service", "application") AND label IN ("suse.ai.category:application")
@@ -286,45 +266,3 @@
         weight: 3
     _type: MetricBinding
 
-  - id: -582
-    name: Top Vector Databases by Usage
-    queries:
-      - expression: sum by(db_system) (db_requests_total{service_name="${name}"})
-        alias: "${db_system}"
-        primary: true
-    scope:  type in ("service", "application") AND label IN ("suse.ai.category:application")
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-vectordb-top-vectordb-by-usage
-    unit: short
-    chartType: line
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: VectorDB
-        section: Usage
-      componentSummary:
-        weight: 3
-    _type: MetricBinding
-
-  - id: -583
-    name: Total Database Operations
-    queries:
-      - expression: sum(db_requests_total{service_name="${name}"})
-        alias: Total Operations
-        primary: true
-    scope:  type in ("service", "application") AND label IN ("suse.ai.category:application")
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-vectordb-total-database-operations
-    unit: short
-    chartType: line
-    tags:
-      experimental_chartType: Gauge
-      enableGaugeChart: "1"
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: VectorDB
-        section: Usage
-      componentSummary:
-        weight: 3
-    _type: MetricBinding

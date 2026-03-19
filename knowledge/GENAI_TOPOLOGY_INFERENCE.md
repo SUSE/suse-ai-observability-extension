@@ -250,14 +250,14 @@ The GenAI monitor (`-3001`) checks whether metric streams are active for each co
   intervalSeconds: 60
   function: threshold
   arguments:
-    query: sum(rate(gen_ai_client_request_count_total{}[5m])) by (suse_ai_component_name, suse_ai_component_type)
+    query: sum(rate(gen_ai_client_operation_duration_seconds_count{}[5m])) by (suse_ai_component_name, suse_ai_component_type)
     threshold: 0.0001
     comparator: LTE
     failureState: DEVIATING
     urnTemplate: "suse-ai:product:${suse_ai_component_type}:${suse_ai_component_name}"
 ```
 
-This monitors the health of discovered components by checking if GenAI request metrics are flowing.
+This monitors the health of discovered components by checking if GenAI operation duration metrics are flowing (request counts are derived from the histogram's `_count` series).
 
 ## Resulting Topology
 

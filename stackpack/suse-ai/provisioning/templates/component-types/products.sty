@@ -303,8 +303,6 @@
           name: "Metrics"
           description: "Metrics"
           bindings:
-            - "urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-system-request-rate"
-            - "urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-system-request-total-success"
             - "urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-system-request-latency-p99"
             - "urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-system-average-request-latency"
             - "urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-system-invsert-vector-count-rate"
@@ -316,7 +314,6 @@
             - "urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-system-failed-requests-count"
             - "urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-system-mutation-send-latency"
             - "urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-system-average-mutation-send-latency"
-            - "urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-operation-total"
           defaultExpanded: true
 
   - _type: "ComponentType"
@@ -838,6 +835,38 @@
             - "urn:stackpack:suse-ai:shared:metric-binding:ollama-model:operation-duration-p95"
             - "urn:stackpack:suse-ai:shared:metric-binding:ollama-model:token-usage-by-type"
           defaultExpanded: true
+
+  # ViewType for application with traces support
+  - _type: "ViewType"
+    name: "Application view definition"
+    identifier: "urn:stackpack:suse-ai:shared:view-type:application"
+    filters:
+      - _type: "TopologyFilters"
+        tabs:
+          - "EVENTS"
+          - "TRACES"
+    flags:
+      - "NoTopologyFilters"
+    overview:
+      columns:
+        - _type: "ViewTypeTableColHealth"
+        - _type: "ViewTypeTableColName"
+          title: "Component"
+
+  # Define which traces to show for application components
+  - _type: TraceBinding
+    name: Traces for GenAI Application
+    identifier: urn:stackpack:suse-ai:shared:trace-binding:application
+    filter:
+      attributes:
+        service.name: ["${name}"]
+    scope: (type = "application")
+
+  # Show a link to application component on span details
+  - _type: SpanToComponentBinding
+    name: Span binding to GenAI Application
+    identifier: urn:stackpack:suse-ai:shared:span-to-component-binding:application
+    urnTemplate: "suse-ai:product:application:${resource.suse.ai.component.name}"
 
   # ViewType for ui.open-webui with traces support
   - _type: "ViewType"

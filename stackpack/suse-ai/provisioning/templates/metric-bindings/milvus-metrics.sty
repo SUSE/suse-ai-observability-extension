@@ -1,47 +1,4 @@
 
-  - id: -540
-    name: DB Request Rate
-    queries:
-      - expression: sum(rate(db_requests_total{ db_system="${name}" }[${__rate_interval}]))
-        alias: Request Rate
-        primary: true
-    scope:  type in ("vectordb.milvus")
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-system-request-rate
-    unit: reqps
-    chartType: line
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: VectorDB
-        section: Request
-      componentSummary:
-        weight: 3
-    _type: MetricBinding
-
-  - id: -541
-    name: Total Successful DB Requests
-    queries:
-      - expression: sum by() (db_requests_total{ db_system="${name}" })
-        alias: Requests
-        primary: true
-    scope:  type in ("vectordb.milvus")
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-system-request-total-success
-    unit: short
-    chartType: line
-    tags:
-      experimental_chartType: Gauge
-      enableGaugeChart: "1"
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: VectorDB
-        section: Request
-      componentSummary:
-        weight: 3
-    _type: MetricBinding
-
   - id: -542
     name: Request Latency (P99)
     queries:
@@ -275,25 +232,3 @@
         weight: 3
     _type: MetricBinding
 
-  - id: -553
-    name: Total Calls
-    queries:
-      - expression: sum by() (db_requests_total{ db_operation="${name}" })
-        alias: Tota Calls
-        primary: true
-    scope:  type in ("vectordb.milvus")
-    identifier: urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-operation-total
-    unit: short
-    chartType: line
-    tags:
-      experimental_chartType: Gauge
-      enableGaugeChart: "1"
-    priority: high
-    enabled: true
-    layout:
-      metricPerspective:
-        tab: VectorDB
-        section: Utilization
-      componentSummary:
-        weight: 3
-    _type: MetricBinding
