@@ -1,0 +1,34 @@
+# View Types
+# Total: 12
+#
+# id | name | identifier
+#
+-6010 | LLM Models | urn:stackpack:suse-ai:shared:view-type:llm-models
+-6009 | ML Registries | urn:stackpack:suse-ai:shared:view-type:ml-registries
+-6008 | Workflow Engines | urn:stackpack:suse-ai:shared:view-type:workflow-engines
+-6007 | MCP Servers | urn:stackpack:suse-ai:shared:view-type:mcp-servers
+-6006 | Search Engines | urn:stackpack:suse-ai:shared:view-type:search-engines
+-6005 | Model Proxies | urn:stackpack:suse-ai:shared:view-type:model-proxies
+-6004 | Vector Databases | urn:stackpack:suse-ai:shared:view-type:vector-databases
+-6003 | Inference Engines | urn:stackpack:suse-ai:shared:view-type:inference-engines
+-6002 | All GenAI Components | urn:stackpack:suse-ai:shared:view-type:all-genai-components
+-6001 | AI Applications | urn:stackpack:suse-ai:shared:view-type:ai-applications
+-6000 | GPU Nodes | urn:stackpack:suse-ai:shared:view-type:gpu-nodes
+0 | Open WebUI view definition | urn:stackpack:suse-ai:shared:view-type:ui.open-webui
+
+# Query Views
+# Total: 11
+#
+# id | name | identifier
+#
+-221 | LLM Models | urn:stackpack:suse-ai:shared:query-view:genai-model
+-220 | ML Registries | urn:stackpack:suse-ai:shared:query-view:ml-registry
+-219 | Workflow Engines | urn:stackpack:suse-ai:shared:query-view:workflow-engine
+-218 | MCP Servers | urn:stackpack:suse-ai:shared:query-view:mcp-server
+-217 | Search Engines | urn:stackpack:suse-ai:shared:query-view:search-engine
+-216 | Model Proxies | urn:stackpack:suse-ai:shared:query-view:model-proxy
+-214 | Vector Databases | urn:stackpack:suse-ai:shared:query-view:vectordb
+-213 | Inference Engines | urn:stackpack:suse-ai:shared:query-view:inference-engine
+-210 | AI Applications | urn:stackpack:suse-ai:shared:query-view:application
+-204 | GPU Nodes | urn:stackpack:suse-ai:shared:query-view:gpu-nodes
+-201 | All GenAI Components | urn:stackpack:suse-ai:shared:query-view:all-genai

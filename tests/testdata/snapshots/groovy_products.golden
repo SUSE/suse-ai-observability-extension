@@ -1,0 +1,48 @@
+# Groovy Script Switch Cases
+#
+# id-extractor (suse-ai-id-extractor.groovy)
+# Cases: 0
+
+# product-id-extractor (suse-ai-product-id-extractor.groovy)
+# Cases: 10
+  elasticsearch
+  litellm
+  milvus
+  mlflow
+  ollama
+  open webui
+  open-webui
+  opensearch
+  qdrant
+  vllm
+
+# component-mapping (component-mapping-function.groovy)
+# Cases: 28
+  agent
+  agent
+  app
+  application
+  application
+  db
+  elasticsearch
+  frontend
+  litellm
+  llm
+  llm-model
+  llm-model
+  milvus
+  mlflow
+  model
+  ollama
+  ollama
+  open webui
+  open-webui
+  opensearch
+  qdrant
+  service
+  ui
+  ui
+  vector-db
+  vectordb
+  vllm
+  vllm
