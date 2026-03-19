@@ -74,10 +74,18 @@ func (g *GroovyScript) FindMissingToString() []string {
 			continue
 		}
 
-		// Check for externalId usage without .toString()
+		// Skip lines that are just reading externalId from a map (intermediate assignments)
+		if regexp.MustCompile(`^\s*def\s+\w+\s*=\s*\w+\["externalId"\]`).MatchString(line) {
+			continue
+		}
+
+		// Check for externalId usage without .toString() in string concatenation or Sts.createId
 		if strings.Contains(line, "externalId") && !strings.Contains(line, ".toString()") {
-			// Check if it's an assignment (contains =)
-			if strings.Contains(line, "=") {
+			// Look for problematic patterns: string concatenation or function calls with externalId
+			if regexp.MustCompile(`['"].*\+.*externalId|externalId.*\+.*['"]`).MatchString(line) {
+				results = append(results, fmt.Sprintf("%d: %s", i+1, line))
+			} else if regexp.MustCompile(`Sts\.createId\([^)]*externalId[^)]*\)`).MatchString(line) {
+				// Check if externalId is passed directly to Sts.createId without .toString()
 				results = append(results, fmt.Sprintf("%d: %s", i+1, line))
 			}
 		}
