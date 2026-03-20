@@ -56,18 +56,23 @@ tasks:
   lint:
     desc: Lint Groovy scripts with npm-groovy-lint
     cmds:
-      - npx npm-groovy-lint --files "stackpack/suse-ai/provisioning/**/*.groovy" --no-insight --failon error
+      - npx npm-groovy-lint --files "stackpack/suse-ai/provisioning/**/*.groovy" --no-insight --failon error {{.LINT_ARGS}}
+
+  lint-fix:
+    desc: Auto-fix Groovy lint errors and warnings
+    cmds:
+      - npx npm-groovy-lint --files "stackpack/suse-ai/provisioning/**/*.groovy" --no-insight --fix --failon error
 
   test-static:
     desc: Run static validation tests (no infrastructure needed)
     dir: tests
     cmds:
-      - go test ./static/... -v
+      - go test ./static/... {{.TEST_ARGS}}
 
   test-init:
     desc: Run init.sh tests with bats
     cmds:
-      - bats tests/init/
+      - bats {{.BATS_ARGS}} tests/init/
 
   test-integration:
     desc: Run integration tests against a running StackState (set STACKSTATE_API_URL and STACKSTATE_API_TOKEN)
@@ -92,11 +97,18 @@ tasks:
       - task: test-integration
 
   check:
-    desc: Run all local validations (lint + static tests + init tests)
+    desc: "Run all local validations (lint + static tests + init tests). Use VERBOSE=1 for detailed output, SILENT=1 for minimal output."
+    vars:
+      LINT_ARGS: '{{if eq (default "" .SILENT) "1"}}--loglevel warning{{end}}'
+      TEST_ARGS: '{{if eq (default "" .VERBOSE) "1"}}-v{{else if eq (default "" .SILENT) "1"}}-count=1{{else}}-v{{end}}'
+      BATS_ARGS: '{{if eq (default "" .SILENT) "1"}}--formatter tap{{end}}'
     cmds:
       - task: lint
+        vars: { LINT_ARGS: "{{.LINT_ARGS}}" }
       - task: test-static
+        vars: { TEST_ARGS: "{{.TEST_ARGS}}" }
       - task: test-init
+        vars: { BATS_ARGS: "{{.BATS_ARGS}}" }
 
   deploy:
     desc: Validate, version-up, and upload the StackPack
