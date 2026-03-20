@@ -20,9 +20,13 @@ type Client struct {
 	httpClient *http.Client
 }
 
-// NewClientFromEnv creates a new StackState client from environment variables
+// NewClientFromEnv creates a new StackState client from environment variables.
 // Required env vars: STACKSTATE_API_URL, STACKSTATE_API_TOKEN
-// Optional: STACKSTATE_TOKEN_TYPE (defaults to "Bearer"), STACKSTATE_SKIP_TLS (defaults to false)
+// Optional:
+//   - STACKSTATE_TOKEN_TYPE: "service-token" (default), "api-token", or "api-key"
+//     - service-token/api-token: sent as "Bearer <token>"
+//     - api-key: sent as "SUSEObservability <key>"
+//   - STACKSTATE_SKIP_TLS: "true" to skip TLS verification (default: false)
 func NewClientFromEnv() (*Client, error) {
 	baseURL := os.Getenv("STACKSTATE_API_URL")
 	if baseURL == "" {
@@ -36,7 +40,7 @@ func NewClientFromEnv() (*Client, error) {
 
 	tokenType := os.Getenv("STACKSTATE_TOKEN_TYPE")
 	if tokenType == "" {
-		tokenType = "Bearer"
+		tokenType = "service-token"
 	}
 
 	skipTLS := false
@@ -67,6 +71,15 @@ func NewClientFromEnv() (*Client, error) {
 	}, nil
 }
 
+func (c *Client) setAuth(req *http.Request) {
+	switch c.tokenType {
+	case "api-key":
+		req.Header.Set("Authorization", "SUSEObservability "+c.token)
+	default: // service-token, api-token
+		req.Header.Set("Authorization", "Bearer "+c.token)
+	}
+}
+
 // Healthy checks if the StackState API is reachable and healthy
 func (c *Client) Healthy() error {
 	req, err := http.NewRequest("GET", c.baseURL+"/api/server/info", nil)
@@ -74,7 +87,7 @@ func (c *Client) Healthy() error {
 		return fmt.Errorf("failed to create health check request: %w", err)
 	}
 
-	req.Header.Set("Authorization", c.tokenType+" "+c.token)
+	c.setAuth(req)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -106,7 +119,7 @@ func (c *Client) QueryTopology(query string) (*TopologyQueryResult, error) {
 		return nil, fmt.Errorf("failed to create topology query request: %w", err)
 	}
 
-	req.Header.Set("Authorization", c.tokenType+" "+c.token)
+	c.setAuth(req)
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.httpClient.Do(req)

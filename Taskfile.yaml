@@ -80,14 +80,27 @@ tasks:
     cmds:
       - go test -tags=integration ./integration/... -v -timeout 10m
 
-  test-integration-local:
-    desc: Spin up local StackState and run integration tests
-    dir: tests
+  infra-up:
+    desc: Provision a local K3d cluster with SUSE Observability (requires SUSE_OBSERVABILITY_LICENSE, APPCO_EMAIL, APPCO_TOKEN)
     cmds:
-      - docker compose -f infra/docker-compose.yaml up -d
-      - bash infra/setup.sh
-      - go test -tags=integration ./integration/... -v -timeout 10m
-      - docker compose -f infra/docker-compose.yaml down
+      - tests/infra/setup.sh up
+
+  infra-down:
+    desc: Tear down the local K3d test cluster
+    cmds:
+      - tests/infra/setup.sh down
+
+  infra-status:
+    desc: Show status of the local test cluster
+    cmds:
+      - tests/infra/setup.sh status
+
+  test-integration-local:
+    desc: Spin up local StackState, run integration tests, and tear down
+    cmds:
+      - task: infra-up
+      - defer: { task: infra-down }
+      - eval "$(tests/infra/setup.sh env)" && cd tests && go test -tags=integration ./integration/... -v -timeout 10m
 
   test-all:
     desc: Run all tests (static, init, integration)

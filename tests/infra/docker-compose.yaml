@@ -1,37 +1,26 @@
-version: '3.8'
+# SUSE Observability (StackState) cannot run as a standalone Docker container.
+# It requires Kubernetes with Helm and includes Kafka, Elasticsearch, HBase,
+# and PostgreSQL as built-in dependencies.
+#
+# For local integration testing, use the setup.sh script which provisions
+# a K3d cluster and deploys StackState via Helm.
+#
+# For quick testing against an existing instance, set environment variables
+# directly (see setup.sh --help).
+#
+# This file provides only the OTel Collector for scenarios where StackState
+# is already running (e.g., on an existing cluster) and you only need a
+# local collector to send test telemetry.
 
 services:
-  stackstate:
-    image: stackstate/stackstate-server-2:latest
-    container_name: stackstate-test
-    ports:
-      - "7070:7070"
-      - "7071:7071"
-    environment:
-      - LICENSE_KEY=${STACKSTATE_LICENSE_KEY}
-      - STACKSTATE_ADMIN_PASSWORD=${STACKSTATE_ADMIN_PASSWORD:-admin}
-    volumes:
-      - stackstate-data:/opt/stackstate/data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7070/api/server/info"]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-      start_period: 120s
-
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:latest
+    image: otel/opentelemetry-collector-contrib:0.125.0
     container_name: otel-collector-test
     ports:
-      - "4317:4317"   # OTLP gRPC receiver
-      - "4318:4318"   # OTLP HTTP receiver
-      - "8888:8888"   # Prometheus metrics exposed by the collector
-      - "8889:8889"   # Prometheus exporter
+      - "4317:4317"
+      - "4318:4318"
     volumes:
-      - ./otel-config.yaml:/etc/otel-collector-config.yaml
-    command: ["--config=/etc/otel-collector-config.yaml"]
-    depends_on:
-      - stackstate
-
-volumes:
-  stackstate-data:
+      - ./otel-config.yaml:/etc/otelcol-contrib/config.yaml
+    environment:
+      - STACKSTATE_OTLP_ENDPOINT=${STACKSTATE_OTLP_ENDPOINT:-host.docker.internal:443}
+      - STACKSTATE_API_KEY=${STACKSTATE_API_KEY}

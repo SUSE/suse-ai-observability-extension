@@ -11,28 +11,34 @@ processors:
     timeout: 10s
     send_batch_size: 1024
 
+  resource:
+    attributes:
+      - key: k8s.cluster.name
+        value: test-cluster
+        action: upsert
+      - key: suse.ai.managed
+        value: "true"
+        action: upsert
+
 exporters:
   otlp:
-    endpoint: stackstate:7071
+    endpoint: ${STACKSTATE_OTLP_ENDPOINT}
+    headers:
+      Authorization: "SUSEObservability ${STACKSTATE_API_KEY}"
     tls:
       insecure: true
 
-  logging:
-    loglevel: debug
+  debug:
+    verbosity: basic
 
 service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [batch]
-      exporters: [otlp, logging]
+      processors: [resource, batch]
+      exporters: [otlp, debug]
 
     metrics:
       receivers: [otlp]
-      processors: [batch]
-      exporters: [otlp, logging]
-
-    logs:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [otlp, logging]
+      processors: [resource, batch]
+      exporters: [otlp, debug]
