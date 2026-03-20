@@ -224,7 +224,8 @@ service:
 - Only processes components with `suse.ai.component.name`
 - Creates a deterministic ID: `suse-ai:product:<type>:<name>` (e.g., `suse-ai:product:inference-engine:ollama`)
 - Merges all instances of the same product into one logical component
-- Adds `suse-ai:<otel-urn>` as identifier for merging with the main sync component
+- Adds `suse-ai:<otel-urn>` as identifier for cross-sync merging with the main SUSE AI sync component
+- Does NOT add the unprefixed OTel URN — that would cause merging with the OTel StackPack's service component, breaking type and monitors
 
 #### Component Mapping (`component-mapping-function.groovy`)
 
@@ -305,6 +306,20 @@ All three components are created automatically from the application's telemetry,
 - Setting `peer.service` on transformed spans leverages existing relation creation without custom code
 - `traces/provider-relations`: app's span gets `peer.service = provider` -> app depends on provider
 - `traces/model-relations`: provider's regrouped span gets `peer.service = model` -> provider depends on model
+
+## Topology Exporter (Product-to-Product Relations)
+
+The `peer.service` approach above creates relations between OTel service components, but product components (which aggregate instances) don't get topology arrows. A custom OTel exporter (`topologyexporter` in `otelcol-suse-ai`) solves this by:
+
+1. Consuming traces in a `traces/topology` pipeline
+2. Discovering components and relations from `suse.ai.component.name`, `gen_ai.provider.name`, `gen_ai.request.model`, and `db.system` span attributes
+3. Accumulating topology in memory over a flush window (default 60s)
+4. Pushing full snapshots to SUSE Observability's `/receiver/stsAgent/intake` API
+5. A dedicated "SUSE AI Topology" sync consumes the data with `MergePreferTheirs`
+
+This creates explicit relations between product components (e.g., `open-webui → ollama → llama3.2`) using the same `suse-ai:product:{type}:{name}` externalId scheme, without breaking types or monitors.
+
+**Design spec:** `otelcol-suse-ai/docs/specs/2026-03-19-topology-exporter-design.md`
 
 ## Limitations
 
