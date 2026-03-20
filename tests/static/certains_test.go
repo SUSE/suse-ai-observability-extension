@@ -202,7 +202,165 @@ func TestComponentTypeHighlightsHaveAbout(t *testing.T) {
 	}
 }
 
-// --- §7: STY Indentation ---
+// --- §5: ComponentType Schema Completeness (RECOVERY_PROTOCOL.md §5) ---
+
+func TestComponentTypeHighlightsHaveRequiredSections(t *testing.T) {
+	// ComponentType highlights must include: events, externalComponent, relatedResources.
+	// Missing any field causes spray.json.DeserializationException at provisioning time.
+	nodes := loadAllNodes(t)
+	componentTypes := nodesByType(nodes, "ComponentType")
+
+	compatTypes := map[string]bool{
+		"service": true, "service-instance": true,
+		"pod": true, "namespace": true, "node": true,
+	}
+
+	requiredSections := []string{"events", "externalComponent", "relatedResources"}
+
+	for _, ct := range componentTypes {
+		if compatTypes[ct.Name] {
+			continue
+		}
+		t.Run(ct.Name, func(t *testing.T) {
+			highlights, ok := ct.Raw["highlights"].(map[string]interface{})
+			if !ok {
+				return // no highlights at all — separate concern
+			}
+			for _, section := range requiredSections {
+				_, has := highlights[section]
+				assert.True(t, has,
+					"ComponentType %q highlights must have %q section (missing causes DeserializationException)",
+					ct.Name, section)
+			}
+		})
+	}
+}
+
+// --- §6: Monitor Required Fields (MONITOR_CREATION_GUIDE.md) ---
+
+func TestMonitorsHaveAllRequiredFields(t *testing.T) {
+	// Monitors must have: description, status, intervalSeconds, arguments.
+	// Missing any field causes provisioning failure.
+	nodes := loadAllNodes(t)
+	monitors := nodesByType(nodes, "Monitor")
+	require.NotEmpty(t, monitors)
+
+	for _, m := range monitors {
+		t.Run(m.Name, func(t *testing.T) {
+			_, hasDesc := m.Raw["description"].(string)
+			assert.True(t, hasDesc, "Monitor %q must have description", m.Name)
+
+			status, hasStatus := m.Raw["status"].(string)
+			assert.True(t, hasStatus, "Monitor %q must have status", m.Name)
+			if hasStatus {
+				assert.True(t, status == "ENABLED" || status == "DISABLED",
+					"Monitor %q status must be ENABLED or DISABLED, got %q", m.Name, status)
+			}
+
+			_, hasInterval := m.Raw["intervalSeconds"]
+			assert.True(t, hasInterval, "Monitor %q must have intervalSeconds", m.Name)
+
+			args, hasArgs := m.Raw["arguments"].(map[string]interface{})
+			assert.True(t, hasArgs, "Monitor %q must have arguments", m.Name)
+			if hasArgs {
+				_, hasMetric := args["metric"]
+				assert.True(t, hasMetric, "Monitor %q arguments must have metric", m.Name)
+			}
+		})
+	}
+}
+
+// --- §7: Child STY Files Must Not Have nodes: Root (RECOVERY_PROTOCOL.md §7) ---
+
+func TestChildSTYFilesHaveNoNodesRoot(t *testing.T) {
+	// Only the master suse-ai.sty should have "nodes:" as a root key.
+	// Child files that include "nodes:" will cause nested YAML structure errors.
+	templatesDir := testutil.TemplatesDir()
+
+	err := filepath.Walk(templatesDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil || info.IsDir() || filepath.Ext(path) != ".sty" {
+			return err
+		}
+		if filepath.Base(path) == "suse-ai.sty" {
+			return nil // master file is allowed
+		}
+
+		content, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		lines := strings.Split(string(content), "\n")
+		for i, line := range lines {
+			if strings.TrimSpace(line) == "nodes:" || line == "nodes:" {
+				relPath, _ := filepath.Rel(templatesDir, path)
+				t.Errorf("%s:%d: child STY file must not have 'nodes:' root key (only suse-ai.sty should)",
+					relPath, i+1)
+			}
+		}
+		return nil
+	})
+	require.NoError(t, err)
+}
+
+// --- §8: Metric Binding References Resolve (METRIC_BINDINGS_GUIDE.md) ---
+
+func TestComponentTypeMetricBindingReferencesResolve(t *testing.T) {
+	// When ComponentTypes reference metric bindings in their metrics section,
+	// those binding identifiers must actually exist as MetricBinding nodes.
+	nodes := loadAllNodes(t)
+
+	// Collect all MetricBinding identifiers
+	bindingIDs := make(map[string]bool)
+	for _, mb := range nodesByType(nodes, "MetricBinding") {
+		if mb.Identifier != "" {
+			bindingIDs[mb.Identifier] = true
+		}
+	}
+
+	// Also collect from ViewTypes which reference bindings via metricBindingIdentifier
+	viewTypes := nodesByType(nodes, "ViewType")
+	for _, vt := range viewTypes {
+		walkForMetricBindingRefs(t, vt.Name, vt.Raw, bindingIDs, "ViewType")
+	}
+
+	// Walk ComponentType metrics sections for binding references
+	componentTypes := nodesByType(nodes, "ComponentType")
+	for _, ct := range componentTypes {
+		walkForMetricBindingRefs(t, ct.Name, ct.Raw, bindingIDs, "ComponentType")
+	}
+}
+
+func walkForMetricBindingRefs(t *testing.T, ownerName string, data interface{}, validIDs map[string]bool, ownerType string) {
+	t.Helper()
+	switch v := data.(type) {
+	case map[string]interface{}:
+		// Check metricBindingIdentifier fields (used in ViewType columns)
+		if ref, ok := v["metricBindingIdentifier"].(string); ok {
+			// Allow references to external stackpack bindings
+			if strings.HasPrefix(ref, "urn:stackpack:suse-ai:") && !validIDs[ref] {
+				t.Errorf("%s %q references metric binding %q which doesn't exist",
+					ownerType, ownerName, ref)
+			}
+		}
+		for _, val := range v {
+			walkForMetricBindingRefs(t, ownerName, val, validIDs, ownerType)
+		}
+	case []interface{}:
+		for _, item := range v {
+			// Direct string references in bindings arrays
+			if s, ok := item.(string); ok && strings.Contains(s, "metric-binding") {
+				if strings.HasPrefix(s, "urn:stackpack:suse-ai:") && !validIDs[s] {
+					t.Errorf("%s %q references metric binding %q which doesn't exist",
+						ownerType, ownerName, s)
+				}
+			}
+			walkForMetricBindingRefs(t, ownerName, item, validIDs, ownerType)
+		}
+	}
+}
+
+// --- §9: STY Indentation (CERTAINS.md §7) ---
 
 func TestSTYTopLevelItemsIndentedWithTwoSpaces(t *testing.T) {
 	// CERTAINS §7: Top-level list items in included STY files MUST be indented
