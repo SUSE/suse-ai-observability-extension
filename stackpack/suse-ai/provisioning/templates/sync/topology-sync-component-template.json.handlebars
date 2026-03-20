@@ -1,0 +1,20 @@
+{
+  "_type": "Component",
+  "labels": [
+    \{{#if element.data.labels \}}
+        \{{# join element.data.labels "," "" "" \}}
+        {
+            "_type": "Label",
+            "name": "\{{ this \}}"
+        }
+        \{{/ join \}}
+    \{{/if\}}
+  ],
+  "name": "\{{#if element.data.name\}}\{{ element.data.name \}}\{{else\}}\{{ element.externalId \}}\{{/if\}}",
+  "type": \{{ getOrCreate (identifier "urn:stackpack:suse-ai:shared" "ComponentType" element.type.name) (identifier "urn:system:auto" "ComponentType" element.type.name) (concat "Type=ComponentType;Name=" element.type.name) \}},
+  "layer": \{{ getOrCreate (identifier "urn:stackpack:common" "Layer" element.data.layer) (identifier "urn:system:auto" "Layer" element.data.layer) (concat "Type=Layer;Name=" element.data.layer) \}},
+  "domain": \{{ getOrCreate (identifier "urn:stackpack:suse-ai:shared" "Domain" element.data.domain) (identifier "urn:system:auto" "Domain" element.data.domain) (concat "Type=Domain;Name=" element.data.domain) \}},
+  "environments": [
+    \{{ get "urn:stackpack:common:environment:production" \}}
+  ]
+}

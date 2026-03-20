@@ -149,3 +149,100 @@
         required: true
         system: false
         type: STRUCT_TYPE
+
+  # --- Topology Sync (consumes topology from the topology exporter) ---
+
+  - _type: DataSource
+    name: "SUSE AI Topology Exporter"
+    identifier: "urn:stackpack:suse-ai:shared:data-source:suse-ai-topology"
+    pluginId: Sts
+    config:
+      autoExpireElements: true
+      expireElementsAfter: 300000
+      _type: Sts.StsTopologyDataSourceConfig
+      id: -1118
+      supportedWindowingMethods: []
+      integrationType: suse-ai
+      supportedDataTypes:
+        - TOPOLOGY_ELEMENTS
+      topic: sts_topo_suse-ai_local
+    extTopology:
+      _type: ExtTopology
+      dataSource: -1108
+      id: -1109
+      settings:
+        _type: TopologySyncSettings
+        maxBatchesPerSecond: 5
+        id: -1110
+        maxBatchSize: 200
+    id: -1108
+    uiRequestTimeout: 15000
+
+  - _type: Sync
+    name: "SUSE AI Topology"
+    identifier: "urn:stackpack:suse-ai:shared:sync:suse-ai-topology"
+    relationActions: []
+    extTopology: -1109
+    topologyDataQuery:
+      _type: Sts.StsTopologyElementsQuery
+      componentIdExtractorFunction: -1112
+      relationIdExtractorFunction: -1113
+      id: -1119
+      consumerOffsetStartAtEarliest: true
+    id: -1111
+    defaultComponentAction:
+      _type: SyncActionCreateComponent
+      templateFunction: -1114
+      id: -1116
+      mergeStrategy: MergePreferTheirs
+      type: default_component_mapping
+    componentActions: []
+    defaultRelationAction:
+      _type: SyncActionCreateRelation
+      templateFunction: -1103
+      id: -1117
+      mergeStrategy: MergePreferTheirs
+      type: default_relation_mapping
+
+  - _type: IdExtractorFunction
+    id: -1112
+    identifier: urn:stackpack:suse-ai:shared:id-extractor-function:topology-sync-component-id-extractor
+    name: Topology Sync Component ID extractor
+    parameters:
+      - _type: Parameter
+        multiple: false
+        name: topologyElement
+        required: true
+        system: true
+        type: STRUCT_TYPE
+    groovyScript: "{{ include "templates/sync/topology-sync-id-extractor.groovy" }}"
+
+  - _type: IdExtractorFunction
+    id: -1113
+    identifier: urn:stackpack:suse-ai:shared:id-extractor-function:topology-sync-relation-id-extractor
+    name: Topology Sync Relation ID extractor
+    parameters:
+      - _type: Parameter
+        multiple: false
+        name: topologyElement
+        required: true
+        system: true
+        type: STRUCT_TYPE
+    groovyScript: |
+      element = topologyElement.asReadonlyMap()
+      externalId = element["externalId"]
+      type = element["typeName"].toLowerCase()
+      return Sts.createId(externalId, new HashSet(), type)
+
+  - _type: ComponentTemplateFunction
+    handlebarsTemplate: "{{ include "templates/sync/topology-sync-component-template.json.handlebars" }}"
+    id: -1114
+    identifier: urn:stackpack:suse-ai:shared:component-template-function:topology-sync-component
+    name: Topology Sync Component Template
+    parameters:
+      - _type: Parameter
+        multiple: false
+        name: element
+        required: true
+        system: false
+        type: STRUCT_TYPE
