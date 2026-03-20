@@ -56,7 +56,7 @@ tasks:
   lint:
     desc: Lint Groovy scripts with npm-groovy-lint
     cmds:
-      - npx npm-groovy-lint --files "stackpack/suse-ai/provisioning/**/*.groovy" --no-insight --loglevel warning
+      - npx npm-groovy-lint --files "stackpack/suse-ai/provisioning/**/*.groovy" --no-insight --failon error
 
   test-static:
     desc: Run static validation tests (no infrastructure needed)
