@@ -1,0 +1,115 @@
+# Metric Bindings
+# Total: 110
+#
+# id | name | identifier | scope
+#
+-2004 | Token Usage by Type | urn:stackpack:suse-ai:shared:metric-binding:token-usage-by-type | label IN ("suse.ai.managed:true") AND NOT type = "llm-model"
+-2003 | Operation Duration (P95) | urn:stackpack:suse-ai:shared:metric-binding:operation-duration-p95 | label IN ("suse.ai.managed:true") AND NOT type = "llm-model"
+-2002 | Total Usage Cost | urn:stackpack:suse-ai:shared:metric-binding:total-usage-cost | label IN ("suse.ai.managed:true") AND NOT type = "llm-model"
+-2001 | Average Tokens per Request | urn:stackpack:suse-ai:shared:metric-binding:average-tokens-per-request | label IN ("suse.ai.managed:true") AND NOT type = "llm-model"
+-2000 | LLM Request Rate | urn:stackpack:suse-ai:shared:metric-binding:request-rate | label IN ("suse.ai.managed:true") AND NOT type = "llm-model"
+-705 | Completed Operations Count | urn:stackpack:suse-ai:shared:metric-binding:elasticsearch:vectordb-operation | type in ("search-engine.elasticsearch")
+-704 | Free Disk (%) | urn:stackpack:suse-ai:shared:metric-binding:elasticsearch:vectordb-free-space | type in ("search-engine.elasticsearch")
+-703 | Cluster Status (Red) | urn:stackpack:suse-ai:shared:metric-binding:elasticsearch:vectordb-red | type in ("search-engine.elasticsearch")
+-702 | Cluster Status (Yellow) | urn:stackpack:suse-ai:shared:metric-binding:elasticsearch:vectordb-yellow | type in ("search-engine.elasticsearch")
+-701 | Cluster Status (Green) | urn:stackpack:suse-ai:shared:metric-binding:elasticsearch:vectordb-green | type in ("search-engine.elasticsearch")
+-700 | Pending Tasks | urn:stackpack:suse-ai:shared:metric-binding:elasticsearch:vectordb-pending-tasks-count | type in ("search-engine.elasticsearch")
+-629 | Memory Active | urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-memory-active | type in ("vectordb.qdrant")
+-628 | CPU Usage | urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-cpu-usage | type in ("vectordb.qdrant")
+-627 | gRPC Average Response Duration | urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-grpc-responses-avg-duration | type in ("vectordb.qdrant")
+-626 | gRPC Responses Failed | urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-grpc-responses-fail | type in ("vectordb.qdrant")
+-625 | gRPC Responses Total | urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-grpc-responses-total | type in ("vectordb.qdrant")
+-624 | REST Average Response Duration | urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-rest-responses-avg-duration | type in ("vectordb.qdrant")
+-623 | REST Responses Failed | urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-rest-responses-fail | type in ("vectordb.qdrant")
+-622 | REST Responses Total | urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-rest-responses-total | type in ("vectordb.qdrant")
+-621 | Vectors Total | urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-vectors-total | type in ("vectordb.qdrant")
+-620 | Collections Total | urn:stackpack:suse-ai:shared:metric-binding:qdrant:vectordb-collections-total | type in ("vectordb.qdrant")
+-614 | Token Usage by Type | urn:stackpack:suse-ai:shared:metric-binding:ollama-model:token-usage-by-type | type = "llm-model.ollama"
+-613 | Operation Duration (P95) | urn:stackpack:suse-ai:shared:metric-binding:ollama-model:operation-duration-p95 | type = "llm-model.ollama"
+-612 | Total Usage Cost | urn:stackpack:suse-ai:shared:metric-binding:ollama-model:total-usage-cost | type = "llm-model.ollama"
+-611 | Average Tokens per Request | urn:stackpack:suse-ai:shared:metric-binding:ollama-model:average-tokens-per-request | type = "llm-model.ollama"
+-610 | LLM Request Rate | urn:stackpack:suse-ai:shared:metric-binding:ollama-model:request-rate | type = "llm-model.ollama"
+-605 | Average Power Draw | urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-average-power-draw | (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+-604 | GPU Memory Utilisation (%) | urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-memory-utilization | (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+-603 | Average GPU Utilization | urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-average-utilization | (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+-602 | GPU Framebuffer Mem Used | urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-framebuffer-mem-used | (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+-601 | Tensor Core Utilization | urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-tensor-core-utilization | (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+-600 | GPU Utilization | urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-utilization | (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+-599 | GPU SM Clocks | urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-sm-clocks | (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+-598 | GPU Power Usage | urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-power-usage | (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+-597 | GPU Temperature | urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-temperature | (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+-596 | GPU Power Total | urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-power-total | (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+-595 | GPU Temperature Average | urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-avg-temp | (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
+-594 | Average Power Draw | urn:stackpack:suse-ai:shared:metric-binding:common:pod-gpu-average-power-draw | type IN ("pod")
+-593 | GPU Memory Utilisation (%) | urn:stackpack:suse-ai:shared:metric-binding:common:pod-gpu-memory-utilization | type IN ("pod")
+-592 | Average GPU Utilization | urn:stackpack:suse-ai:shared:metric-binding:common:pod-gpu-average-utilization | type IN ("pod")
+-591 | GPU Framebuffer Mem Used | urn:stackpack:suse-ai:shared:metric-binding:common:pod-gpu-framebuffer-mem-used | type IN ("pod")
+-590 | Tensor Core Utilization | urn:stackpack:suse-ai:shared:metric-binding:common:pod-gpu-tensor-core-utilization | type IN ("pod")
+-589 | GPU Utilization | urn:stackpack:suse-ai:shared:metric-binding:common:pod-gpu-utilization | type IN ("pod")
+-588 | GPU SM Clocks | urn:stackpack:suse-ai:shared:metric-binding:common:pod-gpu-sm-clocks | type IN ("pod")
+-587 | GPU Power Usage | urn:stackpack:suse-ai:shared:metric-binding:common:pod-gpu-power-usage | type IN ("pod")
+-586 | GPU Temperature | urn:stackpack:suse-ai:shared:metric-binding:common:pod-gpu-temperature | type IN ("pod")
+-585 | GPU Power Total | urn:stackpack:suse-ai:shared:metric-binding:common:pod-gpu-power-total | type IN ("pod")
+-584 | GPU Temperature Average | urn:stackpack:suse-ai:shared:metric-binding:common:pod-gpu-avg-temp | type IN ("pod")
+-583 | Total Database Operations | urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-vectordb-total-database-operations | type in ("service", "application") AND label IN ("suse.ai.category:application")
+-582 | Top Vector Databases by Usage | urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-vectordb-top-vectordb-by-usage | type in ("service", "application") AND label IN ("suse.ai.category:application")
+-581 | Cost per 1 K Tokens (USD) | urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-cost-per-1k-tokens | type in ("service", "application") AND label IN ("suse.ai.category:application")
+-580 | Token Throughput | urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-tokens-throughput | type in ("service", "application") AND label IN ("suse.ai.category:application")
+-579 | Average Tokens per Request | urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-average-tokens-per-request | type in ("service", "application") AND label IN ("suse.ai.category:application")
+-578 | DB Request Rate | urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-vectordb-request-rate | type in ("service", "application") AND label IN ("suse.ai.category:application")
+-577 | Average Usage Cost per model | urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-avg-usage-cost-per-model | type in ("service", "application") AND label IN ("suse.ai.category:application")
+-576 | Total Successful GenAI Requests | urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-request-total-success | type in ("service", "application") AND label IN ("suse.ai.category:application")
+-575 | Total Usage Tokens | urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-total-usage-tokens-line | type in ("service", "application") AND label IN ("suse.ai.category:application")
+-574 | Total Usage Tokens | urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-total-usage-tokens | type in ("service", "application") AND label IN ("suse.ai.category:application")
+-573 | Total Usage Cost | urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-avg-total-usage-cost | type in ("service", "application") AND label IN ("suse.ai.category:application")
+-572 | Average Usage Cost | urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-avg-usage-cost | type in ("service", "application") AND label IN ("suse.ai.category:application")
+-571 | Average Token Consumption vs. Average Usage Cost Comparison | urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-avg-tokens-per-total-requests | type in ("service", "application") AND label IN ("suse.ai.category:application")
+-570 | Top models by usage | urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-top-models | type in ("service", "application") AND label IN ("suse.ai.category:application")
+-569 | LLM Request Rate | urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-request-rate | type in ("service", "application") AND label IN ("suse.ai.category:application")
+-568 | Average Usage Cost per model | urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-avg-usage-cost-per-model | type in ("inference-engine.ollama", "inference-engine")
+-567 | Total Successful GenAI Requests | urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-request-total-success | type in ("inference-engine.ollama", "inference-engine")
+-566 | Total Usage Tokens | urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-total-usage-tokens-line | type in ("inference-engine.ollama", "inference-engine")
+-565 | Total Usage Tokens | urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-total-usage-tokens | type in ("inference-engine.ollama", "inference-engine")
+-564 | Total Usage Cost | urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-avg-total-usage-cost | type in ("inference-engine.ollama", "inference-engine")
+-563 | Average Usage Cost | urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-avg-usage-cost | type in ("inference-engine.ollama", "inference-engine")
+-562 | Average Token Consumption vs. Average Usage Cost Comparison | urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-avg-tokens-per-total-requests | type in ("inference-engine.ollama", "inference-engine")
+-561 | Top models by usage | urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-top-models | type in ("inference-engine.ollama", "inference-engine")
+-560 | LLM Request Rate | urn:stackpack:suse-ai:shared:metric-binding:ollama:genai-system-request-rate | type in ("inference-engine.ollama", "inference-engine")
+-559 | Completed Operations Count | urn:stackpack:suse-ai:shared:metric-binding:opensearch:vectordb-operation | type in ("search-engine.opensearch")
+-558 | Free Disk (%) | urn:stackpack:suse-ai:shared:metric-binding:opensearch:vectordb-free-space | type in ("search-engine.opensearch")
+-557 | Cluster Status (Red) | urn:stackpack:suse-ai:shared:metric-binding:opensearch:vectordb-red | type in ("search-engine.opensearch")
+-556 | Cluster Status (Yellow) | urn:stackpack:suse-ai:shared:metric-binding:opensearch:vectordb-yellow | type in ("search-engine.opensearch")
+-555 | Cluster Status (Green) | urn:stackpack:suse-ai:shared:metric-binding:opensearch:vectordb-green | type in ("search-engine.opensearch")
+-554 | Pending Tasks | urn:stackpack:suse-ai:shared:metric-binding:opensearch:vectordb-pending-tasks-count | type in ("search-engine.opensearch")
+-553 | Total Calls | urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-operation-total | type in ("vectordb.milvus")
+-552 | Average Mutation Send Latency | urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-system-average-mutation-send-latency | type in ("vectordb.milvus")
+-551 | Mutation Send Latency  (P99) | urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-system-mutation-send-latency | type in ("vectordb.milvus")
+-550 | Failed Requests Count | urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-system-failed-requests-count | type in ("vectordb.milvus")
+-549 | Request Failed Rate | urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-system-request-failed-rate | type in ("vectordb.milvus")
+-548 | Request Success Rate | urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-system-request-success-rate | type in ("vectordb.milvus")
+-547 | Average Search Latency | urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-system-average-search-latency | type in ("vectordb.milvus")
+-546 | Search Latency (P99) | urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-system-search-latency | type in ("vectordb.milvus")
+-545 | Search Vector Count Rate | urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-system-insert-vector-search-rate | type in ("vectordb.milvus")
+-544 | Insert Vector Count Rate | urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-system-invsert-vector-count-rate | type in ("vectordb.milvus")
+-543 | Average Request Latency | urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-system-average-request-latency | type in ("vectordb.milvus")
+-542 | Request Latency (P99) | urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-system-request-latency-p99 | type in ("vectordb.milvus")
+-541 | Total Successful DB Requests | urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-system-request-total-success | type in ("vectordb.milvus")
+-540 | DB Request Rate | urn:stackpack:suse-ai:shared:metric-binding:milvus:vectordb-system-request-rate | type in ("vectordb.milvus")
+-527 | Number of Requests Waiting | urn:stackpack:suse-ai:shared:metric-binding:genai-model:req-waiting | type = "llm-model.vllm"
+-526 | Number of Requests Running | urn:stackpack:suse-ai:shared:metric-binding:genai-model:req-running | type = "llm-model.vllm"
+-525 | GPU Cache Usage | urn:stackpack:suse-ai:shared:metric-binding:genai-model:gpu-cache-usage | type = "llm-model.vllm"
+-524 | Token Throughput (Generation) | urn:stackpack:suse-ai:shared:metric-binding:genai-model:token-throughput-generation | type = "llm-model.vllm"
+-523 | Token Throughput (Prompt) | urn:stackpack:suse-ai:shared:metric-binding:genai-model:token-throughput-prompt | type = "llm-model.vllm"
+-522 | Time Per Output Token Latency | urn:stackpack:suse-ai:shared:metric-binding:genai-model:tpot-latency | type = "llm-model.vllm"
+-521 | Time To First Token Latency | urn:stackpack:suse-ai:shared:metric-binding:genai-model:ttft-latency | type = "llm-model.vllm"
+-520 | End-to-End Request Latency | urn:stackpack:suse-ai:shared:metric-binding:genai-model:e2e-latency | type = "llm-model.vllm"
+-510 | Operation Duration (P95) | urn:stackpack:suse-ai:shared:metric-binding:application:genai-app-operation-duration-p95 | type in ("service", "application") AND label IN ("suse.ai.category:application")
+-509 | Top Models by Usage | urn:stackpack:suse-ai:shared:metric-binding:vllm:top-models-by-usage | type = "inference-engine.vllm"
+-508 | Number of Requests Waiting | urn:stackpack:suse-ai:shared:metric-binding:vllm:req-waiting | type = "inference-engine.vllm"
+-507 | Number of Requests Running | urn:stackpack:suse-ai:shared:metric-binding:vllm:req-running | type = "inference-engine.vllm"
+-506 | GPU Cache Usage | urn:stackpack:suse-ai:shared:metric-binding:vllm:gpu-cache-usage | type = "inference-engine.vllm"
+-505 | Token Throughput (Generation) | urn:stackpack:suse-ai:shared:metric-binding:vllm:token-throughput-generation | type = "inference-engine.vllm"
+-504 | Token Throughput (Prompt) | urn:stackpack:suse-ai:shared:metric-binding:vllm:token-throughput-prompt | type = "inference-engine.vllm"
+-503 | Time Per Output Token Latency | urn:stackpack:suse-ai:shared:metric-binding:vllm:tpot-latency | type = "inference-engine.vllm"
+-502 | Time To First Token Latency | urn:stackpack:suse-ai:shared:metric-binding:vllm:ttft-latency | type = "inference-engine.vllm"
+-501 | End-to-End Request Latency | urn:stackpack:suse-ai:shared:metric-binding:vllm:e2e-latency | type = "inference-engine.vllm"

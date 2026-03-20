@@ -1,0 +1,20 @@
+# Monitors
+# Total: 15
+#
+# id | name | identifier
+#
+-3014 | Qdrant High Memory Usage | urn:stackpack:suse-ai:shared:monitor:qdrant-high-memory-usage
+-3013 | Qdrant High REST API Latency | urn:stackpack:suse-ai:shared:monitor:qdrant-high-rest-latency
+-3012 | Qdrant gRPC API Failures | urn:stackpack:suse-ai:shared:monitor:qdrant-grpc-api-failures
+-3011 | Qdrant REST API Failures | urn:stackpack:suse-ai:shared:monitor:qdrant-rest-api-failures
+-3010 | vLLM High Time to First Token | urn:stackpack:suse-ai:shared:monitor:vllm-high-ttft
+-3009 | vLLM Request Queue Buildup | urn:stackpack:suse-ai:shared:monitor:vllm-request-queue-buildup
+-3008 | vLLM High End-to-End Latency | urn:stackpack:suse-ai:shared:monitor:vllm-high-e2e-latency
+-3007 | vLLM High GPU Cache Usage | urn:stackpack:suse-ai:shared:monitor:vllm-high-gpu-cache-usage
+-3006 | Milvus High Search Latency | urn:stackpack:suse-ai:shared:monitor:milvus-high-search-latency
+-3005 | Milvus High Request Latency | urn:stackpack:suse-ai:shared:monitor:milvus-high-request-latency
+-3004 | Milvus Request Failed Rate | urn:stackpack:suse-ai:shared:monitor:milvus-request-failed-rate
+-3003 | OpenSearch Cluster Yellow Status | urn:stackpack:suse-ai:shared:monitor:opensearch-cluster-yellow
+-3002 | OpenSearch Cluster Red Status | urn:stackpack:suse-ai:shared:monitor:opensearch-cluster-red
+-3001 | GenAI Application Metric Stream Active | urn:stackpack:suse-ai:shared:monitor:genai-app-metric-stream-active
+-3000 | GPU Node NVIDIA XID Errors | urn:stackpack:suse-ai:shared:monitor:nvidia-xid-errors

@@ -1,0 +1,302 @@
+mode: deployment
+extraEnvs:
+  - name: K8S_CLUSTER_NAME
+    value: "test-cluster"
+  - name: SUSE_AI_NAMESPACE
+    value: "suse-private-ai"
+extraEnvsFrom:
+  - secretRef:
+      name: otel-collector-env
+ports:
+  metrics:
+    enabled: true
+presets:
+  kubernetesAttributes:
+    enabled: true
+    extractAllPodLabels: true
+config:
+  extensions:
+    health_check:
+      endpoint: 0.0.0.0:13133
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+    jaeger:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:14250
+    elasticsearch:
+      endpoint: "http://opensearch.suse-private-ai.svc.cluster.local:9200"
+      username: "admin"
+      password: "admin"
+      tls:
+        insecure_skip_verify: true
+      collection_interval: 10s
+      metrics:
+        elasticsearch.node.fs.disk.total:
+          enabled: true
+        elasticsearch.node.fs.disk.available:
+          enabled: true
+    prometheus:
+      config:
+        scrape_configs:
+          - job_name: 'milvus'
+            scrape_interval: 15s
+            metrics_path: '/metrics'
+            static_configs:
+              - targets: ['milvus.suse-private-ai.svc.cluster.local:9091']
+          - job_name: 'qdrant'
+            scrape_interval: 10s
+            metrics_path: '/metrics'
+            static_configs:
+              - targets: ['qdrant.suse-private-ai.svc.cluster.local:6333']
+          - job_name: 'vllm'
+            scrape_interval: 10s
+            scheme: http
+            kubernetes_sd_configs:
+              - role: service
+            relabel_configs:
+              - source_labels: [__meta_kubernetes_namespace]
+                action: keep
+                regex: 'suse-private-ai'
+              - source_labels: [__meta_kubernetes_service_name]
+                action: keep
+                regex: '.*vllm.*'
+  exporters:
+    otlp:
+      endpoint: suse-observability-otel-collector.suse-observability.svc.cluster.local:4317
+      headers:
+        Authorization: "SUSEObservability ${env:API_KEY}"
+      tls:
+        insecure: true
+    debug:
+      verbosity: basic
+  processors:
+    batch:
+      timeout: 10s
+      send_batch_size: 1024
+    memory_limiter:
+      check_interval: 1s
+      limit_percentage: 75
+      spike_limit_percentage: 15
+    resource/elasticsearch:
+      attributes:
+        - key: suse.ai.managed
+          value: "true"
+          action: insert
+        - key: suse.ai.component.name
+          value: "opensearch"
+          action: insert
+        - key: suse.ai.component.type
+          value: "search-engine"
+          action: insert
+        - key: service.name
+          value: "opensearch"
+          action: insert
+        - key: service.namespace
+          value: ${env:SUSE_AI_NAMESPACE}
+          action: insert
+        - key: k8s.namespace.name
+          value: ${env:SUSE_AI_NAMESPACE}
+          action: upsert
+        - key: service.instance.id
+          value: "opensearch-cluster"
+          action: insert
+    transform/vllm:
+      error_mode: ignore
+      metric_statements:
+        - context: resource
+          statements:
+            - set(attributes["suse.ai.managed"], "true") where attributes["service.name"] == "vllm"
+            - set(attributes["suse.ai.component.name"], "vllm") where attributes["service.name"] == "vllm"
+            - set(attributes["suse.ai.component.type"], "inference-engine") where attributes["service.name"] == "vllm"
+            - set(attributes["service.instance.id"], "vllm") where attributes["service.name"] == "vllm"
+            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["service.name"] == "vllm"
+    transform/qdrant:
+      error_mode: ignore
+      metric_statements:
+        - context: resource
+          statements:
+            - set(attributes["suse.ai.managed"], "true") where attributes["service.name"] == "qdrant"
+            - set(attributes["suse.ai.component.name"], "qdrant") where attributes["service.name"] == "qdrant"
+            - set(attributes["suse.ai.component.type"], "vectordb") where attributes["service.name"] == "qdrant"
+            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["service.name"] == "qdrant"
+    transform/milvus:
+      error_mode: ignore
+      metric_statements:
+        - context: resource
+          statements:
+            - set(attributes["suse.ai.managed"], "true") where attributes["service.name"] == "milvus"
+            - set(attributes["suse.ai.component.name"], "milvus") where attributes["service.name"] == "milvus"
+            - set(attributes["suse.ai.component.type"], "vectordb") where attributes["service.name"] == "milvus"
+            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["service.name"] == "milvus"
+    tail_sampling:
+      decision_wait: 10s
+      policies:
+      - name: rate-limited-composite
+        type: composite
+        composite:
+          max_total_spans_per_second: 500
+          policy_order: [errors, slow-traces, rest]
+          composite_sub_policy:
+          - name: errors
+            type: status_code
+            status_code:
+              status_codes: [ ERROR ]
+          - name: slow-traces
+            type: latency
+            latency:
+              threshold_ms: 1000
+          - name: rest
+            type: always_sample
+          rate_allocation:
+          - policy: errors
+            percent: 33
+          - policy: slow-traces
+            percent: 33
+          - policy: rest
+            percent: 34
+    resource:
+      attributes:
+      - key: k8s.cluster.name
+        action: insert
+        value: ${env:K8S_CLUSTER_NAME}
+      - key: service.instance.id
+        from_attribute: k8s.pod.uid
+        action: insert
+    filter/genai-metrics-only:
+      error_mode: ignore
+      metrics:
+        metric:
+          - not(IsMatch(name, "gen_ai\\..*"))
+    groupbyattrs/infer-providers:
+      keys:
+        - gen_ai.provider.name
+    transform/infer-providers:
+      error_mode: ignore
+      metric_statements:
+        - context: resource
+          statements:
+            - set(attributes["service.name"], attributes["gen_ai.provider.name"]) where attributes["gen_ai.provider.name"] != nil
+            - set(attributes["service.instance.id"], attributes["gen_ai.provider.name"]) where attributes["gen_ai.provider.name"] != nil
+            - set(attributes["suse.ai.managed"], "true") where attributes["gen_ai.provider.name"] != nil
+            - set(attributes["suse.ai.component.name"], attributes["gen_ai.provider.name"]) where attributes["gen_ai.provider.name"] != nil
+            - set(attributes["suse.ai.component.type"], "inference-engine") where attributes["gen_ai.provider.name"] != nil
+            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["gen_ai.provider.name"] != nil
+    groupbyattrs/infer-models:
+      keys:
+        - gen_ai.request.model
+        - gen_ai.provider.name
+    transform/infer-models:
+      error_mode: ignore
+      metric_statements:
+        - context: resource
+          statements:
+            - set(attributes["service.name"], attributes["gen_ai.request.model"]) where attributes["gen_ai.request.model"] != nil
+            - set(attributes["service.instance.id"], attributes["gen_ai.request.model"]) where attributes["gen_ai.request.model"] != nil
+            - set(attributes["suse.ai.managed"], "true") where attributes["gen_ai.request.model"] != nil
+            - set(attributes["suse.ai.component.name"], attributes["gen_ai.request.model"]) where attributes["gen_ai.request.model"] != nil
+            - set(attributes["suse.ai.component.type"], "llm-model") where attributes["gen_ai.request.model"] != nil
+            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["gen_ai.request.model"] != nil
+    filter/exclude-already-tagged:
+      error_mode: ignore
+      metrics:
+        resource:
+          - attributes["suse.ai.component.name"] != nil
+    transform/infer-applications:
+      error_mode: ignore
+      metric_statements:
+        - context: resource
+          statements:
+            - set(attributes["suse.ai.managed"], "true")
+            - set(attributes["suse.ai.component.type"], "application")
+            - set(attributes["suse.ai.component.name"], attributes["service.name"])
+    filter/genai-spans:
+      error_mode: ignore
+      traces:
+        span:
+          - attributes["gen_ai.request.model"] == nil
+    groupbyattrs/model-relations:
+      keys:
+        - gen_ai.provider.name
+    transform/model-relations:
+      error_mode: ignore
+      trace_statements:
+        - context: resource
+          statements:
+            - set(attributes["service.name"], attributes["gen_ai.provider.name"]) where attributes["gen_ai.provider.name"] != nil
+            - set(attributes["service.instance.id"], attributes["gen_ai.provider.name"]) where attributes["gen_ai.provider.name"] != nil
+        - context: span
+          statements:
+            - set(attributes["peer.service"], attributes["gen_ai.request.model"]) where attributes["gen_ai.request.model"] != nil
+    transform/provider-relations:
+      error_mode: ignore
+      trace_statements:
+        - context: span
+          statements:
+            - set(attributes["peer.service"], resource.attributes["gen_ai.provider.name"]) where resource.attributes["gen_ai.provider.name"] != nil
+    filter/dropMissingK8sAttributes:
+      error_mode: ignore
+      traces:
+        span:
+          - resource.attributes["k8s.node.name"] == nil
+          - resource.attributes["k8s.pod.uid"] == nil
+          - resource.attributes["k8s.namespace.name"] == nil
+          - resource.attributes["k8s.pod.name"] == nil
+  connectors:
+    spanmetrics:
+      metrics_expiration: 5m
+      namespace: otel_span
+    routing/traces:
+      error_mode: ignore
+      table:
+      - statement: route()
+        pipelines: [traces/sampling, traces/spanmetrics, traces/model-relations, traces/provider-relations]
+  service:
+    extensions:
+      - health_check
+    pipelines:
+      traces:
+        receivers: [otlp, jaeger]
+        processors: [filter/dropMissingK8sAttributes, memory_limiter, resource]
+        exporters: [routing/traces]
+      traces/spanmetrics:
+        receivers: [routing/traces]
+        processors: []
+        exporters: [spanmetrics]
+      traces/sampling:
+        receivers: [routing/traces]
+        processors: [tail_sampling, batch]
+        exporters: [debug, otlp]
+      metrics:
+        receivers: [otlp, spanmetrics, prometheus]
+        processors: [memory_limiter, transform/qdrant, transform/milvus, transform/vllm, resource, batch]
+        exporters: [debug, otlp]
+      metrics/infer-providers:
+        receivers: [otlp]
+        processors: [filter/genai-metrics-only, groupbyattrs/infer-providers, transform/infer-providers, resource, batch]
+        exporters: [otlp]
+      metrics/infer-models:
+        receivers: [otlp]
+        processors: [filter/genai-metrics-only, groupbyattrs/infer-models, transform/infer-models, resource, batch]
+        exporters: [otlp]
+      metrics/infer-applications:
+        receivers: [otlp]
+        processors: [filter/genai-metrics-only, filter/exclude-already-tagged, transform/infer-applications, resource, batch]
+        exporters: [otlp]
+      traces/model-relations:
+        receivers: [routing/traces]
+        processors: [filter/genai-spans, groupbyattrs/model-relations, transform/model-relations, batch]
+        exporters: [otlp]
+      traces/provider-relations:
+        receivers: [routing/traces]
+        processors: [filter/genai-spans, transform/provider-relations, batch]
+        exporters: [otlp]
+      metrics/elasticsearch:
+        receivers: [elasticsearch]
+        processors: [memory_limiter, resource/elasticsearch, resource, batch]
+        exporters: [debug, otlp]

@@ -92,7 +92,7 @@ install() {
 
   # Step 1: kubernetes-v2 stackpack for each cluster
   for cluster in "${CLUSTERS[@]}"; do
-    cluster=$(echo "$cluster" | xargs)
+    cluster="${cluster## }"; cluster="${cluster%% }"
     local filter=".instances | any(.config.kubernetes_cluster_name == \"$cluster\")"
 
     if stackpack_has_instance kubernetes-v2 "$filter"; then

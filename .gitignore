@@ -14,3 +14,9 @@ conf_ravsts.yaml
 /stackpack/view_types.yaml
 /genai-values.yaml
 /.resources/
+/tests/**/testdata/fuzz/
+/tests/infra/.kubeconfig
+/tests/infra/.admin-password
+/tests/infra/.api-key
+/tests/infra/.helm-values/
+/tests/infra/.port-forward.pid

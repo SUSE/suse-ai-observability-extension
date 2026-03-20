@@ -1,0 +1,43 @@
+# Include Graph (from suse-ai.sty)
+# Total includes: 38
+#
+# path | format
+#
+templates/component-types/genai-app.sty | yaml
+templates/component-types/inference-engine.sty | yaml
+templates/component-types/mcp-server.sty | yaml
+templates/component-types/ml-registry.sty | yaml
+templates/component-types/model-proxy.sty | yaml
+templates/component-types/products.sty | yaml
+templates/component-types/search-engine.sty | yaml
+templates/component-types/vectordb.sty | yaml
+templates/component-types/workflow-engine.sty | yaml
+templates/metric-bindings/application-metrics.sty | yaml
+templates/metric-bindings/common-metrics.sty | yaml
+templates/metric-bindings/elasticsearch-metrics.sty | yaml
+templates/metric-bindings/genai-metrics.sty | yaml
+templates/metric-bindings/gpu-metrics.sty | yaml
+templates/metric-bindings/milvus-metrics.sty | yaml
+templates/metric-bindings/ollama-metrics.sty | yaml
+templates/metric-bindings/opensearch-metrics.sty | yaml
+templates/metric-bindings/qdrant-metrics.sty | yaml
+templates/metric-bindings/vllm-metrics.sty | yaml
+templates/monitors/genai-monitors.sty | yaml
+templates/monitors/milvus/monitor.sty | yaml
+templates/monitors/opensearch/monitor.sty | yaml
+templates/monitors/qdrant/monitor.sty | yaml
+templates/monitors/vllm/monitor.sty | yaml
+templates/relation-types.sty | yaml
+templates/shared.sty | yaml
+templates/synchronization.sty | yaml
+templates/view-types/ai-applications.sty | yaml
+templates/view-types/all-genai-components.sty | yaml
+templates/view-types/gpu-nodes.sty | yaml
+templates/view-types/inference-engines.sty | yaml
+templates/view-types/llm-models.sty | yaml
+templates/view-types/mcp-servers.sty | yaml
+templates/view-types/ml-registries.sty | yaml
+templates/view-types/model-proxies.sty | yaml
+templates/view-types/search-engines.sty | yaml
+templates/view-types/vector-databases.sty | yaml
+templates/view-types/workflow-engines.sty | yaml

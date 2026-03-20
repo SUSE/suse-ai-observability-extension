@@ -1,0 +1,32 @@
+# Component Types
+# Total: 27
+#
+# name | identifier | has_icon
+#
+agent | urn:stackpack:suse-ai:shared:component-type:agent | true
+application | urn:stackpack:suse-ai:shared:component-type:application | true
+inference-engine | urn:stackpack:suse-ai:shared:component-type:inference-engine | true
+inference-engine.ollama | urn:stackpack:suse-ai:shared:component-type:inference-engine.ollama | true
+inference-engine.vllm | urn:stackpack:suse-ai:shared:component-type:inference-engine.vllm | true
+llm-model | urn:stackpack:suse-ai:shared:component-type:llm-model | true
+llm-model.ollama | urn:stackpack:suse-ai:shared:component-type:llm-model.ollama | true
+llm-model.vllm | urn:stackpack:suse-ai:shared:component-type:llm-model.vllm | true
+mcp-server | urn:stackpack:suse-ai:shared:component-type:mcp-server | true
+ml-registry | urn:stackpack:suse-ai:shared:component-type:ml-registry | true
+ml-registry.mlflow | urn:stackpack:suse-ai:shared:component-type:ml-registry.mlflow | true
+model-proxy | urn:stackpack:suse-ai:shared:component-type:model-proxy | true
+model-proxy.litellm | urn:stackpack:suse-ai:shared:component-type:model-proxy.litellm | true
+namespace | urn:stackpack:suse-ai:shared:component-type:namespace | false
+node | urn:stackpack:suse-ai:shared:component-type:node | false
+pod | urn:stackpack:suse-ai:shared:component-type:pod | false
+search-engine | urn:stackpack:suse-ai:shared:component-type:search-engine | true
+search-engine.elasticsearch | urn:stackpack:suse-ai:shared:component-type:search-engine.elasticsearch | true
+search-engine.opensearch | urn:stackpack:suse-ai:shared:component-type:search-engine.opensearch | true
+service | urn:stackpack:suse-ai:shared:component-type:service | false
+service-instance | urn:stackpack:suse-ai:shared:component-type:service-instance | false
+ui | urn:stackpack:suse-ai:shared:component-type:ui | true
+ui.open-webui | urn:stackpack:suse-ai:shared:component-type:ui.open-webui | true
+vectordb | urn:stackpack:suse-ai:shared:component-type:vectordb | true
+vectordb.milvus | urn:stackpack:suse-ai:shared:component-type:vectordb.milvus | true
+vectordb.qdrant | urn:stackpack:suse-ai:shared:component-type:vectordb.qdrant | true
+workflow-engine | urn:stackpack:suse-ai:shared:component-type:workflow-engine | true
