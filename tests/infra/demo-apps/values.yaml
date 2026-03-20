@@ -1,0 +1,28 @@
+gateway:
+  ragServiceAddr: rag-service:50052
+  llmServiceAddr: llm-service:50053
+
+ragService:
+  llm:
+    baseUrl: http://ollama.suse-private-ai.svc.cluster.local:11434
+    model: llama3
+    provider: ollama
+  embedding:
+    baseUrl: http://ollama.suse-private-ai.svc.cluster.local:11434
+    model: nomic-embed-text
+  vectorDb:
+    type: qdrant
+    url: http://qdrant.suse-private-ai.svc.cluster.local:6333
+    collection: demo-docs
+
+llmService:
+  llm:
+    baseUrl: http://vllm.suse-private-ai.svc.cluster.local:8000/v1
+    model: facebook/opt-125m
+    provider: vllm
+
+trafficGen:
+  enabled: false
+
+otel:
+  exporterEndpoint: http://otel-collector-opentelemetry-collector.suse-private-ai.svc.cluster.local:4317

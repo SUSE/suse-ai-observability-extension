@@ -1,33 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ============================================================================
-# SUSE Observability Test Environment Setup
-#
-# Provisions a local K3d cluster and deploys SUSE Observability via Helm
-# for integration testing.
-#
-# Usage:
-#   ./setup.sh up       Create cluster and deploy StackState
-#   ./setup.sh down     Tear down cluster
-#   ./setup.sh status   Check if the environment is running
-#   ./setup.sh env      Print environment variables for tests
-#
-# Required environment variables (for 'up'):
-#   SUSE_OBSERVABILITY_LICENSE    - SUSE Observability license key
-#   APPCO_EMAIL                   - Application Collection email
-#   APPCO_TOKEN                   - Application Collection access token
-#
-# Optional:
-#   K3D_CLUSTER_NAME              - Cluster name (default: suse-obs-test)
-#   SUSE_OBS_CHART_VERSION        - Helm chart version (default: 2.6.3)
-# ============================================================================
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+DEMO_APPS_DIR="$(cd "$REPO_ROOT/.." && pwd)/suse-ai-demo-apps"
 
-# Defaults
 K3D_CLUSTER_NAME="${K3D_CLUSTER_NAME:-suse-obs-test}"
 NAMESPACE="suse-observability"
+AI_NAMESPACE="suse-private-ai"
 CHART_VERSION="${SUSE_OBS_CHART_VERSION:-2.6.3}"
 HELM_REPO_URL="https://charts.rancher.com/server-charts/prime/suse-observability"
 HELM_REPO_NAME="suse-observability"
@@ -36,11 +16,18 @@ API_KEY=""
 ADMIN_PASSWORD=""
 KUBECONFIG_PATH="${SCRIPT_DIR}/.kubeconfig"
 
+DEPLOY_QDRANT="${DEPLOY_QDRANT:-true}"
+DEPLOY_OLLAMA="${DEPLOY_OLLAMA:-true}"
+DEPLOY_DEMO_APPS="${DEPLOY_DEMO_APPS:-true}"
+DEPLOY_MILVUS="${DEPLOY_MILVUS:-false}"
+DEPLOY_OPENSEARCH="${DEPLOY_OPENSEARCH:-false}"
+DEPLOY_VLLM="${DEPLOY_VLLM:-false}"
+
+OTEL_COLLECTOR_IMAGE="${OTEL_COLLECTOR_IMAGE:-otel/opentelemetry-collector-contrib:0.147.0}"
+
 log()  { echo "[INFO]  $*"; }
 warn() { echo "[WARN]  $*"; }
 fail() { echo "[ERROR] $*" >&2; exit 1; }
-
-# --- Prerequisite checks ---
 
 check_prerequisites() {
     local missing=()
@@ -51,8 +38,6 @@ check_prerequisites() {
         fail "Missing required tools: ${missing[*]}"
     fi
 }
-
-# --- Cluster lifecycle ---
 
 create_cluster() {
     if k3d cluster list 2>/dev/null | grep -q "$K3D_CLUSTER_NAME"; then
@@ -83,8 +68,6 @@ delete_cluster() {
     fi
 }
 
-# --- Helm deployment ---
-
 deploy_stackstate() {
     [[ -n "${SUSE_OBSERVABILITY_LICENSE:-}" ]] || fail "SUSE_OBSERVABILITY_LICENSE is not set"
     [[ -n "${APPCO_EMAIL:-}" ]] || fail "APPCO_EMAIL is not set"
@@ -105,14 +88,6 @@ deploy_stackstate() {
         --docker-password="$APPCO_TOKEN" \
         --dry-run=client -o yaml | kubectl apply -f -
 
-    # Note: We create the secret directly in K8s rather than using the chart's
-    # pull-secret subchart or global.imagePullSecrets, because the elasticsearch
-    # exporter subchart has an incompatible imagePullSecrets helper that expects
-    # plain strings, not {name: ...} objects.
-
-    # Step 1: Use helm template to generate baseConfig with auto-generated
-    # credentials (apiKey, adminPassword). This is how the suse-ai-stack
-    # Ansible playbook does it — the chart generates these internally.
     local values_dir="$SCRIPT_DIR/.helm-values"
     mkdir -p "$values_dir"
 
@@ -125,7 +100,6 @@ deploy_stackstate() {
         --set "sizing.profile=trial" \
         --output-dir "$values_dir"
 
-    # The values chart outputs several values files with generated secrets
     local templates_dir="$values_dir/suse-observability-values/templates"
     local base_config="$templates_dir/baseConfig_values.yaml"
     local sizing_config="$templates_dir/sizing_values.yaml"
@@ -135,18 +109,13 @@ deploy_stackstate() {
         fail "helm template did not generate baseConfig_values.yaml"
     fi
 
-    # Remove YAML document separators and source comments from all generated files
     for f in "$templates_dir"/*.yaml; do
         sed -i '/^---$/d; /^# Source:/d' "$f"
     done
 
-    # Extract generated credentials for later use
     ADMIN_PASSWORD=$(tail -n 1 "$base_config" | awk '{print $NF}')
     API_KEY=$(grep -A2 "apiKey:" "$base_config" | awk '/key:/ {print $2}' | tr -d '"')
 
-    # Create overrides values file.
-    # Note: adminPassword is already set as a bcrypt hash in baseConfig_values.yaml
-    # — do NOT override it here or the plaintext gets double-hashed.
     cat > "$values_dir/overrides.yaml" <<AUTHEOF
 global:
   storageClass: local-path
@@ -159,7 +128,6 @@ stackstate:
           - stackstate-admin
 AUTHEOF
 
-    # Step 2: Install using all generated values files (mirrors the Ansible playbook)
     log "Deploying SUSE Observability (chart version $CHART_VERSION, trial profile)..."
 
     local values_args=()
@@ -180,12 +148,115 @@ AUTHEOF
     log "API key: $API_KEY"
     log "Bootstrap token: $BOOTSTRAP_TOKEN"
 
-    # Save credentials for test use
     echo "$ADMIN_PASSWORD" > "$SCRIPT_DIR/.admin-password"
     echo "$API_KEY" > "$SCRIPT_DIR/.api-key"
 }
 
-# --- Wait for readiness ---
+deploy_otel_collector() {
+    log "Creating AI namespace '$AI_NAMESPACE'..."
+    kubectl create namespace "$AI_NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
+
+    kubectl create secret generic otel-collector-env \
+        --namespace "$AI_NAMESPACE" \
+        --from-literal="API_KEY=$API_KEY" \
+        --dry-run=client -o yaml | kubectl apply -f -
+
+    log "Adding OpenTelemetry Helm repo..."
+    helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts 2>/dev/null || true
+    helm repo update open-telemetry
+
+    local otel_image_repo="${OTEL_COLLECTOR_IMAGE%:*}"
+    local otel_image_tag="${OTEL_COLLECTOR_IMAGE##*:}"
+
+    log "Deploying OTel Collector (image: $OTEL_COLLECTOR_IMAGE)..."
+    helm upgrade --install otel-collector \
+        open-telemetry/opentelemetry-collector \
+        --namespace "$AI_NAMESPACE" \
+        --values "$SCRIPT_DIR/otel-values.yaml" \
+        --set "image.repository=$otel_image_repo" \
+        --set "image.tag=$otel_image_tag" \
+        --wait \
+        --timeout 5m
+
+    log "OTel Collector deployed."
+}
+
+deploy_component() {
+    local name="$1"
+    local manifest="$SCRIPT_DIR/components/${name}.yaml"
+
+    if [[ ! -f "$manifest" ]]; then
+        warn "Manifest not found: $manifest"
+        return 1
+    fi
+
+    log "Deploying $name..."
+    kubectl apply -f "$manifest"
+
+    kubectl rollout status deployment/"$name" \
+        --namespace "$AI_NAMESPACE" \
+        --timeout=120s 2>/dev/null || \
+        warn "$name deployment not ready within timeout"
+}
+
+deploy_ai_components() {
+    if [[ "$DEPLOY_QDRANT" == "true" ]]; then
+        deploy_component "qdrant"
+    fi
+
+    if [[ "$DEPLOY_OLLAMA" == "true" ]]; then
+        deploy_component "ollama"
+    fi
+
+    if [[ "$DEPLOY_MILVUS" == "true" ]]; then
+        deploy_component "milvus"
+    fi
+
+    if [[ "$DEPLOY_OPENSEARCH" == "true" ]]; then
+        deploy_component "opensearch"
+    fi
+
+    if [[ "$DEPLOY_VLLM" == "true" ]]; then
+        deploy_component "vllm"
+    fi
+}
+
+deploy_demo_apps() {
+    if [[ ! -d "$DEMO_APPS_DIR/helm/suse-ai-demo" ]]; then
+        warn "Demo apps Helm chart not found at $DEMO_APPS_DIR/helm/suse-ai-demo"
+        warn "Clone suse-ai-demo-apps alongside this repository to enable demo apps."
+        return 1
+    fi
+
+    if [[ "$DEPLOY_QDRANT" != "true" ]]; then
+        warn "Demo apps require QDrant — enabling DEPLOY_QDRANT"
+        DEPLOY_QDRANT="true"
+        deploy_component "qdrant"
+    fi
+    if [[ "$DEPLOY_OLLAMA" != "true" ]]; then
+        warn "Demo apps require Ollama — enabling DEPLOY_OLLAMA"
+        DEPLOY_OLLAMA="true"
+        deploy_component "ollama"
+    fi
+
+    local demo_values="$SCRIPT_DIR/demo-apps/values.yaml"
+
+    local set_args=()
+    if [[ "$DEPLOY_VLLM" != "true" ]]; then
+        set_args+=(--set "llmService.replicas=0")
+    fi
+
+    log "Deploying demo apps..."
+    helm upgrade --install suse-ai-demo \
+        "$DEMO_APPS_DIR/helm/suse-ai-demo" \
+        --namespace "$AI_NAMESPACE" \
+        --values "$demo_values" \
+        "${set_args[@]}" \
+        --wait \
+        --timeout 5m
+
+    log "Demo apps deployed."
+}
 
 wait_for_ready() {
     log "Waiting for StackState to be ready..."
@@ -208,7 +279,6 @@ wait_for_ready() {
             warn "  $component not found as deployment or statefulset"
     done
 
-    # Start port-forward for local access
     log "Starting port-forward (router:8080 -> localhost:8080)..."
     kubectl port-forward -n "$NAMESPACE" svc/suse-observability-router 8080:8080 \
         > /dev/null 2>&1 &
@@ -216,7 +286,6 @@ wait_for_ready() {
     echo "$pf_pid" > "$SCRIPT_DIR/.port-forward.pid"
     sleep 2
 
-    # Wait for the API to respond through port-forward
     log "Waiting for API to respond..."
     local attempts=0
     local max_attempts=60
@@ -231,8 +300,6 @@ wait_for_ready() {
     fail "StackState API did not become ready within $((max_attempts * 5))s"
 }
 
-# --- Environment output ---
-
 print_env() {
     local api_key
     if [[ -f "$SCRIPT_DIR/.api-key" ]]; then
@@ -242,7 +309,6 @@ print_env() {
     fi
 
     cat <<EOF
-# Add these to your shell or .env file:
 export STACKSTATE_API_URL=http://localhost:8080
 export STACKSTATE_API_TOKEN=$BOOTSTRAP_TOKEN
 export STACKSTATE_TOKEN_TYPE=service-token
@@ -257,14 +323,20 @@ print_status() {
     if k3d cluster list 2>/dev/null | grep -q "$K3D_CLUSTER_NAME"; then
         echo "Cluster: running"
         export KUBECONFIG="$KUBECONFIG_PATH"
+
+        echo ""
+        echo "SUSE Observability ($NAMESPACE):"
         kubectl get pods -n "$NAMESPACE" --no-headers 2>/dev/null | \
+            awk '{printf "  %-55s %s\n", $1, $3}'
+
+        echo ""
+        echo "AI Components ($AI_NAMESPACE):"
+        kubectl get pods -n "$AI_NAMESPACE" --no-headers 2>/dev/null | \
             awk '{printf "  %-55s %s\n", $1, $3}'
     else
         echo "Cluster: not running"
     fi
 }
-
-# --- Main ---
 
 case "${1:-help}" in
     up)
@@ -272,12 +344,16 @@ case "${1:-help}" in
         create_cluster
         deploy_stackstate
         wait_for_ready
+        deploy_otel_collector
+        deploy_ai_components
+        if [[ "$DEPLOY_DEMO_APPS" == "true" ]]; then
+            deploy_demo_apps
+        fi
         echo ""
         log "Environment is ready."
         print_env
         ;;
     down)
-        # Kill port-forward if running
         if [[ -f "$SCRIPT_DIR/.port-forward.pid" ]]; then
             kill "$(cat "$SCRIPT_DIR/.port-forward.pid")" 2>/dev/null || true
             rm -f "$SCRIPT_DIR/.port-forward.pid"
@@ -295,7 +371,7 @@ case "${1:-help}" in
     *)
         echo "Usage: $0 {up|down|status|env}"
         echo ""
-        echo "  up      Create K3d cluster and deploy SUSE Observability"
+        echo "  up      Create K3d cluster and deploy full stack"
         echo "  down    Tear down cluster and clean up"
         echo "  status  Show cluster and pod status"
         echo "  env     Print environment variables for integration tests"
@@ -304,6 +380,19 @@ case "${1:-help}" in
         echo "  SUSE_OBSERVABILITY_LICENSE  - License key"
         echo "  APPCO_EMAIL                 - Application Collection email"
         echo "  APPCO_TOKEN                 - Application Collection access token"
+        echo ""
+        echo "Component control (defaults):"
+        echo "  DEPLOY_QDRANT=true          - QDrant vector database"
+        echo "  DEPLOY_OLLAMA=true          - Ollama inference engine (CPU)"
+        echo "  DEPLOY_DEMO_APPS=true       - Demo RAG pipeline apps"
+        echo ""
+        echo "Component control (opt-in):"
+        echo "  DEPLOY_MILVUS=false         - Milvus vector database"
+        echo "  DEPLOY_OPENSEARCH=false     - OpenSearch"
+        echo "  DEPLOY_VLLM=false           - vLLM inference engine (CPU)"
+        echo ""
+        echo "OTel Collector:"
+        echo "  OTEL_COLLECTOR_IMAGE=otel/opentelemetry-collector-contrib:0.147.0"
         exit 1
         ;;
 esac

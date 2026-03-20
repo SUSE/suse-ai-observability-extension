@@ -81,7 +81,7 @@ tasks:
       - go test -tags=integration ./integration/... -v -timeout 10m
 
   infra-up:
-    desc: Provision a local K3d cluster with SUSE Observability (requires SUSE_OBSERVABILITY_LICENSE, APPCO_EMAIL, APPCO_TOKEN)
+    desc: "Provision local K3d cluster with SUSE Observability + AI components. Set DEPLOY_MILVUS=true, DEPLOY_OPENSEARCH=true, DEPLOY_VLLM=true for opt-in components."
     cmds:
       - tests/infra/setup.sh up
 
@@ -91,7 +91,7 @@ tasks:
       - tests/infra/setup.sh down
 
   infra-status:
-    desc: Show status of the local test cluster
+    desc: Show status of the local test cluster (SUSE Observability + AI components)
     cmds:
       - tests/infra/setup.sh status
 
