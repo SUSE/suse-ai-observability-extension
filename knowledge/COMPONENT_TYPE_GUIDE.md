@@ -1093,6 +1093,77 @@ Links spans to components in span detail views.
 
 ---
 
+## Variable Interpolation Reference
+
+Different contexts use **different interpolation syntaxes**. Using the wrong syntax in the wrong context will silently fail.
+
+### STQL Placeholders (relatedResources, relatedResourcesTemplate)
+
+Used in `relatedResources` STQL queries and `relatedResourcesTemplate`. Single curly braces, no dollar sign.
+
+| Placeholder | Description | Example |
+|---|---|---|
+| `{COMPONENT_ID}` | Internal component ID | `id = "{COMPONENT_ID}"` |
+| `{COMPONENT_NAME}` | Component display name | `label = "service.name:{COMPONENT_NAME}"` |
+| `{COMPONENT_PREDICATE}` | Component predicate expression | `withNeighborsOf(components = ({COMPONENT_PREDICATE}))` |
+| `{CLUSTER_NAME}` | Cluster name (K8s) | `label = "cluster-name:{CLUSTER_NAME}"` |
+
+**Usage patterns:**
+
+```yaml
+# Direct neighbor traversal
+stql: '(withNeighborsOf(direction = "down", components = (id = "{COMPONENT_ID}"), levels = "1")) and type = "pod"'
+
+# Label-based matching with dynamic component name
+stql: 'type = "otel service instance" and label = "service.name:{COMPONENT_NAME}"'
+
+# Combined: find services via neighbors of matched instances
+stql: 'withNeighborsOf(direction = "up", components = (type = "otel service instance" and label = "service.name:{COMPONENT_NAME}"), levels = "1") and type = "otel service"'
+```
+
+### PromQL Variables (MetricBinding queries)
+
+Used in MetricBinding `expression` fields. Dollar sign with curly braces.
+
+| Variable | Description | Example |
+|---|---|---|
+| `${name}` | Component display name | `metric{service_name="${name}"}` |
+| `${tags.<tag_name>}` | Component tag value | `metric{namespace="${tags.service.namespace}"}` |
+| `${__rate_interval}` | Auto-calculated rate interval | `rate(metric[${__rate_interval}])` |
+| `${label_name}` | PromQL label for `by()` legends | `alias: '${model_name}'` |
+
+### TraceBinding Filter Variables
+
+Used in TraceBinding `filter.attributes`. Dollar sign with curly braces.
+
+| Variable | Description | Example |
+|---|---|---|
+| `${name}` | Component display name | `service.name: ["${name}"]` |
+| `${tags.<tag_name>}` | Component tag value | `service.namespace: ["${tags.service.namespace}"]` |
+
+### SpanToComponentBinding Variables
+
+Used in `urnTemplate`. Dollar sign with curly braces, prefixed with `resource.` to reference span resource attributes.
+
+| Variable | Description | Example |
+|---|---|---|
+| `${resource.<attr>}` | Span resource attribute | `${resource.service.name}` |
+
+### Summary Table
+
+| Context | Syntax | Examples |
+|---|---|---|
+| `relatedResources` STQL | `{PLACEHOLDER}` | `{COMPONENT_ID}`, `{COMPONENT_NAME}` |
+| `relatedResourcesTemplate` | `{PLACEHOLDER}` | `{COMPONENT_ID}`, `{COMPONENT_NAME}` |
+| MetricBinding queries | `${variable}` | `${name}`, `${tags.X}`, `${__rate_interval}` |
+| TraceBinding filters | `${variable}` | `${name}`, `${tags.X}` |
+| SpanToComponentBinding | `${resource.X}` | `${resource.service.name}` |
+| Monitor urnTemplate | `${label}` | `${service_name}`, `${suse_ai_component_name}` |
+
+**Key rule:** STQL uses `{SINGLE_BRACES}`. Everything else uses `${DOLLAR_BRACES}`.
+
+---
+
 ## Best Practices
 
 ### 1. Identifier Naming
