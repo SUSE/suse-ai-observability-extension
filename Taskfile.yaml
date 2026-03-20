@@ -53,11 +53,21 @@ tasks:
     cmds:
       - sts script run --file "{{.FILE}}"
 
+  lint:
+    desc: Lint Groovy scripts with npm-groovy-lint
+    cmds:
+      - npx npm-groovy-lint --files "stackpack/suse-ai/provisioning/**/*.groovy" --no-insight --loglevel warning
+
   test-static:
     desc: Run static validation tests (no infrastructure needed)
     dir: tests
     cmds:
       - go test ./static/... -v
+
+  test-init:
+    desc: Run init.sh tests with bats
+    cmds:
+      - bats tests/init/
 
   test-integration:
     desc: Run integration tests against a running StackState (set STACKSTATE_API_URL and STACKSTATE_API_TOKEN)
@@ -75,7 +85,22 @@ tasks:
       - docker compose -f infra/docker-compose.yaml down
 
   test-all:
-    desc: Run static tests, then integration tests
+    desc: Run all tests (static, init, integration)
     cmds:
       - task: test-static
+      - task: test-init
       - task: test-integration
+
+  check:
+    desc: Run all local validations (lint + static tests + init tests)
+    cmds:
+      - task: lint
+      - task: test-static
+      - task: test-init
+
+  deploy:
+    desc: Validate, version-up, and upload the StackPack
+    cmds:
+      - task: check
+      - task: version-up
+      - task: stackpack-upload
