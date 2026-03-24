@@ -75,6 +75,13 @@ config:
                 action: keep
                 regex: '.*vllm.*'
   exporters:
+    topology:
+      endpoint: http://suse-observability-router.suse-observability.svc.cluster.local:8080
+      api_key: ${env:API_KEY}
+      instance_url: ${env:K8S_CLUSTER_NAME}
+      namespace: ${env:SUSE_AI_NAMESPACE}
+      tls:
+        insecure_skip_verify: true
     otlp:
       endpoint: http://suse-observability-otel-collector.suse-observability.svc.cluster.local:4317
       headers:
@@ -270,7 +277,7 @@ config:
       error_mode: ignore
       table:
       - statement: route()
-        pipelines: [traces/sampling, traces/spanmetrics, traces/model-relations, traces/provider-relations]
+        pipelines: [traces/sampling, traces/spanmetrics, traces/model-relations, traces/provider-relations, traces/topology]
   service:
     extensions:
       - health_check
@@ -325,6 +332,13 @@ config:
         receivers: [routing/traces]
         processors: [filter/genai-spans, transform/provider-relations, batch]
         exporters: [otlp]
+      # Push product topology (components + relations) to SUSE Observability.
+      # The topology exporter discovers relations from GenAI and database spans
+      # and submits them via the receiver API.
+      traces/topology:
+        receivers: [routing/traces]
+        processors: [batch]
+        exporters: [topology]
       metrics/elasticsearch:
         receivers: [elasticsearch]
         processors: [memory_limiter, resource/elasticsearch, resource, batch]
