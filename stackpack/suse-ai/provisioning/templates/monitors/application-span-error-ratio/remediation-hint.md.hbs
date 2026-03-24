@@ -1,0 +1,20 @@
+# Application Span Error Ratio Exceeded
+
+The application **{{componentName}}** has more than **{{threshold}}%** of spans in an error state (current value **{{currentValue}}%**).
+
+## Potential Impacts
+- Degraded user experience or failed requests
+- Downstream service disruptions
+- Data loss if write operations are failing
+
+## Diagnosis Steps
+1. **Analyze Traces** - Examine traces with an error status in the traces perspective. Expanding a span will show the full trace. Spans with an error status are marked and can be followed to the originating component.
+2. **Review Related Health Violations** - Check the related health violations of this monitor for issues on downstream services such as inference engines or vector databases.
+3. **Check Recent Deployments** - Verify if the application was recently updated. A new deployment could introduce regressions.
+4. **Review Resource Utilization** - Check if the application has sufficient CPU and memory resources.
+
+## Remediation Actions
+1. **Investigate Error Spans** - Identify the most common error types and their root causes.
+2. **Check Downstream Dependencies** - Verify that inference engines, vector databases, and other services are healthy.
+3. **Roll Back if Needed** - If errors started after a recent deployment, consider rolling back to the previous version.
+4. **Scale the Application** - If errors are caused by resource pressure, consider scaling up or adding more replicas.

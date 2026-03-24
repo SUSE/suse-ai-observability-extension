@@ -36,3 +36,26 @@
       titleTemplate: "GenAI data from ${suse_ai_component_name}"
       urnTemplate: "suse-ai:product:${suse_ai_component_type}:${suse_ai_component_name}"
 
+  - _type: Monitor
+    id: -3015
+    name: Application Span Error Ratio
+    identifier: urn:stackpack:suse-ai:shared:monitor:application-span-error-ratio
+    description: |
+      Percentage of spans that are in an error state for the application.
+      Triggers when more than 5% of tracing data contains errors.
+    intervalSeconds: 60
+    status: ENABLED
+    tags: ["application", "traces"]
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      threshold: 5
+      comparator: GT
+      failureState: DEVIATING
+      metric:
+        query: 'sum by(service_name)(rate(otel_span_calls_total{status_code="STATUS_CODE_ERROR"}[5m]) or (present_over_time(otel_span_calls_total{}[5m]) - 1)) / sum by(service_name)(rate(otel_span_calls_total{}[5m])) * 100'
+        aliasTemplate: "Error ratio (errors/total)"
+        unit: percent
+      titleTemplate: "Span error ratio"
+      urnTemplate: "suse-ai:product:application:${service_name}"
+    remediationHint: {{ include "templates/monitors/application-span-error-ratio/remediation-hint.md.hbs" "identity" }}
+
