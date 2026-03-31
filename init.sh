@@ -92,7 +92,8 @@ install() {
 
   # Step 1: kubernetes-v2 stackpack for each cluster
   for cluster in "${CLUSTERS[@]}"; do
-    cluster=$(echo "$cluster" | xargs)
+    cluster="${cluster#"${cluster%%[![:space:]]*}"}"
+    cluster="${cluster%"${cluster##*[![:space:]]}"}"
     local filter=".instances | any(.config.kubernetes_cluster_name == \"$cluster\")"
 
     if stackpack_has_instance kubernetes-v2 "$filter"; then
@@ -158,7 +159,8 @@ cleanup_legacy() {
   IFS=',' read -ra CLUSTERS <<<"$KUBERNETES_CLUSTERS"
 
   for cluster in "${CLUSTERS[@]}"; do
-    cluster=$(echo "$cluster" | xargs)
+    cluster="${cluster#"${cluster%%[![:space:]]*}"}"
+    cluster="${cluster%"${cluster##*[![:space:]]}"}"
     local instance_id
     instance_id=$(run_sts stackpack list-instances --name autosync -o json |
       jq -r --arg url "$cluster" \
