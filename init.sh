@@ -164,7 +164,7 @@ cleanup_legacy() {
     local instance_id
     instance_id=$(run_sts stackpack list-instances --name autosync -o json |
       jq -r --arg url "$cluster" \
-        '.instances | map(select(.config.sts_instance_url == $url and (.status == "INSTALLED" or .status == "ERROR")))[0].id // empty')
+        '.instances | map(select(.config.sts_instance_url == $url and (.status == "INSTALLED" or .status == "ERROR" or .status == "WAITING_FOR_DATA")))[0].id // empty')
 
     if [[ -z "$instance_id" ]]; then
       log "No legacy autosync instance for cluster '$cluster'"
