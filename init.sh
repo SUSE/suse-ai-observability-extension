@@ -92,7 +92,8 @@ install() {
 
   # Step 1: kubernetes-v2 stackpack for each cluster
   for cluster in "${CLUSTERS[@]}"; do
-    cluster=$(echo "$cluster" | xargs)
+    cluster="${cluster#"${cluster%%[![:space:]]*}"}"
+    cluster="${cluster%"${cluster##*[![:space:]]}"}"
     local filter=".instances | any(.config.kubernetes_cluster_name == \"$cluster\")"
 
     if stackpack_has_instance kubernetes-v2 "$filter"; then
@@ -129,9 +130,60 @@ install() {
   log "Installation completed successfully."
 }
 
+# --- Cleanup legacy (v1.5.0 and below) ---
+
+cleanup_legacy() {
+  log "Starting legacy cleanup (v1.5.0 resources)..."
+
+  # 1. Remove the "GenAI Observability" main menu group
+  local menu_id
+  menu_id=$(run_sts settings list --type MainMenuGroup -o json |
+    jq -r '.settings[] | select(.name == "GenAI Observability") | .id')
+
+  if [[ -z "$menu_id" ]]; then
+    log "No legacy GenAI Observability menu found"
+  else
+    log "Removing legacy GenAI Observability menu (id=$menu_id)..."
+    run_sts settings delete --ids "$menu_id" ||
+      fail "Could not delete legacy menu $menu_id"
+    log "Legacy menu removed"
+  fi
+
+  # 2. Uninstall autosync stackpack instances matching cluster names
+  if [[ -z "${KUBERNETES_CLUSTERS:-}" ]]; then
+    warn "KUBERNETES_CLUSTERS not set, skipping autosync cleanup"
+    log "Legacy cleanup completed (menu only)."
+    return
+  fi
+
+  IFS=',' read -ra CLUSTERS <<<"$KUBERNETES_CLUSTERS"
+
+  for cluster in "${CLUSTERS[@]}"; do
+    cluster="${cluster#"${cluster%%[![:space:]]*}"}"
+    cluster="${cluster%"${cluster##*[![:space:]]}"}"
+    local instance_id
+    instance_id=$(run_sts stackpack list-instances --name autosync -o json |
+      jq -r --arg url "$cluster" \
+        '.instances | map(select(.config.sts_instance_url == $url and (.status == "INSTALLED" or .status == "ERROR")))[0].id // empty')
+
+    if [[ -z "$instance_id" ]]; then
+      log "No legacy autosync instance for cluster '$cluster'"
+    else
+      log "Uninstalling legacy autosync instance $instance_id (cluster='$cluster')..."
+      run_sts stackpack uninstall --id "$instance_id" --name autosync ||
+        fail "Could not uninstall legacy autosync instance $instance_id"
+      log "Legacy autosync instance $instance_id uninstalled"
+    fi
+  done
+
+  log "Legacy cleanup completed successfully."
+}
+
 # --- Main ---
 
-if [[ "${UNINSTALL:-}" == "true" ]]; then
+if [[ "${CLEANUP_LEGACY:-}" == "true" ]]; then
+  cleanup_legacy
+elif [[ "${UNINSTALL:-}" == "true" ]]; then
   uninstall
 else
   install

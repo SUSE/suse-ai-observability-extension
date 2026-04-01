@@ -34,7 +34,7 @@
         query: sum(rate(gen_ai_client_operation_duration_seconds_count{}[5m])) by (suse_ai_component_name, suse_ai_component_type)
         unit: reqps
       titleTemplate: "GenAI data from ${suse_ai_component_name}"
-      urnTemplate: "suse-ai:product:${suse_ai_component_type}:${suse_ai_component_name}"
+      urnTemplate: "urn:suse-ai:product:${suse_ai_component_type}:${suse_ai_component_name}"
 
   - _type: Monitor
     id: -3015
@@ -56,6 +56,6 @@
         aliasTemplate: "Error ratio (errors/total)"
         unit: percent
       titleTemplate: "Span error ratio"
-      urnTemplate: "suse-ai:product:application:${service_name}"
+      urnTemplate: "urn:suse-ai:product:application:${service_name}"
     remediationHint: {{ include "templates/monitors/application-span-error-ratio/remediation-hint.md.hbs" "identity" }}
 

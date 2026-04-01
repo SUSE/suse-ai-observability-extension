@@ -17,7 +17,7 @@
           sum(rate(rest_responses_fail_total{}[5m]))
         unit: reqps
       titleTemplate: "Qdrant REST API Failures"
-      urnTemplate: "suse-ai:product:vectordb:qdrant"
+      urnTemplate: "urn:suse-ai:product:vectordb:qdrant"
     remediationHint: {{ include "templates/monitors/qdrant/remediation-rest-failures.md.hbs" "identity" }}
 
   - _type: Monitor
@@ -38,7 +38,7 @@
           sum(rate(grpc_responses_fail_total{}[5m]))
         unit: reqps
       titleTemplate: "Qdrant gRPC API Failures"
-      urnTemplate: "suse-ai:product:vectordb:qdrant"
+      urnTemplate: "urn:suse-ai:product:vectordb:qdrant"
     remediationHint: {{ include "templates/monitors/qdrant/remediation-grpc-failures.md.hbs" "identity" }}
 
   - _type: Monitor
@@ -59,7 +59,7 @@
           rest_responses_avg_duration_seconds{}
         unit: s
       titleTemplate: "Qdrant High REST API Latency"
-      urnTemplate: "suse-ai:product:vectordb:qdrant"
+      urnTemplate: "urn:suse-ai:product:vectordb:qdrant"
     remediationHint: {{ include "templates/monitors/qdrant/remediation-rest-latency.md.hbs" "identity" }}
 
   - _type: Monitor
@@ -80,5 +80,5 @@
           memory_active_bytes{}
         unit: bytes
       titleTemplate: "Qdrant High Memory Usage"
-      urnTemplate: "suse-ai:product:vectordb:qdrant"
+      urnTemplate: "urn:suse-ai:product:vectordb:qdrant"
     remediationHint: {{ include "templates/monitors/qdrant/remediation-memory.md.hbs" "identity" }}
