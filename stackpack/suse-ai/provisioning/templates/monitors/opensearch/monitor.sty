@@ -19,7 +19,7 @@
           (sum(label_replace(elasticsearch_cluster_health, "product_name", "$1", "elasticsearch_cluster_name", "([^-]*)(-cluster)?")) by (product_name, elasticsearch_cluster_name) * 0)
         unit: short
       titleTemplate: "OpenSearch Cluster Red Status"
-      urnTemplate: "suse-ai:product:search-engine:${product_name}"
+      urnTemplate: "urn:suse-ai:product:search-engine:${product_name}"
     remediationHint: {{ include "templates/monitors/opensearch/remediation-red.md.hbs" "identity" }}
 
   - _type: Monitor
@@ -42,5 +42,5 @@
           (sum(label_replace(elasticsearch_cluster_health, "product_name", "$1", "elasticsearch_cluster_name", "([^-]*)(-cluster)?")) by (product_name, elasticsearch_cluster_name) * 0)
         unit: short
       titleTemplate: "OpenSearch Cluster Yellow Status"
-      urnTemplate: "suse-ai:product:search-engine:${product_name}"
+      urnTemplate: "urn:suse-ai:product:search-engine:${product_name}"
     remediationHint: {{ include "templates/monitors/opensearch/remediation-yellow.md.hbs" "identity" }}

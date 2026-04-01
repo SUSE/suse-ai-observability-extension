@@ -1,5 +1,5 @@
 // IdExtractorFunction for SUSE AI components and relations
-// Adds a 'suse-ai:' prefix to component externalIds to keep them
+// Adds a 'urn:suse-ai:' prefix to component externalIds to keep them
 // separate from the standard OTel StackPack components.
 // The original OTel externalId is kept as an identifier to enable
 // cross-stackpack merging and relation source/target resolution.
@@ -70,7 +70,7 @@ if (!isRelation) {
     // 2. Cross-stackpack merging works with the OTel StackPack
     identifiers.add(extIdStr)
 
-    def newExternalId = 'suse-ai:' + extIdStr
+    def newExternalId = 'urn:suse-ai:' + extIdStr
     return Sts.createId(newExternalId, identifiers, typeName)
 } else {
     // --- Relation processing ---

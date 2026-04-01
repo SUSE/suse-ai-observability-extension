@@ -77,7 +77,7 @@ if (isManaged) {
     // This hides mirrored instances from the category menus (AI Applications, etc.)
     // but keeps the logical products visible.
     def extId = element.externalId?.toString() ?: ""
-    if (extId.startsWith("suse-ai:product:")) {
+    if (extId.startsWith("urn:suse-ai:product:")) {
         tags['suse.ai.category'] = category.toString()
     }
     

@@ -17,7 +17,7 @@
           max(vllm_gpu_cache_usage_perc or vllm:gpu_cache_usage_perc) by (model_name)
         unit: percentunit
       titleTemplate: "vLLM High GPU Cache Usage"
-      urnTemplate: "suse-ai:product:inference-engine:vllm"
+      urnTemplate: "urn:suse-ai:product:inference-engine:vllm"
     remediationHint: {{ include "templates/monitors/vllm/remediation-gpu-cache.md.hbs" "identity" }}
 
   - _type: Monitor
@@ -38,7 +38,7 @@
           histogram_quantile(0.99, sum by (le, model_name) (rate({__name__=~"vllm:e2e_request_latency_seconds_bucket|vllm_e2e_request_latency_seconds_bucket"}[5m])))
         unit: s
       titleTemplate: "vLLM High End-to-End Latency"
-      urnTemplate: "suse-ai:product:inference-engine:vllm"
+      urnTemplate: "urn:suse-ai:product:inference-engine:vllm"
     remediationHint: {{ include "templates/monitors/vllm/remediation-latency.md.hbs" "identity" }}
 
   - _type: Monitor
@@ -59,7 +59,7 @@
           max(vllm_num_requests_waiting or vllm:num_requests_waiting) by (model_name)
         unit: short
       titleTemplate: "vLLM Request Queue Buildup"
-      urnTemplate: "suse-ai:product:inference-engine:vllm"
+      urnTemplate: "urn:suse-ai:product:inference-engine:vllm"
     remediationHint: {{ include "templates/monitors/vllm/remediation-queue.md.hbs" "identity" }}
 
   - _type: Monitor
@@ -80,5 +80,5 @@
           histogram_quantile(0.99, sum by (le, model_name) (rate({__name__=~"vllm:time_to_first_token_seconds_bucket|vllm_time_to_first_token_seconds_bucket"}[5m])))
         unit: s
       titleTemplate: "vLLM High Time to First Token"
-      urnTemplate: "suse-ai:product:inference-engine:vllm"
+      urnTemplate: "urn:suse-ai:product:inference-engine:vllm"
     remediationHint: {{ include "templates/monitors/vllm/remediation-ttft.md.hbs" "identity" }}
