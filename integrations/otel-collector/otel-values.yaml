@@ -10,9 +10,15 @@ extraEnvsFrom:
   - secretRef:
       name: open-telemetry-collector
 mode: deployment
+clusterRole:
+  create: true
+  rules:
+    - apiGroups: [""]
+      resources: ["pods", "nodes", "endpoints", "services"]
+      verbs: ["get", "list", "watch"]
 image:
   registry: ghcr.io
-  repository: thbertoldi/otelcol-suse-ai
+  repository: suse/suse-ai-opentelemetry-collector
   tag: latest
   pullPolicy: Always
 ports:
