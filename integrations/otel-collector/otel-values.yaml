@@ -10,9 +10,15 @@ extraEnvsFrom:
   - secretRef:
       name: open-telemetry-collector
 mode: deployment
+clusterRole:
+  create: true
+  rules:
+    - apiGroups: [""]
+      resources: ["pods", "nodes", "endpoints", "services"]
+      verbs: ["get", "list", "watch"]
 image:
   registry: ghcr.io
-  repository: thbertoldi/otelcol-suse-ai
+  repository: suse/suse-ai-opentelemetry-collector
   tag: latest
   pullPolicy: Always
 ports:
@@ -121,7 +127,8 @@ config:
             - set(attributes["suse.ai.component.name"], "vllm") where attributes["service.name"] == "vllm"
             - set(attributes["suse.ai.component.type"], "inference-engine") where attributes["service.name"] == "vllm"
             - set(attributes["service.instance.id"], "vllm") where attributes["service.name"] == "vllm"
-            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["service.name"] == "vllm"
+            - set(attributes["k8s.namespace.name"], attributes["service.namespace"]) where attributes["service.name"] == "vllm" and attributes["service.namespace"] != nil
+            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["service.name"] == "vllm" and attributes["service.namespace"] == nil
     transform/qdrant:
       error_mode: ignore
       metric_statements:
@@ -130,7 +137,8 @@ config:
             - set(attributes["suse.ai.managed"], "true") where attributes["service.name"] == "qdrant"
             - set(attributes["suse.ai.component.name"], "qdrant") where attributes["service.name"] == "qdrant"
             - set(attributes["suse.ai.component.type"], "vectordb") where attributes["service.name"] == "qdrant"
-            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["service.name"] == "qdrant"
+            - set(attributes["k8s.namespace.name"], attributes["service.namespace"]) where attributes["service.name"] == "qdrant" and attributes["service.namespace"] != nil
+            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["service.name"] == "qdrant" and attributes["service.namespace"] == nil
     transform/milvus:
       error_mode: ignore
       metric_statements:
@@ -139,7 +147,8 @@ config:
             - set(attributes["suse.ai.managed"], "true") where attributes["service.name"] == "milvus"
             - set(attributes["suse.ai.component.name"], "milvus") where attributes["service.name"] == "milvus"
             - set(attributes["suse.ai.component.type"], "vectordb") where attributes["service.name"] == "milvus"
-            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["service.name"] == "milvus"
+            - set(attributes["k8s.namespace.name"], attributes["service.namespace"]) where attributes["service.name"] == "milvus" and attributes["service.namespace"] != nil
+            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["service.name"] == "milvus" and attributes["service.namespace"] == nil
     tail_sampling:
       decision_wait: 10s
       policies:
@@ -195,7 +204,8 @@ config:
             - set(attributes["suse.ai.managed"], "true") where attributes["gen_ai.provider.name"] != nil
             - set(attributes["suse.ai.component.name"], attributes["gen_ai.provider.name"]) where attributes["gen_ai.provider.name"] != nil
             - set(attributes["suse.ai.component.type"], "inference-engine") where attributes["gen_ai.provider.name"] != nil
-            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["gen_ai.provider.name"] != nil
+            - set(attributes["k8s.namespace.name"], attributes["service.namespace"]) where attributes["gen_ai.provider.name"] != nil and attributes["service.namespace"] != nil
+            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["gen_ai.provider.name"] != nil and attributes["service.namespace"] == nil
     # Infer LLM models from GenAI client metrics.
     # Groups metrics by gen_ai.request.model to create model topology elements.
     groupbyattrs/infer-models:
@@ -212,7 +222,8 @@ config:
             - set(attributes["suse.ai.managed"], "true") where attributes["gen_ai.request.model"] != nil
             - set(attributes["suse.ai.component.name"], attributes["gen_ai.request.model"]) where attributes["gen_ai.request.model"] != nil
             - set(attributes["suse.ai.component.type"], "llm-model") where attributes["gen_ai.request.model"] != nil
-            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["gen_ai.request.model"] != nil
+            - set(attributes["k8s.namespace.name"], attributes["service.namespace"]) where attributes["gen_ai.request.model"] != nil and attributes["service.namespace"] != nil
+            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["gen_ai.request.model"] != nil and attributes["service.namespace"] == nil
     # Exclude services that already have suse.ai.component.name set
     # (e.g., Open WebUI) to avoid creating duplicate application components.
     filter/exclude-already-tagged:
