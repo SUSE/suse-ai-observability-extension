@@ -111,9 +111,11 @@ install() {
 
   # Step 3: Upload and install/upgrade suse-ai stackpack
   log "Uploading suse-ai stackpack..."
-  run_sts stackpack upload --file /mnt/suse-ai.sts ||
-    fail "Could not upload suse-ai stackpack"
-  log "suse-ai stackpack uploaded"
+  if run_sts stackpack upload --file /mnt/suse-ai.sts; then
+    log "suse-ai stackpack uploaded"
+  else
+    warn "Could not upload suse-ai stackpack; assuming it already exists"
+  fi
 
   if stackpack_has_instance suse-ai '.instances | any(.status == "INSTALLED")'; then
     log "Upgrading suse-ai stackpack..."
