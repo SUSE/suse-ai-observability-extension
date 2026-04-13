@@ -1,0 +1,34 @@
+# LiteLLM High Error Rate
+
+The LiteLLM proxy **{{componentName}}** is returning failed requests.
+
+## Potential Impacts
+- Client applications receiving errors instead of LLM responses
+- Degraded user experience in AI-powered features
+- Potential cascading failures if callers do not handle errors gracefully
+
+## Diagnosis Steps
+1. **Check LiteLLM Logs**:
+   ```bash
+   kubectl logs -l app=litellm --tail=100
+   ```
+2. **Review Error Breakdown**:
+   - Check the `litellm_proxy_failed_requests_metric` by `exception_status` and `exception_class` to identify the type of failures
+   - Common statuses: 401 (auth), 429 (rate limit), 500 (internal), 503 (upstream unavailable)
+3. **Verify Upstream LLM Availability**:
+   - Check `litellm_deployment_state` for deployment health
+   - Review `litellm_deployment_failure_responses` for backend-specific failures
+4. **Check LiteLLM Configuration**:
+   ```bash
+   kubectl get configmap -l app=litellm -o yaml
+   ```
+
+## Remediation Actions
+1. **Authentication Errors (401/403)**: Verify API keys and credentials for upstream LLM providers are valid and not expired.
+2. **Rate Limiting (429)**: Review rate limits on upstream providers. Consider adding fallback models or increasing rate limits.
+3. **Upstream Unavailable (503)**: Check if the upstream LLM deployment is healthy. Verify network connectivity to the provider.
+4. **Internal Errors (500)**: Check LiteLLM proxy logs for stack traces. Consider restarting the proxy:
+   ```bash
+   kubectl rollout restart deployment/litellm
+   ```
+5. **Enable Fallbacks**: Configure fallback models in LiteLLM to route to alternative providers when primary ones fail.

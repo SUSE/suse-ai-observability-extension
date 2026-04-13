@@ -1,0 +1,32 @@
+# LiteLLM High Deployment Failure Rate
+
+Upstream LLM deployments routed by the LiteLLM proxy **{{componentName}}** are experiencing failures.
+
+## Potential Impacts
+- Increased error rate for client applications
+- Degraded LLM response quality if fallback models are lower quality
+- Increased costs if retries or fallbacks route to more expensive providers
+- Potential complete outage if all deployments for a model group fail
+
+## Diagnosis Steps
+1. **Identify Affected Deployments**:
+   - Check `litellm_deployment_failure_responses` by `litellm_model_name`, `api_provider`, and `api_base`
+   - Review `exception_status` and `exception_class` labels for failure patterns
+2. **Check Deployment Health**:
+   - Review `litellm_deployment_state` for overall deployment health
+   - Check `litellm_deployment_cooled_down` to see if deployments are being automatically taken out of rotation
+3. **Review Fallback Activity**:
+   - Check `litellm_deployment_successful_fallbacks` and `litellm_deployment_failed_fallbacks`
+   - Verify fallback models are configured and healthy
+4. **Check LiteLLM Logs**:
+   ```bash
+   kubectl logs -l app=litellm --tail=100 | grep -i "error\|fail"
+   ```
+
+## Remediation Actions
+1. **Check Provider API Keys**: Verify credentials for the affected provider are valid and have sufficient quota.
+2. **Review Rate Limits**: Check `litellm_remaining_requests_metric` and `litellm_remaining_tokens_metric` for rate limit exhaustion on the provider side.
+3. **Add Redundant Deployments**: Configure multiple deployments for the same model group to improve resilience.
+4. **Configure Fallbacks**: Set up fallback models in `proxy_config.yaml` for automatic failover.
+5. **Adjust Load Balancing**: Tune LiteLLM's routing strategy to deprioritize failing deployments.
+6. **Contact Provider**: If failures persist, check the provider's status page or contact their support.
