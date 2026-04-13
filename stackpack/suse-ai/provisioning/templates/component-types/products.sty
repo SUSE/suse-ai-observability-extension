@@ -593,7 +593,29 @@
           title: "Related services"
           stql: 'withNeighborsOf(direction = "up", components = (type = "otel service instance" and label = "suse.ai.component.name:litellm"), levels = "1") and type = "otel service"'
           viewTypeIdentifier: "urn:stackpack:open-telemetry:shared:view-type:service"
-      metrics: []
+      metrics:
+        - _type: "ComponentTypeMetricCategory"
+          name: "Proxy"
+          description: "LiteLLM Proxy Metrics"
+          bindings:
+            - "urn:stackpack:suse-ai:shared:metric-binding:litellm:proxy-request-rate"
+            - "urn:stackpack:suse-ai:shared:metric-binding:litellm:proxy-failed-request-rate"
+            - "urn:stackpack:suse-ai:shared:metric-binding:litellm:request-total-latency"
+            - "urn:stackpack:suse-ai:shared:metric-binding:litellm:llm-api-latency"
+            - "urn:stackpack:suse-ai:shared:metric-binding:litellm:ttft"
+            - "urn:stackpack:suse-ai:shared:metric-binding:litellm:overhead-latency"
+            - "urn:stackpack:suse-ai:shared:metric-binding:litellm:in-flight-requests"
+          defaultExpanded: true
+        - _type: "ComponentTypeMetricCategory"
+          name: "LLM"
+          description: "LLM Usage Metrics"
+          bindings:
+            - "urn:stackpack:suse-ai:shared:metric-binding:litellm:total-spend"
+            - "urn:stackpack:suse-ai:shared:metric-binding:litellm:token-usage"
+            - "urn:stackpack:suse-ai:shared:metric-binding:litellm:deployment-success-rate"
+            - "urn:stackpack:suse-ai:shared:metric-binding:litellm:deployment-failure-rate"
+            - "urn:stackpack:suse-ai:shared:metric-binding:litellm:deployment-state"
+          defaultExpanded: true
 
   - _type: "ComponentType"
     id: -5008
