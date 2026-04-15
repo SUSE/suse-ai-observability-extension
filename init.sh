@@ -110,18 +110,24 @@ install() {
   ensure_stackpack open-telemetry
 
   # Step 3: Upload and install/upgrade suse-ai stackpack
+  local uploaded=false
   log "Uploading suse-ai stackpack..."
   if run_sts stackpack upload --file /mnt/suse-ai.sts; then
     log "suse-ai stackpack uploaded"
+    uploaded=true
   else
     warn "Could not upload suse-ai stackpack; assuming it already exists"
   fi
 
   if stackpack_has_instance suse-ai '.instances | any(.status == "INSTALLED")'; then
-    log "Upgrading suse-ai stackpack..."
-    run_sts stackpack upgrade --name suse-ai --unlocked-strategy overwrite ||
-      fail "Could not upgrade suse-ai stackpack"
-    log "suse-ai stackpack upgraded"
+    if [[ "$uploaded" == "true" ]]; then
+      log "Upgrading suse-ai stackpack..."
+      run_sts stackpack upgrade --name suse-ai --unlocked-strategy overwrite ||
+        fail "Could not upgrade suse-ai stackpack"
+      log "suse-ai stackpack upgraded"
+    else
+      log "suse-ai stackpack already installed and up to date"
+    fi
   else
     log "Installing suse-ai stackpack..."
     run_sts stackpack install --name suse-ai ||
