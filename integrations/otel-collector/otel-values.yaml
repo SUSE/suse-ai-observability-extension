@@ -6,6 +6,8 @@ extraEnvs:
     value: "local"  # Update to match your cluster name
   - name: SUSE_AI_NAMESPACE
     value: "suse-private-ai"  # Update to match the SUSE AI namespace
+  - name: KUBEFLOW_NAMESPACE
+    value: "kubeflow"  # Update to match the Kubeflow control-plane namespace
 extraEnvsFrom:
   - secretRef:
       name: open-telemetry-collector
