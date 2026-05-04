@@ -13,6 +13,8 @@ If you haven't already, ensure your GenAI applications and infrastructure are in
 
 ### Kubeflow
 
-- **KServe** (`inference-engine.kserve`) -- request rate, P95/P99 latency, queue depth, model-load failures across all InferenceServices.
-- **Kubeflow Pipelines** (`workflow-engine.kubeflow-pipelines`) -- pipeline run success/failure rates, API server latency, reconcile lag, MLMD operations.
-- **Kubeflow Model Registry** (`ml-registry.kubeflow`) -- topology and Kubernetes pod health (no native metrics in v1).
+If your environment includes Kubeflow, the StackPack additionally surfaces:
+
+- **KServe inference engines** -- request rate, P95/P99 latency, queue depth, and model-load failures across all `InferenceService` resources (component type: `inference-engine.kserve`).
+- **Kubeflow Pipelines control plane** -- pipeline run success/failure rates, API server latency, reconcile lag, and MLMD operations (component type: `workflow-engine.kubeflow-pipelines`).
+- **Kubeflow Model Registry** -- topology presence and Kubernetes pod health (component type: `ml-registry.kubeflow`); native metric coverage is planned for a future release.

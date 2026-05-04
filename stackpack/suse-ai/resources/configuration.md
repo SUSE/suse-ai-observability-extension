@@ -16,21 +16,23 @@ See the [SUSE AI Observability documentation](https://documentation.suse.com/sus
 
 ### Kubeflow
 
-To monitor Kubeflow components (Pipelines, KServe, Model Registry), update your OTel collector Helm values:
+If you want to monitor Kubeflow components (Pipelines, KServe, Model Registry), two configuration steps are required.
 
-```yaml
-extraEnvs:
-  - name: KUBEFLOW_NAMESPACE
-    value: "kubeflow"   # change if your install uses a different namespace
-```
+1. **Set the Kubeflow namespace** in your OTel collector Helm values:
 
-For KServe InferenceServices, enable metric aggregation on each one:
+   ```yaml
+   extraEnvs:
+     - name: KUBEFLOW_NAMESPACE
+       value: "kubeflow"   # change if your install uses a different namespace
+   ```
 
-```yaml
-metadata:
-  annotations:
-    serving.kserve.io/enable-metric-aggregation: "true"
-    serving.kserve.io/enable-prometheus-scraping: "true"
-```
+2. **Enable metric aggregation** on each KServe `InferenceService` so the queue-proxy exposes runtime metrics on the `http-usermetric` port:
 
-Once aggregation is enabled, the OTel collector picks up KServe metrics through Kubernetes pod discovery on the `http-usermetric` port. No further per-InferenceService configuration is required.
+   ```yaml
+   metadata:
+     annotations:
+       serving.kserve.io/enable-metric-aggregation: "true"
+       serving.kserve.io/enable-prometheus-scraping: "true"
+   ```
+
+Once these are in place, the OTel collector picks up KServe metrics through Kubernetes pod discovery; no further per-`InferenceService` configuration is required.
