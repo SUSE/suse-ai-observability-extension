@@ -1,77 +1,125 @@
-  - _type: MetricBinding
-    id: -640
-    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:api-request-rate"
+  - id: -640
     name: "API Request Rate"
     description: "HTTP/gRPC requests per second across the KFP control plane."
     queries:
       - expression: 'sum by (service) (rate(rest_client_requests_total[${__rate_interval}]))'
         alias: "${service}"
         primary: true
-        unit: reqps
-    chartType: line
     scope: 'type = "workflow-engine.kubeflow-pipelines"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:api-request-rate"
+    unit: reqps
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: "Kubeflow Pipelines"
+        section: Control Plane
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
 
-  - _type: MetricBinding
-    id: -641
-    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:api-latency-p95"
+  - id: -641
     name: "API Latency P95"
     description: "P95 of REST client request duration."
     queries:
-      - expression: 'histogram_quantile(0.95, sum by (verb, le) (rate(rest_client_request_duration_seconds_bucket[5m])))'
+      - expression: 'histogram_quantile(0.95, sum by (verb, le) (rate(rest_client_request_duration_seconds_bucket[${__rate_interval}])))'
         alias: "${verb}"
         primary: true
-        unit: s
-    chartType: line
     scope: 'type = "workflow-engine.kubeflow-pipelines"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:api-latency-p95"
+    unit: s
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: "Kubeflow Pipelines"
+        section: Control Plane
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
 
-  - _type: MetricBinding
-    id: -642
-    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:run-success-rate"
+  - id: -642
     name: "Run Success Rate"
     description: "Fraction of pipeline runs that completed successfully over 15m."
     queries:
-      - expression: '(sum(rate(run_server_run_count{status="Succeeded"}[15m])) or 0) / sum(rate(run_server_run_count[15m]))'
+      - expression: '(sum(rate(run_server_run_count{status="Succeeded"}[15m])) / sum(rate(run_server_run_count[15m]))) or vector(0)'
         alias: "Success ratio"
         primary: true
-        unit: percentunit
-    chartType: line
     scope: 'type = "workflow-engine.kubeflow-pipelines"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:run-success-rate"
+    unit: percentunit
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: "Kubeflow Pipelines"
+        section: Pipeline Runs
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
 
-  - _type: MetricBinding
-    id: -643
-    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:run-failure-rate"
+  - id: -643
     name: "Run Failure Rate"
     description: "Pipeline runs failing per second over 15m."
     queries:
       - expression: 'sum(rate(run_server_run_count{status="Failed"}[15m]))'
         alias: "Failures/s"
         primary: true
-        unit: short
-    chartType: line
     scope: 'type = "workflow-engine.kubeflow-pipelines"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:run-failure-rate"
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: "Kubeflow Pipelines"
+        section: Pipeline Runs
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
 
-  - _type: MetricBinding
-    id: -644
-    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:reconcile-lag"
+  - id: -644
     name: "Reconcile Lag"
     description: "Maximum unfinished work age in the controller workqueue."
     queries:
       - expression: 'max(workqueue_unfinished_work_seconds)'
         alias: "Lag (s)"
         primary: true
-        unit: s
-    chartType: line
     scope: 'type = "workflow-engine.kubeflow-pipelines"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:reconcile-lag"
+    unit: s
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: "Kubeflow Pipelines"
+        section: Control Plane
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
 
-  - _type: MetricBinding
-    id: -645
-    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:mlmd-op-rate"
+  - id: -645
     name: "MLMD Operation Rate"
     description: "gRPC calls per second to the metadata-grpc-service."
     queries:
-      - expression: 'sum by (grpc_method) (rate(grpc_server_handled_total{job=~".*metadata-grpc.*"}[5m]))'
+      - expression: 'sum by (grpc_method) (rate(grpc_server_handled_total{job=~".*metadata-grpc.*"}[${__rate_interval}]))'
         alias: "${grpc_method}"
         primary: true
-        unit: reqps
-    chartType: line
     scope: 'type = "workflow-engine.kubeflow-pipelines"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:mlmd-op-rate"
+    unit: reqps
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: "Kubeflow Pipelines"
+        section: Control Plane
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
