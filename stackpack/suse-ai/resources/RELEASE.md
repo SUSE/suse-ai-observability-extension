@@ -1,6 +1,6 @@
 # SUSE AI Observability StackPack
 
-## Version <NEW_VERSION>
+## Version 2.0.1
 
 - Added Kubeflow integration: KServe (`inference-engine.kserve`), Kubeflow Pipelines (`workflow-engine.kubeflow-pipelines`), Kubeflow Model Registry (`ml-registry.kubeflow`).
 - Re-enabled the **Workflow Engines** and **ML Registries** sidebar menu entries.
