@@ -40,6 +40,8 @@ nodes:
 {{ include "templates/metric-bindings/gpu-metrics.sty" "yaml" }}
 {{ include "templates/metric-bindings/qdrant-metrics.sty" "yaml" }}
 {{ include "templates/metric-bindings/common-metrics.sty" "yaml" }}
+{{ include "templates/metric-bindings/kserve-metrics.sty" "yaml" }}
+{{ include "templates/metric-bindings/kubeflow-pipelines-metrics.sty" "yaml" }}
 
 # Monitors
 {{ include "templates/monitors/genai-monitors.sty" "yaml" }}
@@ -47,3 +49,5 @@ nodes:
 {{ include "templates/monitors/milvus/monitor.sty" "yaml" }}
 {{ include "templates/monitors/vllm/monitor.sty" "yaml" }}
 {{ include "templates/monitors/qdrant/monitor.sty" "yaml" }}
+{{ include "templates/monitors/kserve/monitor.sty" "yaml" }}
+{{ include "templates/monitors/kubeflow-pipelines/monitor.sty" "yaml" }}
