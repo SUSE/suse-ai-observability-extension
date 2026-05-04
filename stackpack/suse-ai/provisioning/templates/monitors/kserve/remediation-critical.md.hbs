@@ -1,0 +1,12 @@
+**KServe inference health is CRITICAL on {{componentName}}.**
+
+Current value: `{{currentValue}}` (threshold `{{threshold}}`). Failed-request rate exceeds the critical bound.
+
+Immediate actions:
+
+1. `kubectl get inferenceservice <name> -n <ns> -o yaml` — inspect `status.conditions` for the failing predictor.
+2. Tail kserve-container logs for stack traces.
+3. If a recent deployment is at fault, roll back: `kubectl rollout undo deploy/<predictor-deployment> -n <ns>`.
+4. Confirm upstream dependencies (model storage, OpenSearch/Milvus, GPU availability) are healthy.
+
+See the full triage playbook at `knowledge/KUBEFLOW.md`.

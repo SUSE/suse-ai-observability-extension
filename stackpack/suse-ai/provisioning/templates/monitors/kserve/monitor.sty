@@ -1,0 +1,68 @@
+
+  - _type: Monitor
+    id: -3016
+    name: KServe High Error Rate
+    identifier: urn:stackpack:suse-ai:shared:monitor:kserve-error-rate
+    description: |
+      Triggers when more than 5% of requests to a KServe InferenceService
+      return a 5xx response, averaged over 5 minutes.
+    status: ENABLED
+    intervalSeconds: 60
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      comparator: GT
+      failureState: CRITICAL
+      threshold: 0.05
+      metric:
+        query: >-
+          (sum by (service_name) (rate(revision_request_count{response_code_class="5xx"}[5m])) / sum by (service_name) (rate(revision_request_count[5m]))) or vector(0)
+        aliasTemplate: "Error ratio ${service_name}"
+        unit: percentunit
+      titleTemplate: "KServe ${service_name} error rate exceeds 5%"
+      urnTemplate: "urn:suse-ai:product:inference-engine:kserve"
+    remediationHint: {{ include "templates/monitors/kserve/remediation-critical.md.hbs" "identity" }}
+
+  - _type: Monitor
+    id: -3017
+    name: KServe Latency P95 High
+    identifier: urn:stackpack:suse-ai:shared:monitor:kserve-latency-p95
+    description: |
+      Triggers when the P95 end-to-end request latency exceeds 2 seconds
+      over 5 minutes.
+    status: ENABLED
+    intervalSeconds: 60
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      comparator: GT
+      failureState: DEVIATING
+      threshold: 2.0
+      metric:
+        query: >-
+          histogram_quantile(0.95, sum by (service_name, le) (rate(revision_app_request_latencies_bucket[5m])))
+        aliasTemplate: "P95 latency ${service_name}"
+        unit: s
+      titleTemplate: "KServe ${service_name} P95 latency above 2s"
+      urnTemplate: "urn:suse-ai:product:inference-engine:kserve"
+    remediationHint: {{ include "templates/monitors/kserve/remediation-deviating.md.hbs" "identity" }}
+
+  - _type: Monitor
+    id: -3018
+    name: KServe Model Load Failures
+    identifier: urn:stackpack:suse-ai:shared:monitor:kserve-model-load-failures
+    description: |
+      Triggers when a model load attempt fails for a KServe InferenceService.
+    status: ENABLED
+    intervalSeconds: 60
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      comparator: GT
+      failureState: DEVIATING
+      threshold: 0
+      metric:
+        query: >-
+          sum by (service_name) (increase(model_load_seconds_count{success="false"}[5m]))
+        aliasTemplate: "Failed loads ${service_name}"
+        unit: short
+      titleTemplate: "KServe ${service_name} failed to load a model"
+      urnTemplate: "urn:suse-ai:product:inference-engine:kserve"
+    remediationHint: {{ include "templates/monitors/kserve/remediation-deviating.md.hbs" "identity" }}
