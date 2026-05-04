@@ -187,6 +187,36 @@ config:
             - set(attributes["suse.ai.component.type"], "vectordb") where attributes["service.name"] == "milvus"
             - set(attributes["k8s.namespace.name"], attributes["service.namespace"]) where attributes["service.name"] == "milvus" and attributes["service.namespace"] != nil
             - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["service.name"] == "milvus" and attributes["service.namespace"] == nil
+    transform/kserve:
+      error_mode: ignore
+      metric_statements:
+        - context: resource
+          statements:
+            - set(attributes["suse.ai.managed"], "true") where IsMatch(attributes["service.name"] ?? "", ".*-predictor-default|.*-transformer-default|.*-explainer-default|kserve-controller-manager")
+            - set(attributes["suse.ai.component.name"], "kserve") where IsMatch(attributes["service.name"] ?? "", ".*-predictor-default|.*-transformer-default|.*-explainer-default|kserve-controller-manager")
+            - set(attributes["suse.ai.component.type"], "inference-engine") where IsMatch(attributes["service.name"] ?? "", ".*-predictor-default|.*-transformer-default|.*-explainer-default|kserve-controller-manager")
+            - set(attributes["service.instance.id"], attributes["service.name"]) where IsMatch(attributes["service.name"] ?? "", ".*-predictor-default|.*-transformer-default|.*-explainer-default|kserve-controller-manager") and attributes["service.instance.id"] == nil
+            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where IsMatch(attributes["service.name"] ?? "", ".*-predictor-default|.*-transformer-default|.*-explainer-default|kserve-controller-manager") and attributes["k8s.namespace.name"] == nil
+    transform/kubeflow-pipelines:
+      error_mode: ignore
+      metric_statements:
+        - context: resource
+          statements:
+            - set(attributes["suse.ai.managed"], "true") where IsMatch(attributes["service.name"] ?? "", "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service")
+            - set(attributes["suse.ai.component.name"], "kubeflow-pipelines") where IsMatch(attributes["service.name"] ?? "", "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service")
+            - set(attributes["suse.ai.component.type"], "workflow-engine") where IsMatch(attributes["service.name"] ?? "", "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service")
+            - set(attributes["service.instance.id"], attributes["service.name"]) where IsMatch(attributes["service.name"] ?? "", "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service") and attributes["service.instance.id"] == nil
+            - set(attributes["k8s.namespace.name"], "${env:KUBEFLOW_NAMESPACE}") where IsMatch(attributes["service.name"] ?? "", "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service") and attributes["k8s.namespace.name"] == nil
+    transform/kubeflow-model-registry:
+      error_mode: ignore
+      metric_statements:
+        - context: resource
+          statements:
+            - set(attributes["suse.ai.managed"], "true") where attributes["service.name"] == "model-registry-service"
+            - set(attributes["suse.ai.component.name"], "kubeflow-model-registry") where attributes["service.name"] == "model-registry-service"
+            - set(attributes["suse.ai.component.type"], "ml-registry") where attributes["service.name"] == "model-registry-service"
+            - set(attributes["service.instance.id"], "kubeflow-model-registry") where attributes["service.name"] == "model-registry-service" and attributes["service.instance.id"] == nil
+            - set(attributes["k8s.namespace.name"], "${env:KUBEFLOW_NAMESPACE}") where attributes["service.name"] == "model-registry-service" and attributes["k8s.namespace.name"] == nil
     tail_sampling:
       decision_wait: 10s
       policies:
@@ -345,7 +375,7 @@ config:
         exporters: [debug, otlp]
       metrics:
         receivers: [otlp, spanmetrics, prometheus]
-        processors: [memory_limiter, transform/qdrant, transform/milvus, transform/vllm, resource, batch]
+        processors: [memory_limiter, transform/qdrant, transform/milvus, transform/vllm, transform/kserve, transform/kubeflow-pipelines, transform/kubeflow-model-registry, resource, batch]
         exporters: [debug, otlp]
       # Infer inference engines from GenAI client metrics sent by applications.
       # Groups metrics by gen_ai.provider.name and creates inference-engine
