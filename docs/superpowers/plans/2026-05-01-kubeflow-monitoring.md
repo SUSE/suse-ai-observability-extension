@@ -632,7 +632,7 @@ python3 -c "
 import re
 content = open('stackpack/suse-ai/provisioning/templates/component-types/products.sty').read()
 # strip handlebars before yaml.load
-stripped = re.sub(r'\{\{[^}]*\}\}', '\"\"', content)
+stripped = re.sub(r'\{\{[^}]*\}\}', 'PLACEHOLDER', content)
 import yaml
 list(yaml.safe_load_all(stripped))
 print('OK')
