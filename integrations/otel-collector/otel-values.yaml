@@ -340,6 +340,29 @@ config:
         - context: span
           statements:
             - set(attributes["peer.service"], resource.attributes["gen_ai.provider.name"]) where resource.attributes["gen_ai.provider.name"] != nil
+    transform/kserve-traces:
+      error_mode: ignore
+      trace_statements:
+        - context: resource
+          statements:
+            - set(attributes["suse.ai.managed"], "true") where attributes["serving.kserve.io/inferenceservice"] != nil or IsMatch(attributes["service.name"] ?? "", ".*-predictor-default|.*-transformer-default|.*-explainer-default")
+            - set(attributes["suse.ai.component.name"], "kserve") where attributes["serving.kserve.io/inferenceservice"] != nil or IsMatch(attributes["service.name"] ?? "", ".*-predictor-default|.*-transformer-default|.*-explainer-default")
+            - set(attributes["suse.ai.component.type"], "inference-engine") where attributes["serving.kserve.io/inferenceservice"] != nil or IsMatch(attributes["service.name"] ?? "", ".*-predictor-default|.*-transformer-default|.*-explainer-default")
+    transform/kfp-traces:
+      error_mode: ignore
+      trace_statements:
+        - context: resource
+          statements:
+            - set(attributes["suse.ai.managed"], "true") where IsMatch(attributes["service.name"] ?? "", "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service")
+            - set(attributes["suse.ai.component.name"], "kubeflow-pipelines") where IsMatch(attributes["service.name"] ?? "", "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service")
+            - set(attributes["suse.ai.component.type"], "workflow-engine") where IsMatch(attributes["service.name"] ?? "", "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service")
+    transform/kubeflow-relations:
+      error_mode: ignore
+      trace_statements:
+        - context: span
+          statements:
+            - set(attributes["peer.service"], "kserve") where attributes["kserve.inference.service"] != nil
+            - set(attributes["peer.service"], "kubeflow-model-registry") where IsMatch(attributes["http.url"] ?? "", ".*model-registry.*")
     filter/dropMissingK8sAttributes:
       error_mode: ignore
       traces:
@@ -356,7 +379,7 @@ config:
       error_mode: ignore
       table:
       - statement: route()
-        pipelines: [traces/sampling, traces/spanmetrics, traces/model-relations, traces/provider-relations, traces/topology]
+        pipelines: [traces/sampling, traces/spanmetrics, traces/model-relations, traces/provider-relations, traces/topology, traces/kubeflow-relations]
   service:
     extensions:
       - health_check
@@ -418,6 +441,12 @@ config:
         receivers: [routing/traces]
         processors: [batch]
         exporters: [topology]
+      # Tag KServe and Kubeflow Pipelines spans, then surface
+      # kfp -> kserve and kfp -> model-registry relations via peer.service.
+      traces/kubeflow-relations:
+        receivers: [routing/traces]
+        processors: [transform/kserve-traces, transform/kfp-traces, transform/kubeflow-relations, batch]
+        exporters: [otlp]
       metrics/elasticsearch:
         receivers: [elasticsearch]
         processors: [memory_limiter, resource/elasticsearch, resource, batch]
