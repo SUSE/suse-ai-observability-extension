@@ -810,6 +810,65 @@
           defaultExpanded: false
 
   - _type: "ComponentType"
+    id: -5017
+    identifier: "urn:stackpack:suse-ai:shared:component-type:ml-registry.kubeflow"
+    name: "ml-registry.kubeflow"
+    iconbase64: "data:image/svg+xml;base64,{{ include "icons/kubeflow-model-registry.svg" "base64" }}"
+    viewTypeIdentifier: "urn:stackpack:suse-ai:shared:view-type:ml-registries"
+    highlights:
+      _type: "ComponentTypeHighlights"
+      namePlural: "kubeflow-model-registry"
+      fields:
+        - _type: "ComponentTypeField"
+          fieldId: "health"
+          label:
+            title: "Health"
+          valueExtractor:
+            _type: "HealthSource"
+          display:
+            _type: "HealthBadgeDisplay"
+        - _type: "ComponentTypeField"
+          fieldId: "type"
+          label:
+            title: "Type"
+          valueExtractor:
+            _type: "ComponentTypeSource"
+          display:
+            _type: "TagDisplay"
+        - _type: "ComponentTypeField"
+          fieldId: "labels"
+          label:
+            title: "Labels"
+          valueExtractor:
+            _type: "TagsSource"
+          display:
+            _type: "TagDisplay"
+            singular: "label"
+      about:
+        _type: "ComponentTypeAbout"
+        fields: ["health", "type", "labels"]
+      events:
+        _type: "ComponentTypeEvents"
+        showEvents: true
+      showLogs: false
+      showLastChange: false
+      externalComponent:
+        _type: "ComponentTypeExternalComponent"
+        showConfiguration: false
+        showStatus: false
+        externalIdSelector: ""
+      relatedResources:
+        - _type: "ComponentTypeRelatedResources"
+          resourceType: "service instance"
+          title: "Instances"
+          stql: 'type = "otel service instance" and label = "suse.ai.component.name:kubeflow-model-registry"'
+        - _type: "ComponentTypeRelatedResources"
+          resourceType: "service"
+          title: "Services"
+          stql: 'withNeighborsOf(direction = "up", components = (type = "otel service instance" and label = "suse.ai.component.name:kubeflow-model-registry"), levels = "1") and type = "otel service"'
+      metrics: []
+
+  - _type: "ComponentType"
     id: -5009
     identifier: "urn:stackpack:suse-ai:shared:component-type:llm-model"
     name: "llm-model"
