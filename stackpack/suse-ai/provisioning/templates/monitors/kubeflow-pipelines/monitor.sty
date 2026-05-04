@@ -19,7 +19,7 @@
         unit: percentunit
       titleTemplate: "Kubeflow Pipelines run failure rate above 10%"
       urnTemplate: "urn:suse-ai:product:workflow-engine:kubeflow-pipelines"
-    remediationHint: {{ include "templates/monitors/kubeflow-pipelines/remediation-deviating.md.hbs" "identity" }}
+    remediationHint: {{ include "templates/monitors/kubeflow-pipelines/remediation-run-failures.md.hbs" "identity" }}
 
   - _type: Monitor
     id: -3020
@@ -37,12 +37,12 @@
       threshold: 60
       metric:
         query: >-
-          max(workqueue_unfinished_work_seconds)
+          max(workqueue_unfinished_work_seconds{job="kubeflow-pipelines"})
         aliasTemplate: "Lag (s)"
         unit: s
       titleTemplate: "Kubeflow Pipelines reconcile lag above 60s"
       urnTemplate: "urn:suse-ai:product:workflow-engine:kubeflow-pipelines"
-    remediationHint: {{ include "templates/monitors/kubeflow-pipelines/remediation-deviating.md.hbs" "identity" }}
+    remediationHint: {{ include "templates/monitors/kubeflow-pipelines/remediation-reconcile-lag.md.hbs" "identity" }}
 
   - _type: Monitor
     id: -3021
@@ -64,7 +64,7 @@
         unit: short
       titleTemplate: "Kubeflow Pipelines API server is down"
       urnTemplate: "urn:suse-ai:product:workflow-engine:kubeflow-pipelines"
-    remediationHint: {{ include "templates/monitors/kubeflow-pipelines/remediation-critical.md.hbs" "identity" }}
+    remediationHint: {{ include "templates/monitors/kubeflow-pipelines/remediation-api-down.md.hbs" "identity" }}
 
   - _type: Monitor
     id: -3022
@@ -86,4 +86,4 @@
         unit: short
       titleTemplate: "Kubeflow Pipelines MLMD gRPC errors elevated"
       urnTemplate: "urn:suse-ai:product:workflow-engine:kubeflow-pipelines"
-    remediationHint: {{ include "templates/monitors/kubeflow-pipelines/remediation-deviating.md.hbs" "identity" }}
+    remediationHint: {{ include "templates/monitors/kubeflow-pipelines/remediation-mlmd-errors.md.hbs" "identity" }}

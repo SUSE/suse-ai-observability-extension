@@ -1,0 +1,12 @@
+**Kubeflow Pipelines MLMD gRPC server is returning errors at {{currentValue}}/s (threshold {{threshold}}/s) on {{componentName}}.**
+
+Triage:
+
+1. Tail the metadata-grpc deployment logs:
+   `kubectl logs -n <kubeflow-namespace> deploy/metadata-grpc-deployment --tail=200`.
+2. Confirm the backing MLMD database is healthy and reachable from the deployment.
+3. List which gRPC methods are erroring (Prometheus):
+   `sum by (grpc_method, grpc_code) (rate(grpc_server_handled_total{grpc_code!="OK",job=~".*metadata-grpc.*"}[5m]))`.
+4. Check for schema-version mismatches between the metadata writer and the MLMD service after recent upgrades.
+5. Restart if the service is wedged:
+   `kubectl rollout restart deploy/metadata-grpc-deployment -n <kubeflow-namespace>`.

@@ -1,0 +1,11 @@
+**Kubeflow Pipelines run failure rate is {{currentValue}} (threshold {{threshold}}) on {{componentName}}.**
+
+Triage:
+
+1. List recent failed runs and look for a common pipeline definition:
+   `kfp run list --max-size 50` then `kfp run describe <run-id>` for failed entries.
+2. Pull logs from the failing step's pod:
+   `kubectl logs -n <kubeflow-namespace> <pipeline-pod>` (find via `kubectl get pods -n <kubeflow-namespace> -l workflows.argoproj.io/workflow=<name>`).
+3. Confirm the `ml-pipeline-persistenceagent` is reconciling state:
+   `kubectl logs -n <kubeflow-namespace> deploy/ml-pipeline-persistenceagent --tail=100`.
+4. If failures cluster on a single user namespace, check namespace-level resource quotas and storage.
