@@ -1,0 +1,85 @@
+  - _type: MetricBinding
+    id: -630
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kserve:request-rate"
+    name: "Request Rate"
+    description: "Inference requests per second per InferenceService."
+    queries:
+      - expression: 'sum by (service_name) (rate(revision_request_count{namespace=~".+"}[${__rate_interval}]))'
+        alias: "${service_name}"
+        primary: true
+        unit: reqps
+    chartType: line
+    scope: 'type = "inference-engine.kserve"'
+
+  - _type: MetricBinding
+    id: -631
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kserve:latency-p95"
+    name: "Request Latency"
+    description: "P50/P95/P99 of end-to-end request latency per InferenceService."
+    queries:
+      - expression: 'histogram_quantile(0.99, sum by (service_name, le) (rate(revision_app_request_latencies_bucket[5m])))'
+        alias: "P99"
+      - expression: 'histogram_quantile(0.95, sum by (service_name, le) (rate(revision_app_request_latencies_bucket[5m])))'
+        alias: "P95"
+        primary: true
+      - expression: 'histogram_quantile(0.50, sum by (service_name, le) (rate(revision_app_request_latencies_bucket[5m])))'
+        alias: "P50"
+    unit: ms
+    chartType: line
+    scope: 'type = "inference-engine.kserve"'
+
+  - _type: MetricBinding
+    id: -632
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kserve:step-latency"
+    name: "Per-Step Latency P95"
+    description: "P95 of preprocess, predict, and postprocess steps."
+    queries:
+      - expression: 'histogram_quantile(0.95, sum by (le) (rate(request_preprocess_seconds_bucket[5m])))'
+        alias: "preprocess P95"
+      - expression: 'histogram_quantile(0.95, sum by (le) (rate(request_predict_seconds_bucket[5m])))'
+        alias: "predict P95"
+        primary: true
+      - expression: 'histogram_quantile(0.95, sum by (le) (rate(request_postprocess_seconds_bucket[5m])))'
+        alias: "postprocess P95"
+    unit: s
+    chartType: line
+    scope: 'type = "inference-engine.kserve"'
+
+  - _type: MetricBinding
+    id: -633
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kserve:queue-depth"
+    name: "Queue Depth"
+    description: "Maximum queue depth across InferenceService pods."
+    queries:
+      - expression: 'max by (service_name) (queue_depth)'
+        alias: "${service_name}"
+        primary: true
+        unit: short
+    chartType: line
+    scope: 'type = "inference-engine.kserve"'
+
+  - _type: MetricBinding
+    id: -634
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kserve:model-load-duration"
+    name: "Model Load Duration"
+    description: "Latest model load duration in seconds."
+    queries:
+      - expression: 'max by (service_name) (model_load_seconds)'
+        alias: "${service_name}"
+        primary: true
+        unit: s
+    chartType: line
+    scope: 'type = "inference-engine.kserve"'
+
+  - _type: MetricBinding
+    id: -635
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kserve:error-ratio"
+    name: "Error Ratio"
+    description: "Ratio of 5xx responses to total requests per InferenceService."
+    queries:
+      - expression: '(sum by (service_name) (rate(revision_request_count{response_code_class="5xx"}[5m])) or 0) / sum by (service_name) (rate(revision_request_count[5m]))'
+        alias: "${service_name}"
+        primary: true
+        unit: percentunit
+    chartType: line
+    scope: 'type = "inference-engine.kserve"'
