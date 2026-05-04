@@ -1,0 +1,12 @@
+**KServe ${service_name} P95 application latency is {{currentValue}} (threshold {{threshold}}) on {{componentName}}.**
+
+Triage:
+
+1. Confirm there's no traffic spike or model warm-up:
+   `kubectl get hpa -n <ns>` (autoscaling state) and recent request rate from the Performance chart.
+2. Tail the queue-proxy container — sustained queueing shows up here first:
+   `kubectl logs -n <ns> -l serving.kserve.io/inferenceservice=<name> -c queue-proxy --tail=200`.
+3. Tail the runtime container for slow predictions or GC pauses:
+   `kubectl logs -n <ns> -l serving.kserve.io/inferenceservice=<name> -c kserve-container --tail=200`.
+4. Check pod resource pressure: `kubectl top pod -n <ns> -l serving.kserve.io/inferenceservice=<name>`.
+5. If GPU-backed, verify GPU utilization isn't pinned at 100% and KV cache isn't full.

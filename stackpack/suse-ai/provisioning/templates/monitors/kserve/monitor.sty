@@ -20,7 +20,7 @@
         unit: percentunit
       titleTemplate: "KServe ${service_name} error rate exceeds 5%"
       urnTemplate: "urn:suse-ai:product:inference-engine:kserve"
-    remediationHint: {{ include "templates/monitors/kserve/remediation-critical.md.hbs" "identity" }}
+    remediationHint: {{ include "templates/monitors/kserve/remediation-error-rate.md.hbs" "identity" }}
 
   - _type: Monitor
     id: -3017
@@ -43,7 +43,7 @@
         unit: s
       titleTemplate: "KServe ${service_name} P95 latency above 2s"
       urnTemplate: "urn:suse-ai:product:inference-engine:kserve"
-    remediationHint: {{ include "templates/monitors/kserve/remediation-deviating.md.hbs" "identity" }}
+    remediationHint: {{ include "templates/monitors/kserve/remediation-latency.md.hbs" "identity" }}
 
   - _type: Monitor
     id: -3018
@@ -65,4 +65,4 @@
         unit: short
       titleTemplate: "KServe ${service_name} failed to load a model"
       urnTemplate: "urn:suse-ai:product:inference-engine:kserve"
-    remediationHint: {{ include "templates/monitors/kserve/remediation-deviating.md.hbs" "identity" }}
+    remediationHint: {{ include "templates/monitors/kserve/remediation-model-load.md.hbs" "identity" }}

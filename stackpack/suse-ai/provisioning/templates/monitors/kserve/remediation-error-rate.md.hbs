@@ -1,0 +1,15 @@
+**KServe ${service_name} is returning 5xx responses at {{currentValue}} (threshold {{threshold}}) on {{componentName}}.**
+
+Triage:
+
+1. Identify the InferenceService and its predictor pod:
+   `kubectl get inferenceservice -A` and `kubectl get pods -A -l serving.kserve.io/inferenceservice=<name>`.
+2. Tail the runtime container for stack traces:
+   `kubectl logs -n <ns> -l serving.kserve.io/inferenceservice=<name> -c kserve-container --tail=200`.
+3. Inspect `status.conditions` for the failing predictor:
+   `kubectl get inferenceservice <name> -n <ns> -o yaml`.
+4. If a recent rollout broke things, roll back:
+   `kubectl rollout undo deploy/<name>-predictor-default -n <ns>`.
+5. Confirm upstream dependencies (model storage, GPU availability, vector DB) are healthy.
+
+See the full triage playbook at `knowledge/KUBEFLOW.md`.
