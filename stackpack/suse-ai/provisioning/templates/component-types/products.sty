@@ -735,6 +735,81 @@
           defaultExpanded: false
 
   - _type: "ComponentType"
+    id: -5016
+    identifier: "urn:stackpack:suse-ai:shared:component-type:workflow-engine.kubeflow-pipelines"
+    name: "workflow-engine.kubeflow-pipelines"
+    iconbase64: "data:image/svg+xml;base64,{{ include "icons/kubeflow-pipelines.svg" "base64" }}"
+    viewTypeIdentifier: "urn:stackpack:suse-ai:shared:view-type:workflow-engines"
+    highlights:
+      _type: "ComponentTypeHighlights"
+      namePlural: "kubeflow-pipelines"
+      fields:
+        - _type: "ComponentTypeField"
+          fieldId: "health"
+          label:
+            title: "Health"
+          valueExtractor:
+            _type: "HealthSource"
+          display:
+            _type: "HealthBadgeDisplay"
+        - _type: "ComponentTypeField"
+          fieldId: "type"
+          label:
+            title: "Type"
+          valueExtractor:
+            _type: "ComponentTypeSource"
+          display:
+            _type: "TagDisplay"
+        - _type: "ComponentTypeField"
+          fieldId: "labels"
+          label:
+            title: "Labels"
+          valueExtractor:
+            _type: "TagsSource"
+          display:
+            _type: "TagDisplay"
+            singular: "label"
+      about:
+        _type: "ComponentTypeAbout"
+        fields: ["health", "type", "labels"]
+      events:
+        _type: "ComponentTypeEvents"
+        showEvents: true
+      showLogs: false
+      showLastChange: false
+      externalComponent:
+        _type: "ComponentTypeExternalComponent"
+        showConfiguration: false
+        showStatus: false
+        externalIdSelector: ""
+      relatedResources:
+        - _type: "ComponentTypeRelatedResources"
+          resourceType: "service instance"
+          title: "Instances"
+          stql: 'type = "otel service instance" and label = "suse.ai.component.name:kubeflow-pipelines"'
+        - _type: "ComponentTypeRelatedResources"
+          resourceType: "service"
+          title: "Services"
+          stql: 'withNeighborsOf(direction = "up", components = (type = "otel service instance" and label = "suse.ai.component.name:kubeflow-pipelines"), levels = "1") and type = "otel service"'
+      metrics:
+        - _type: "ComponentTypeMetricCategory"
+          name: "Pipeline Runs"
+          description: "Run success and failure rates."
+          bindings:
+            - "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:run-success-rate"
+            - "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:run-failure-rate"
+          defaultExpanded: true
+        - _type: "ComponentTypeMetricCategory"
+          name: "Control Plane"
+          description: "API server, reconciler, and MLMD health metrics."
+          bindings:
+            - "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:api-request-rate"
+            - "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:api-latency-p95"
+            - "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:reconcile-lag"
+            - "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:mlmd-op-rate"
+          defaultExpanded: false
+
+  - _type: "ComponentType"
     id: -5009
     identifier: "urn:stackpack:suse-ai:shared:component-type:llm-model"
     name: "llm-model"
