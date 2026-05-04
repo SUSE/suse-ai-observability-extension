@@ -10,3 +10,9 @@
 ### What's next
 
 If you haven't already, ensure your GenAI applications and infrastructure are instrumented with OpenTelemetry and sending data to SUSE Observability. See the [SUSE AI Observability documentation](https://documentation.suse.com/suse-ai/1.0/html/AI-monitoring/index.html) for details.
+
+### Kubeflow
+
+- **KServe** (`inference-engine.kserve`) -- request rate, P95/P99 latency, queue depth, model-load failures across all InferenceServices.
+- **Kubeflow Pipelines** (`workflow-engine.kubeflow-pipelines`) -- pipeline run success/failure rates, API server latency, reconcile lag, MLMD operations.
+- **Kubeflow Model Registry** (`ml-registry.kubeflow`) -- topology and Kubernetes pod health (no native metrics in v1).
