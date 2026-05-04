@@ -663,7 +663,7 @@
     viewTypeIdentifier: "urn:stackpack:suse-ai:shared:view-type:inference-engines"
     highlights:
       _type: "ComponentTypeHighlights"
-      namePlural: "kserve"
+      namePlural: "inference-engines"
       fields:
         - _type: "ComponentTypeField"
           fieldId: "health"
@@ -702,7 +702,7 @@
         _type: "ComponentTypeExternalComponent"
         showConfiguration: false
         showStatus: false
-        externalIdSelector: ""
+        externalIdSelector: "^urn:suse-ai:"
       relatedResources:
         - _type: "ComponentTypeRelatedResources"
           resourceType: "InferenceServices"
@@ -710,12 +710,14 @@
           stql: 'type = "otel service" and label = "suse.ai.component.name:kserve"'
         - _type: "ComponentTypeRelatedResources"
           resourceType: "service instance"
-          title: "Instances"
+          title: "Related service instances"
           stql: 'type = "otel service instance" and label = "suse.ai.component.name:kserve"'
+          viewTypeIdentifier: "urn:stackpack:open-telemetry:shared:view-type:service-instance"
         - _type: "ComponentTypeRelatedResources"
           resourceType: "service"
-          title: "Services"
+          title: "Related services"
           stql: 'withNeighborsOf(direction = "up", components = (type = "otel service instance" and label = "suse.ai.component.name:kserve"), levels = "1") and type = "otel service"'
+          viewTypeIdentifier: "urn:stackpack:open-telemetry:shared:view-type:service"
       metrics:
         - _type: "ComponentTypeMetricCategory"
           name: "Performance"
@@ -742,7 +744,7 @@
     viewTypeIdentifier: "urn:stackpack:suse-ai:shared:view-type:workflow-engines"
     highlights:
       _type: "ComponentTypeHighlights"
-      namePlural: "kubeflow-pipelines"
+      namePlural: "workflow-engines"
       fields:
         - _type: "ComponentTypeField"
           fieldId: "health"
@@ -781,16 +783,18 @@
         _type: "ComponentTypeExternalComponent"
         showConfiguration: false
         showStatus: false
-        externalIdSelector: ""
+        externalIdSelector: "^urn:suse-ai:"
       relatedResources:
         - _type: "ComponentTypeRelatedResources"
           resourceType: "service instance"
-          title: "Instances"
+          title: "Related service instances"
           stql: 'type = "otel service instance" and label = "suse.ai.component.name:kubeflow-pipelines"'
+          viewTypeIdentifier: "urn:stackpack:open-telemetry:shared:view-type:service-instance"
         - _type: "ComponentTypeRelatedResources"
           resourceType: "service"
-          title: "Services"
+          title: "Related services"
           stql: 'withNeighborsOf(direction = "up", components = (type = "otel service instance" and label = "suse.ai.component.name:kubeflow-pipelines"), levels = "1") and type = "otel service"'
+          viewTypeIdentifier: "urn:stackpack:open-telemetry:shared:view-type:service"
       metrics:
         - _type: "ComponentTypeMetricCategory"
           name: "Pipeline Runs"
@@ -817,7 +821,7 @@
     viewTypeIdentifier: "urn:stackpack:suse-ai:shared:view-type:ml-registries"
     highlights:
       _type: "ComponentTypeHighlights"
-      namePlural: "kubeflow-model-registry"
+      namePlural: "ml-registries"
       fields:
         - _type: "ComponentTypeField"
           fieldId: "health"
@@ -856,16 +860,18 @@
         _type: "ComponentTypeExternalComponent"
         showConfiguration: false
         showStatus: false
-        externalIdSelector: ""
+        externalIdSelector: "^urn:suse-ai:"
       relatedResources:
         - _type: "ComponentTypeRelatedResources"
           resourceType: "service instance"
-          title: "Instances"
+          title: "Related service instances"
           stql: 'type = "otel service instance" and label = "suse.ai.component.name:kubeflow-model-registry"'
+          viewTypeIdentifier: "urn:stackpack:open-telemetry:shared:view-type:service-instance"
         - _type: "ComponentTypeRelatedResources"
           resourceType: "service"
-          title: "Services"
+          title: "Related services"
           stql: 'withNeighborsOf(direction = "up", components = (type = "otel service instance" and label = "suse.ai.component.name:kubeflow-model-registry"), levels = "1") and type = "otel service"'
+          viewTypeIdentifier: "urn:stackpack:open-telemetry:shared:view-type:service"
       metrics: []
 
   - _type: "ComponentType"
