@@ -82,6 +82,42 @@ config:
               - source_labels: [__meta_kubernetes_service_name]
                 action: keep
                 regex: '.*vllm.*'
+          - job_name: 'kubeflow-pipelines'
+            scrape_interval: 15s
+            metrics_path: '/metrics'
+            kubernetes_sd_configs:
+              - role: service
+                namespaces:
+                  names:
+                    - ${env:KUBEFLOW_NAMESPACE}
+            relabel_configs:
+              - source_labels: [__meta_kubernetes_service_name]
+                action: keep
+                regex: '(ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service)'
+          - job_name: 'kserve-controller'
+            scrape_interval: 15s
+            metrics_path: '/metrics'
+            kubernetes_sd_configs:
+              - role: pod
+                namespaces:
+                  names:
+                    - kserve
+            relabel_configs:
+              - source_labels: [__meta_kubernetes_pod_label_control_plane]
+                action: keep
+                regex: 'kserve-controller-manager'
+          - job_name: 'kserve-inferenceservices'
+            scrape_interval: 15s
+            metrics_path: '/metrics'
+            kubernetes_sd_configs:
+              - role: pod
+            relabel_configs:
+              - source_labels: [__meta_kubernetes_pod_label_serving_kserve_io_inferenceservice]
+                action: keep
+                regex: '.+'
+              - source_labels: [__meta_kubernetes_pod_container_port_name]
+                action: keep
+                regex: 'http-usermetric'
   exporters:
     topology:
       endpoint: http://suse-observability-router.suse-observability.svc.cluster.local:8080
