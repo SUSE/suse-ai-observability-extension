@@ -61,7 +61,7 @@ Documented in `stackpack/suse-ai/provisioning/templates/metric-bindings/kserve-m
 
 ## Monitors
 
-`templates/monitors/kserve/monitor.sty` and `templates/monitors/kubeflow-pipelines/monitor.sty`. The cross-cutting `-3001 GenAI Application Metric Stream Active` monitor automatically covers all three new products via `suse.ai.component.name`.
+`templates/monitors/kserve/monitor.sty` and `templates/monitors/kubeflow-pipelines/monitor.sty`. The cross-cutting `-3001 GenAI Application Metric Stream Active` monitor will fire for KServe whenever an instrumented application sends `gen_ai.*` traffic to it; KFP and Model Registry do not emit GenAI client metrics themselves, so they rely on their own per-product monitors (`-3019..-3022` for KFP; none in v1 for Model Registry).
 
 Each monitor links to a per-symptom remediation hint (e.g. `remediation-error-rate.md.hbs`, `remediation-reconcile-lag.md.hbs`) — see those files for the actual kubectl commands.
 

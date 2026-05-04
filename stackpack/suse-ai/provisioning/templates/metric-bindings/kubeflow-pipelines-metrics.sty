@@ -86,7 +86,7 @@
     name: "Reconcile Lag"
     description: "Maximum unfinished work age in the controller workqueue."
     queries:
-      - expression: 'max(workqueue_unfinished_work_seconds)'
+      - expression: 'max(workqueue_unfinished_work_seconds{job="kubeflow-pipelines"})'
         alias: "Lag (s)"
         primary: true
     scope: 'type = "workflow-engine.kubeflow-pipelines"'
