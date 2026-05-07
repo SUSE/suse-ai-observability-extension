@@ -141,6 +141,22 @@
             "promptPrice": 0.0001,
             "completionPrice": 0.0001
         },
+        "llama3.2": {
+            "promptPrice": 0.0003,
+            "completionPrice": 0.0003
+        },
+        "llama3.2:latest": {
+            "promptPrice": 0.0003,
+            "completionPrice": 0.0003
+        },
+        "llama3.2:3b": {
+            "promptPrice": 0.0003,
+            "completionPrice": 0.0003
+        },
+        "llama3.2:latest": {
+            "promptPrice": 0.0003,
+            "completionPrice": 0.0003
+        },
         "gpt-4o": {
             "promptPrice": 0.0005,
             "completionPrice": 0.0015
