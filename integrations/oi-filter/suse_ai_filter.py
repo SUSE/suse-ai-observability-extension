@@ -79,18 +79,24 @@ class Pipeline:
         self.setup()
 
     def get_chat_model_cost(self, model, prompt, completion):
+        chat_prices = (self.cost_estimation or {}).get("chat", {})
+        pricing = chat_prices.get(model)
+        if pricing is None:
+            pricing = chat_prices.get("default")
+            if pricing is None:
+                raise UndefinedPriceError
+            self.log(
+                f"Model '{model}' not in pricing.json, using default pricing"
+            )
         try:
-            cost = (
-                (prompt / 1000) * self.cost_estimation["chat"][model]["promptPrice"]
-            ) + (
-                (completion / 1000)
-                * self.cost_estimation["chat"][model]["completionPrice"]
+            return (
+                (prompt / 1000) * pricing["promptPrice"]
+                + (completion / 1000) * pricing["completionPrice"]
             )
         except KeyError:
             raise UndefinedPriceError
         except Exception:
-            cost = 0
-        return cost
+            return 0
 
     def capture_messages(self):
         return self.valves.capture_message_content
@@ -171,6 +177,9 @@ class Pipeline:
 
     async def on_valves_updated(self):
         self.log(f"on_valves_updated:{__name__}")
+        self.cost_estimation = fetch_json_from_url_stdlib(
+            self.valves.pricing_information
+        )
         self.setup()
 
     async def inlet(self, body: dict, user: Optional[dict] = None) -> dict:
