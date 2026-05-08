@@ -564,6 +564,10 @@
         "deepseek-reasoner":{
             "promptPrice": 0.00055,
             "completionPrice": 0.00219
+        },
+        "default": {
+            "promptPrice": 0.0001,
+            "completionPrice": 0.0001
         }
     }
 }
