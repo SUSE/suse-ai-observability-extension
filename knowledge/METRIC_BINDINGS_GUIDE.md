@@ -8,7 +8,8 @@ Metric binding IDs are negative integers organized by category:
 - **-520 to -527**: vLLM per-model (genai-model) metrics
 - **-540 to -568**: Individual product metrics (vLLM, Ollama, etc.)
 - **-569 to -583**: Application-scoped GenAI metrics
-- **-584 to -605**: Common GPU/infrastructure metrics
+- **-584 to -608**: Common GPU/infrastructure metrics (including vGPU at -606 to -608)
+- **-615 to -617**: Pod-level vGPU metrics
 - **-700 to -705**: GenAI global metrics (genai-metrics.sty)
 - **-2000 to -2004**: Milvus/OpenSearch/Elasticsearch metrics
 
