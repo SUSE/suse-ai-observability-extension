@@ -30,7 +30,7 @@
         primary: true
     scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
     identifier: urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-power-total
-    unit: kwatt
+    unit: watt
     chartType: line
     tags:
       experimental_chartType: Gauge
@@ -53,7 +53,7 @@
         primary: true
     scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
     identifier: urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-temperature
-    unit: kwatt
+    unit: celsius
     chartType: line
     priority: high
     enabled: true
@@ -73,7 +73,7 @@
         primary: true
     scope: (label IN ("nvidia.com/gpu.present:true") AND type IN ("node"))
     identifier: urn:stackpack:suse-ai:shared:metric-binding:common:node-gpu-power-usage
-    unit: kwatt
+    unit: watt
     chartType: line
     priority: high
     enabled: true
