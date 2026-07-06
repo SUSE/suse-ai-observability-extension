@@ -233,3 +233,66 @@
       componentSummary:
         weight: 3
     _type: MetricBinding
+
+  - id: -615
+    name: vGPU Utilization
+    description: GPU utilization filtered to vGPU instances.
+    queries:
+      - expression: DCGM_FI_DEV_GPU_UTIL{ k8s_node_name="${tags.node-name}", pod_name="${name}", gpu_instance_id=~".+" }
+        alias: GPU ${gpu}
+        primary: true
+    scope: type IN ("pod")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:pod-vgpu-utilization
+    unit: percent
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Utilization
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
+
+  - id: -616
+    name: vGPU Per-Process Utilization
+    description: GPU utilization grouped by container process on vGPU instances.
+    queries:
+      - expression: sum by (exported_container) (DCGM_FI_DEV_GPU_UTIL{ k8s_node_name="${tags.node-name}", pod_name="${name}", gpu_instance_id=~".+" })
+        alias: ${exported_container}
+        primary: true
+    scope: type IN ("pod")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:pod-vgpu-per-process-utilization
+    unit: percent
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Utilization
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
+
+  - id: -617
+    name: vGPU Memory Usage
+    description: Framebuffer memory used by vGPU instances.
+    queries:
+      - expression: DCGM_FI_DEV_FB_USED{ k8s_node_name="${tags.node-name}", pod_name="${name}", gpu_instance_id=~".+" }
+        alias: GPU ${gpu}
+        primary: true
+    scope: type IN ("pod")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:pod-vgpu-memory-usage
+    unit: bytes
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Utilization
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
