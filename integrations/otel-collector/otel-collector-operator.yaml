@@ -80,9 +80,22 @@ spec:
       value: "local"  # Update to match your cluster name
     - name: SUSE_AI_NAMESPACE
       value: "suse-private-ai"  # Update to match the SUSE AI namespace
+    # Keep a bit below resources.limits.memory so the Go GC runs before the hard
+    # limit, cooperating with memory_limiter instead of hitting OOM kills.
+    - name: GOMEMLIMIT
+      value: "900MiB"
   envFrom:
     - secretRef:
         name: open-telemetry-collector  # must provide API_KEY (+ receiver creds)
+  # Right-size the collector and make memory_limiter meaningful: its percentages
+  # are shares of THIS limit, not the node's total memory. Tune to your volume.
+  resources:
+    requests:
+      cpu: 256m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
   config:
     receivers:
       # Default OTLP endpoint is localhost — must be 0.0.0.0 to receive traffic
@@ -117,24 +130,41 @@ spec:
           scrape_configs:
             - job_name: 'gpu-metrics'
               scrape_interval: 10s
+              scrape_timeout: 5s
               scheme: http
               kubernetes_sd_configs:
                 - role: endpoints
                   namespaces:
                     names:
                       - gpu-operator
+              relabel_configs:
+                # Scrape only the DCGM exporter's metrics port (adjust the regex
+                # if your exporter names its port differently).
+                - source_labels: [__meta_kubernetes_endpoint_port_name]
+                  action: keep
+                  regex: 'gpu-metrics|metrics'
+              # Drop runtime/infra metric families the extension never binds.
+              metric_relabel_configs: &drop_infra_metrics
+                - source_labels: [__name__]
+                  regex: '(go|process|promhttp|python)_.*'
+                  action: drop
             - job_name: 'milvus'
               scrape_interval: 15s
+              scrape_timeout: 10s
               metrics_path: '/metrics'
               static_configs:
                 - targets: ['milvus.suse-private-ai.svc.cluster.local:9091']
+              metric_relabel_configs: *drop_infra_metrics
             - job_name: 'qdrant'
               scrape_interval: 10s
+              scrape_timeout: 5s
               metrics_path: '/metrics'
               static_configs:
                 - targets: ['qdrant.suse-private-ai.svc.cluster.local:6333']
+              metric_relabel_configs: *drop_infra_metrics
             - job_name: 'vllm'
               scrape_interval: 10s
+              scrape_timeout: 5s
               scheme: http
               kubernetes_sd_configs:
                 # endpoints (not service) so each vLLM replica is scraped directly.
@@ -146,6 +176,7 @@ spec:
                 - source_labels: [__meta_kubernetes_service_name]
                   action: keep
                   regex: '.*vllm.*'
+              metric_relabel_configs: *drop_infra_metrics
 
     extensions:
       health_check:
@@ -249,6 +280,9 @@ spec:
 
       tail_sampling:
         decision_wait: 10s
+        # Bound the in-memory trace buffer for predictable memory use.
+        num_traces: 50000
+        expected_new_traces_per_sec: 200
         policies:
           - name: rate-limited-composite
             type: composite

@@ -6,6 +6,11 @@ extraEnvs:
     value: "local"  # Update to match your cluster name
   - name: SUSE_AI_NAMESPACE
     value: "suse-private-ai"  # Update to match the SUSE AI namespace
+  # Let the Go GC cooperate with memory_limiter: keep this a bit below the
+  # container memory limit (resources.limits.memory) so GC runs before the
+  # hard limit is hit, turning would-be OOM kills into soft backpressure.
+  - name: GOMEMLIMIT
+    value: "900MiB"
 extraEnvsFrom:
   - secretRef:
       name: open-telemetry-collector
@@ -37,6 +42,17 @@ presets:
   kubernetesAttributes:
     enabled: true
     extractAllPodLabels: true
+# Right-size the collector and make memory_limiter meaningful: its
+# limit_percentage/spike_limit_percentage are shares of THIS memory limit, not
+# the node's total memory. Without a limit set, the limiter guards 80% of the
+# whole node and can OOM neighbors before it ever trips. Tune to your volume.
+resources:
+  requests:
+    cpu: 256m
+    memory: 512Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi
 config:
   receivers:
     elasticsearch:
@@ -59,25 +75,44 @@ config:
         scrape_configs:
           - job_name: 'gpu-metrics'
             scrape_interval: 10s
+            scrape_timeout: 5s
             scheme: http
             kubernetes_sd_configs:
               - role: endpoints
                 namespaces:
                   names:
                     - gpu-operator
+            relabel_configs:
+              # Scrape only the DCGM exporter's metrics port. Without this, every
+              # port of every endpoint in gpu-operator is probed (failed scrapes
+              # + noise). Adjust the regex if your exporter names its port
+              # differently (`kubectl get endpoints -n gpu-operator -o yaml`).
+              - source_labels: [__meta_kubernetes_endpoint_port_name]
+                action: keep
+                regex: 'gpu-metrics|metrics'
+            # Drop runtime/infra metric families the extension never binds, to
+            # cut cardinality and backend cost. Reused by the jobs below.
+            metric_relabel_configs: &drop_infra_metrics
+              - source_labels: [__name__]
+                regex: '(go|process|promhttp|python)_.*'
+                action: drop
           - job_name: 'milvus'
             scrape_interval: 15s
+            scrape_timeout: 10s
             metrics_path: '/metrics'
-
             static_configs:
               - targets: ['milvus.suse-private-ai.svc.cluster.local:9091']
+            metric_relabel_configs: *drop_infra_metrics
           - job_name: 'qdrant'
             scrape_interval: 10s
+            scrape_timeout: 5s
             metrics_path: '/metrics'
             static_configs:
               - targets: ['qdrant.suse-private-ai.svc.cluster.local:6333']
+            metric_relabel_configs: *drop_infra_metrics
           - job_name: 'vllm'
             scrape_interval: 10s
+            scrape_timeout: 5s
             scheme: http
             kubernetes_sd_configs:
               # role: endpoints scrapes each backing pod directly. role: service
@@ -88,10 +123,10 @@ config:
               - source_labels: [__meta_kubernetes_namespace]
                 action: keep
                 regex: 'suse-private-ai'
-
               - source_labels: [__meta_kubernetes_service_name]
                 action: keep
                 regex: '.*vllm.*'
+            metric_relabel_configs: *drop_infra_metrics
   exporters:
     topology:
       endpoint: http://suse-observability-router.suse-observability.svc.cluster.local:8080
@@ -192,6 +227,11 @@ config:
             - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["service.name"] == "milvus" and attributes["service.namespace"] == nil
     tail_sampling:
       decision_wait: 10s
+      # Bound the in-memory trace buffer so tail sampling's memory footprint is
+      # predictable (buffer ~= num_traces whole traces). Raise both if you see
+      # traces evicted before decision_wait elapses.
+      num_traces: 50000
+      expected_new_traces_per_sec: 200
       policies:
       - name: rate-limited-composite
         type: composite
