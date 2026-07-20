@@ -78,6 +78,27 @@
         weight: 3
 
   - _type: MetricBinding
+    id: -2005
+    name: Request Error Rate
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:request-error-rate
+    unit: percentunit
+    chartType: line
+    priority: high
+    enabled: true
+    scope: label IN ("suse.ai.managed:true") AND type IN ("ui.open-webui", "inference-engine.vllm", "inference-engine.ollama", "model-proxy.litellm", "application", "agent")
+    queries:
+      # error.type is only attached to gen_ai.client.operation.duration on failure,
+      # so error_type!="" isolates failed requests. Ratio of failed to total requests.
+      - expression: sum by (gen_ai_request_model) (rate(gen_ai_client_operation_duration_seconds_count{suse_ai_component_name="${name}", error_type!=""}[${__rate_interval}])) / sum by (gen_ai_request_model) (rate(gen_ai_client_operation_duration_seconds_count{suse_ai_component_name="${name}"}[${__rate_interval}]))
+        alias: "${gen_ai_request_model}"
+    layout:
+      metricPerspective:
+        tab: LLM
+        section: Performance
+      componentSummary:
+        weight: 3
+
+  - _type: MetricBinding
     id: -2004
     name: Token Usage by Type
     identifier: urn:stackpack:suse-ai:shared:metric-binding:token-usage-by-type

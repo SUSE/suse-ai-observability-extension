@@ -183,6 +183,17 @@ config:
       - key: service.instance.id
         from_attribute: k8s.pod.uid
         action: insert
+    # Backfill the legacy db.system attribute from the stable db.system.name
+    # (OTel database semconv rename). The topology exporter and the upstream
+    # OpenTelemetry StackPack discover database relations (app -> vectordb) from
+    # db.system on CLIENT spans; without this, instrumentation emitting only
+    # db.system.name would lose those relations. db.system.name is kept intact.
+    transform/db-semconv-compat:
+      error_mode: ignore
+      trace_statements:
+        - context: span
+          statements:
+            - set(attributes["db.system"], attributes["db.system.name"]) where attributes["db.system"] == nil and attributes["db.system.name"] != nil
     # Infer inference engines from GenAI client metrics.
     # When Open WebUI sends metrics with gen_ai.provider.name (e.g., "ollama", "vllm"),
     # this pipeline creates separate topology elements for each provider.
@@ -295,7 +306,7 @@ config:
     pipelines:
       traces:
         receivers: [otlp, jaeger]
-        processors: [filter/dropMissingK8sAttributes, memory_limiter, resource]
+        processors: [filter/dropMissingK8sAttributes, memory_limiter, resource, transform/db-semconv-compat]
         exporters: [routing/traces]
       traces/spanmetrics:
         receivers: [routing/traces]
