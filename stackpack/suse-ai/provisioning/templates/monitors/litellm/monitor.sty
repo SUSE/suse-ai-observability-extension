@@ -1,0 +1,84 @@
+
+  - _type: Monitor
+    id: -3016
+    name: LiteLLM High Error Rate
+    identifier: urn:stackpack:suse-ai:shared:monitor:litellm-high-error-rate
+    description: Indicates if the LiteLLM proxy is returning a high rate of failed requests.
+    intervalSeconds: 60
+    status: ENABLED
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      threshold: 0.0
+      comparator: GT
+      failureState: CRITICAL
+      metric:
+        aliasTemplate: "Failed Requests/s"
+        query: >-
+          sum(rate(litellm_proxy_failed_requests_metric{}[5m]))
+        unit: reqps
+      titleTemplate: "LiteLLM High Error Rate"
+      urnTemplate: "urn:suse-ai:product:model-proxy:litellm"
+    remediationHint: {{ include "templates/monitors/litellm/remediation-error-rate.md.hbs" "identity" }}
+
+  - _type: Monitor
+    id: -3017
+    name: LiteLLM Deployment Unhealthy
+    identifier: urn:stackpack:suse-ai:shared:monitor:litellm-deployment-unhealthy
+    description: Indicates if one or more upstream LLM deployments routed by LiteLLM are experiencing a complete outage.
+    intervalSeconds: 60
+    status: ENABLED
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      threshold: 2.0
+      comparator: GTE
+      failureState: CRITICAL
+      metric:
+        aliasTemplate: "Deployment State ${litellm_model_name}"
+        query: >-
+          max(litellm_deployment_state{}) by (litellm_model_name)
+        unit: short
+      titleTemplate: "LiteLLM Deployment Unhealthy"
+      urnTemplate: "urn:suse-ai:product:model-proxy:litellm"
+    remediationHint: {{ include "templates/monitors/litellm/remediation-deployment-unhealthy.md.hbs" "identity" }}
+
+  - _type: Monitor
+    id: -3018
+    name: LiteLLM High Request Latency
+    identifier: urn:stackpack:suse-ai:shared:monitor:litellm-high-request-latency
+    description: Indicates if LiteLLM end-to-end request latency (P99) exceeds acceptable thresholds.
+    intervalSeconds: 60
+    status: ENABLED
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      threshold: 30.0
+      comparator: GT
+      failureState: DEVIATING
+      metric:
+        aliasTemplate: "Request Latency P99"
+        query: >-
+          histogram_quantile(0.99, sum by (le) (rate(litellm_request_total_latency_metric_bucket{}[5m])))
+        unit: s
+      titleTemplate: "LiteLLM High Request Latency"
+      urnTemplate: "urn:suse-ai:product:model-proxy:litellm"
+    remediationHint: {{ include "templates/monitors/litellm/remediation-latency.md.hbs" "identity" }}
+
+  - _type: Monitor
+    id: -3019
+    name: LiteLLM High Deployment Failure Rate
+    identifier: urn:stackpack:suse-ai:shared:monitor:litellm-high-deployment-failure-rate
+    description: Indicates if upstream LLM deployments routed by LiteLLM are experiencing a high failure rate.
+    intervalSeconds: 60
+    status: ENABLED
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      threshold: 0.0
+      comparator: GT
+      failureState: DEVIATING
+      metric:
+        aliasTemplate: "Deployment Failures/s ${litellm_model_name}"
+        query: >-
+          sum(rate(litellm_deployment_failure_responses{}[5m])) by (litellm_model_name)
+        unit: reqps
+      titleTemplate: "LiteLLM High Deployment Failure Rate"
+      urnTemplate: "urn:suse-ai:product:model-proxy:litellm"
+    remediationHint: {{ include "templates/monitors/litellm/remediation-deployment-failures.md.hbs" "identity" }}

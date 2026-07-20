@@ -1,0 +1,37 @@
+# LiteLLM High Request Latency
+
+The LiteLLM proxy **{{componentName}}** is experiencing high end-to-end request latency (P99: **{{currentValue}}s**).
+
+Threshold: **{{threshold}}s**
+
+## Potential Impacts
+- Slow response times for LLM requests
+- User-facing timeouts in AI-powered applications
+- Poor user experience
+- Potential cascading timeouts in upstream services
+
+## Diagnosis Steps
+1. **Break Down Latency Components**:
+   - Check `litellm_llm_api_latency_metric` for upstream LLM API latency
+   - Check `litellm_overhead_latency_metric` for LiteLLM processing overhead
+   - Compare total latency vs API latency to identify where time is spent
+2. **Check In-Flight Requests**:
+   - Review `litellm_in_flight_requests` to see if the proxy is overloaded
+3. **Identify Slow Models**:
+   - Check latency broken down by `model` and `requested_model` labels
+   - Some models are inherently slower than others
+4. **Check Resource Utilization**:
+   ```bash
+   kubectl top pods -l app=litellm
+   ```
+
+## Remediation Actions
+1. **Scale LiteLLM Proxy**: If the proxy is overloaded:
+   ```bash
+   kubectl scale deployment/litellm --replicas=3
+   ```
+2. **Optimize Model Routing**: Route latency-sensitive requests to faster models or providers.
+3. **Set Request Timeouts**: Configure appropriate timeouts in LiteLLM to prevent long-running requests from blocking resources.
+4. **Enable Streaming**: Use streaming responses to reduce perceived latency for end users.
+5. **Check Upstream Provider Performance**: If `litellm_llm_api_latency_metric` is the bottleneck, the issue is with the upstream LLM provider. Consider switching providers or models.
+6. **Reduce LiteLLM Overhead**: If `litellm_overhead_latency_metric` is high, check for issues with Redis, database, or callback logging performance.
