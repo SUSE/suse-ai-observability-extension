@@ -84,8 +84,9 @@ config:
     topology:
       endpoint: http://suse-observability-router.suse-observability.svc.cluster.local:8080
       api_key: ${env:API_KEY}
-      instance_url: ${env:K8S_CLUSTER_NAME}
       namespace: ${env:SUSE_AI_NAMESPACE}
+      # Cluster identity as a label only (not in the URN); needs a cluster_name-aware image.
+      cluster_name: ${env:K8S_CLUSTER_NAME}
       tls:
         insecure_skip_verify: true
     otlp:

@@ -165,7 +165,8 @@
       integrationType: suse-ai
       supportedDataTypes:
         - TOPOLOGY_ELEMENTS
-      topic: sts_topo_suse-ai_local
+      # MUST match the topology exporter's fixed stream id (topologyStreamID).
+      topic: sts_topo_suse-ai_collector
     extTopology:
       _type: ExtTopology
       dataSource: -1108
