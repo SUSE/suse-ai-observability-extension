@@ -84,18 +84,10 @@ config:
     topology:
       endpoint: http://suse-observability-router.suse-observability.svc.cluster.local:8080
       api_key: ${env:API_KEY}
-      # Fixed topology-stream identifier. This becomes the topic suffix on the
-      # receiver (sts_topo_suse-ai_<instance_url>) and MUST match the topic in
-      # the SUSE AI Topology data source (provisioning/templates/synchronization.sty).
-      # Do NOT set this to ${env:K8S_CLUSTER_NAME}: the cluster name is meant to be
-      # changed per deployment, which would move product relations to a topic the
-      # stackpack sync does not read, so relationships would never appear in the UI.
+      # Fixed stream id; MUST match `topic` in synchronization.sty (not the cluster name).
       instance_url: collector
       namespace: ${env:SUSE_AI_NAMESPACE}
-      # Cluster identity is carried as a k8s.cluster.name metadata label on each
-      # product component (NOT in the URN, so instances still aggregate across
-      # clusters). Unlike instance_url above, this is safe to vary per cluster.
-      # Requires a collector image with cluster_name support (exporter repo).
+      # Cluster identity as a label only (not in the URN); needs a cluster_name-aware image.
       cluster_name: ${env:K8S_CLUSTER_NAME}
       tls:
         insecure_skip_verify: true
