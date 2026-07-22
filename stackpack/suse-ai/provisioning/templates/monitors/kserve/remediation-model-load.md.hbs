@@ -1,0 +1,12 @@
+**KServe ${service_name} had {{currentValue}} failed model load(s) in the last 5 minutes (threshold {{threshold}}) on {{componentName}}.**
+
+Triage:
+
+1. Inspect the InferenceService for ModelLoad-related conditions:
+   `kubectl describe inferenceservice <name> -n <ns> | sed -n '/Conditions/,/Events/p'`.
+2. Tail the storage-initializer container (model fetch from S3/GCS/HTTP):
+   `kubectl logs -n <ns> -l serving.kserve.io/inferenceservice=<name> -c storage-initializer --tail=200`.
+3. Tail the runtime container for load-time errors:
+   `kubectl logs -n <ns> -l serving.kserve.io/inferenceservice=<name> -c kserve-container --tail=200`.
+4. Verify the `storageUri` is reachable and the credentials/IAM permissions are valid.
+5. If the model artifact is corrupt, redeploy the InferenceService with a known-good URI.

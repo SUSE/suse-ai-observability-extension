@@ -1,0 +1,13 @@
+**Kubeflow Pipelines controller reconcile lag is {{currentValue}}s (threshold {{threshold}}s) on {{componentName}}.**
+
+Triage:
+
+1. Identify which controller workqueue is backed up:
+   `kubectl logs -n <kubeflow-namespace> deploy/ml-pipeline-scheduledworkflow --tail=100`
+   `kubectl logs -n <kubeflow-namespace> deploy/ml-pipeline-persistenceagent --tail=100`.
+2. Check the controller pod for CPU/memory throttling:
+   `kubectl top pod -n <kubeflow-namespace> -l app.kubernetes.io/part-of=kubeflow-pipelines`.
+3. Look for workqueue depth growth in Prometheus:
+   `workqueue_depth{job="kubeflow-pipelines"}` over the last hour.
+4. Restart the throttled controller if necessary:
+   `kubectl rollout restart deploy/ml-pipeline-persistenceagent -n <kubeflow-namespace>`.

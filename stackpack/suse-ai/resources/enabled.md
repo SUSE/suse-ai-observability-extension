@@ -10,3 +10,11 @@
 ### What's next
 
 If you haven't already, ensure your GenAI applications and infrastructure are instrumented with OpenTelemetry and sending data to SUSE Observability. See the [SUSE AI Observability documentation](https://documentation.suse.com/suse-ai/1.0/html/AI-monitoring/index.html) for details.
+
+### Kubeflow
+
+If your environment includes Kubeflow, the StackPack additionally surfaces:
+
+- **KServe inference engines** -- request rate, P95/P99 latency, queue depth, and model-load failures across all `InferenceService` resources (component type: `inference-engine.kserve`).
+- **Kubeflow Pipelines control plane** -- pipeline run success/failure rates, API server latency, reconcile lag, and MLMD operations (component type: `workflow-engine.kubeflow-pipelines`).
+- **Kubeflow Model Registry** -- topology presence and Kubernetes pod health (component type: `ml-registry.kubeflow`); native metric coverage is planned for a future release.

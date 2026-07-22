@@ -1,5 +1,12 @@
 # SUSE AI Observability StackPack
 
+## Version 2.0.1
+
+- Added Kubeflow integration: KServe (`inference-engine.kserve`), Kubeflow Pipelines (`workflow-engine.kubeflow-pipelines`), Kubeflow Model Registry (`ml-registry.kubeflow`).
+- Re-enabled the **Workflow Engines** and **ML Registries** sidebar menu entries.
+- New OTel collector scrape jobs and transforms for Kubeflow metrics and traces (KUBEFLOW_NAMESPACE env var, `transform/kserve`, `transform/kubeflow-pipelines`, `transform/kubeflow-model-registry`, `traces/kubeflow-relations` pipeline).
+- New monitors for KServe (error rate, latency, model-load failures) and Kubeflow Pipelines (run failures, reconcile lag, API down, MLMD errors), each with per-symptom remediation hints.
+
 ## Version 0.1.241
 
 - Consolidated vLLM latency charts into multi-query bindings (P99/P95/P90/P50/Avg in a single chart).

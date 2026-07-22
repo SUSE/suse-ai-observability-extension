@@ -78,6 +78,15 @@ if (productName) {
         case 'mlflow':
             specificType = "ml-registry.mlflow"
             break
+        case 'kserve':
+            specificType = "inference-engine.kserve"
+            break
+        case 'kubeflow-pipelines':
+            specificType = "workflow-engine.kubeflow-pipelines"
+            break
+        case 'kubeflow-model-registry':
+            specificType = "ml-registry.kubeflow"
+            break
     }
 
     return Sts.createId(newExternalId, identifiers, specificType)

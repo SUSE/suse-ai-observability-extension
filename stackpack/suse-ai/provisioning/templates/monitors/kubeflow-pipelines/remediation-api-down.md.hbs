@@ -1,0 +1,12 @@
+**Kubeflow Pipelines API server scrape target is down ({{currentValue}}) on {{componentName}}.**
+
+Immediate actions:
+
+1. Check `ml-pipeline` pod state:
+   `kubectl get pods -n <kubeflow-namespace> -l app=ml-pipeline`.
+2. Inspect for OOMKilled or CrashLoopBackOff:
+   `kubectl describe pod -n <kubeflow-namespace> -l app=ml-pipeline | grep -A5 -E "Last State|Events"`.
+3. Verify the database backend (MySQL/MariaDB) the api-server connects to is reachable; tail api-server logs for connection errors.
+4. Restart if hung:
+   `kubectl rollout restart deploy/ml-pipeline -n <kubeflow-namespace>`.
+5. Confirm the Prometheus scrape job `kubeflow-pipelines` is actually targeting the api-server service (check `kubectl get svc -n <kubeflow-namespace> ml-pipeline`).

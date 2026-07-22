@@ -10,3 +10,11 @@ The SUSE AI Observability StackPack expects OpenTelemetry traces and metrics fro
 3. **Configure the OpenTelemetry collector** to forward telemetry to SUSE Observability.
 
 See the [SUSE AI Observability documentation](https://documentation.suse.com/suse-ai/1.0/html/AI-monitoring/index.html) for detailed setup instructions.
+
+### Kubeflow
+
+The StackPack monitors three Kubeflow components:
+
+- **KServe**: per-InferenceService request volume, latency percentiles, error ratio, and model-load failures.
+- **Kubeflow Pipelines**: pipeline run health, control-plane API latency, MLMD operation rate.
+- **Kubeflow Model Registry**: topology presence and Kubernetes-level pod health.

@@ -13,3 +13,26 @@ The StackPack requires OpenTelemetry telemetry with GenAI semantic conventions a
 3. **The OpenTelemetry collector is configured** to forward traces and metrics to SUSE Observability.
 
 See the [SUSE AI Observability documentation](https://documentation.suse.com/suse-ai/1.0/html/AI-monitoring/index.html) for detailed setup instructions.
+
+### Kubeflow
+
+If you want to monitor Kubeflow components (Pipelines, KServe, Model Registry), two configuration steps are required.
+
+1. **Set the Kubeflow namespace** in your OTel collector Helm values:
+
+   ```yaml
+   extraEnvs:
+     - name: KUBEFLOW_NAMESPACE
+       value: "kubeflow"   # change if your install uses a different namespace
+   ```
+
+2. **Enable metric aggregation** on each KServe `InferenceService` so the queue-proxy exposes runtime metrics on the `http-usermetric` port:
+
+   ```yaml
+   metadata:
+     annotations:
+       serving.kserve.io/enable-metric-aggregation: "true"
+       serving.kserve.io/enable-prometheus-scraping: "true"
+   ```
+
+Once these are in place, the OTel collector picks up KServe metrics through Kubernetes pod discovery; no further per-`InferenceService` configuration is required.
