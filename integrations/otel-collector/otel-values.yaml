@@ -84,8 +84,6 @@ config:
     topology:
       endpoint: http://suse-observability-router.suse-observability.svc.cluster.local:8080
       api_key: ${env:API_KEY}
-      # Fixed stream id; MUST match `topic` in synchronization.sty (not the cluster name).
-      instance_url: collector
       namespace: ${env:SUSE_AI_NAMESPACE}
       # Cluster identity as a label only (not in the URN); needs a cluster_name-aware image.
       cluster_name: ${env:K8S_CLUSTER_NAME}
