@@ -6,6 +6,11 @@ extraEnvs:
     value: "local"  # Update to match your cluster name
   - name: SUSE_AI_NAMESPACE
     value: "suse-private-ai"  # Update to match the SUSE AI namespace
+  # Let the Go GC cooperate with memory_limiter: keep this a bit below the
+  # container memory limit (resources.limits.memory) so GC runs before the
+  # hard limit is hit, turning would-be OOM kills into soft backpressure.
+  - name: GOMEMLIMIT
+    value: "900MiB"
 extraEnvsFrom:
   - secretRef:
       name: open-telemetry-collector
@@ -13,8 +18,17 @@ mode: deployment
 clusterRole:
   create: true
   rules:
+    # "namespaces" is needed by k8s_attributes for namespace labels; "replicasets"
+    # (apps + legacy extensions) lets it derive k8s.deployment.name from a pod's
+    # owner chain. Without these, deployment/namespace enrichment is incomplete.
     - apiGroups: [""]
-      resources: ["pods", "nodes", "endpoints", "services"]
+      resources: ["pods", "nodes", "namespaces", "endpoints", "services"]
+      verbs: ["get", "list", "watch"]
+    - apiGroups: ["apps"]
+      resources: ["replicasets"]
+      verbs: ["get", "list", "watch"]
+    - apiGroups: ["extensions"]
+      resources: ["replicasets"]
       verbs: ["get", "list", "watch"]
 image:
   registry: ghcr.io
@@ -28,6 +42,17 @@ presets:
   kubernetesAttributes:
     enabled: true
     extractAllPodLabels: true
+# Right-size the collector and make memory_limiter meaningful: its
+# limit_percentage/spike_limit_percentage are shares of THIS memory limit, not
+# the node's total memory. Without a limit set, the limiter guards 80% of the
+# whole node and can OOM neighbors before it ever trips. Tune to your volume.
+resources:
+  requests:
+    cpu: 256m
+    memory: 512Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi
 config:
   receivers:
     elasticsearch:
@@ -50,36 +75,58 @@ config:
         scrape_configs:
           - job_name: 'gpu-metrics'
             scrape_interval: 10s
+            scrape_timeout: 5s
             scheme: http
             kubernetes_sd_configs:
               - role: endpoints
                 namespaces:
                   names:
                     - gpu-operator
+            relabel_configs:
+              # Scrape only the DCGM exporter's metrics port. Without this, every
+              # port of every endpoint in gpu-operator is probed (failed scrapes
+              # + noise). Adjust the regex if your exporter names its port
+              # differently (`kubectl get endpoints -n gpu-operator -o yaml`).
+              - source_labels: [__meta_kubernetes_endpoint_port_name]
+                action: keep
+                regex: 'gpu-metrics|metrics'
+            # Drop runtime/infra metric families the extension never binds, to
+            # cut cardinality and backend cost. Reused by the jobs below.
+            metric_relabel_configs: &drop_infra_metrics
+              - source_labels: [__name__]
+                regex: '(go|process|promhttp|python)_.*'
+                action: drop
           - job_name: 'milvus'
             scrape_interval: 15s
+            scrape_timeout: 10s
             metrics_path: '/metrics'
-
             static_configs:
               - targets: ['milvus.suse-private-ai.svc.cluster.local:9091']
+            metric_relabel_configs: *drop_infra_metrics
           - job_name: 'qdrant'
             scrape_interval: 10s
+            scrape_timeout: 5s
             metrics_path: '/metrics'
             static_configs:
               - targets: ['qdrant.suse-private-ai.svc.cluster.local:6333']
+            metric_relabel_configs: *drop_infra_metrics
           - job_name: 'vllm'
             scrape_interval: 10s
+            scrape_timeout: 5s
             scheme: http
             kubernetes_sd_configs:
-              - role: service
+              # role: endpoints scrapes each backing pod directly. role: service
+              # would hit the Service VIP and land on one random replica per
+              # scrape, yielding flapping/partial metrics with >1 vLLM replica.
+              - role: endpoints
             relabel_configs:
               - source_labels: [__meta_kubernetes_namespace]
                 action: keep
                 regex: 'suse-private-ai'
-
               - source_labels: [__meta_kubernetes_service_name]
                 action: keep
                 regex: '.*vllm.*'
+            metric_relabel_configs: *drop_infra_metrics
   exporters:
     topology:
       endpoint: http://suse-observability-router.suse-observability.svc.cluster.local:8080
@@ -95,7 +142,36 @@ config:
         Authorization: "SUSEObservability ${env:API_KEY}"
       tls:
         insecure: true
+      # Survive transient backend outages instead of dropping on first failure.
+      retry_on_failure:
+        enabled: true
+        initial_interval: 5s
+        max_interval: 30s
+        max_elapsed_time: 300s
+      # In-memory buffer that decouples ingest from export. For durability across
+      # collector restarts, back it with the file_storage extension and a mounted
+      # volume: uncomment `storage: file_storage` below, add `file_storage` under
+      # service.extensions, and provide a writable volume via extraVolumes /
+      # extraVolumeMounts (e.g. a PVC) for the storage extension's directory.
+      sending_queue:
+        enabled: true
+        num_consumers: 10
+        queue_size: 5000
+        # storage: file_storage
   processors:
+    # OOM safety valve. Applies backpressure when the Go heap crosses the soft
+    # limit and forces GC above the hard limit. Must be FIRST in every pipeline.
+    # Defined explicitly here (rather than relying on chart defaults) so the
+    # limits are visible and tunable; pair with the GOMEMLIMIT env var.
+    memory_limiter:
+      check_interval: 5s
+      limit_percentage: 80
+      spike_limit_percentage: 25
+    # Pipeline-level batching. Kept for control over batch size/timeout and to
+    # batch after data-dropping processors. Note the otlp exporter also batches
+    # inside its sending_queue, so this is intentional pipeline-side batching,
+    # not accidental double-batching of the same data.
+    batch: {}
     resource/elasticsearch:
       attributes:
         - key: suse.ai.managed
@@ -152,6 +228,11 @@ config:
             - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["service.name"] == "milvus" and attributes["service.namespace"] == nil
     tail_sampling:
       decision_wait: 10s
+      # Bound the in-memory trace buffer so tail sampling's memory footprint is
+      # predictable (buffer ~= num_traces whole traces). Raise both if you see
+      # traces evicted before decision_wait elapses.
+      num_traces: 50000
+      expected_new_traces_per_sec: 200
       policies:
       - name: rate-limited-composite
         type: composite
@@ -277,81 +358,84 @@ config:
       error_mode: ignore
       traces:
         span:
-          - resource.attributes["k8s.node.name"] == nil
-          - resource.attributes["k8s.pod.uid"] == nil
+          # Drop only spans that cannot be placed in the topology at all — i.e.
+          # those missing the identity essentials (namespace + pod name). Spans
+          # that merely lack k8s.node.name or k8s.pod.uid (e.g. IP-association
+          # misses in k8s_attributes) are kept, so GenAI topology data emitted
+          # by apps without full k8s enrichment is not silently lost.
           - resource.attributes["k8s.namespace.name"] == nil
           - resource.attributes["k8s.pod.name"] == nil
   connectors:
     spanmetrics:
       metrics_expiration: 5m
       namespace: otel_span
-    routing/traces:
-      error_mode: ignore
-      table:
-      - statement: route()
-        pipelines: [traces/sampling, traces/spanmetrics, traces/model-relations, traces/provider-relations, traces/topology]
+    # The previous routing/traces used a single always-true route() purely to
+    # fan the trace stream into the pipelines below — that is exactly what the
+    # forward connector does, with less config. Every pipeline listing `forward`
+    # as a receiver gets a copy of the traces exported to it.
+    forward: {}
   service:
     extensions:
       - health_check
     pipelines:
       traces:
         receivers: [otlp, jaeger]
-        processors: [filter/dropMissingK8sAttributes, memory_limiter, resource]
-        exporters: [routing/traces]
+        processors: [memory_limiter, filter/dropMissingK8sAttributes, resource]
+        exporters: [forward]
       traces/spanmetrics:
-        receivers: [routing/traces]
-        processors: []
+        receivers: [forward]
+        processors: [memory_limiter]
         exporters: [spanmetrics]
       traces/sampling:
-        receivers: [routing/traces]
-        processors: [tail_sampling, batch]
-        exporters: [debug, otlp]
+        receivers: [forward]
+        processors: [memory_limiter, tail_sampling, batch]
+        exporters: [otlp]
       metrics:
         receivers: [otlp, spanmetrics, prometheus]
         processors: [memory_limiter, transform/qdrant, transform/milvus, transform/vllm, resource, batch]
-        exporters: [debug, otlp]
+        exporters: [otlp]
       # Infer inference engines from GenAI client metrics sent by applications.
       # Groups metrics by gen_ai.provider.name and creates inference-engine
       # topology elements for each provider (e.g., ollama, vllm, openai).
       metrics/infer-providers:
         receivers: [otlp]
-        processors: [filter/genai-metrics-only, groupbyattrs/infer-providers, transform/infer-providers, resource, batch]
+        processors: [memory_limiter, filter/genai-metrics-only, groupbyattrs/infer-providers, transform/infer-providers, resource, batch]
         exporters: [otlp]
       # Infer LLM models from GenAI client metrics sent by applications.
       # Groups metrics by gen_ai.request.model and creates genai.model
       # topology elements for each model (e.g., llama3.2, deepseek-r1:8b).
       metrics/infer-models:
         receivers: [otlp]
-        processors: [filter/genai-metrics-only, groupbyattrs/infer-models, transform/infer-models, resource, batch]
+        processors: [memory_limiter, filter/genai-metrics-only, groupbyattrs/infer-models, transform/infer-models, resource, batch]
         exporters: [otlp]
       # Infer application components from GenAI client metrics.
       # Services emitting gen_ai.* metrics without suse.ai.component.name
       # are automatically tagged as SUSE AI applications.
       metrics/infer-applications:
         receivers: [otlp]
-        processors: [filter/genai-metrics-only, filter/exclude-already-tagged, transform/infer-applications, resource, batch]
+        processors: [memory_limiter, filter/genai-metrics-only, filter/exclude-already-tagged, transform/infer-applications, resource, batch]
         exporters: [otlp]
       # Create provider -> model relations from trace spans.
       # Transforms GenAI spans so StackState sees provider depending on model.
       traces/model-relations:
-        receivers: [routing/traces]
-        processors: [filter/genai-spans, groupbyattrs/model-relations, transform/model-relations, batch]
+        receivers: [forward]
+        processors: [memory_limiter, filter/genai-spans, groupbyattrs/model-relations, transform/model-relations, batch]
         exporters: [otlp]
       # Create application -> provider relations from trace spans.
       # Sets peer.service to the provider name so StackState sees
       # the application depending on the inference engine.
       traces/provider-relations:
-        receivers: [routing/traces]
-        processors: [filter/genai-spans, transform/provider-relations, batch]
+        receivers: [forward]
+        processors: [memory_limiter, filter/genai-spans, transform/provider-relations, batch]
         exporters: [otlp]
       # Push product topology (components + relations) to SUSE Observability.
       # The topology exporter discovers relations from GenAI and database spans
       # and submits them via the receiver API.
       traces/topology:
-        receivers: [routing/traces]
-        processors: [batch]
+        receivers: [forward]
+        processors: [memory_limiter, batch]
         exporters: [topology]
       metrics/elasticsearch:
         receivers: [elasticsearch]
         processors: [memory_limiter, resource/elasticsearch, resource, batch]
-        exporters: [debug, otlp]
+        exporters: [otlp]
