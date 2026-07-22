@@ -165,7 +165,11 @@
       integrationType: suse-ai
       supportedDataTypes:
         - TOPOLOGY_ELEMENTS
-      topic: sts_topo_suse-ai_local
+      # Must match the topology exporter's instance_url in
+      # integrations/otel-collector/otel-values.yaml (sts_topo_suse-ai_<instance_url>).
+      # Kept as a fixed suffix (not the cluster name) so product-to-product
+      # relations always land in the topic this sync consumes.
+      topic: sts_topo_suse-ai_collector
     extTopology:
       _type: ExtTopology
       dataSource: -1108
