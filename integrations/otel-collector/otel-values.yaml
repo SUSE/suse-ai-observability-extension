@@ -92,6 +92,11 @@ config:
       # stackpack sync does not read, so relationships would never appear in the UI.
       instance_url: collector
       namespace: ${env:SUSE_AI_NAMESPACE}
+      # Cluster identity is carried as a k8s.cluster.name metadata label on each
+      # product component (NOT in the URN, so instances still aggregate across
+      # clusters). Unlike instance_url above, this is safe to vary per cluster.
+      # Requires a collector image with cluster_name support (exporter repo).
+      cluster_name: ${env:K8S_CLUSTER_NAME}
       tls:
         insecure_skip_verify: true
     otlp:
