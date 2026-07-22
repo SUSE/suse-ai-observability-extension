@@ -1,5 +1,10 @@
 # SUSE AI Observability StackPack
 
+## Version 2.1.0
+
+- Fixed product-to-product topology not appearing in the UI: the "SUSE AI Topology" sync now consumes the topology exporter's fixed stream topic.
+- Added multi-cluster support: product components now carry a `k8s.cluster.name` label (sourced from `K8S_CLUSTER_NAME`) as metadata, so the same product aggregates across clusters.
+
 ## Version 0.1.241
 
 - Consolidated vLLM latency charts into multi-query bindings (P99/P95/P90/P50/Avg in a single chart).
