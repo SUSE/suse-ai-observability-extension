@@ -243,6 +243,8 @@ config:
             - set(attributes["suse.ai.managed"], "true")
             - set(attributes["suse.ai.component.type"], "application")
             - set(attributes["suse.ai.component.name"], attributes["service.name"])
+            - set(attributes["k8s.namespace.name"], attributes["service.namespace"]) where attributes["service.namespace"] != nil
+            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["service.namespace"] == nil
     # Create provider -> model relations from GenAI trace spans.
     # Transforms spans so service.name = provider and peer.service = model,
     # which StackState interprets as a service dependency.
