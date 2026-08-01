@@ -1,0 +1,31 @@
+# LiteLLM Deployment Unhealthy
+
+One or more upstream LLM deployments routed by the LiteLLM proxy **{{componentName}}** are experiencing a complete outage (state = 2).
+
+## Potential Impacts
+- Requests to affected model deployments will fail
+- If no fallback is configured, client applications will receive errors
+- Increased latency if LiteLLM retries failed deployments before routing to alternatives
+
+## Diagnosis Steps
+1. **Identify Affected Deployments**:
+   - Check `litellm_deployment_state` metric to identify which deployments are unhealthy
+   - Values: 0 = healthy, 1 = partial outage, 2 = complete outage
+2. **Check Deployment Failure Details**:
+   - Review `litellm_deployment_failure_responses` by `litellm_model_name` and `api_provider`
+   - Look at `exception_status` and `exception_class` labels for failure details
+3. **Check Cooldown Status**:
+   - Review `litellm_deployment_cooled_down` to see if the load balancer has cooled down the deployment
+4. **Verify Provider Status**:
+   - Check the upstream LLM provider's status page
+   - Verify network connectivity to the provider endpoint
+
+## Remediation Actions
+1. **Verify Provider Credentials**: Ensure API keys for the affected provider are valid and not expired.
+2. **Check Provider Rate Limits**: Review `litellm_remaining_requests_metric` and `litellm_remaining_tokens_metric` for rate limit exhaustion.
+3. **Configure Fallback Models**: Add fallback model configurations in `proxy_config.yaml` to route traffic to alternative providers.
+4. **Adjust Cooldown Settings**: If the deployment is being cooled down too aggressively, adjust the cooldown parameters in LiteLLM configuration.
+5. **Restart LiteLLM Proxy**: If the deployment state is stale:
+   ```bash
+   kubectl rollout restart deployment/litellm
+   ```
