@@ -18,6 +18,10 @@ clusterRole:
     - apiGroups: [""]
       resources: ["pods", "nodes", "endpoints", "services"]
       verbs: ["get", "list", "watch"]
+    # Required so kube-rbac-proxy (KServe controller metrics on :8443) authorizes
+    # the collector's scrape via SubjectAccessReview on the /metrics endpoint.
+    - nonResourceURLs: ["/metrics"]
+      verbs: ["get"]
 image:
   registry: ghcr.io
   repository: suse/suse-ai-opentelemetry-collector
@@ -94,18 +98,40 @@ config:
               - source_labels: [__meta_kubernetes_service_name]
                 action: keep
                 regex: '(ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service)'
+              # Only scrape the HTTP metrics port. The KFP api-server serves
+              # Prometheus on its 'http' port (8888); its 'grpc' port (8887) and
+              # the gRPC-only metadata-grpc-service return 415/503 on /metrics.
+              - source_labels: [__meta_kubernetes_service_port_name]
+                action: keep
+                regex: '(http|metrics|http-metrics)'
           - job_name: 'kserve-controller'
             scrape_interval: 15s
             metrics_path: '/metrics'
+            # The SUSE Kubeflow chart fronts the KServe controller metrics with
+            # kube-rbac-proxy: HTTPS on port 8443, bearer-token auth. Scrape over
+            # TLS using the collector ServiceAccount token; the clusterRole in
+            # this values file grants the required nonResourceURL /metrics access.
+            scheme: https
+            tls_config:
+              insecure_skip_verify: true
+            authorization:
+              type: Bearer
+              credentials_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+            # No namespace filter: the SUSE Kubeflow chart co-locates the KServe
+            # controller in the 'kubeflow' namespace, while a standalone KServe
+            # install uses 'kserve'. The control-plane label below is specific
+            # enough to discover it wherever it runs (matches the namespace-
+            # agnostic kserve-inferenceservices job).
             kubernetes_sd_configs:
               - role: pod
-                namespaces:
-                  names:
-                    - kserve
             relabel_configs:
               - source_labels: [__meta_kubernetes_pod_label_control_plane]
                 action: keep
                 regex: 'kserve-controller-manager'
+              # kube-rbac-proxy metrics port only (skip the 9443 webhook port).
+              - source_labels: [__meta_kubernetes_pod_container_port_number]
+                action: keep
+                regex: '8443'
           - job_name: 'kserve-inferenceservices'
             scrape_interval: 15s
             metrics_path: '/metrics'
@@ -193,21 +219,21 @@ config:
       metric_statements:
         - context: resource
           statements:
-            - set(attributes["suse.ai.managed"], "true") where IsMatch(attributes["service.name"] ?? "", ".*-predictor-default|.*-transformer-default|.*-explainer-default|kserve-controller-manager")
-            - set(attributes["suse.ai.component.name"], "kserve") where IsMatch(attributes["service.name"] ?? "", ".*-predictor-default|.*-transformer-default|.*-explainer-default|kserve-controller-manager")
-            - set(attributes["suse.ai.component.type"], "inference-engine") where IsMatch(attributes["service.name"] ?? "", ".*-predictor-default|.*-transformer-default|.*-explainer-default|kserve-controller-manager")
-            - set(attributes["service.instance.id"], attributes["service.name"]) where IsMatch(attributes["service.name"] ?? "", ".*-predictor-default|.*-transformer-default|.*-explainer-default|kserve-controller-manager") and attributes["service.instance.id"] == nil
-            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where IsMatch(attributes["service.name"] ?? "", ".*-predictor-default|.*-transformer-default|.*-explainer-default|kserve-controller-manager") and attributes["k8s.namespace.name"] == nil
+            - set(attributes["suse.ai.managed"], "true") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], ".*-predictor-default|.*-transformer-default|.*-explainer-default|kserve-controller-manager")
+            - set(attributes["suse.ai.component.name"], "kserve") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], ".*-predictor-default|.*-transformer-default|.*-explainer-default|kserve-controller-manager")
+            - set(attributes["suse.ai.component.type"], "inference-engine") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], ".*-predictor-default|.*-transformer-default|.*-explainer-default|kserve-controller-manager")
+            - set(attributes["service.instance.id"], attributes["service.name"]) where attributes["service.name"] != nil and IsMatch(attributes["service.name"], ".*-predictor-default|.*-transformer-default|.*-explainer-default|kserve-controller-manager") and attributes["service.instance.id"] == nil
+            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], ".*-predictor-default|.*-transformer-default|.*-explainer-default|kserve-controller-manager") and attributes["k8s.namespace.name"] == nil
     transform/kubeflow-pipelines:
       error_mode: ignore
       metric_statements:
         - context: resource
           statements:
-            - set(attributes["suse.ai.managed"], "true") where IsMatch(attributes["service.name"] ?? "", "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service")
-            - set(attributes["suse.ai.component.name"], "kubeflow-pipelines") where IsMatch(attributes["service.name"] ?? "", "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service")
-            - set(attributes["suse.ai.component.type"], "workflow-engine") where IsMatch(attributes["service.name"] ?? "", "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service")
-            - set(attributes["service.instance.id"], attributes["service.name"]) where IsMatch(attributes["service.name"] ?? "", "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service") and attributes["service.instance.id"] == nil
-            - set(attributes["k8s.namespace.name"], "${env:KUBEFLOW_NAMESPACE}") where IsMatch(attributes["service.name"] ?? "", "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service") and attributes["k8s.namespace.name"] == nil
+            - set(attributes["suse.ai.managed"], "true") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service")
+            - set(attributes["suse.ai.component.name"], "kubeflow-pipelines") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service")
+            - set(attributes["suse.ai.component.type"], "workflow-engine") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service")
+            - set(attributes["service.instance.id"], attributes["service.name"]) where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service") and attributes["service.instance.id"] == nil
+            - set(attributes["k8s.namespace.name"], "${env:KUBEFLOW_NAMESPACE}") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service") and attributes["k8s.namespace.name"] == nil
     transform/kubeflow-model-registry:
       error_mode: ignore
       metric_statements:
@@ -348,24 +374,24 @@ config:
       trace_statements:
         - context: resource
           statements:
-            - set(attributes["suse.ai.managed"], "true") where attributes["serving.kserve.io/inferenceservice"] != nil or IsMatch(attributes["service.name"] ?? "", ".*-predictor-default|.*-transformer-default|.*-explainer-default")
-            - set(attributes["suse.ai.component.name"], "kserve") where attributes["serving.kserve.io/inferenceservice"] != nil or IsMatch(attributes["service.name"] ?? "", ".*-predictor-default|.*-transformer-default|.*-explainer-default")
-            - set(attributes["suse.ai.component.type"], "inference-engine") where attributes["serving.kserve.io/inferenceservice"] != nil or IsMatch(attributes["service.name"] ?? "", ".*-predictor-default|.*-transformer-default|.*-explainer-default")
+            - set(attributes["suse.ai.managed"], "true") where attributes["serving.kserve.io/inferenceservice"] != nil or attributes["service.name"] != nil and IsMatch(attributes["service.name"], ".*-predictor-default|.*-transformer-default|.*-explainer-default")
+            - set(attributes["suse.ai.component.name"], "kserve") where attributes["serving.kserve.io/inferenceservice"] != nil or attributes["service.name"] != nil and IsMatch(attributes["service.name"], ".*-predictor-default|.*-transformer-default|.*-explainer-default")
+            - set(attributes["suse.ai.component.type"], "inference-engine") where attributes["serving.kserve.io/inferenceservice"] != nil or attributes["service.name"] != nil and IsMatch(attributes["service.name"], ".*-predictor-default|.*-transformer-default|.*-explainer-default")
     transform/kfp-traces:
       error_mode: ignore
       trace_statements:
         - context: resource
           statements:
-            - set(attributes["suse.ai.managed"], "true") where IsMatch(attributes["service.name"] ?? "", "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service")
-            - set(attributes["suse.ai.component.name"], "kubeflow-pipelines") where IsMatch(attributes["service.name"] ?? "", "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service")
-            - set(attributes["suse.ai.component.type"], "workflow-engine") where IsMatch(attributes["service.name"] ?? "", "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service")
+            - set(attributes["suse.ai.managed"], "true") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service")
+            - set(attributes["suse.ai.component.name"], "kubeflow-pipelines") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service")
+            - set(attributes["suse.ai.component.type"], "workflow-engine") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service")
     transform/kubeflow-relations:
       error_mode: ignore
       trace_statements:
         - context: span
           statements:
             - set(attributes["peer.service"], "kserve") where attributes["kserve.inference.service"] != nil
-            - set(attributes["peer.service"], "kubeflow-model-registry") where IsMatch(attributes["http.url"] ?? "", ".*model-registry.*")
+            - set(attributes["peer.service"], "kubeflow-model-registry") where attributes["http.url"] != nil and IsMatch(attributes["http.url"], ".*model-registry.*")
     filter/dropMissingK8sAttributes:
       error_mode: ignore
       traces:

@@ -16,9 +16,11 @@ Kubeflow is monitored via three product components:
 
 Signals are collected via the SUSE AI custom OTel collector. Three new Prometheus scrape jobs in `integrations/otel-collector/otel-values.yaml`:
 
-- `kubeflow-pipelines` — Kubernetes service discovery in `${KUBEFLOW_NAMESPACE}` (default `kubeflow`).
-- `kserve-controller` — pods labeled `control-plane=kserve-controller-manager` in the `kserve` namespace.
-- `kserve-inferenceservices` — pods carrying `serving.kserve.io/inferenceservice` label, port `http-usermetric` (the qpext aggregated endpoint).
+- `kubeflow-pipelines` — Kubernetes service discovery in `${KUBEFLOW_NAMESPACE}` (default `kubeflow`), keeping only the `http` metrics port. The KFP api-server serves Prometheus on `ml-pipeline`'s `http` port (8888); its `grpc` port (8887) and the gRPC-only `metadata-grpc-service` (8080) return 415/503 on `/metrics`, so a `__meta_kubernetes_service_port_name` filter (`http|metrics|http-metrics`) drops them.
+- `kserve-controller` — pods labeled `control-plane=kserve-controller-manager`, discovered cluster-wide (no namespace filter). The official SUSE Kubeflow chart co-locates the KServe controller in the `kubeflow` namespace; a standalone KServe install uses `kserve`. The label is specific enough to find it either way. The SUSE chart fronts the controller metrics with **kube-rbac-proxy** (HTTPS on port `8443`, bearer-token auth), so the job uses `scheme: https`, `insecure_skip_verify`, and the collector ServiceAccount token (`credentials_file`), and keeps only port `8443`. This requires the collector clusterRole to grant `nonResourceURLs: ["/metrics"]` (kube-rbac-proxy authorizes via SubjectAccessReview).
+- `kserve-inferenceservices` — pods carrying `serving.kserve.io/inferenceservice` label, port `http-usermetric` (the qpext aggregated endpoint). This is the primary source of KServe *serving* metrics (request rate, latency); the controller job above only adds controller-runtime reconcile metrics.
+
+> **Collector image requirement:** these configs need a collector image whose OTTL supports the resource-context transforms and whose topology exporter accepts `cluster_name`. Validated against `ghcr.io/suse/suse-ai-opentelemetry-collector:latest`; the productized `registry.suse.com/ai/containers/suse-ai-opentelemetry-collector:0.149.0` is too old (rejects `cluster_name`). OTTL statements must **not** use the `??` operator — the shipping collector lexers reject it; guard nil with `attributes[...] != nil and IsMatch(...)` instead.
 
 ### Required customer configuration
 
