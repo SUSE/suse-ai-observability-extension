@@ -141,9 +141,27 @@ config:
               - source_labels: [__meta_kubernetes_pod_label_serving_kserve_io_inferenceservice]
                 action: keep
                 regex: '.+'
+              # The metric-aggregation endpoint (http-usermetric / aggr-metric:9088)
+              # only serves when the KServe qpext queue-proxy image is configured.
+              # The SUSE Kubeflow chart ships the stock Knative queue-proxy, so that
+              # port is never bound. Scrape the model container's own Prometheus
+              # endpoint instead (prometheus.kserve.io/{port,path}, set when the
+              # customer enables serving.kserve.io/enable-prometheus-scraping).
+              # Anchor on the model container port (role=pod emits one target per
+              # declared port; user-port is the kserve-container serving port), then
+              # rewrite the address/path from the KServe annotations.
               - source_labels: [__meta_kubernetes_pod_container_port_name]
                 action: keep
-                regex: 'http-usermetric'
+                regex: 'user-port'
+              - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_kserve_io_port]
+                action: replace
+                regex: '([^:]+)(?::\d+)?;(\d+)'
+                replacement: '$1:$2'
+                target_label: __address__
+              - source_labels: [__meta_kubernetes_pod_annotation_prometheus_kserve_io_path]
+                action: replace
+                regex: '(.+)'
+                target_label: __metrics_path__
   exporters:
     topology:
       endpoint: http://suse-observability-router.suse-observability.svc.cluster.local:8080
