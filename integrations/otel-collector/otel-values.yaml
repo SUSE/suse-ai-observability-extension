@@ -122,8 +122,9 @@ config:
     topology:
       endpoint: http://suse-observability-router.suse-observability.svc.cluster.local:8080
       api_key: ${env:API_KEY}
-      instance_url: ${env:K8S_CLUSTER_NAME}
       namespace: ${env:SUSE_AI_NAMESPACE}
+      # Cluster identity as a label only (not in the URN); needs a cluster_name-aware image.
+      cluster_name: ${env:K8S_CLUSTER_NAME}
       tls:
         insecure_skip_verify: true
     otlp:
@@ -310,6 +311,8 @@ config:
             - set(attributes["suse.ai.managed"], "true")
             - set(attributes["suse.ai.component.type"], "application")
             - set(attributes["suse.ai.component.name"], attributes["service.name"])
+            - set(attributes["k8s.namespace.name"], attributes["service.namespace"]) where attributes["service.namespace"] != nil
+            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["service.namespace"] == nil
     # Create provider -> model relations from GenAI trace spans.
     # Transforms spans so service.name = provider and peer.service = model,
     # which StackState interprets as a service dependency.

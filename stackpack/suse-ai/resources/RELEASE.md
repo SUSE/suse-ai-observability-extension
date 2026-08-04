@@ -1,11 +1,16 @@
 # SUSE AI Observability StackPack
 
-## Version 2.0.1
+## Version 2.2.0
 
 - Added Kubeflow integration: KServe (`inference-engine.kserve`), Kubeflow Pipelines (`workflow-engine.kubeflow-pipelines`), Kubeflow Model Registry (`ml-registry.kubeflow`).
 - Re-enabled the **Workflow Engines** and **ML Registries** sidebar menu entries.
 - New OTel collector scrape jobs and transforms for Kubeflow metrics and traces (KUBEFLOW_NAMESPACE env var, `transform/kserve`, `transform/kubeflow-pipelines`, `transform/kubeflow-model-registry`, `traces/kubeflow-relations` pipeline).
 - New monitors for KServe (error rate, latency, model-load failures) and Kubeflow Pipelines (run failures, reconcile lag, API down, MLMD errors), each with per-symptom remediation hints.
+
+## Version 2.1.0
+
+- Fixed product-to-product topology not appearing in the UI: the "SUSE AI Topology" sync now consumes the topology exporter's fixed stream topic.
+- Added multi-cluster support: product components now carry a `k8s.cluster.name` label (sourced from `K8S_CLUSTER_NAME`) as metadata, so the same product aggregates across clusters.
 
 ## Version 0.1.241
 

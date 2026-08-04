@@ -30,7 +30,7 @@
         primary: true
     scope: type IN ("pod")
     identifier: urn:stackpack:suse-ai:shared:metric-binding:common:pod-gpu-power-total
-    unit: kwatt
+    unit: watt
     chartType: line
     tags:
       experimental_chartType: Gauge
@@ -53,7 +53,7 @@
         primary: true
     scope: type IN ("pod")
     identifier: urn:stackpack:suse-ai:shared:metric-binding:common:pod-gpu-temperature
-    unit: kwatt
+    unit: celsius
     chartType: line
     priority: high
     enabled: true
@@ -73,7 +73,7 @@
         primary: true
     scope: type IN ("pod")
     identifier: urn:stackpack:suse-ai:shared:metric-binding:common:pod-gpu-power-usage
-    unit: kwatt
+    unit: watt
     chartType: line
     priority: high
     enabled: true
