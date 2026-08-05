@@ -22,11 +22,14 @@ clusterRole:
     # the collector's scrape via SubjectAccessReview on the /metrics endpoint.
     - nonResourceURLs: ["/metrics"]
       verbs: ["get"]
+# The upstream opentelemetry-collector chart has no image.registry field — the
+# registry must be part of image.repository, otherwise it defaults to docker.io.
+# Pinned to a released tag (0.156.0: standard topology Kafka topic name); the
+# productized registry.suse.com image is not published at this version yet.
 image:
-  registry: ghcr.io
-  repository: suse/suse-ai-opentelemetry-collector
-  tag: latest
-  pullPolicy: Always
+  repository: ghcr.io/suse/suse-ai-opentelemetry-collector
+  tag: "0.156.0"
+  pullPolicy: IfNotPresent
 ports:
   metrics:
     enabled: true
@@ -237,21 +240,27 @@ config:
       metric_statements:
         - context: resource
           statements:
-            - set(attributes["suse.ai.managed"], "true") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], ".*-predictor-default|.*-transformer-default|.*-explainer-default|kserve-controller-manager")
-            - set(attributes["suse.ai.component.name"], "kserve") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], ".*-predictor-default|.*-transformer-default|.*-explainer-default|kserve-controller-manager")
-            - set(attributes["suse.ai.component.type"], "inference-engine") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], ".*-predictor-default|.*-transformer-default|.*-explainer-default|kserve-controller-manager")
-            - set(attributes["service.instance.id"], attributes["service.name"]) where attributes["service.name"] != nil and IsMatch(attributes["service.name"], ".*-predictor-default|.*-transformer-default|.*-explainer-default|kserve-controller-manager") and attributes["service.instance.id"] == nil
-            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], ".*-predictor-default|.*-transformer-default|.*-explainer-default|kserve-controller-manager") and attributes["k8s.namespace.name"] == nil
+            # The OTel Prometheus receiver sets service.name to the *job name*, not
+            # the k8s workload name — so match the kserve scrape jobs directly. The
+            # kserve-inferenceservices/kserve-controller jobs are already filtered to
+            # KServe pods, so every metric they emit is a KServe serving/controller metric.
+            - set(attributes["suse.ai.managed"], "true") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "^(kserve-inferenceservices|kserve-controller)$")
+            - set(attributes["suse.ai.component.name"], "kserve") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "^(kserve-inferenceservices|kserve-controller)$")
+            - set(attributes["suse.ai.component.type"], "inference-engine") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "^(kserve-inferenceservices|kserve-controller)$")
+            - set(attributes["service.instance.id"], attributes["service.name"]) where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "^(kserve-inferenceservices|kserve-controller)$") and attributes["service.instance.id"] == nil
+            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "^(kserve-inferenceservices|kserve-controller)$") and attributes["k8s.namespace.name"] == nil
     transform/kubeflow-pipelines:
       error_mode: ignore
       metric_statements:
         - context: resource
           statements:
-            - set(attributes["suse.ai.managed"], "true") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service")
-            - set(attributes["suse.ai.component.name"], "kubeflow-pipelines") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service")
-            - set(attributes["suse.ai.component.type"], "workflow-engine") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service")
-            - set(attributes["service.instance.id"], attributes["service.name"]) where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service") and attributes["service.instance.id"] == nil
-            - set(attributes["k8s.namespace.name"], "${env:KUBEFLOW_NAMESPACE}") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service") and attributes["k8s.namespace.name"] == nil
+            # service.name is the Prometheus job name (kubeflow-pipelines), not the
+            # k8s service name. The job already keeps only the ml-pipeline* services.
+            - set(attributes["suse.ai.managed"], "true") where attributes["service.name"] == "kubeflow-pipelines"
+            - set(attributes["suse.ai.component.name"], "kubeflow-pipelines") where attributes["service.name"] == "kubeflow-pipelines"
+            - set(attributes["suse.ai.component.type"], "workflow-engine") where attributes["service.name"] == "kubeflow-pipelines"
+            - set(attributes["service.instance.id"], attributes["service.name"]) where attributes["service.name"] == "kubeflow-pipelines" and attributes["service.instance.id"] == nil
+            - set(attributes["k8s.namespace.name"], "${env:KUBEFLOW_NAMESPACE}") where attributes["service.name"] == "kubeflow-pipelines" and attributes["k8s.namespace.name"] == nil
     transform/kubeflow-model-registry:
       error_mode: ignore
       metric_statements:
