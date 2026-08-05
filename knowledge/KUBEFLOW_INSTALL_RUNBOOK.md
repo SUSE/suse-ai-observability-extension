@@ -113,10 +113,13 @@ helm upgrade opentelemetry-collector \
 ```
 
 **Image requirement:** the branch config uses `cluster_name` in the topology
-exporter and needs the newer collector image. Validated against public
-`ghcr.io/suse/suse-ai-opentelemetry-collector:latest`. The productized
-`registry.suse.com/ai/containers/...:0.149.0` is **too old** (rejects
-`cluster_name`, only accepts `instance_url`) — don't pin to it.
+exporter and needs the newer collector image. `otel-values.yaml` now pins
+`ghcr.io/suse/suse-ai-opentelemetry-collector:0.156.0` (standard topology Kafka
+topic name). Put the **full path in `image.repository`** — the upstream chart
+has no `image.registry` field, so `registry: ghcr.io` is ignored and the image
+defaults to `docker.io` (→ `ImagePullBackOff`). The productized
+`registry.suse.com/ai/containers/...` is not published at 0.156.0 yet, and its
+`:0.149.0` is **too old** (rejects `cluster_name`) — don't pin to it.
 
 Confirm health:
 ```bash
@@ -212,7 +215,7 @@ and the declared `common` dependency.
 ## Quick gotcha checklist
 1. Default StorageClass set? (else PVCs Pending)
 2. Knative `KUBERNETES_MIN_VERSION=1.28.0` applied? (k8s < 1.34) — re-apply after any helm reconcile
-3. Collector image is `ghcr:latest` (cluster_name-aware), not `:0.149.0`
+3. Collector image is `ghcr.io/suse/...:0.156.0` (full path in `image.repository`; chart has no `registry` field), not the productized `:0.149.0`
 4. Sample InferenceService in a NON-`kubeflow` namespace (webhook skips `control-plane` ns)
 5. Predictor SA has `suse-ai-registry` pull secret if ImagePullBackOff
 6. `--request-timeout` on all read-only kubectl (slow apiserver)
