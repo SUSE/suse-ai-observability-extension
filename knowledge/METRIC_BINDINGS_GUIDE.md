@@ -8,8 +8,11 @@ Metric binding IDs are negative integers organized by category:
 - **-520 to -527**: vLLM per-model (genai-model) metrics
 - **-540 to -568**: Individual product metrics (vLLM, Ollama, etc.)
 - **-569 to -583**: Application-scoped GenAI metrics
-- **-584 to -608**: Common GPU/infrastructure metrics (including vGPU at -606 to -608)
-- **-615 to -617**: Pod-level vGPU metrics
+- **-584 to -594**: Pod-level GPU metrics (common-metrics.sty)
+- **-595 to -608**: Node-level GPU metrics (gpu-metrics.sty, including vGPU at -606 to -608)
+- **-610 to -614**: Ollama metrics (ollama-metrics.sty)
+- **-615 to -617**: Pod-level vGPU metrics (common-metrics.sty)
+- **-620 to -629**: Qdrant metrics (qdrant-metrics.sty)
 - **-700 to -705**: GenAI global metrics (genai-metrics.sty)
 - **-2000 to -2004**: Milvus/OpenSearch/Elasticsearch metrics
 
@@ -40,6 +43,29 @@ Combine multiple percentiles/series into a single chart:
 - **Application components**: `type in ("service", "application") AND label IN ("suse.ai.category:application")`
 - **vLLM system scope**: `type = "inference-engine.vllm"`
 - **Per-model scope**: `type = "genai.model"` (filter by `model_name="${name}"` in PromQL)
+
+## DCGM Label Reference
+
+dcgm-exporter label names are easy to get wrong. Verified against upstream
+(`internal/pkg/transformation/const.go`, `internal/pkg/rendermetrics/render_metrics.go`):
+
+| Label | Emitted when | Notes |
+|---|---|---|
+| `pod_name`, `pod_namespace`, `container_name` | `--use-old-namespace` (what this deployment uses) | Default mode emits `pod` / `namespace` / `container` instead |
+| `vgpu` | `KUBERNETES_VIRTUAL_GPUS=true` | Time-sliced vGPU replica index. Filter with `vgpu!=""` |
+| `GPU_I_ID`, `GPU_I_PROFILE` | MIG enabled | MIG partition, uppercase. Filter with `GPU_I_ID!=""` |
+| `gpu`, `UUID`, `device`, `modelName`, `Hostname` | always | |
+
+`gpu_instance_id` is **not** a Prometheus label — it is only a JSON field name in
+dcgm-exporter's internal `Metric` struct. Filtering on it matches nothing.
+
+Time-sliced vGPU gives **attribution, not isolation**: DCGM duplicates the device-level
+value across every pod sharing the GPU. Never `sum` across vGPU series — utilization will
+exceed 100%. Use `max by (...)` and say so in the binding description. Only MIG provides
+hardware-partitioned per-instance values.
+
+`DCGM_FI_DEV_FB_USED` / `FB_FREE` / `FB_RESERVED` are reported in **MiB**. A binding with
+`unit: bytes` must multiply by `1048576`.
 
 ## PromQL Variable Substitution
 
