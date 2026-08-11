@@ -1,7 +1,7 @@
 # Kubeflow integration
 
 **Current status:** KServe, Kubeflow Pipelines, and Kubeflow Model Registry have
-topology, traces, metrics, and monitors in StackPack 2.2.9. Model Registry
+topology, traces, metrics, and monitors in StackPack 2.2.0. Model Registry
 metrics are synthetic API health signals because the deployed registry does not
 publish a Prometheus endpoint.
 
