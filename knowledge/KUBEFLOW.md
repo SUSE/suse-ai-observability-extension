@@ -161,6 +161,36 @@ also valid XML. A blank topology icon is therefore not evidence that the stock
 Kubeflow icon was deployed; browser cache or UI rendering can be investigated
 separately without changing the StackPack icon payload.
 
+## Debugging order
+
+Debug the integration one evidence boundary at a time. This prevents a UI
+symptom from being misdiagnosed as a collector or StackPack problem:
+
+1. Confirm the upstream endpoint serves the expected signal and record its
+   exact metric names and labels.
+2. Confirm the collector discovers that endpoint and has no current scrape or
+   export error for it.
+3. Query the raw signal in VictoriaMetrics before evaluating a MetricBinding or
+   monitor expression.
+4. Inspect the installed StackPack node with `sts settings describe`; do not
+   assume the working-tree STY is what the backend currently uses.
+5. Evaluate the exact installed query and component scope.
+6. Only then investigate topology rendering, browser cache, or other UI state.
+
+For short-lived pipeline pods, an instant raw query can be empty after
+Prometheus staleness even though the run exported correctly. The lifecycle
+bindings retain a 24-hour window and select the newest timestamp. Histogram
+selection must preserve `(le, step)` while choosing the newest run, and smoke
+selection must preserve `inference_service`; otherwise buckets or outcomes from
+different runs can be combined. A single cumulative point is evidence, but it
+is not a counter rate.
+
+KServe deployment acceptance is also a handoff check, not merely a Ready
+condition. Require `latestCreatedRevision == latestReadyRevision` before
+updating the stable Service, then verify that the Service selector and its
+endpoint pod both name that exact revision. This catches the window in which an
+older revision remains Ready while a new revision is still starting.
+
 ## Troubleshooting
 
 - **No KServe serving metrics:** verify the InferenceService advertises
@@ -172,7 +202,15 @@ separately without changing the StackPack icon payload.
   `registered_models` route from inside the cluster.
 - **Pipeline charts are empty:** inspect the exact metric name in VictoriaMetrics
   before assuming an upstream name; this distribution differs from several
-  upstream examples.
+  upstream examples. If the raw one-shot metric exists only in a range query,
+  inspect timestamp selection rather than adding `rate()`.
+- **Raw backend data exists but a chart is empty:** compare the installed
+  MetricBinding expression and component scope with the source STY. This is a
+  binding or installed-version boundary, not a scrape boundary.
+- **The customized icon is blank:** hash the decoded installed `iconbase64`
+  payload and compare it with source. Matching valid bytes move the investigation
+  to browser cache or the UI renderer; do not replace the payload speculatively.
 - **Topology sync count is non-zero but `describe` has no errors:** the list
   counter is cumulative. Use `sts topology-sync describe` to determine whether
-  any current error details remain.
+  any current error details remain, and scope acceptance to the SUSE AI syncs
+  changed by this StackPack.

@@ -195,6 +195,22 @@ kubectl logs "$CPOD" -n observability --since=5m | grep -i 'Failed to scrape' | 
 **Layer 4 — topology/UI:** components `inference-engine.kserve`,
 `workflow-engine.kubeflow-pipelines`, `ml-registry.kubeflow` render with charts.
 
+**Layer 5 — installed settings match source:** use
+`sts settings describe --ids <setting-id> -o json` for the Kubeflow
+ComponentType and lifecycle MetricBindings. Check the returned `data` rather
+than the working tree. For an icon-rendering issue, decode the installed
+`iconbase64` and compare its hash with source; matching valid bytes prove that
+upload and provisioning succeeded.
+
+Interpret failures at the first broken layer:
+
+- source absent: endpoint, authentication, or workload problem;
+- source present but backend absent: discovery, scrape, transform, or export
+  problem;
+- backend present but installed expression empty: query or component-scope
+  problem;
+- installed data and query correct but UI blank: browser or UI-renderer problem.
+
 ### 4a. Run the real model lifecycle
 
 Use the KFP profile namespace rather than the `kubeflow` control-plane namespace.
@@ -230,6 +246,17 @@ latest-created revision equals its latest-ready revision, and the
 `suse-ai-sklearn-iris` Service selects only that revision. The predictor
 ServiceAccount must retain both the S3 credential Secret and
 `imagePullSecrets: [suse-ai-registry]`.
+
+The lifecycle is accepted only when all of these agree:
+
+1. The KFP run and Argo Workflow are `Succeeded`.
+2. The Model Registry version and artifact reference the model URI produced by
+   that KFP run.
+3. The InferenceService `storageUri` references the same artifact.
+4. `latestCreatedRevision` equals `latestReadyRevision`.
+5. The stable Service selector and its only endpoint pod name that revision.
+6. The newest 24-hour accuracy, step-duration, and smoke-test queries are
+   non-empty, and the smoke outcome is `success`.
 
 ---
 
