@@ -1,15 +1,11 @@
-# Kubeflow Pipelines Reconcile Lag
+# Kubeflow Workflow Queue Lag
 
-**Kubeflow Pipelines controller reconcile lag is {{currentValue}}s (threshold {{threshold}}s) on {{componentName}}.**
+**The oldest Argo controller queue item is {{currentValue}}s (threshold {{threshold}}s) on {{componentName}}.**
 
 Triage:
 
-1. Identify which controller workqueue is backed up:
-   `kubectl logs -n <kubeflow-namespace> deploy/ml-pipeline-scheduledworkflow --tail=100`
-   `kubectl logs -n <kubeflow-namespace> deploy/ml-pipeline-persistenceagent --tail=100`.
-2. Check the controller pod for CPU/memory throttling:
-   `kubectl top pod -n <kubeflow-namespace> -l app.kubernetes.io/part-of=kubeflow-pipelines`.
-3. Look for workqueue depth growth in Prometheus:
-   `workqueue_depth{job="kubeflow-pipelines"}` over the last hour.
-4. Restart the throttled controller if necessary:
-   `kubectl rollout restart deploy/ml-pipeline-persistenceagent -n <kubeflow-namespace>`.
+1. Identify the affected `queue_name` in `argo_workflows_queue_longest_running` and compare its depth and unfinished-work metrics.
+2. Inspect workflow-controller logs for API throttling, repeated reconciliation errors, or unavailable dependencies.
+3. Check controller CPU and memory: `kubectl top pod -n <kubeflow-namespace> -l app=workflow-controller`.
+4. Inspect workflows stuck in Pending or Running: `kubectl get workflows -A`.
+5. Resolve the blocking workflow or dependency before restarting the controller; a restart alone does not remove poisoned work.

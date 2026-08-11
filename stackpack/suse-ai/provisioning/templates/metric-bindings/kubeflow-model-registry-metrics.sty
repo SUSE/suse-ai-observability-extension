@@ -1,0 +1,116 @@
+  - id: -650
+    name: "API Availability"
+    description: "Synthetic Model Registry API check, split by HTTP status class."
+    queries:
+      - expression: 'max(httpcheck_status{suse_ai_component_name="kubeflow-model-registry",http_status_class="2xx"})'
+        alias: "2xx"
+        primary: true
+      - expression: 'max(httpcheck_status{suse_ai_component_name="kubeflow-model-registry",http_status_class="4xx"})'
+        alias: "4xx"
+      - expression: 'max(httpcheck_status{suse_ai_component_name="kubeflow-model-registry",http_status_class="5xx"})'
+        alias: "5xx"
+    scope: 'type = "ml-registry.kubeflow"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-model-registry:availability"
+    unit: short
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: "Kubeflow Model Registry"
+        section: API Health
+      componentSummary:
+        weight: 4
+    _type: MetricBinding
+
+  - id: -651
+    name: "API Check Duration"
+    description: "End-to-end duration of the synthetic Model Registry API request."
+    queries:
+      - expression: 'max(httpcheck_duration_milliseconds{suse_ai_component_name="kubeflow-model-registry"} or httpcheck_duration{suse_ai_component_name="kubeflow-model-registry"})'
+        alias: "duration"
+        primary: true
+    scope: 'type = "ml-registry.kubeflow"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-model-registry:check-duration"
+    unit: ms
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: "Kubeflow Model Registry"
+        section: API Health
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -652
+    name: "Response Validation"
+    description: "Whether the Model Registry response contains the expected API collection shape."
+    queries:
+      - expression: 'max(httpcheck_validation_passed{suse_ai_component_name="kubeflow-model-registry",validation_type="contains"})'
+        alias: "passed"
+        primary: true
+      - expression: '1 - max(httpcheck_validation_passed{suse_ai_component_name="kubeflow-model-registry",validation_type="contains"})'
+        alias: "failed"
+    scope: 'type = "ml-registry.kubeflow"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-model-registry:validation"
+    unit: short
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: "Kubeflow Model Registry"
+        section: API Health
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -653
+    name: "API Response Size"
+    description: "Size of the registered-models API response body."
+    queries:
+      - expression: 'max(httpcheck_response_size_bytes{suse_ai_component_name="kubeflow-model-registry"} or httpcheck_response_size{suse_ai_component_name="kubeflow-model-registry"})'
+        alias: "response"
+        primary: true
+    scope: 'type = "ml-registry.kubeflow"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-model-registry:response-size"
+    unit: bytes
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: "Kubeflow Model Registry"
+        section: API Health
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
+
+  - id: -654
+    name: "Synthetic Check Errors"
+    description: "Errors produced while connecting to or reading the Model Registry API."
+    queries:
+      - expression: 'sum by (error_message) (httpcheck_error{suse_ai_component_name="kubeflow-model-registry"})'
+        alias: "${error_message}"
+        primary: true
+    scope: 'type = "ml-registry.kubeflow"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-model-registry:check-errors"
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: "Kubeflow Model Registry"
+        section: API Health
+      componentSummary:
+        weight: 2
+    _type: MetricBinding

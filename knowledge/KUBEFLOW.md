@@ -1,117 +1,178 @@
-# Kubeflow Integration
+# Kubeflow integration
 
-**Current Status**: v1 — KServe and Pipelines fully integrated with metrics + traces; Model Registry topology-only.
+**Current status:** KServe, Kubeflow Pipelines, and Kubeflow Model Registry have
+topology, traces, metrics, and monitors in StackPack 2.2.9. Model Registry
+metrics are synthetic API health signals because the deployed registry does not
+publish a Prometheus endpoint.
 
-## Overview
+## Product topology
 
-Kubeflow is monitored via three product components:
+| Product | Component type | Signal sources |
+|---|---|---|
+| KServe | `inference-engine.kserve` | predictor metrics, controller metrics, application and pipeline spans |
+| Kubeflow Pipelines | `workflow-engine.kubeflow-pipelines` | KFP API metrics, Argo controller metrics, instrumented demo steps |
+| Kubeflow Model Registry | `ml-registry.kubeflow` | HTTP synthetic check and client spans |
 
-- `inference-engine.kserve` — aggregates all KServe InferenceServices in the cluster.
-- `workflow-engine.kubeflow-pipelines` — aggregates the KFP control plane (api-server, scheduledworkflow controller, persistence agent, MLMD).
-- `ml-registry.kubeflow` — Kubeflow Model Registry (topology only in v1).
+The SUSE AI synchronization keeps its own `urn:suse-ai:` identifiers so it does
+not take ownership of OpenTelemetry components. The Model Registry component
+retains the collector external identifier and has both the current
+`urn:suse-ai:product:ml-registry:kubeflow-model-registry` identifier and the
+legacy inference-engine identifier for compatibility.
 
-## Architecture
+## Collector configuration
 
-### Discovery
+The test-environment configuration is
+`integrations/otel-collector/otel-values.yaml`. It is validated against the
+custom SUSE AI Collector 0.156.0 and uses these receivers:
 
-Signals are collected via the SUSE AI custom OTel collector. Three new Prometheus scrape jobs in `integrations/otel-collector/otel-values.yaml`:
+- `prometheus/kubeflow-pipelines`: discovers Kubeflow services and keeps only
+  HTTP metrics ports. In the deployed chart, `ml-pipeline:8888` is the useful
+  KFP API target; the gRPC ports are not Prometheus endpoints.
+- `prometheus/kubeflow-workflow-controller`: discovers the Argo
+  `workflow-controller` pod and scrapes HTTPS port 9090 with its cluster-local
+  self-signed certificate accepted.
+- `prometheus/kserve-controller`: scrapes kube-rbac-proxy HTTPS port 8443 using
+  the collector ServiceAccount token and `/metrics` non-resource permission.
+- `prometheus/kserve-inferenceservices`: discovers predictor pods and rewrites
+  the target from `prometheus.kserve.io/{port,path}` annotations to the model
+  container's endpoint, normally port 8080 and `/metrics`.
+- `http_check/model-registry`: calls
+  `/api/model_registry/v1alpha3/registered_models` every 30 seconds with the
+  configured bearer token and validates that the response contains `"items"`.
 
-- `kubeflow-pipelines` — Kubernetes service discovery in `${KUBEFLOW_NAMESPACE}` (default `kubeflow`), keeping only the `http` metrics port. The KFP api-server serves Prometheus on `ml-pipeline`'s `http` port (8888); its `grpc` port (8887) and the gRPC-only `metadata-grpc-service` (8080) return 415/503 on `/metrics`, so a `__meta_kubernetes_service_port_name` filter (`http|metrics|http-metrics`) drops them.
-- `kserve-controller` — pods labeled `control-plane=kserve-controller-manager`, discovered cluster-wide (no namespace filter). The official SUSE Kubeflow chart co-locates the KServe controller in the `kubeflow` namespace; a standalone KServe install uses `kserve`. The label is specific enough to find it either way. The SUSE chart fronts the controller metrics with **kube-rbac-proxy** (HTTPS on port `8443`, bearer-token auth), so the job uses `scheme: https`, `insecure_skip_verify`, and the collector ServiceAccount token (`credentials_file`), and keeps only port `8443`. This requires the collector clusterRole to grant `nonResourceURLs: ["/metrics"]` (kube-rbac-proxy authorizes via SubjectAccessReview).
-- `kserve-inferenceservices` — pods carrying `serving.kserve.io/inferenceservice` label, scraped on the **model container's own Prometheus endpoint** (`prometheus.kserve.io/{port,path}`, normally `8080`/`/metrics`). This is the primary source of KServe *serving* metrics (`request_predict_seconds`, pre/post-process latency); the controller job above only adds controller-runtime reconcile metrics. It does **not** use the metric-aggregation port (`http-usermetric`/`aggr-metric:9088`): that endpoint only binds when KServe's qpext queue-proxy image is configured, and the SUSE Kubeflow chart ships the **stock Knative queue-proxy** (`config-deployment` `queueSidecarImage`), so nothing ever listens there even with `enable-metric-aggregation: "true"`. The job anchors on the `user-port` container port to avoid duplicate targets, then rewrites the address/path from the KServe annotations.
+`MODEL_REGISTRY_BEARER_TOKEN=demo` is appropriate only for this demo cluster.
+Use a Secret-provided token in any non-demo environment.
 
-> **Collector image requirement:** these configs need a collector image whose OTTL supports the resource-context transforms and whose topology exporter accepts `cluster_name`. Pinned to `ghcr.io/suse/suse-ai-opentelemetry-collector:0.156.0` (standard topology Kafka topic name); the productized `registry.suse.com/ai/containers/suse-ai-opentelemetry-collector` is not published at this version yet (the `:0.149.0` one is too old — rejects `cluster_name`). Note the upstream `opentelemetry-collector` helm chart has **no `image.registry` field** — the registry must be part of `image.repository`, or it defaults to `docker.io` (→ `ImagePullBackOff`). OTTL statements must **not** use the `??` operator — the shipping collector lexers reject it; guard nil with `attributes[...] != nil and IsMatch(...)` instead.
+### KServe metric aggregation
 
-### Required customer configuration
+The SUSE Kubeflow chart uses the stock Knative queue-proxy. KServe's optional
+qpext aggregation listener therefore does not bind on port 9088 even if
+`serving.kserve.io/enable-metric-aggregation` is set. The collector intentionally
+scrapes the model container's own metrics endpoint instead.
 
-KServe InferenceServices should enable Prometheus scraping so KServe advertises the
-model container's metrics endpoint via the `prometheus.kserve.io/{port,path}` annotations:
+### Resource tagging
 
-```yaml
-metadata:
-  annotations:
-    serving.kserve.io/enable-prometheus-scraping: "true"
-    # Harmless but non-functional on the SUSE chart (no qpext queue-proxy image);
-    # the job scrapes the model container directly, not the aggregate port.
-    serving.kserve.io/enable-metric-aggregation: "true"
-```
+The collector assigns:
 
-**Note on metric aggregation:** KServe's `enable-metric-aggregation` is meant to merge
-the model-server metrics with queue-proxy request metrics onto a single `aggr-metric:9088`
-(`http-usermetric`) endpoint. That only works when Knative's `queueSidecarImage`
-(`config-deployment` in `knative-serving`) points at KServe's **qpext** queue-proxy image.
-The SUSE Kubeflow chart ships the stock Knative queue-proxy, so the aggregate port is never
-bound — the mutator sets the `AGGREGATE_PROMETHEUS_METRICS_PORT=9088` env and the
-`prometheus.io/port: 9088` annotation, but nothing listens there. We therefore scrape the
-model container's own `/metrics` (which already exposes `request_predict_seconds` etc.)
-and skip the aggregate endpoint entirely. Queue-proxy request-latency metrics are not
-collected under this chart as a result.
+| Product | `suse.ai.component.name` | `suse.ai.component.type` |
+|---|---|---|
+| KServe | `kserve` | `inference-engine` |
+| Pipelines API and Argo | `kubeflow-pipelines` | `workflow-engine` |
+| Model Registry check | `kubeflow-model-registry` | `ml-registry` |
 
-### Resource attribute tagging
+The Prometheus receiver exposes the scrape job as resource `service.name`.
+Transforms must match the job names (`kubeflow-pipelines`,
+`kubeflow-workflow-controller`, `kserve-controller`, and
+`kserve-inferenceservices`), not guessed workload names. OTTL in the shipping
+collector must use explicit nil guards; its lexer does not accept `??`.
 
-`transform/kserve`, `transform/kubeflow-pipelines`, and `transform/kubeflow-model-registry` add:
+## Topology relations
 
-| Key | Value |
+`transform/kubeflow-relations` preserves normal trace attributes and adds the
+dependency hints used only by the topology export pipeline:
+
+| Edge | Source evidence |
 |---|---|
-| `suse.ai.managed` | `true` |
-| `suse.ai.component.name` | `kserve` / `kubeflow-pipelines` / `kubeflow-model-registry` |
-| `suse.ai.component.type` | `inference-engine` / `workflow-engine` / `ml-registry` |
+| application or agent -> KServe | client span with `kserve.inference.service` |
+| application or pipeline -> Model Registry | client span URL containing `model-registry` |
+| pipeline -> KServe | instrumented deploy/predict client spans |
 
-**Matching (critical):** the OTel Prometheus receiver sets `service.name` to the
-**scrape job name**, not the k8s workload name. So these transforms match on the
-job name — `transform/kserve` on `service.name IN (kserve-inferenceservices, kserve-controller)`,
-`transform/kubeflow-pipelines` on `service.name == kubeflow-pipelines`. Each job is
-already filtered to the right pods/services, so every metric it emits belongs to that
-product. (An earlier version matched workload-style names like `.*-predictor-default`
-/ `ml-pipeline*`, which **never** appear as `service.name` — the transforms never fired
-and no `inference-engine.kserve` / `workflow-engine.kubeflow-pipelines` component was
-created. `transform/kubeflow-model-registry` still matches `service.name == model-registry-service`;
-it is a placeholder — there is no model-registry scrape job in v1, so it is inert.)
-
-### Topology relations
-
-| Edge | Mechanism |
-|---|---|
-| `kserve → llm-model.<x>` | Existing `traces/model-relations` (auto-discovers from `gen_ai.*` spans when KServe runs vLLM/Ollama) |
-| `application → kserve` | Existing `traces/provider-relations` (when app sets `gen_ai.provider.name=kserve`) |
-| `kubeflow-pipelines → kserve` | New `transform/kubeflow-relations`: spans with `kserve.inference.service` attribute → `peer.service=kserve` |
-| `kubeflow-pipelines → kubeflow-model-registry` | New `transform/kubeflow-relations`: spans hitting registry API → `peer.service=kubeflow-model-registry` |
+The live topology contains all three specialized products. `sts topology
+inspect` resolves `kubeflow-pipelines`, `kubeflow-model-registry`,
+`agent-service`, `rag-service`, and `traffic-gen` to their SUSE AI component
+types.
 
 ## Metric bindings
 
-Documented in `stackpack/suse-ai/provisioning/templates/metric-bindings/kserve-metrics.sty` and `kubeflow-pipelines-metrics.sty`. Highlights:
+### KServe
 
-- KServe: request rate, P50/P95/P99 latency, per-step latency, queue depth, model load duration, error ratio.
-- Pipelines: API request rate, API latency P95, run success ratio, run failure rate, reconcile lag, MLMD operation rate.
+- predictor request rate and prediction latency;
+- preprocess, predict, and postprocess step latency;
+- controller reconciliation rate and error ratio;
+- controller workqueue depth.
+
+The model server uses `request_predict_seconds`-family histograms labeled by
+`model_name`. Queue-proxy `revision_*` metrics are not available in this chart.
+
+### Kubeflow Pipelines
+
+- run and pipeline API rates, total runs, pipeline/version/job inventory;
+- completed-run success ratio and terminal outcomes;
+- gRPC request rate, error ratio, and P95 handling latency;
+- Argo workflows by phase and operation-duration P95;
+- queue depth, unfinished work, oldest item, and retry rate;
+- pending pods, pods by phase, and controller error rate;
+- demo model accuracy, step-duration P95, and deployment smoke-test outcomes.
+
+The exact deployed Argo names include
+`argo_workflows_pod_pending_count_total`, `argo_workflows_pods_count_total`,
+`argo_workflows_error_count_total`, `argo_workflows_queue_retries_total`, and
+`argo_workflows_count_total`. The short-lived demo step pods normally export one
+cumulative point, so their duration, accuracy, and smoke-test bindings use the
+sample timestamp to retain and select only the newest series within 24 hours;
+they intentionally do not use `rate()`.
+
+### Kubeflow Model Registry
+
+- 2xx/4xx/5xx availability status;
+- request duration;
+- response-body validation;
+- response size;
+- connection or read errors.
+
+### Demo applications
+
+- agent tool call rate, tool-duration P95, iterations, and run outcomes;
+- RAG retrieved-document count, no-hit rate, context-size P95, and request P95;
+- generated scenario rate/outcome and scenario-duration P95.
 
 ## Monitors
 
-`templates/monitors/kserve/monitor.sty` and `templates/monitors/kubeflow-pipelines/monitor.sty`. The cross-cutting `-3001 GenAI Application Metric Stream Active` monitor will fire for KServe whenever an instrumented application sends `gen_ai.*` traffic to it; KFP and Model Registry do not emit GenAI client metrics themselves, so they rely on their own per-product monitors (`-3019..-3022` for KFP; none in v1 for Model Registry).
+The Kubeflow monitor set covers:
 
-Each monitor links to a per-symptom remediation hint (e.g. `remediation-error-rate.md.hbs`, `remediation-reconcile-lag.md.hbs`) — see those files for the actual kubectl commands.
+- KFP API unavailable;
+- Argo workflow controller unavailable;
+- recent workflow failures;
+- workflow pod image-pull failures;
+- KFP gRPC error ratio;
+- controller queue lag;
+- Model Registry unavailable, slow, or returning an invalid body;
+- KServe predict latency, reconcile errors, and reconcile lag.
 
-## Future work
+Each monitor maps directly to a product URN and has a remediation document.
 
-- Custom OTel receiver in the SUSE AI collector image to poll the Kubeflow Model Registry REST API and synthesize metrics (registered_models, model_versions, registrations_total). IDs -650..-659 reserved for the resulting bindings; -3023 reserved for the registration-error-rate monitor.
-- Kubeflow Notebooks, Central Dashboard, Training Operator, Katib coverage.
+## Demo lifecycle
+
+The companion repo's `demo/kubeflow` pipeline creates a real KFP Dataset,
+trains and evaluates a scikit-learn model, writes KFP Model/Metrics artifacts,
+registers the exact artifact in Model Registry, deploys it from the same
+S3-compatible object store to KServe, and performs a prediction smoke test. The
+stable `suse-ai-sklearn-iris` Service selects only the latest-created revision
+after it becomes the latest-ready revision, avoiding both Kubeflow OIDC and
+stale-revision routing.
+
+## Icon verification
+
+The customized Kubeflow Pipelines SVG is valid XML and decodes to 7,682 bytes.
+Its SHA-256 is
+`37a17f2e30fa14b7ba98f33d0ce32eb25d337755c3194b3f988d7decad62265c`.
+The source and the installed ComponentType have the same hash. The Milvus SVG is
+also valid XML. A blank topology icon is therefore not evidence that the stock
+Kubeflow icon was deployed; browser cache or UI rendering can be investigated
+separately without changing the StackPack icon payload.
 
 ## Troubleshooting
 
-### KServe InferenceService doesn't appear under "Inference Engines"
-
-- Confirm the `serving.kserve.io/enable-prometheus-scraping: "true"` annotation is set on the InferenceService (this makes KServe advertise `prometheus.kserve.io/{port,path}`).
-- Confirm the model container serves `/metrics` on its user port (8080): `kubectl exec <predictor-pod> -c kserve-container -- wget -qO- localhost:8080/metrics`.
-- Do **not** expect data on the `http-usermetric`/`aggr-metric:9088` port on the SUSE chart — it is not bound (stock Knative queue-proxy, no qpext). See "Required customer configuration".
-- Check the OTel collector logs for `kserve-inferenceservices` scrape errors. Note the model's `:8080` is bound on the pod's own IP (reachable cross-namespace); a transient `connection refused` before the predictor is Ready is normal.
-- Verify the metric arrived tagged: `Topology.query('label = "suse.ai.component.name:kserve"').fullComponents()` in the STSL console (or `sts script run`). If the raw metric is present but the component isn't typed `inference-engine.kserve`, `transform/kserve` didn't fire — confirm it matches the **job name** in `service.name` (see "Matching (critical)" above), not the workload name.
-- Drive at least one prediction so serving histograms (`request_predict_seconds_count`) exist; they are absent until the first request.
-
-### Pipelines control plane shows no data
-
-- Verify `KUBEFLOW_NAMESPACE` matches your install (some distributions use `kubeflow-system`).
-- Confirm the four control-plane services exist: `kubectl get svc -n <namespace> | grep -E 'ml-pipeline|metadata-grpc'`.
-- Some KFP versions don't expose all controller-runtime metrics — empty charts are expected then.
-
-### Model Registry shows no metrics
-
-This is expected in v1 — Model Registry is topology-only. K8s pod-level health comes through the K8s StackPack.
+- **No KServe serving metrics:** verify the InferenceService advertises
+  `prometheus.kserve.io/port` and `prometheus.kserve.io/path`, then send at least
+  one prediction. A transient scrape refusal while a revision starts is normal.
+- **No Argo metrics:** verify the workflow-controller pod exposes HTTPS 9090 and
+  that `KUBEFLOW_NAMESPACE` matches its namespace.
+- **Model Registry is 4xx:** verify the bearer token and the v1alpha3
+  `registered_models` route from inside the cluster.
+- **Pipeline charts are empty:** inspect the exact metric name in VictoriaMetrics
+  before assuming an upstream name; this distribution differs from several
+  upstream examples.
+- **Topology sync count is non-zero but `describe` has no errors:** the list
+  counter is cumulative. Use `sts topology-sync describe` to determine whether
+  any current error details remain.

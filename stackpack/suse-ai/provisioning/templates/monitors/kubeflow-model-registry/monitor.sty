@@ -1,0 +1,68 @@
+  - _type: Monitor
+    id: -3023
+    name: Kubeflow Model Registry API Unavailable
+    identifier: urn:stackpack:suse-ai:shared:monitor:kubeflow-model-registry-unavailable
+    description: |
+      Triggers when the authenticated registered-models API check does not
+      return a 2xx response.
+    status: ENABLED
+    intervalSeconds: 60
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      comparator: LT
+      failureState: CRITICAL
+      threshold: 1
+      metric:
+        query: >-
+          max(httpcheck_status{suse_ai_component_name="kubeflow-model-registry",http_status_class="2xx"})
+        aliasTemplate: "2xx availability"
+        unit: short
+      titleTemplate: "Kubeflow Model Registry API is unavailable"
+      urnTemplate: "urn:suse-ai:product:inference-engine:kubeflow-model-registry"
+    remediationHint: {{ include "templates/monitors/kubeflow-model-registry/remediation-unavailable.md.hbs" "identity" }}
+
+  - _type: Monitor
+    id: -3024
+    name: Kubeflow Model Registry API Slow
+    identifier: urn:stackpack:suse-ai:shared:monitor:kubeflow-model-registry-slow
+    description: |
+      Triggers when the synthetic registered-models API check takes longer
+      than one second.
+    status: ENABLED
+    intervalSeconds: 60
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      comparator: GT
+      failureState: DEVIATING
+      threshold: 1000
+      metric:
+        query: >-
+          max(httpcheck_duration_milliseconds{suse_ai_component_name="kubeflow-model-registry"} or httpcheck_duration{suse_ai_component_name="kubeflow-model-registry"})
+        aliasTemplate: "API check duration"
+        unit: ms
+      titleTemplate: "Kubeflow Model Registry API latency exceeds one second"
+      urnTemplate: "urn:suse-ai:product:inference-engine:kubeflow-model-registry"
+    remediationHint: {{ include "templates/monitors/kubeflow-model-registry/remediation-slow.md.hbs" "identity" }}
+
+  - _type: Monitor
+    id: -3025
+    name: Kubeflow Model Registry Response Invalid
+    identifier: urn:stackpack:suse-ai:shared:monitor:kubeflow-model-registry-invalid-response
+    description: |
+      Triggers when the Model Registry API responds but its body does not have
+      the expected registered-model collection shape.
+    status: ENABLED
+    intervalSeconds: 60
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      comparator: GT
+      failureState: DEVIATING
+      threshold: 0
+      metric:
+        query: >-
+          1 - max(httpcheck_validation_passed{suse_ai_component_name="kubeflow-model-registry",validation_type="contains"})
+        aliasTemplate: "failed validation"
+        unit: short
+      titleTemplate: "Kubeflow Model Registry response validation failed"
+      urnTemplate: "urn:suse-ai:product:inference-engine:kubeflow-model-registry"
+    remediationHint: {{ include "templates/monitors/kubeflow-model-registry/remediation-invalid-response.md.hbs" "identity" }}

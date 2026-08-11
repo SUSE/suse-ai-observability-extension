@@ -16,9 +16,10 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-# Matches a template id declaration, e.g. "    id: -5001". Anchored to the start
-# of the line (after indentation) so keys like "identifier:" never match.
-ID_RE = re.compile(r"^\s*id\s*:\s*(-?\d+)\b")
+# Matches both mapping fields ("    id: -5001") and list-item fields
+# ("  - id: -640"). Anchoring after the optional list marker prevents keys such
+# as "identifier:" from matching.
+ID_RE = re.compile(r"^\s*(?:-\s+)?id\s*:\s*(-?\d+)\b")
 
 
 def main() -> int:

@@ -1,9 +1,8 @@
 # Kubeflow + Observability Install Runbook
 
 Straightforward, ordered steps to install SUSE Kubeflow and validate the
-observability extension against it. Distilled from the 2026-08-04 live run on the
-demo cluster (RKE2 `v1.32.4+rke2r1`). Every gotcha below actually bit us — follow
-the order and they won't.
+observability extension against it. Updated from the 2026-08-11 live run on the
+demo cluster (RKE2 `v1.32.4+rke2r1`).
 
 > **Credentials:** never print them. Read from
 > `/home/thbertoldi/suse/suse-ai-stack/extra_vars.yml` via python (pattern in
@@ -13,8 +12,10 @@ the order and they won't.
 
 Paths on this workstation:
 - Kubeflow chart + installer: `/home/thbertoldi/suse/suse-ai-charts/kubeflow/`
-- Observability collector values: `integrations/otel-collector/otel-values.yaml` (this repo, branch `feat/kubeflow-monitoring`)
-- Kubeconfig: `~/Downloads/local - *.yaml` (export `KUBECONFIG`)
+- Observability collector values: `integrations/otel-collector/otel-values.yaml`
+  in this repository.
+- Demo apps: `/home/thbertoldi/suse/suse-ai-demo-apps`.
+- Kubeconfig: `/home/thbertoldi/Downloads/local - *.yaml` (quote the path).
 
 ---
 
@@ -109,15 +110,27 @@ helm upgrade opentelemetry-collector \
   oci://dp.apps.rancher.io/charts/opentelemetry-collector \
   -n observability --version 0.149.0 \
   -f integrations/otel-collector/otel-values.yaml \
-  -f /tmp/otel-nopull.yaml       # global.imagePullSecrets: [] (ghcr image is public)
+  -f /tmp/otel-nopull.yaml       # see below
+```
+
+`/tmp/otel-nopull.yaml` must contain BOTH:
+```yaml
+global:
+  imagePullSecrets: []   # ghcr image is public
+image:
+  registry: ""           # clear productized-chart default (see below)
 ```
 
 **Image requirement:** the branch config uses `cluster_name` in the topology
 exporter and needs the newer collector image. `otel-values.yaml` now pins
 `ghcr.io/suse/suse-ai-opentelemetry-collector:0.156.0` (standard topology Kafka
-topic name). Put the **full path in `image.repository`** — the upstream chart
-has no `image.registry` field, so `registry: ghcr.io` is ignored and the image
-defaults to `docker.io` (→ `ImagePullBackOff`). The productized
+topic name) as the **full path in `image.repository`**. ⚠️ The productized OCI
+chart (`oci://dp.apps.rancher.io/charts/opentelemetry-collector` 0.149.0) **DOES
+have `image.registry`, defaulting to `dp.apps.rancher.io`** — it prepends to the
+repository, giving `dp.apps.rancher.io/ghcr.io/suse/...` → `ErrImagePull` ("no
+basic auth credentials"). You **must** set `image.registry: ""` (as above) so
+only the ghcr path is used. (Verified 2026-08-10. The upstream
+`open-telemetry/opentelemetry-collector` chart has no such field.) The productized
 `registry.suse.com/ai/containers/...` is not published at 0.156.0 yet, and its
 `:0.149.0` is **too old** (rejects `cluster_name`) — don't pin to it.
 
@@ -126,6 +139,9 @@ Confirm health:
 kubectl get pods -n observability -l app.kubernetes.io/name=opentelemetry-collector
 # must be 1/1 Running; a CrashLoop means a config parse error (see logs)
 ```
+
+The values file's `MODEL_REGISTRY_BEARER_TOKEN=demo` is only for this demo
+AuthorizationPolicy. Supply it from a Secret outside a disposable demo cluster.
 
 ---
 
@@ -141,10 +157,16 @@ The SUSE chart puts **KServe in the `kubeflow` namespace** (not `kserve`), and:
 - `kubeflow-pipelines` job: only `ml-pipeline:8888` (`http`) serves Prometheus;
   `grpc:8887`→415 and gRPC-only `metadata-grpc-service:8080`→503 are dropped by a
   `__meta_kubernetes_service_port_name` keep filter.
+- `kubeflow-workflow-controller` job: discovers the Argo controller pod and
+  scrapes its self-signed HTTPS metrics endpoint on port 9090. This adds workflow
+  phases, operation latency, queue state, pod outcomes, retries, and errors.
 - `kserve-inferenceservices` job: scrapes the **model container's own** `/metrics`
   (port 8080, via `prometheus.kserve.io/{port,path}`), **not** the
   `http-usermetric`/`aggr-metric:9088` port. Aggregation never binds on this chart
   (stock Knative queue-proxy, no qpext image).
+- `http_check/model-registry`: calls the authenticated v1alpha3
+  `registered_models` endpoint every 30 seconds and exports availability,
+  latency, response-size, validation, and error signals.
 - OTTL here must **not** use `??` (lexer rejects it). Prometheus regex is RE2 — no
   backreferences (`\1`).
 
@@ -153,7 +175,10 @@ The SUSE chart puts **KServe in the `kubeflow` namespace** (not `kserve`), and:
 ## 4. Validate
 
 **Layer 1 — sources serve** (`kubectl exec <pod> -- wget -qO- localhost:<port>/metrics`):
-`ml-pipeline:8888`, kserve-controller `:8443` (needs token), predictor `:8080`.
+`ml-pipeline:8888`, workflow-controller `https://localhost:9090/metrics`,
+kserve-controller `:8443` (needs token), and predictor `:8080`. Also call the
+Model Registry v1alpha3 route with its Authorization header and expect a body
+containing `"items"`.
 
 **Layer 2 — collector scrapes clean:**
 ```bash
@@ -163,59 +188,83 @@ kubectl logs "$CPOD" -n observability --since=5m | grep -i 'Failed to scrape' | 
 ```
 
 **Layer 3 — metrics in SUSE Observability UI:** metrics explorer → query e.g.
-`run_server_run_count`, `controller_runtime_reconcile_total`, `request_predict_seconds_count`.
+`run_server_run_count`, `argo_workflows_gauge`,
+`argo_workflows_pods_count_total`, `httpcheck_status`,
+`controller_runtime_reconcile_total`, and `request_predict_seconds_count`.
 
 **Layer 4 — topology/UI:** components `inference-engine.kserve`,
 `workflow-engine.kubeflow-pipelines`, `ml-registry.kubeflow` render with charts.
 
-### 4a. Sample InferenceService (to exercise serving metrics)
+### 4a. Run the real model lifecycle
 
-The KServe pod-mutator webhook skips namespaces labeled `control-plane`
-(the `kubeflow` ns is one) — so the storage-initializer is NOT injected there.
-**Deploy the sample in a fresh namespace** (e.g. `kserve-test`), and add the
-`suse-ai-registry` pull secret to the predictor ServiceAccount if you hit
-`ImagePullBackOff`.
+Use the KFP profile namespace rather than the `kubeflow` control-plane namespace.
+The companion demo creates the Iris dataset, trains and evaluates a model,
+registers the exact KFP Model artifact, deploys that artifact to KServe, and
+smoke-tests the ready revision.
 
-```yaml
-# /tmp/sklearn-iris-sl.yaml
-apiVersion: serving.kserve.io/v1beta1
-kind: InferenceService
-metadata:
-  name: sklearn-iris
-  namespace: kserve-test
-  annotations:
-    serving.kserve.io/enable-prometheus-scraping: "true"
-    autoscaling.knative.dev/min-scale: "1"
-spec:
-  predictor:
-    model:
-      modelFormat: {name: sklearn}
-      storageUri: gs://kfserving-examples/models/sklearn/1.0/model
+```bash
+cd /home/thbertoldi/suse/suse-ai-demo-apps/demo/kubeflow
+python -m venv .venv
+.venv/bin/pip install -r requirements.txt
+
+export PIPELINE_TAG=demo-$(date -u +%Y%m%d-%H%M%S)
+docker buildx build --platform linux/amd64 \
+  -t ghcr.io/thbertoldi/suse-ai-demo-iris-pipeline:${PIPELINE_TAG} \
+  --push .
+
+kubectl -n kubeflow port-forward svc/ml-pipeline 18889:8888
 ```
 
-Drive traffic, then confirm `request_predict_seconds_count` climbs on the
-predictor's `:8080/metrics`. **Cleanup:** `kubectl delete ns kserve-test`.
+In another terminal, set `PIPELINE_TAG` to the same value and submit:
+
+```bash
+cd /home/thbertoldi/suse/suse-ai-demo-apps/demo/kubeflow
+export PIPELINE_TAG=demo-YYYYMMDD-HHMMSS  # same value as the build terminal
+IRIS_PIPELINE_IMAGE=ghcr.io/thbertoldi/suse-ai-demo-iris-pipeline:${PIPELINE_TAG} \
+KFP_HOST=http://127.0.0.1:18889 \
+  .venv/bin/python submit.py
+```
+
+Verify the InferenceService storage URI contains the new KFP run ID, its
+latest-created revision equals its latest-ready revision, and the
+`suse-ai-sklearn-iris` Service selects only that revision. The predictor
+ServiceAccount must retain both the S3 credential Secret and
+`imagePullSecrets: [suse-ai-registry]`.
 
 ---
 
-## 5. Stackpack (upload to test the UI)
+## 5. StackPack (upload to test the UI)
 
 ```bash
-cd stackpack/suse-ai
-# task version-up   # bump patch first if the UI rejects a duplicate version
-zip -r /tmp/suse-ai.sts stackpack.conf provisioning resources
-# then upload /tmp/suse-ai.sts via the SUSE Observability UI (StackPacks → SUSE AI Observability → Upload)
+cd /home/thbertoldi/suse/suse-ai-observability-extension
+task stackpack-validate
+task version-up
+task stackpack-upload
 ```
-Run `python3 scripts/check-id-conflicts.py` first — IDs must be unique.
+`stackpack-upload` validates IDs and Groovy, creates a version-specific archive,
+uploads it, and upgrades with `--unlocked-strategy overwrite`. Never reuse a
+version number.
 Prereq stackpacks in the backend: `kubernetes-v2` (per cluster), `open-telemetry`,
 and the declared `common` dependency.
+
+Before declaring success:
+
+```bash
+sts topology-sync list
+sts topology-sync describe --id <suse-ai-sync-id>
+```
+
+The list's error field is cumulative; the describe output is the source of
+truth for current error details.
 
 ---
 
 ## Quick gotcha checklist
 1. Default StorageClass set? (else PVCs Pending)
 2. Knative `KUBERNETES_MIN_VERSION=1.28.0` applied? (k8s < 1.34) — re-apply after any helm reconcile
-3. Collector image is `ghcr.io/suse/...:0.156.0` (full path in `image.repository`; chart has no `registry` field), not the productized `:0.149.0`
-4. Sample InferenceService in a NON-`kubeflow` namespace (webhook skips `control-plane` ns)
-5. Predictor SA has `suse-ai-registry` pull secret if ImagePullBackOff
-6. `--request-timeout` on all read-only kubectl (slow apiserver)
+3. Collector image is `ghcr.io/suse/...:0.156.0` (full path in `image.repository` **plus `image.registry: ""`** — the productized OCI chart otherwise prepends `dp.apps.rancher.io`), not the productized `:0.149.0`
+4. Workflow controller HTTPS 9090 and Model Registry HTTP check are both active
+5. Real lifecycle runs in a profile namespace, not the `kubeflow` control plane
+6. Predictor SA has the S3 Secret and `suse-ai-registry` pull secret
+7. Stable prediction Service selects latest-created == latest-ready revision
+8. `--request-timeout` on read-only kubectl when the apiserver is slow

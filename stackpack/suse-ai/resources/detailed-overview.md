@@ -15,6 +15,14 @@ See the [SUSE AI Observability documentation](https://documentation.suse.com/sus
 
 The StackPack monitors three Kubeflow components:
 
-- **KServe**: per-InferenceService request volume, latency percentiles, error ratio, and model-load failures.
-- **Kubeflow Pipelines**: pipeline run health, control-plane API latency, MLMD operation rate.
-- **Kubeflow Model Registry**: topology presence and Kubernetes-level pod health.
+- **KServe**: per-InferenceService request volume and latency plus controller
+  reconciliation and workqueue health.
+- **Kubeflow Pipelines**: run outcomes, KFP API and gRPC activity, Argo workflow
+  phases, controller latency, queues, pod outcomes, and instrumented demo model
+  quality.
+- **Kubeflow Model Registry**: topology plus authenticated synthetic API
+  availability, duration, response validation, size, and errors.
+
+The companion demo applications also emit agent tool execution, RAG retrieval
+quality, and generated scenario metrics. These bindings appear on the matching
+agent and application components.

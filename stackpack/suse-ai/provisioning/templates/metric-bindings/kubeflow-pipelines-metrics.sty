@@ -2,14 +2,14 @@
     name: "Run API Request Rate"
     description: "Run-server API calls per second by operation."
     queries:
-      - expression: 'rate(run_server_create_requests_total[${__rate_interval}])'
+      - expression: 'rate(run_server_create_requests_total{suse_ai_component_name="kubeflow-pipelines"}[${__rate_interval}])'
         alias: "create"
-      - expression: 'rate(run_server_get_requests_total[${__rate_interval}])'
+      - expression: 'rate(run_server_get_requests_total{suse_ai_component_name="kubeflow-pipelines"}[${__rate_interval}])'
         alias: "get"
         primary: true
-      - expression: 'rate(run_server_list_requests_total[${__rate_interval}])'
+      - expression: 'rate(run_server_list_requests_total{suse_ai_component_name="kubeflow-pipelines"}[${__rate_interval}])'
         alias: "list"
-      - expression: 'rate(run_server_terminate_requests_total[${__rate_interval}])'
+      - expression: 'rate(run_server_terminate_requests_total{suse_ai_component_name="kubeflow-pipelines"}[${__rate_interval}])'
         alias: "terminate"
     scope: 'type = "workflow-engine.kubeflow-pipelines"'
     identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:run-api-rate"
@@ -29,14 +29,14 @@
     name: "Pipeline API Request Rate"
     description: "Pipeline-server API calls per second by operation."
     queries:
-      - expression: 'rate(pipeline_server_create_requests_total[${__rate_interval}])'
+      - expression: 'rate(pipeline_server_create_requests_total{suse_ai_component_name="kubeflow-pipelines"}[${__rate_interval}])'
         alias: "create"
-      - expression: 'rate(pipeline_server_list_requests_total[${__rate_interval}])'
+      - expression: 'rate(pipeline_server_list_requests_total{suse_ai_component_name="kubeflow-pipelines"}[${__rate_interval}])'
         alias: "list"
         primary: true
-      - expression: 'rate(pipeline_server_get_requests_total[${__rate_interval}])'
+      - expression: 'rate(pipeline_server_get_requests_total{suse_ai_component_name="kubeflow-pipelines"}[${__rate_interval}])'
         alias: "get"
-      - expression: 'rate(pipeline_upload_requests_total[${__rate_interval}])'
+      - expression: 'rate(pipeline_upload_requests_total{suse_ai_component_name="kubeflow-pipelines"}[${__rate_interval}])'
         alias: "upload"
     scope: 'type = "workflow-engine.kubeflow-pipelines"'
     identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:pipeline-api-rate"
@@ -56,7 +56,7 @@
     name: "Total Pipeline Runs"
     description: "Cumulative number of pipeline runs known to the API server."
     queries:
-      - expression: 'run_server_run_count'
+      - expression: 'run_server_run_count{suse_ai_component_name="kubeflow-pipelines"}'
         alias: "runs"
         primary: true
     scope: 'type = "workflow-engine.kubeflow-pipelines"'
@@ -80,12 +80,12 @@
     name: "Object Inventory"
     description: "Registered pipelines, pipeline versions, and recurring jobs."
     queries:
-      - expression: 'pipeline_server_pipeline_count'
+      - expression: 'pipeline_server_pipeline_count{suse_ai_component_name="kubeflow-pipelines"}'
         alias: "pipelines"
         primary: true
-      - expression: 'pipeline_server_pipeline_version_count'
+      - expression: 'pipeline_server_pipeline_version_count{suse_ai_component_name="kubeflow-pipelines"}'
         alias: "versions"
-      - expression: 'job_server_job_count'
+      - expression: 'job_server_job_count{suse_ai_component_name="kubeflow-pipelines"}'
         alias: "recurring jobs"
     scope: 'type = "workflow-engine.kubeflow-pipelines"'
     identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:object-inventory"
@@ -99,4 +99,353 @@
         section: Control Plane
       componentSummary:
         weight: 2
+    _type: MetricBinding
+
+  - id: -644
+    name: "Pipeline Run Success Rate"
+    description: "Fraction of completed KFP workflow runs that succeeded."
+    queries:
+      - expression: '(sum(resource_manager_workflow_runs_success{suse_ai_component_name="kubeflow-pipelines"}) / clamp_min(sum(resource_manager_workflow_runs_success{suse_ai_component_name="kubeflow-pipelines"}) + sum(resource_manager_workflow_runs_failed{suse_ai_component_name="kubeflow-pipelines"}), 1)) or vector(0)'
+        alias: "success rate"
+        primary: true
+    scope: 'type = "workflow-engine.kubeflow-pipelines"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:run-success-rate"
+    unit: percentunit
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: "Kubeflow Pipelines"
+        section: Pipeline Runs
+      componentSummary:
+        weight: 4
+    _type: MetricBinding
+
+  - id: -645
+    name: "Pipeline Run Outcomes"
+    description: "Current KFP workflow-run inventory by terminal outcome."
+    queries:
+      - expression: 'sum(resource_manager_workflow_runs_success{suse_ai_component_name="kubeflow-pipelines"})'
+        alias: "succeeded"
+        primary: true
+      - expression: 'sum(resource_manager_workflow_runs_failed{suse_ai_component_name="kubeflow-pipelines"})'
+        alias: "failed"
+    scope: 'type = "workflow-engine.kubeflow-pipelines"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:run-outcomes"
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: "Kubeflow Pipelines"
+        section: Pipeline Runs
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -646
+    name: "Workflows by Phase"
+    description: "Current Argo workflows by lifecycle phase."
+    queries:
+      - expression: 'sum by (phase) (argo_workflows_gauge{suse_ai_component_name="kubeflow-pipelines"})'
+        alias: "${phase}"
+        primary: true
+    scope: 'type = "workflow-engine.kubeflow-pipelines"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:workflows-by-phase"
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: "Kubeflow Pipelines"
+        section: Workflow Runtime
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -647
+    name: "gRPC Request Rate"
+    description: "KFP API gRPC calls per second by method."
+    queries:
+      - expression: 'sum by (grpc_method) (rate(grpc_server_handled_total{suse_ai_component_name="kubeflow-pipelines"}[${__rate_interval}]))'
+        alias: "${grpc_method}"
+        primary: true
+    scope: 'type = "workflow-engine.kubeflow-pipelines"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:grpc-request-rate"
+    unit: reqps
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: "Kubeflow Pipelines"
+        section: API Reliability
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
+
+  - id: -648
+    name: "gRPC Error Ratio"
+    description: "Fraction of KFP gRPC calls that completed with a non-OK status."
+    queries:
+      - expression: '(sum(rate(grpc_server_handled_total{suse_ai_component_name="kubeflow-pipelines",grpc_code!="OK"}[${__rate_interval}])) / clamp_min(sum(rate(grpc_server_handled_total{suse_ai_component_name="kubeflow-pipelines"}[${__rate_interval}])), 0.001)) or vector(0)'
+        alias: "error ratio"
+        primary: true
+    scope: 'type = "workflow-engine.kubeflow-pipelines"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:grpc-error-ratio"
+    unit: percentunit
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: "Kubeflow Pipelines"
+        section: API Reliability
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -649
+    name: "gRPC Handling Latency P95"
+    description: "P95 KFP gRPC server handling latency by method."
+    queries:
+      - expression: 'histogram_quantile(0.95, sum by (le, grpc_method) (rate(grpc_server_handling_seconds_bucket{suse_ai_component_name="kubeflow-pipelines"}[${__rate_interval}])))'
+        alias: "${grpc_method}"
+        primary: true
+    scope: 'type = "workflow-engine.kubeflow-pipelines"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:grpc-latency-p95"
+    unit: s
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: "Kubeflow Pipelines"
+        section: API Reliability
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -660
+    name: "Workflow Reconcile Latency P95"
+    description: "P95 Argo workflow-controller operation duration."
+    queries:
+      - expression: 'histogram_quantile(0.95, sum by (le) (rate(argo_workflows_operation_duration_seconds_bucket{suse_ai_component_name="kubeflow-pipelines"}[${__rate_interval}])))'
+        alias: "P95"
+        primary: true
+    scope: 'type = "workflow-engine.kubeflow-pipelines"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:reconcile-latency-p95"
+    unit: s
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: "Kubeflow Pipelines"
+        section: Workflow Runtime
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -661
+    name: "Workflow Queue Work"
+    description: "Current queued and unfinished Argo controller work by queue."
+    queries:
+      - expression: 'max by (queue_name) (argo_workflows_queue_depth_gauge{suse_ai_component_name="kubeflow-pipelines"})'
+        alias: "${queue_name} depth"
+        primary: true
+      - expression: 'max by (queue_name) (argo_workflows_queue_unfinished_work{suse_ai_component_name="kubeflow-pipelines"})'
+        alias: "${queue_name} unfinished"
+    scope: 'type = "workflow-engine.kubeflow-pipelines"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:queue-work"
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: "Kubeflow Pipelines"
+        section: Controller Queue
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
+
+  - id: -662
+    name: "Oldest Queue Item"
+    description: "Age in seconds of the longest-running item in each Argo queue."
+    queries:
+      - expression: 'max by (queue_name) (argo_workflows_queue_longest_running{suse_ai_component_name="kubeflow-pipelines"})'
+        alias: "${queue_name}"
+        primary: true
+    scope: 'type = "workflow-engine.kubeflow-pipelines"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:oldest-queue-item"
+    unit: s
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: "Kubeflow Pipelines"
+        section: Controller Queue
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -663
+    name: "Pending Workflow Pods"
+    description: "Workflow pods that could not start, grouped by namespace and reason."
+    queries:
+      - expression: 'sum by (namespace, reason) (argo_workflows_pod_pending_count_total{suse_ai_component_name="kubeflow-pipelines"})'
+        alias: "${namespace} ${reason}"
+        primary: true
+    scope: 'type = "workflow-engine.kubeflow-pipelines"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:pending-pods"
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: "Kubeflow Pipelines"
+        section: Workflow Runtime
+      componentSummary:
+        weight: 4
+    _type: MetricBinding
+
+  - id: -664
+    name: "Workflow Pods by Phase"
+    description: "Cumulative workflow pod outcomes by namespace and phase."
+    queries:
+      - expression: 'sum by (namespace, phase) (argo_workflows_pods_count_total{suse_ai_component_name="kubeflow-pipelines"})'
+        alias: "${namespace} ${phase}"
+        primary: true
+    scope: 'type = "workflow-engine.kubeflow-pipelines"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:pods-by-phase"
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: "Kubeflow Pipelines"
+        section: Workflow Runtime
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
+
+  - id: -665
+    name: "Workflow Controller Error Rate"
+    description: "Argo workflow-controller errors per second by cause."
+    queries:
+      - expression: 'sum by (cause) (rate(argo_workflows_error_count_total{suse_ai_component_name="kubeflow-pipelines"}[${__rate_interval}]))'
+        alias: "${cause}"
+        primary: true
+    scope: 'type = "workflow-engine.kubeflow-pipelines"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:controller-error-rate"
+    unit: cps
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: "Kubeflow Pipelines"
+        section: Workflow Runtime
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
+
+  - id: -666
+    name: "Workflow Queue Retry Rate"
+    description: "Argo controller queue retries per second by queue."
+    queries:
+      - expression: 'sum by (queue_name) (rate(argo_workflows_queue_retries_total{suse_ai_component_name="kubeflow-pipelines"}[${__rate_interval}]))'
+        alias: "${queue_name}"
+        primary: true
+    scope: 'type = "workflow-engine.kubeflow-pipelines"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:queue-retry-rate"
+    unit: cps
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: "Kubeflow Pipelines"
+        section: Controller Queue
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
+
+  - id: -667
+    name: "Demo Step Duration P95"
+    description: "P95 duration of each step in the latest instrumented Iris lifecycle run within 24 hours."
+    queries:
+      # Pipeline step pods are intentionally short-lived and export a single
+      # cumulative point. Keep the last value for 24 hours, then use its sample
+      # timestamp to select only the newest pod for every step and bucket.
+      - expression: 'histogram_quantile(0.95, sum by (le, step) (last_over_time(suse_ai_kubeflow_pipeline_step_duration_seconds_bucket{suse_ai_component_name="kubeflow-pipelines"}[24h]) and topk(1, tlast_over_time(suse_ai_kubeflow_pipeline_step_duration_seconds_bucket{suse_ai_component_name="kubeflow-pipelines"}[24h])) by (le, step)))'
+        alias: "${step}"
+        primary: true
+    scope: 'type = "workflow-engine.kubeflow-pipelines"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:demo-step-duration-p95"
+    unit: s
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: "Kubeflow Pipelines"
+        section: Demo Lifecycle
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -668
+    name: "Demo Model Accuracy"
+    description: "Accuracy emitted by the latest Iris model evaluation within 24 hours."
+    queries:
+      - expression: '(sum(last_over_time(suse_ai_kubeflow_model_accuracy_sum{suse_ai_component_name="kubeflow-pipelines"}[24h]) and topk(1, tlast_over_time(suse_ai_kubeflow_model_accuracy_sum{suse_ai_component_name="kubeflow-pipelines"}[24h]))) / clamp_min(sum(last_over_time(suse_ai_kubeflow_model_accuracy_count{suse_ai_component_name="kubeflow-pipelines"}[24h]) and topk(1, tlast_over_time(suse_ai_kubeflow_model_accuracy_count{suse_ai_component_name="kubeflow-pipelines"}[24h]))), 1))'
+        alias: "accuracy"
+        primary: true
+    scope: 'type = "workflow-engine.kubeflow-pipelines"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:demo-model-accuracy"
+    unit: percentunit
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: "Kubeflow Pipelines"
+        section: Demo Lifecycle
+      componentSummary:
+        weight: 4
+    _type: MetricBinding
+
+  - id: -669
+    name: "Deployment Smoke Test Outcomes"
+    description: "Outcome of the latest KServe prediction smoke test within 24 hours."
+    queries:
+      - expression: 'sum by (inference_service, outcome) (last_over_time(suse_ai_kubeflow_deployment_smoke_test_total{suse_ai_component_name="kubeflow-pipelines"}[24h]) and topk(1, tlast_over_time(suse_ai_kubeflow_deployment_smoke_test_total{suse_ai_component_name="kubeflow-pipelines"}[24h])) by (inference_service))'
+        alias: "${inference_service} ${outcome}"
+        primary: true
+    scope: 'type = "workflow-engine.kubeflow-pipelines"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-pipelines:demo-smoke-tests"
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: "Kubeflow Pipelines"
+        section: Demo Lifecycle
+      componentSummary:
+        weight: 3
     _type: MetricBinding

@@ -1,0 +1,10 @@
+# Kubeflow Model Registry Response Invalid
+
+**The Model Registry response validation value is {{currentValue}} on {{componentName}}.**
+
+Triage:
+
+1. Fetch `/api/model_registry/v1alpha3/registered_models` with the same Authorization header as the collector.
+2. Confirm the response is JSON and contains the top-level `items` collection expected by this deployed API version.
+3. Check for an ingress login page, proxy error body, or API-version mismatch returned with HTTP 200.
+4. Update the endpoint or validation only after verifying the deployed Model Registry API contract.

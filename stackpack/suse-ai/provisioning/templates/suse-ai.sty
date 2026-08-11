@@ -32,6 +32,7 @@ nodes:
 # Metric Bindings
 {{ include "templates/metric-bindings/genai-metrics.sty" "yaml" }}
 {{ include "templates/metric-bindings/application-metrics.sty" "yaml" }}
+{{ include "templates/metric-bindings/demo-application-metrics.sty" "yaml" }}
 {{ include "templates/metric-bindings/vllm-metrics.sty" "yaml" }}
 {{ include "templates/metric-bindings/ollama-metrics.sty" "yaml" }}
 {{ include "templates/metric-bindings/milvus-metrics.sty" "yaml" }}
@@ -42,6 +43,7 @@ nodes:
 {{ include "templates/metric-bindings/common-metrics.sty" "yaml" }}
 {{ include "templates/metric-bindings/kserve-metrics.sty" "yaml" }}
 {{ include "templates/metric-bindings/kubeflow-pipelines-metrics.sty" "yaml" }}
+{{ include "templates/metric-bindings/kubeflow-model-registry-metrics.sty" "yaml" }}
 
 # Monitors
 {{ include "templates/monitors/genai-monitors.sty" "yaml" }}
@@ -51,3 +53,4 @@ nodes:
 {{ include "templates/monitors/qdrant/monitor.sty" "yaml" }}
 {{ include "templates/monitors/kserve/monitor.sty" "yaml" }}
 {{ include "templates/monitors/kubeflow-pipelines/monitor.sty" "yaml" }}
+{{ include "templates/monitors/kubeflow-model-registry/monitor.sty" "yaml" }}

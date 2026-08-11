@@ -1,55 +1,10 @@
 
   - _type: Monitor
-    id: -3019
-    name: Kubeflow Pipelines Run Failure Rate High
-    identifier: urn:stackpack:suse-ai:shared:monitor:kfp-run-failure-rate
-    description: |
-      Triggers when more than 10% of pipeline runs fail over a 15-minute window.
-    status: ENABLED
-    intervalSeconds: 60
-    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
-    arguments:
-      comparator: GT
-      failureState: DEVIATING
-      threshold: 0.10
-      metric:
-        query: >-
-          (sum(rate(run_server_run_count{status="Failed"}[15m])) / sum(rate(run_server_run_count[15m]))) or vector(0)
-        aliasTemplate: "Failure ratio"
-        unit: percentunit
-      titleTemplate: "Kubeflow Pipelines run failure rate above 10%"
-      urnTemplate: "urn:suse-ai:product:workflow-engine:kubeflow-pipelines"
-    remediationHint: {{ include "templates/monitors/kubeflow-pipelines/remediation-run-failures.md.hbs" "identity" }}
-
-  - _type: Monitor
-    id: -3020
-    name: Kubeflow Pipelines Reconcile Lag
-    identifier: urn:stackpack:suse-ai:shared:monitor:kfp-reconcile-lag
-    description: |
-      Triggers when the controller workqueue has unfinished work older than
-      60 seconds, indicating reconciliation is falling behind.
-    status: ENABLED
-    intervalSeconds: 60
-    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
-    arguments:
-      comparator: GT
-      failureState: DEVIATING
-      threshold: 60
-      metric:
-        query: >-
-          max(workqueue_unfinished_work_seconds{job="kubeflow-pipelines"})
-        aliasTemplate: "Lag (s)"
-        unit: s
-      titleTemplate: "Kubeflow Pipelines reconcile lag above 60s"
-      urnTemplate: "urn:suse-ai:product:workflow-engine:kubeflow-pipelines"
-    remediationHint: {{ include "templates/monitors/kubeflow-pipelines/remediation-reconcile-lag.md.hbs" "identity" }}
-
-  - _type: Monitor
     id: -3021
     name: Kubeflow Pipelines API Server Down
     identifier: urn:stackpack:suse-ai:shared:monitor:kfp-api-down
     description: |
-      Triggers when the ml-pipeline API server scrape target is down for 5 minutes.
+      Triggers when the ml-pipeline API server scrape target is down.
     status: ENABLED
     intervalSeconds: 60
     function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
@@ -59,7 +14,7 @@
       threshold: 1
       metric:
         query: >-
-          min(up{job="kubeflow-pipelines",service=~".*ml-pipeline.*"})
+          min(up{service_name="kubeflow-pipelines",suse_ai_component_name="kubeflow-pipelines"})
         aliasTemplate: "up"
         unit: short
       titleTemplate: "Kubeflow Pipelines API server is down"
@@ -67,23 +22,113 @@
     remediationHint: {{ include "templates/monitors/kubeflow-pipelines/remediation-api-down.md.hbs" "identity" }}
 
   - _type: Monitor
-    id: -3022
-    name: Kubeflow Pipelines MLMD gRPC Errors
-    identifier: urn:stackpack:suse-ai:shared:monitor:kfp-mlmd-errors
+    id: -3019
+    name: Kubeflow Workflow Controller Down
+    identifier: urn:stackpack:suse-ai:shared:monitor:kfp-workflow-controller-down
     description: |
-      Triggers when the metadata-grpc-service is returning errors at a sustained rate.
+      Triggers when the Argo Workflow Controller scrape target is down.
+    status: ENABLED
+    intervalSeconds: 60
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      comparator: LT
+      failureState: CRITICAL
+      threshold: 1
+      metric:
+        query: >-
+          min(up{service_name="kubeflow-workflow-controller",suse_ai_component_name="kubeflow-pipelines"})
+        aliasTemplate: "up"
+        unit: short
+      titleTemplate: "Kubeflow workflow controller is down"
+      urnTemplate: "urn:suse-ai:product:workflow-engine:kubeflow-pipelines"
+    remediationHint: {{ include "templates/monitors/kubeflow-pipelines/remediation-controller-down.md.hbs" "identity" }}
+
+  - _type: Monitor
+    id: -3020
+    name: Kubeflow Recent Pipeline Run Failures
+    identifier: urn:stackpack:suse-ai:shared:monitor:kfp-run-failures
+    description: |
+      Triggers when an Argo workflow enters Failed during the last 15 minutes.
     status: ENABLED
     intervalSeconds: 60
     function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
     arguments:
       comparator: GT
       failureState: DEVIATING
-      threshold: 1
+      threshold: 0
       metric:
         query: >-
-          sum(rate(grpc_server_handled_total{grpc_code!="OK",job=~".*metadata-grpc.*"}[5m]))
-        aliasTemplate: "errors/s"
+          sum(increase(argo_workflows_count_total{suse_ai_component_name="kubeflow-pipelines",phase="Failed"}[15m])) or vector(0)
+        aliasTemplate: "failed runs"
         unit: short
-      titleTemplate: "Kubeflow Pipelines MLMD gRPC errors elevated"
+      titleTemplate: "Kubeflow pipeline runs failed recently"
       urnTemplate: "urn:suse-ai:product:workflow-engine:kubeflow-pipelines"
-    remediationHint: {{ include "templates/monitors/kubeflow-pipelines/remediation-mlmd-errors.md.hbs" "identity" }}
+    remediationHint: {{ include "templates/monitors/kubeflow-pipelines/remediation-run-failures.md.hbs" "identity" }}
+
+  - _type: Monitor
+    id: -3022
+    name: Kubeflow Workflow Pod Image Pull Failures
+    identifier: urn:stackpack:suse-ai:shared:monitor:kfp-image-pull-failures
+    description: |
+      Triggers when workflow pods encounter ErrImagePull or ImagePullBackOff
+      during the last 15 minutes.
+    status: ENABLED
+    intervalSeconds: 60
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      comparator: GT
+      failureState: CRITICAL
+      threshold: 0
+      metric:
+        query: >-
+          sum(increase(argo_workflows_pod_pending_count_total{suse_ai_component_name="kubeflow-pipelines",reason=~"ErrImagePull|ImagePullBackOff"}[15m])) or vector(0)
+        aliasTemplate: "image pull failures"
+        unit: short
+      titleTemplate: "Kubeflow workflow pods cannot pull images"
+      urnTemplate: "urn:suse-ai:product:workflow-engine:kubeflow-pipelines"
+    remediationHint: {{ include "templates/monitors/kubeflow-pipelines/remediation-image-pull.md.hbs" "identity" }}
+
+  - _type: Monitor
+    id: -3026
+    name: Kubeflow Pipelines gRPC Error Ratio
+    identifier: urn:stackpack:suse-ai:shared:monitor:kfp-grpc-error-ratio
+    description: |
+      Triggers when more than 5% of KFP gRPC calls return non-OK status codes.
+    status: ENABLED
+    intervalSeconds: 60
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      comparator: GT
+      failureState: DEVIATING
+      threshold: 0.05
+      metric:
+        query: >-
+          (sum(rate(grpc_server_handled_total{suse_ai_component_name="kubeflow-pipelines",grpc_code!="OK"}[5m])) / clamp_min(sum(rate(grpc_server_handled_total{suse_ai_component_name="kubeflow-pipelines"}[5m])), 0.001)) or vector(0)
+        aliasTemplate: "gRPC error ratio"
+        unit: percentunit
+      titleTemplate: "Kubeflow Pipelines gRPC error ratio exceeds 5%"
+      urnTemplate: "urn:suse-ai:product:workflow-engine:kubeflow-pipelines"
+    remediationHint: {{ include "templates/monitors/kubeflow-pipelines/remediation-grpc-errors.md.hbs" "identity" }}
+
+  - _type: Monitor
+    id: -3027
+    name: Kubeflow Workflow Queue Lag
+    identifier: urn:stackpack:suse-ai:shared:monitor:kfp-workflow-queue-lag
+    description: |
+      Triggers when an Argo controller queue item remains active for more than
+      five minutes.
+    status: ENABLED
+    intervalSeconds: 60
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      comparator: GT
+      failureState: DEVIATING
+      threshold: 300
+      metric:
+        query: >-
+          max(argo_workflows_queue_longest_running{suse_ai_component_name="kubeflow-pipelines"})
+        aliasTemplate: "oldest queue item"
+        unit: s
+      titleTemplate: "Kubeflow workflow queue lag exceeds five minutes"
+      urnTemplate: "urn:suse-ai:product:workflow-engine:kubeflow-pipelines"
+    remediationHint: {{ include "templates/monitors/kubeflow-pipelines/remediation-reconcile-lag.md.hbs" "identity" }}

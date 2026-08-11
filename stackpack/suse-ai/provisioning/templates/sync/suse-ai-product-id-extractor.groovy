@@ -15,7 +15,6 @@ if (topologyElement == null) {
 
 def data = topologyElement.data ?: [:]
 def tags = data.tags ?: [:]
-def typeName = topologyElement.type?.name?.toString() ?: 'unknown'
 
 // Normalize tags to map
 def normalizedTags = [:]

@@ -1,0 +1,11 @@
+# Kubeflow Workflow Pod Image Pull Failures
+
+**{{currentValue}} recent workflow pod image-pull failures were observed on {{componentName}}.**
+
+Triage:
+
+1. Find affected pods: `kubectl get pods -A | grep -E 'ErrImagePull|ImagePullBackOff'`.
+2. Inspect the event message: `kubectl describe pod -n <profile-namespace> <pod-name>`.
+3. Verify the referenced repository and immutable tag exist and match the node architecture.
+4. Check `imagePullSecrets` on the pipeline service account and confirm registry credentials are valid.
+5. Publish the missing image or correct the pipeline image, then submit a new pipeline version and run.
