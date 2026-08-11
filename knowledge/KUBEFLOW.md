@@ -23,7 +23,8 @@ legacy inference-engine identifier for compatibility.
 
 The test-environment configuration is
 `integrations/otel-collector/otel-values.yaml`. It is validated against the
-custom SUSE AI Collector 0.156.0 and uses these receivers:
+custom SUSE AI Collector 0.156.0. Its Kubeflow-specific receivers and scrape
+jobs are:
 
 - `prometheus/kubeflow-pipelines`: discovers Kubeflow services and keeps only
   HTTP metrics ports. In the deployed chart, `ml-pipeline:8888` is the useful
@@ -39,6 +40,11 @@ custom SUSE AI Collector 0.156.0 and uses these receivers:
 - `http_check/model-registry`: calls
   `/api/model_registry/v1alpha3/registered_models` every 30 seconds with the
   configured bearer token and validates that the response contains `"items"`.
+
+The file intentionally also retains the supported Elasticsearch/OpenSearch,
+Qdrant, Milvus, vLLM, GPU, and debug-exporter configuration. An absent service
+can produce expected scrape or DNS errors in a particular demo cluster; do not
+remove its configuration merely to silence that environment.
 
 `MODEL_REGISTRY_BEARER_TOKEN=demo` is appropriate only for this demo cluster.
 Use a Secret-provided token in any non-demo environment.

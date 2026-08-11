@@ -187,6 +187,11 @@ kubectl logs "$CPOD" -n observability --since=5m | grep -i 'Failed to scrape' | 
 # silence = healthy. (suse-private-ai elasticsearch/qdrant DNS errors are unrelated test-env noise.)
 ```
 
+Keep the Elasticsearch/OpenSearch receiver, Qdrant scrape, and debug exporters
+in the shared values even when this demo cluster does not deploy those targets.
+Filter validation to the Kubeflow/KServe jobs instead of narrowing the
+extension's supported configuration.
+
 **Layer 3 — metrics in SUSE Observability UI:** metrics explorer → query e.g.
 `run_server_run_count`, `argo_workflows_gauge`,
 `argo_workflows_pods_count_total`, `httpcheck_status`,

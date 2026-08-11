@@ -43,6 +43,21 @@ presets:
     extractAllPodLabels: true
 config:
   receivers:
+    elasticsearch:
+      endpoint: "http://opensearch-cluster-master-headless.suse-private-ai.svc.cluster.local:9200"
+      # If you have basic auth enabled:
+      username: "admin"
+      password: "MySecurePass123"
+      # If using self-signed certs or internal CAs:
+      tls:
+        insecure_skip_verify: true
+      collection_interval: 10s
+      # Optional: Enable detailed node metrics
+      metrics:
+        elasticsearch.node.fs.disk.total:
+          enabled: true
+        elasticsearch.node.fs.disk.available:
+          enabled: true
     http_check/model-registry:
       collection_interval: 30s
       metrics:
@@ -76,6 +91,11 @@ config:
 
             static_configs:
               - targets: ['milvus.suse-private-ai.svc.cluster.local:9091']
+          - job_name: 'qdrant'
+            scrape_interval: 10s
+            metrics_path: '/metrics'
+            static_configs:
+              - targets: ['qdrant.suse-private-ai.svc.cluster.local:6333']
           - job_name: 'vllm'
             scrape_interval: 10s
             scheme: http
@@ -202,6 +222,29 @@ config:
       tls:
         insecure: true
   processors:
+    resource/elasticsearch:
+      attributes:
+        - key: suse.ai.managed
+          value: "true"
+          action: insert
+        - key: suse.ai.component.name
+          value: "opensearch"
+          action: insert
+        - key: suse.ai.component.type
+          value: "search-engine"
+          action: insert
+        - key: service.name
+          value: "opensearch"
+          action: insert
+        - key: service.namespace
+          value: ${env:SUSE_AI_NAMESPACE}
+          action: insert
+        - key: k8s.namespace.name
+          value: ${env:SUSE_AI_NAMESPACE}
+          action: upsert
+        - key: service.instance.id
+          value: "opensearch-cluster" # Hardcoded fallback instance ID
+          action: insert
     resource/kubeflow-model-registry:
       attributes:
         - key: service.name
@@ -484,11 +527,11 @@ config:
       traces/sampling:
         receivers: [routing/traces]
         processors: [tail_sampling, batch]
-        exporters: [otlp]
+        exporters: [debug, otlp]
       metrics:
         receivers: [otlp, spanmetrics, prometheus]
         processors: [memory_limiter, transform/qdrant, transform/milvus, transform/vllm, transform/kserve, transform/kubeflow-pipelines, transform/kubeflow-model-registry, resource, batch]
-        exporters: [otlp]
+        exporters: [debug, otlp]
       # The Model Registry exposes no Prometheus endpoint. Synthetic API
       # checks provide availability, latency, response-size, and body-validation
       # signals with deterministic product resource attributes.
@@ -543,3 +586,7 @@ config:
         receivers: [routing/traces]
         processors: [transform/kserve-traces, transform/kfp-traces, transform/kubeflow-relations, batch]
         exporters: [otlp]
+      metrics/elasticsearch:
+        receivers: [elasticsearch]
+        processors: [memory_limiter, resource/elasticsearch, resource, batch]
+        exporters: [debug, otlp]
