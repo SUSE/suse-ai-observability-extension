@@ -1,0 +1,11 @@
+# Kubeflow Workflow Queue Lag
+
+**The oldest Argo controller queue item is {{currentValue}}s (threshold {{threshold}}s) on {{componentName}}.**
+
+Triage:
+
+1. Identify the affected `queue_name` in `argo_workflows_queue_longest_running` and compare its depth and unfinished-work metrics.
+2. Inspect workflow-controller logs for API throttling, repeated reconciliation errors, or unavailable dependencies.
+3. Check controller CPU and memory: `kubectl top pod -n <kubeflow-namespace> -l app=workflow-controller`.
+4. Inspect workflows stuck in Pending or Running: `kubectl get workflows -A`.
+5. Resolve the blocking workflow or dependency before restarting the controller; a restart alone does not remove poisoned work.

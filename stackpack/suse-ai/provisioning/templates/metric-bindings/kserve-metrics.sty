@@ -1,0 +1,136 @@
+  - id: -630
+    name: "Request Rate"
+    description: "Inference (predict) requests per second per model."
+    queries:
+      - expression: 'sum by (model_name) (rate(request_predict_seconds_count[${__rate_interval}]))'
+        alias: "${model_name}"
+        primary: true
+    scope: 'type = "inference-engine.kserve"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kserve:request-rate"
+    unit: reqps
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: KServe
+        section: Performance
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -631
+    name: "Predict Latency"
+    description: "P50/P95/P99 of model predict latency."
+    queries:
+      - expression: 'histogram_quantile(0.99, sum by (le) (rate(request_predict_seconds_bucket[${__rate_interval}])))'
+        alias: "P99"
+      - expression: 'histogram_quantile(0.95, sum by (le) (rate(request_predict_seconds_bucket[${__rate_interval}])))'
+        alias: "P95"
+        primary: true
+      - expression: 'histogram_quantile(0.50, sum by (le) (rate(request_predict_seconds_bucket[${__rate_interval}])))'
+        alias: "P50"
+    scope: 'type = "inference-engine.kserve"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kserve:latency-p95"
+    unit: s
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: KServe
+        section: Performance
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -632
+    name: "Per-Step Latency P95"
+    description: "P95 of preprocess, predict, and postprocess steps."
+    queries:
+      - expression: 'histogram_quantile(0.95, sum by (le) (rate(request_preprocess_seconds_bucket[${__rate_interval}])))'
+        alias: "preprocess P95"
+      - expression: 'histogram_quantile(0.95, sum by (le) (rate(request_predict_seconds_bucket[${__rate_interval}])))'
+        alias: "predict P95"
+        primary: true
+      - expression: 'histogram_quantile(0.95, sum by (le) (rate(request_postprocess_seconds_bucket[${__rate_interval}])))'
+        alias: "postprocess P95"
+    scope: 'type = "inference-engine.kserve"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kserve:step-latency"
+    unit: s
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: KServe
+        section: Runtime
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
+
+  - id: -633
+    name: "Reconcile Rate"
+    description: "KServe controller reconciliations per second, per controller."
+    queries:
+      - expression: 'sum by (controller) (rate(controller_runtime_reconcile_total{suse_ai_component_name="kserve"}[${__rate_interval}]))'
+        alias: "${controller}"
+        primary: true
+    scope: 'type = "inference-engine.kserve"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kserve:reconcile-rate"
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: KServe
+        section: Control Plane
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
+
+  - id: -634
+    name: "Reconcile Error Ratio"
+    description: "Fraction of KServe controller reconciliations ending in error."
+    queries:
+      - expression: '(sum(rate(controller_runtime_reconcile_total{result="error",suse_ai_component_name="kserve"}[${__rate_interval}])) / sum(rate(controller_runtime_reconcile_total{suse_ai_component_name="kserve"}[${__rate_interval}]))) or vector(0)'
+        alias: "error ratio"
+        primary: true
+    scope: 'type = "inference-engine.kserve"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kserve:reconcile-error-ratio"
+    unit: percentunit
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: KServe
+        section: Control Plane
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -635
+    name: "Workqueue Depth"
+    description: "Current controller workqueue depth per controller."
+    queries:
+      - expression: 'max by (controller) (workqueue_depth{suse_ai_component_name="kserve"})'
+        alias: "${controller}"
+        primary: true
+    scope: 'type = "inference-engine.kserve"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:kserve:workqueue-depth"
+    unit: short
+    chartType: line
+    tags:
+      experimental_chartType: Gauge
+      enableGaugeChart: "1"
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: KServe
+        section: Control Plane
+      componentSummary:
+        weight: 2
+    _type: MetricBinding

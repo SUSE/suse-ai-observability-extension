@@ -32,12 +32,22 @@ tasks:
 
   stackpack-upload:
     desc: Zips, uploads and upgrades the stackpack
+    deps: [stackpack-validate]
     cmds:
       - |
+        STACKPACK_VERSION=$(grep 'version =' stackpack/suse-ai/stackpack.conf | cut -d'"' -f2)
+        ARCHIVE="/tmp/suse-ai-${STACKPACK_VERSION}.sts"
+        rm -f "$ARCHIVE"
         cd stackpack/suse-ai
-        zip -r /tmp/suse-ai.sts stackpack.conf provisioning resources
-        sts stackpack upload --file /tmp/suse-ai.sts
+        zip -r "$ARCHIVE" stackpack.conf provisioning resources
+        sts stackpack upload --file "$ARCHIVE"
         sts stackpack upgrade --name suse-ai --unlocked-strategy overwrite
+
+  stackpack-validate:
+    desc: Validates StackPack IDs and Groovy synchronization scripts
+    cmds:
+      - python3 scripts/check-id-conflicts.py
+      - npx --yes npm-groovy-lint 'stackpack/suse-ai/provisioning/templates/**/*.groovy' --failon error
 
   stackpack-uninstall:
     desc: Uninstall all installed instances of SUSE AI Observability stackpack

@@ -1,0 +1,11 @@
+# Kubeflow Workflow Controller Down
+
+**The workflow-controller scrape target is down ({{currentValue}}) on {{componentName}}.**
+
+Triage:
+
+1. Check the controller pod: `kubectl get pods -n <kubeflow-namespace> -l app=workflow-controller`.
+2. Inspect recent controller logs: `kubectl logs -n <kubeflow-namespace> -l app=workflow-controller --tail=200`.
+3. Verify HTTPS metrics locally: `kubectl port-forward -n <kubeflow-namespace> deploy/workflow-controller 9090:9090`, then `curl -k https://localhost:9090/metrics`.
+4. Confirm the collector can discover pods and that its `kubeflow-workflow-controller` scrape job selects port `9090`.
+5. Restart a wedged controller: `kubectl rollout restart deploy/workflow-controller -n <kubeflow-namespace>`.

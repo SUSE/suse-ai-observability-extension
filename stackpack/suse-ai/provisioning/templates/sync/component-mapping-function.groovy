@@ -109,6 +109,15 @@ if (isManaged) {
             case 'mlflow':
                 currentType = "ml-registry.mlflow"
                 break
+            case 'kserve':
+                currentType = "inference-engine.kserve"
+                break
+            case 'kubeflow-pipelines':
+                currentType = "workflow-engine.kubeflow-pipelines"
+                break
+            case 'kubeflow-model-registry':
+                currentType = "ml-registry.kubeflow"
+                break
         }
     }
     

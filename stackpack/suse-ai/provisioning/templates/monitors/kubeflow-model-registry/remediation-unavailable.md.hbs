@@ -1,0 +1,11 @@
+# Kubeflow Model Registry API Unavailable
+
+**The Model Registry 2xx check is {{currentValue}} on {{componentName}}.**
+
+Triage:
+
+1. Check the deployment and endpoints: `kubectl get deploy,pod,svc,endpoints -n <kubeflow-namespace> | grep model-registry`.
+2. Inspect application logs: `kubectl logs -n <kubeflow-namespace> deploy/model-registry-deployment --tail=200`.
+3. Test the API from inside the collector namespace with the configured Authorization header.
+4. Verify `MODEL_REGISTRY_BEARER_TOKEN`, network policies, and Kubeflow AuthorizationPolicy behavior.
+5. Check the registry database before restarting the deployment.

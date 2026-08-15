@@ -1,0 +1,18 @@
+# KServe Reconcile Error Rate
+
+**The KServe controller is failing {{currentValue}} of reconciliations (threshold {{threshold}}) on {{componentName}}.**
+
+Triage:
+
+1. Tail the controller for the failing reconcile and its error:
+   `kubectl logs -n <kserve-namespace> deploy/kserve-controller-manager -c manager --tail=200`.
+2. Find which controller is erroring in Prometheus:
+   `controller_runtime_reconcile_total{result="error"}` by `controller`.
+3. Inspect the resource that will not reconcile (usually an InferenceService):
+   `kubectl get inferenceservice -A` then `kubectl get inferenceservice <name> -n <ns> -o yaml` and read `status.conditions`.
+4. Check for missing dependencies the controller needs (storage secrets, runtimes, webhooks):
+   `kubectl get servingruntimes,clusterservingruntimes -A` and `kubectl get validatingwebhookconfigurations | grep kserve`.
+5. If a recent rollout broke things, roll back the affected predictor:
+   `kubectl rollout undo deploy/<name>-predictor -n <ns>`.
+
+See the full triage playbook at `knowledge/KUBEFLOW.md`.
