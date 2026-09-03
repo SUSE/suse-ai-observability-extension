@@ -158,14 +158,18 @@
     pluginId: Sts
     config:
       autoExpireElements: true
-      expireElementsAfter: 300000
+      # Product relations are inferred from spans, which may be sparse in a
+      # demo. Keep them for one day while still allowing genuinely stale
+      # topology to expire automatically.
+      expireElementsAfter: 86400000
       _type: Sts.StsTopologyDataSourceConfig
       id: -1118
       supportedWindowingMethods: []
       integrationType: suse-ai
       supportedDataTypes:
         - TOPOLOGY_ELEMENTS
-      topic: sts_topo_suse-ai_local
+      # MUST match the topology exporter's fixed stream id (topologyStreamID).
+      topic: sts_topo_suse-ai_collector
     extTopology:
       _type: ExtTopology
       dataSource: -1108
@@ -192,6 +196,7 @@
     id: -1111
     defaultComponentAction:
       _type: SyncActionCreateComponent
+      mappingFunction: -1120
       templateFunction: -1114
       id: -1116
       mergeStrategy: MergePreferTheirs
@@ -229,10 +234,29 @@
         system: true
         type: STRUCT_TYPE
     groovyScript: |
+      if (topologyElement == null) {
+          return null
+      }
       element = topologyElement.asReadonlyMap()
-      externalId = element["externalId"]
-      type = element["typeName"].toLowerCase()
-      return Sts.createId(externalId, new HashSet(), type)
+      externalId = element["externalId"]?.toString()
+      if (externalId == null) {
+          return null
+      }
+      type = (element["typeName"] ?: "unknown").toString().toLowerCase()
+      return Sts.createId(externalId.toString(), new HashSet(), type.toString())
+
+  - _type: ComponentMappingFunction
+    id: -1120
+    identifier: urn:stackpack:suse-ai:shared:component-mapping-function:topology-sync-component-mapper
+    name: Topology Sync Component Mapper
+    parameters:
+      - _type: Parameter
+        multiple: false
+        name: element
+        required: true
+        system: true
+        type: STRUCT_TYPE
+    script: "{{ include "templates/sync/topology-sync-component-mapping-function.groovy" }}"
 
   - _type: ComponentTemplateFunction
     handlebarsTemplate: "{{ include "templates/sync/topology-sync-component-template.json.handlebars" }}"

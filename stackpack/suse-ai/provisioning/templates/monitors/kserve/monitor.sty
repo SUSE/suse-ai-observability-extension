@@ -1,0 +1,69 @@
+
+  - _type: Monitor
+    id: -3016
+    name: KServe Reconcile Error Rate
+    identifier: urn:stackpack:suse-ai:shared:monitor:kserve-error-rate
+    description: |
+      Triggers when more than 5% of KServe controller reconciliations end in
+      error, averaged over 5 minutes.
+    status: ENABLED
+    intervalSeconds: 60
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      comparator: GT
+      failureState: CRITICAL
+      threshold: 0.05
+      metric:
+        query: >-
+          (sum(rate(controller_runtime_reconcile_total{result="error"}[5m])) / sum(rate(controller_runtime_reconcile_total[5m]))) or vector(0)
+        aliasTemplate: "Reconcile error ratio"
+        unit: percentunit
+      titleTemplate: "KServe controller reconcile error rate exceeds 5%"
+      urnTemplate: "urn:suse-ai:product:inference-engine:kserve"
+    remediationHint: {{ include "templates/monitors/kserve/remediation-error-rate.md.hbs" "identity" }}
+
+  - _type: Monitor
+    id: -3017
+    name: KServe Predict Latency P95 High
+    identifier: urn:stackpack:suse-ai:shared:monitor:kserve-latency-p95
+    description: |
+      Triggers when the P95 model predict latency exceeds 2 seconds
+      over 5 minutes.
+    status: ENABLED
+    intervalSeconds: 60
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      comparator: GT
+      failureState: DEVIATING
+      threshold: 2.0
+      metric:
+        query: >-
+          histogram_quantile(0.95, sum by (le) (rate(request_predict_seconds_bucket[5m])))
+        aliasTemplate: "P95 predict latency"
+        unit: s
+      titleTemplate: "KServe P95 predict latency above 2s"
+      urnTemplate: "urn:suse-ai:product:inference-engine:kserve"
+    remediationHint: {{ include "templates/monitors/kserve/remediation-latency.md.hbs" "identity" }}
+
+  - _type: Monitor
+    id: -3018
+    name: KServe Controller Reconcile Lag
+    identifier: urn:stackpack:suse-ai:shared:monitor:kserve-reconcile-lag
+    description: |
+      Triggers when the KServe controller workqueue has unfinished work older
+      than 60 seconds, indicating reconciliation is falling behind.
+    status: ENABLED
+    intervalSeconds: 60
+    function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
+    arguments:
+      comparator: GT
+      failureState: DEVIATING
+      threshold: 60
+      metric:
+        query: >-
+          max(workqueue_unfinished_work_seconds)
+        aliasTemplate: "Lag (s)"
+        unit: s
+      titleTemplate: "KServe controller reconcile lag above 60s"
+      urnTemplate: "urn:suse-ai:product:inference-engine:kserve"
+    remediationHint: {{ include "templates/monitors/kserve/remediation-reconcile-lag.md.hbs" "identity" }}

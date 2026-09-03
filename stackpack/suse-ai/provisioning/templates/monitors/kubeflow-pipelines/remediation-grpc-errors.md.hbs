@@ -1,0 +1,11 @@
+# Kubeflow Pipelines gRPC Errors
+
+**The KFP gRPC error ratio is {{currentValue}} (threshold {{threshold}}) on {{componentName}}.**
+
+Triage:
+
+1. Break down `grpc_server_handled_total` by `grpc_service`, `grpc_method`, and `grpc_code` to identify the failing operation.
+2. Inspect `ml-pipeline` logs around the alert interval: `kubectl logs -n <kubeflow-namespace> deploy/ml-pipeline --since=15m`.
+3. Check the KFP database and object store for latency, authentication, or capacity failures.
+4. Confirm clients use a KFP SDK compatible with the deployed API server.
+5. Re-run one representative request after remediation and confirm the non-OK rate returns below the threshold.

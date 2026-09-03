@@ -6,11 +6,12 @@ extraEnvs:
     value: "local"  # Update to match your cluster name
   - name: SUSE_AI_NAMESPACE
     value: "suse-private-ai"  # Update to match the SUSE AI namespace
-  # Let the Go GC cooperate with memory_limiter: keep this a bit below the
-  # container memory limit (resources.limits.memory) so GC runs before the
-  # hard limit is hit, turning would-be OOM kills into soft backpressure.
-  - name: GOMEMLIMIT
-    value: "900MiB"
+  - name: KUBEFLOW_NAMESPACE
+    value: "kubeflow"  # Update to match the Kubeflow control-plane namespace
+  - name: MODEL_REGISTRY_BEARER_TOKEN
+    # The demo Kubeflow AuthorizationPolicy requires an Authorization header.
+    # Override this value from a Secret for any non-demo environment.
+    value: "demo"
 extraEnvsFrom:
   - secretRef:
       name: open-telemetry-collector
@@ -30,18 +31,21 @@ clusterRole:
     - apiGroups: ["extensions"]
       resources: ["replicasets"]
       verbs: ["get", "list", "watch"]
+    # Required so kube-rbac-proxy (KServe controller metrics on :8443) authorizes
+    # the collector's scrape via SubjectAccessReview on the /metrics endpoint.
+    - nonResourceURLs: ["/metrics"]
+      verbs: ["get"]
+# Keep the full registry in repository for compatibility with the upstream
+# chart, and clear the productized chart's default dp.apps.rancher.io registry
+# so it does not produce dp.apps.rancher.io/ghcr.io/suse/....
 image:
-  registry: ghcr.io
-  repository: suse/suse-ai-opentelemetry-collector
-  tag: latest
-  pullPolicy: Always
+  registry: ""
+  repository: ghcr.io/suse/suse-ai-opentelemetry-collector
+  tag: "0.156.0"
+  pullPolicy: IfNotPresent
 ports:
   metrics:
     enabled: true
-presets:
-  kubernetesAttributes:
-    enabled: true
-    extractAllPodLabels: true
 # Right-size the collector and make memory_limiter meaningful: its
 # limit_percentage/spike_limit_percentage are shares of THIS memory limit, not
 # the node's total memory. Without a limit set, the limiter guards 80% of the
@@ -53,6 +57,8 @@ resources:
   limits:
     cpu: "1"
     memory: 1Gi
+# Let the chart derive a single GOMEMLIMIT at 80% of resources.limits.memory.
+useGOMEMLIMIT: true
 config:
   receivers:
     elasticsearch:
@@ -70,6 +76,22 @@ config:
           enabled: true
         elasticsearch.node.fs.disk.available:
           enabled: true
+    http_check/model-registry:
+      collection_interval: 30s
+      metrics:
+        httpcheck.response.size:
+          enabled: true
+        httpcheck.validation.passed:
+          enabled: true
+        httpcheck.validation.failed:
+          enabled: true
+      targets:
+        - endpoint: "http://model-registry-service.${env:KUBEFLOW_NAMESPACE}.svc.cluster.local:8080/api/model_registry/v1alpha3/registered_models"
+          method: GET
+          headers:
+            Authorization: "Bearer ${env:MODEL_REGISTRY_BEARER_TOKEN}"
+          validations:
+            - contains: '"items"'
     prometheus:
       config:
         scrape_configs:
@@ -127,12 +149,118 @@ config:
                 action: keep
                 regex: '.*vllm.*'
             metric_relabel_configs: *drop_infra_metrics
+          - job_name: 'kubeflow-pipelines'
+            scrape_interval: 15s
+            scrape_timeout: 10s
+            metrics_path: '/metrics'
+            kubernetes_sd_configs:
+              - role: service
+                namespaces:
+                  names:
+                    - ${env:KUBEFLOW_NAMESPACE}
+            relabel_configs:
+              - source_labels: [__meta_kubernetes_service_name]
+                action: keep
+                regex: '(ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service)'
+              # Only scrape the HTTP metrics port. The KFP api-server serves
+              # Prometheus on its 'http' port (8888); its 'grpc' port (8887) and
+              # the gRPC-only metadata-grpc-service return 415/503 on /metrics.
+              - source_labels: [__meta_kubernetes_service_port_name]
+                action: keep
+                regex: '(http|metrics|http-metrics)'
+            metric_relabel_configs: *drop_infra_metrics
+          - job_name: 'kubeflow-workflow-controller'
+            scrape_interval: 15s
+            scrape_timeout: 10s
+            metrics_path: '/metrics'
+            # Argo Workflow Controller exposes metrics over HTTPS with a
+            # cluster-local self-signed certificate. Pod discovery avoids the
+            # deprecated workflow-controller-metrics Service.
+            scheme: https
+            tls_config:
+              insecure_skip_verify: true
+            kubernetes_sd_configs:
+              - role: pod
+                namespaces:
+                  names:
+                    - ${env:KUBEFLOW_NAMESPACE}
+            relabel_configs:
+              - source_labels: [__meta_kubernetes_pod_label_app]
+                action: keep
+                regex: 'workflow-controller'
+              - source_labels: [__meta_kubernetes_pod_container_port_number]
+                action: keep
+                regex: '9090'
+            metric_relabel_configs: *drop_infra_metrics
+          - job_name: 'kserve-controller'
+            scrape_interval: 15s
+            scrape_timeout: 10s
+            metrics_path: '/metrics'
+            # The SUSE Kubeflow chart fronts the KServe controller metrics with
+            # kube-rbac-proxy: HTTPS on port 8443, bearer-token auth. Scrape over
+            # TLS using the collector ServiceAccount token; the clusterRole in
+            # this values file grants the required nonResourceURL /metrics access.
+            scheme: https
+            tls_config:
+              insecure_skip_verify: true
+            authorization:
+              type: Bearer
+              credentials_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+            # No namespace filter: the SUSE Kubeflow chart co-locates the KServe
+            # controller in the 'kubeflow' namespace, while a standalone KServe
+            # install uses 'kserve'. The control-plane label below is specific
+            # enough to discover it wherever it runs (matches the namespace-
+            # agnostic kserve-inferenceservices job).
+            kubernetes_sd_configs:
+              - role: pod
+            relabel_configs:
+              - source_labels: [__meta_kubernetes_pod_label_control_plane]
+                action: keep
+                regex: 'kserve-controller-manager'
+              # kube-rbac-proxy metrics port only (skip the 9443 webhook port).
+              - source_labels: [__meta_kubernetes_pod_container_port_number]
+                action: keep
+                regex: '8443'
+            metric_relabel_configs: *drop_infra_metrics
+          - job_name: 'kserve-inferenceservices'
+            scrape_interval: 15s
+            scrape_timeout: 10s
+            metrics_path: '/metrics'
+            kubernetes_sd_configs:
+              - role: pod
+            relabel_configs:
+              - source_labels: [__meta_kubernetes_pod_label_serving_kserve_io_inferenceservice]
+                action: keep
+                regex: '.+'
+              # The metric-aggregation endpoint (http-usermetric / aggr-metric:9088)
+              # only serves when the KServe qpext queue-proxy image is configured.
+              # The SUSE Kubeflow chart ships the stock Knative queue-proxy, so that
+              # port is never bound. Scrape the model container's own Prometheus
+              # endpoint instead (prometheus.kserve.io/{port,path}, set when the
+              # customer enables serving.kserve.io/enable-prometheus-scraping).
+              # Anchor on the model container port (role=pod emits one target per
+              # declared port; user-port is the kserve-container serving port), then
+              # rewrite the address/path from the KServe annotations.
+              - source_labels: [__meta_kubernetes_pod_container_port_name]
+                action: keep
+                regex: 'user-port'
+              - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_kserve_io_port]
+                action: replace
+                regex: '([^:]+)(?::\d+)?;(\d+)'
+                replacement: '$1:$2'
+                target_label: __address__
+              - source_labels: [__meta_kubernetes_pod_annotation_prometheus_kserve_io_path]
+                action: replace
+                regex: '(.+)'
+                target_label: __metrics_path__
+            metric_relabel_configs: *drop_infra_metrics
   exporters:
     topology:
       endpoint: http://suse-observability-router.suse-observability.svc.cluster.local:8080
       api_key: ${env:API_KEY}
-      instance_url: ${env:K8S_CLUSTER_NAME}
       namespace: ${env:SUSE_AI_NAMESPACE}
+      # Cluster identity as a label only (not in the URN); needs a cluster_name-aware image.
+      cluster_name: ${env:K8S_CLUSTER_NAME}
       tls:
         insecure_skip_verify: true
     otlp:
@@ -163,9 +291,56 @@ config:
     # Defined explicitly here (rather than relying on chart defaults) so the
     # limits are visible and tunable; pair with the GOMEMLIMIT env var.
     memory_limiter:
-      check_interval: 5s
+      check_interval: 1s
       limit_percentage: 80
-      spike_limit_percentage: 25
+      spike_limit_percentage: 20
+    # Defined explicitly instead of using the chart preset, which prepends this
+    # processor ahead of memory_limiter. Keep memory_limiter first, then enrich
+    # only the ingress pipelines that carry Kubernetes-originated telemetry.
+    k8s_attributes:
+      auth_type: serviceAccount
+      passthrough: false
+      extract:
+        metadata:
+          - k8s.namespace.name
+          - k8s.pod.name
+          - k8s.pod.uid
+          - k8s.node.name
+          - k8s.pod.start_time
+          - k8s.deployment.name
+          - k8s.replicaset.name
+          - k8s.replicaset.uid
+          - k8s.daemonset.name
+          - k8s.daemonset.uid
+          - k8s.job.name
+          - k8s.job.uid
+          - k8s.container.name
+          - k8s.cronjob.name
+          - k8s.statefulset.name
+          - k8s.statefulset.uid
+          - container.image.tag
+          - container.image.name
+          - k8s.cluster.uid
+          - service.namespace
+          - service.name
+          - service.version
+          - service.instance.id
+        # Equivalent to the former extractAllPodLabels preset. This is convenient
+        # for the test environment but can be replaced with an allowlist at scale.
+        labels:
+          - tag_name: $$1
+            key_regex: (.*)
+            from: pod
+        otel_annotations: true
+      pod_association:
+        - sources:
+            - from: resource_attribute
+              name: k8s.pod.ip
+        - sources:
+            - from: resource_attribute
+              name: k8s.pod.uid
+        - sources:
+            - from: connection
     # Pipeline-level batching. Kept for control over batch size/timeout and to
     # batch after data-dropping processors. Note the otlp exporter also batches
     # inside its sending_queue, so this is intentional pipeline-side batching,
@@ -194,6 +369,29 @@ config:
         - key: service.instance.id
           value: "opensearch-cluster" # Hardcoded fallback instance ID
           action: insert
+    resource/kubeflow-model-registry:
+      attributes:
+        - key: service.name
+          value: model-registry-service
+          action: upsert
+        - key: service.instance.id
+          value: kubeflow-model-registry
+          action: upsert
+        - key: service.namespace
+          value: ${env:KUBEFLOW_NAMESPACE}
+          action: upsert
+        - key: k8s.namespace.name
+          value: ${env:KUBEFLOW_NAMESPACE}
+          action: upsert
+        - key: suse.ai.managed
+          value: "true"
+          action: upsert
+        - key: suse.ai.component.name
+          value: kubeflow-model-registry
+          action: upsert
+        - key: suse.ai.component.type
+          value: ml-registry
+          action: upsert
     transform/vllm:
       error_mode: ignore
       metric_statements:
@@ -225,12 +423,48 @@ config:
             - set(attributes["suse.ai.component.type"], "vectordb") where attributes["service.name"] == "milvus"
             - set(attributes["k8s.namespace.name"], attributes["service.namespace"]) where attributes["service.name"] == "milvus" and attributes["service.namespace"] != nil
             - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["service.name"] == "milvus" and attributes["service.namespace"] == nil
+    transform/kserve:
+      error_mode: ignore
+      metric_statements:
+        - context: resource
+          statements:
+            # The OTel Prometheus receiver sets service.name to the *job name*, not
+            # the k8s workload name — so match the kserve scrape jobs directly. The
+            # kserve-inferenceservices/kserve-controller jobs are already filtered to
+            # KServe pods, so every metric they emit is a KServe serving/controller metric.
+            - set(attributes["suse.ai.managed"], "true") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "^(kserve-inferenceservices|kserve-controller)$")
+            - set(attributes["suse.ai.component.name"], "kserve") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "^(kserve-inferenceservices|kserve-controller)$")
+            - set(attributes["suse.ai.component.type"], "inference-engine") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "^(kserve-inferenceservices|kserve-controller)$")
+            - set(attributes["service.instance.id"], attributes["service.name"]) where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "^(kserve-inferenceservices|kserve-controller)$") and attributes["service.instance.id"] == nil
+            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "^(kserve-inferenceservices|kserve-controller)$") and attributes["k8s.namespace.name"] == nil
+    transform/kubeflow-pipelines:
+      error_mode: ignore
+      metric_statements:
+        - context: resource
+          statements:
+            # service.name is the Prometheus job name. Both the KFP API and the
+            # Argo controller belong to the Kubeflow Pipelines product component.
+            - set(attributes["suse.ai.managed"], "true") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "^(kubeflow-pipelines|kubeflow-workflow-controller)$")
+            - set(attributes["suse.ai.component.name"], "kubeflow-pipelines") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "^(kubeflow-pipelines|kubeflow-workflow-controller)$")
+            - set(attributes["suse.ai.component.type"], "workflow-engine") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "^(kubeflow-pipelines|kubeflow-workflow-controller)$")
+            - set(attributes["service.instance.id"], attributes["service.name"]) where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "^(kubeflow-pipelines|kubeflow-workflow-controller)$") and attributes["service.instance.id"] == nil
+            - set(attributes["k8s.namespace.name"], "${env:KUBEFLOW_NAMESPACE}") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "^(kubeflow-pipelines|kubeflow-workflow-controller)$") and attributes["k8s.namespace.name"] == nil
+    transform/kubeflow-model-registry:
+      error_mode: ignore
+      metric_statements:
+        - context: resource
+          statements:
+            - set(attributes["suse.ai.managed"], "true") where attributes["service.name"] == "model-registry-service"
+            - set(attributes["suse.ai.component.name"], "kubeflow-model-registry") where attributes["service.name"] == "model-registry-service"
+            - set(attributes["suse.ai.component.type"], "ml-registry") where attributes["service.name"] == "model-registry-service"
+            - set(attributes["service.instance.id"], "kubeflow-model-registry") where attributes["service.name"] == "model-registry-service" and attributes["service.instance.id"] == nil
+            - set(attributes["k8s.namespace.name"], "${env:KUBEFLOW_NAMESPACE}") where attributes["service.name"] == "model-registry-service" and attributes["k8s.namespace.name"] == nil
     tail_sampling:
       decision_wait: 10s
       # Bound the in-memory trace buffer so tail sampling's memory footprint is
       # predictable (buffer ~= num_traces whole traces). Raise both if you see
       # traces evicted before decision_wait elapses.
-      num_traces: 50000
+      num_traces: 5000
       expected_new_traces_per_sec: 200
       policies:
       - name: rate-limited-composite
@@ -323,6 +557,8 @@ config:
             - set(attributes["suse.ai.managed"], "true")
             - set(attributes["suse.ai.component.type"], "application")
             - set(attributes["suse.ai.component.name"], attributes["service.name"])
+            - set(attributes["k8s.namespace.name"], attributes["service.namespace"]) where attributes["service.namespace"] != nil
+            - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["service.namespace"] == nil
     # Create provider -> model relations from GenAI trace spans.
     # Transforms spans so service.name = provider and peer.service = model,
     # which StackState interprets as a service dependency.
@@ -353,6 +589,41 @@ config:
         - context: span
           statements:
             - set(attributes["peer.service"], resource.attributes["gen_ai.provider.name"]) where resource.attributes["gen_ai.provider.name"] != nil
+    transform/kserve-traces:
+      error_mode: ignore
+      trace_statements:
+        - context: resource
+          statements:
+            - set(attributes["suse.ai.managed"], "true") where attributes["serving.kserve.io/inferenceservice"] != nil or attributes["service.name"] != nil and IsMatch(attributes["service.name"], ".*-predictor-default|.*-transformer-default|.*-explainer-default")
+            - set(attributes["suse.ai.component.name"], "kserve") where attributes["serving.kserve.io/inferenceservice"] != nil or attributes["service.name"] != nil and IsMatch(attributes["service.name"], ".*-predictor-default|.*-transformer-default|.*-explainer-default")
+            - set(attributes["suse.ai.component.type"], "inference-engine") where attributes["serving.kserve.io/inferenceservice"] != nil or attributes["service.name"] != nil and IsMatch(attributes["service.name"], ".*-predictor-default|.*-transformer-default|.*-explainer-default")
+    transform/kfp-traces:
+      error_mode: ignore
+      trace_statements:
+        - context: resource
+          statements:
+            - set(attributes["suse.ai.managed"], "true") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service")
+            - set(attributes["suse.ai.component.name"], "kubeflow-pipelines") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service")
+            - set(attributes["suse.ai.component.type"], "workflow-engine") where attributes["service.name"] != nil and IsMatch(attributes["service.name"], "ml-pipeline|ml-pipeline-scheduledworkflow|ml-pipeline-persistenceagent|metadata-grpc-service")
+    transform/kubeflow-relations:
+      error_mode: ignore
+      trace_statements:
+        - context: span
+          statements:
+            - set(attributes["peer.service"], "kserve") where attributes["kserve.inference.service"] != nil
+            - set(attributes["peer.service"], "kubeflow-model-registry") where attributes["url.full"] != nil and IsMatch(attributes["url.full"], ".*model-registry.*")
+            - set(attributes["peer.service"], "kubeflow-model-registry") where attributes["http.url"] != nil and IsMatch(attributes["http.url"], ".*model-registry.*")
+    # The custom topology exporter understands GenAI provider dependencies, not
+    # peer.service. Translate Kubeflow dependency spans only inside its private
+    # pipeline; normal traces retain their original semantic attributes.
+    transform/kubeflow-product-topology:
+      error_mode: ignore
+      trace_statements:
+        - context: span
+          statements:
+            - set(attributes["gen_ai.provider.name"], "kserve") where attributes["kserve.inference.service"] != nil and attributes["gen_ai.provider.name"] == nil
+            - set(attributes["gen_ai.provider.name"], "kubeflow-model-registry") where attributes["url.full"] != nil and IsMatch(attributes["url.full"], ".*model-registry.*") and attributes["gen_ai.provider.name"] == nil
+            - set(attributes["gen_ai.provider.name"], "kubeflow-model-registry") where attributes["http.url"] != nil and IsMatch(attributes["http.url"], ".*model-registry.*") and attributes["gen_ai.provider.name"] == nil
     filter/dropMissingK8sAttributes:
       error_mode: ignore
       traces:
@@ -377,9 +648,12 @@ config:
     extensions:
       - health_check
     pipelines:
+      # Remove the chart's default logs -> debug pipeline. This extension does
+      # not process logs, and production telemetry must not be dumped to stdout.
+      logs: null
       traces:
         receivers: [otlp, jaeger]
-        processors: [memory_limiter, filter/dropMissingK8sAttributes, resource]
+        processors: [memory_limiter, k8s_attributes, filter/dropMissingK8sAttributes, resource]
         exporters: [forward]
       traces/spanmetrics:
         receivers: [forward]
@@ -391,28 +665,35 @@ config:
         exporters: [otlp]
       metrics:
         receivers: [otlp, spanmetrics, prometheus]
-        processors: [memory_limiter, transform/qdrant, transform/milvus, transform/vllm, resource, batch]
+        processors: [memory_limiter, k8s_attributes, transform/qdrant, transform/milvus, transform/vllm, transform/kserve, transform/kubeflow-pipelines, transform/kubeflow-model-registry, resource, batch]
+        exporters: [otlp]
+      # The Model Registry exposes no Prometheus endpoint. Synthetic API
+      # checks provide availability, latency, response-size, and body-validation
+      # signals with deterministic product resource attributes.
+      metrics/kubeflow-model-registry:
+        receivers: [http_check/model-registry]
+        processors: [memory_limiter, resource/kubeflow-model-registry, resource, batch]
         exporters: [otlp]
       # Infer inference engines from GenAI client metrics sent by applications.
       # Groups metrics by gen_ai.provider.name and creates inference-engine
       # topology elements for each provider (e.g., ollama, vllm, openai).
       metrics/infer-providers:
         receivers: [otlp]
-        processors: [memory_limiter, filter/genai-metrics-only, groupbyattrs/infer-providers, transform/infer-providers, resource, batch]
+        processors: [memory_limiter, k8s_attributes, filter/genai-metrics-only, groupbyattrs/infer-providers, transform/infer-providers, resource, batch]
         exporters: [otlp]
       # Infer LLM models from GenAI client metrics sent by applications.
       # Groups metrics by gen_ai.request.model and creates genai.model
       # topology elements for each model (e.g., llama3.2, deepseek-r1:8b).
       metrics/infer-models:
         receivers: [otlp]
-        processors: [memory_limiter, filter/genai-metrics-only, groupbyattrs/infer-models, transform/infer-models, resource, batch]
+        processors: [memory_limiter, k8s_attributes, filter/genai-metrics-only, groupbyattrs/infer-models, transform/infer-models, resource, batch]
         exporters: [otlp]
       # Infer application components from GenAI client metrics.
       # Services emitting gen_ai.* metrics without suse.ai.component.name
       # are automatically tagged as SUSE AI applications.
       metrics/infer-applications:
         receivers: [otlp]
-        processors: [memory_limiter, filter/genai-metrics-only, filter/exclude-already-tagged, transform/infer-applications, resource, batch]
+        processors: [memory_limiter, k8s_attributes, filter/genai-metrics-only, filter/exclude-already-tagged, transform/infer-applications, resource, batch]
         exporters: [otlp]
       # Create provider -> model relations from trace spans.
       # Transforms GenAI spans so StackState sees provider depending on model.
@@ -432,8 +713,14 @@ config:
       # and submits them via the receiver API.
       traces/topology:
         receivers: [forward]
-        processors: [memory_limiter, batch]
+        processors: [memory_limiter, transform/kubeflow-product-topology, batch]
         exporters: [topology]
+      # Tag KServe and Kubeflow Pipelines spans, then surface
+      # kfp -> kserve and kfp -> model-registry relations via peer.service.
+      traces/kubeflow-relations:
+        receivers: [forward]
+        processors: [memory_limiter, transform/kserve-traces, transform/kfp-traces, transform/kubeflow-relations, batch]
+        exporters: [otlp]
       metrics/elasticsearch:
         receivers: [elasticsearch]
         processors: [memory_limiter, resource/elasticsearch, resource, batch]

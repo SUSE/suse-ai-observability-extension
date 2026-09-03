@@ -1,0 +1,16 @@
+# KServe Controller Reconcile Lag
+
+**KServe controller reconcile lag is {{currentValue}}s (threshold {{threshold}}s) on {{componentName}}.**
+
+Triage:
+
+1. Inspect the controller for errors or throttling:
+   `kubectl logs -n <kserve-namespace> deploy/kserve-controller-manager -c manager --tail=100`.
+2. Check the controller pod for CPU/memory pressure:
+   `kubectl top pod -n <kserve-namespace> -l control-plane=kserve-controller-manager`.
+3. Look at which controller workqueue is backed up in Prometheus:
+   `workqueue_depth` and `workqueue_unfinished_work_seconds` by `controller` over the last hour.
+4. Confirm the InferenceServices it reconciles are healthy (stuck resources drive requeues):
+   `kubectl get isvc -A`.
+5. Restart the controller if it is wedged:
+   `kubectl rollout restart deploy/kserve-controller-manager -n <kserve-namespace>`.

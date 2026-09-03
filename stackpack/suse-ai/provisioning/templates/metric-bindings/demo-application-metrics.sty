@@ -1,0 +1,209 @@
+  - id: -720
+    name: "Agent Tool Call Rate"
+    description: "Agent tool executions per second by tool and outcome."
+    queries:
+      - expression: 'sum by (tool_name, outcome) (rate(suse_ai_agent_tool_calls_total{service_name="${name}"}[${__rate_interval}]))'
+        alias: "${tool_name} ${outcome}"
+        primary: true
+    scope: 'type = "agent"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:demo:agent-tool-call-rate"
+    unit: cps
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Agent
+        section: Tools
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -721
+    name: "Agent Tool Duration P95"
+    description: "P95 tool execution duration by tool."
+    queries:
+      - expression: 'histogram_quantile(0.95, sum by (le, tool_name) (rate(suse_ai_agent_tool_duration_seconds_bucket{service_name="${name}"}[${__rate_interval}])))'
+        alias: "${tool_name}"
+        primary: true
+    scope: 'type = "agent"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:demo:agent-tool-duration-p95"
+    unit: s
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Agent
+        section: Tools
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -722
+    name: "Agent Iterations per Run"
+    description: "Average LLM iterations used by each agent invocation."
+    queries:
+      - expression: 'sum(rate(suse_ai_agent_iterations_sum{service_name="${name}"}[${__rate_interval}])) / clamp_min(sum(rate(suse_ai_agent_iterations_count{service_name="${name}"}[${__rate_interval}])), 0.001)'
+        alias: "iterations"
+        primary: true
+    scope: 'type = "agent"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:demo:agent-iterations"
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Agent
+        section: Execution
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
+
+  - id: -723
+    name: "Agent Run Rate"
+    description: "Agent invocation rate by outcome and truncation state."
+    queries:
+      - expression: 'sum by (outcome, truncated) (rate(suse_ai_agent_runs_total{service_name="${name}"}[${__rate_interval}]))'
+        alias: "${outcome} truncated=${truncated}"
+        primary: true
+    scope: 'type = "agent"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:demo:agent-run-rate"
+    unit: reqps
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Agent
+        section: Execution
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
+
+  - id: -724
+    name: "Retrieved Documents per Request"
+    description: "Average number of documents returned by RAG vector retrieval."
+    queries:
+      - expression: 'sum(rate(suse_ai_rag_retrieval_documents_sum{service_name="${name}"}[${__rate_interval}])) / clamp_min(sum(rate(suse_ai_rag_retrieval_documents_count{service_name="${name}"}[${__rate_interval}])), 0.001)'
+        alias: "documents"
+        primary: true
+    scope: 'type = "application"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:demo:rag-retrieved-documents"
+    unit: short
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: RAG
+        section: Retrieval Quality
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -725
+    name: "RAG No-Hit Rate"
+    description: "RAG requests per second for which vector retrieval returned no documents."
+    queries:
+      - expression: 'sum(rate(suse_ai_rag_retrieval_no_hits_total{service_name="${name}"}[${__rate_interval}]))'
+        alias: "no hits"
+        primary: true
+    scope: 'type = "application"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:demo:rag-no-hit-rate"
+    unit: reqps
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: RAG
+        section: Retrieval Quality
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -726
+    name: "RAG Context Size P95"
+    description: "P95 UTF-8 context size supplied to the LLM."
+    queries:
+      - expression: 'histogram_quantile(0.95, sum by (le) (rate(suse_ai_rag_context_size_bytes_bucket{service_name="${name}"}[${__rate_interval}])))'
+        alias: "P95"
+        primary: true
+    scope: 'type = "application"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:demo:rag-context-size-p95"
+    unit: bytes
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: RAG
+        section: Context
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
+
+  - id: -727
+    name: "RAG Request Duration P95"
+    description: "P95 end-to-end retrieval and generation latency."
+    queries:
+      - expression: 'histogram_quantile(0.95, sum by (le) (rate(suse_ai_rag_request_duration_seconds_bucket{service_name="${name}"}[${__rate_interval}])))'
+        alias: "P95"
+        primary: true
+    scope: 'type = "application"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:demo:rag-request-duration-p95"
+    unit: s
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: RAG
+        section: Performance
+      componentSummary:
+        weight: 3
+    _type: MetricBinding
+
+  - id: -728
+    name: "Demo Scenario Rate"
+    description: "Generated demo traffic per second by scenario and outcome."
+    queries:
+      - expression: 'sum by (scenario, outcome) (rate(suse_ai_demo_scenario_runs_total{service_name="${name}"}[${__rate_interval}]))'
+        alias: "${scenario} ${outcome}"
+        primary: true
+    scope: 'type = "application"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:demo:scenario-rate"
+    unit: reqps
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Demo
+        section: Scenarios
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
+
+  - id: -729
+    name: "Demo Scenario Duration P95"
+    description: "P95 end-to-end latency of generated demo scenarios."
+    queries:
+      - expression: 'histogram_quantile(0.95, sum by (le, scenario) (rate(suse_ai_demo_scenario_duration_seconds_bucket{service_name="${name}"}[${__rate_interval}])))'
+        alias: "${scenario}"
+        primary: true
+    scope: 'type = "application"'
+    identifier: "urn:stackpack:suse-ai:shared:metric-binding:demo:scenario-duration-p95"
+    unit: s
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: Demo
+        section: Scenarios
+      componentSummary:
+        weight: 2
+    _type: MetricBinding

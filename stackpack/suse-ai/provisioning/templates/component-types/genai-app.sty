@@ -78,6 +78,22 @@
           bindings:
             - "urn:stackpack:suse-ai:shared:metric-binding:total-usage-cost"
           defaultExpanded: false
+        - _type: "ComponentTypeMetricCategory"
+          name: "RAG Quality"
+          description: "Retrieval yield, no-hit rate, context size, and request latency."
+          bindings:
+            - "urn:stackpack:suse-ai:shared:metric-binding:demo:rag-retrieved-documents"
+            - "urn:stackpack:suse-ai:shared:metric-binding:demo:rag-no-hit-rate"
+            - "urn:stackpack:suse-ai:shared:metric-binding:demo:rag-context-size-p95"
+            - "urn:stackpack:suse-ai:shared:metric-binding:demo:rag-request-duration-p95"
+          defaultExpanded: false
+        - _type: "ComponentTypeMetricCategory"
+          name: "Demo Traffic"
+          description: "Generated scenario rate, outcome, and end-to-end latency."
+          bindings:
+            - "urn:stackpack:suse-ai:shared:metric-binding:demo:scenario-rate"
+            - "urn:stackpack:suse-ai:shared:metric-binding:demo:scenario-duration-p95"
+          defaultExpanded: false
 
   - _type: "ComponentType"
     identifier: "urn:stackpack:suse-ai:shared:component-type:agent"
@@ -119,6 +135,15 @@
             - "urn:stackpack:suse-ai:shared:metric-binding:average-tokens-per-request"
             - "urn:stackpack:suse-ai:shared:metric-binding:token-usage-by-type"
             - "urn:stackpack:suse-ai:shared:metric-binding:total-usage-cost"
+          defaultExpanded: true
+        - _type: "ComponentTypeMetricCategory"
+          name: "Agent Execution"
+          description: "Tool performance, iteration count, run outcome, and truncation."
+          bindings:
+            - "urn:stackpack:suse-ai:shared:metric-binding:demo:agent-tool-call-rate"
+            - "urn:stackpack:suse-ai:shared:metric-binding:demo:agent-tool-duration-p95"
+            - "urn:stackpack:suse-ai:shared:metric-binding:demo:agent-iterations"
+            - "urn:stackpack:suse-ai:shared:metric-binding:demo:agent-run-rate"
           defaultExpanded: true
 
   - _type: "ComponentType"

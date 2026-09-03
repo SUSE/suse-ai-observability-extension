@@ -13,7 +13,10 @@ The extension auto-discovers GenAI components running on Kubernetes and organize
 | **Models** | LLM models (vLLM, Ollama) |
 | **GPU Nodes** | Kubernetes nodes with NVIDIA GPUs |
 
-It provides out-of-the-box metric bindings and health monitors for vLLM, Ollama, Milvus, OpenSearch, Elasticsearch, and GPU infrastructure.
+It provides out-of-the-box metric bindings and health monitors for vLLM,
+Ollama, Milvus, OpenSearch, Elasticsearch, GPU infrastructure, KServe, Kubeflow
+Pipelines, and Kubeflow Model Registry. The companion demo bindings cover agent
+tool execution, RAG retrieval quality, and generated scenarios.
 
 ## Prerequisites
 
@@ -119,9 +122,13 @@ The fastest iteration loop during development is to upload the StackPack directl
 # Increment the patch version
 task version-up
 
-# Zip, upload, and upgrade in one step
+# Validate IDs/Groovy, create a version-specific archive, upload, and upgrade
+# with the unlocked overwrite strategy
 task stackpack-upload
 ```
+
+Every upload requires a new version number. `stackpack-upload` runs
+`stackpack-validate` first and does not reuse a stale `/tmp` archive.
 
 To uninstall all instances (useful for a clean re-install):
 

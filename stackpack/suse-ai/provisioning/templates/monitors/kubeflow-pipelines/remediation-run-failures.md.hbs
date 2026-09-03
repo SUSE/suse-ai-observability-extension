@@ -1,0 +1,11 @@
+# Recent Kubeflow Pipeline Run Failures
+
+**{{currentValue}} pipeline workflow failures were observed recently on {{componentName}}.**
+
+Triage:
+
+1. List recent workflows: `kubectl get workflows -A --sort-by=.metadata.creationTimestamp`.
+2. Inspect the failed workflow: `kubectl describe workflow -n <profile-namespace> <workflow-name>`.
+3. Find the failing task pod and read all container logs: `kubectl logs -n <profile-namespace> <pod-name> --all-containers`.
+4. Check artifact credentials, image pull secrets, resource quotas, and service-account RBAC in the profile namespace.
+5. Correct the cause and create a new run; do not retry a run whose inputs or image tag are no longer reproducible.

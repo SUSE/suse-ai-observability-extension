@@ -15,7 +15,6 @@ if (topologyElement == null) {
 
 def data = topologyElement.data ?: [:]
 def tags = data.tags ?: [:]
-def typeName = topologyElement.type?.name?.toString() ?: 'unknown'
 
 // Normalize tags to map
 def normalizedTags = [:]
@@ -77,6 +76,15 @@ if (productName) {
             break
         case 'mlflow':
             specificType = "ml-registry.mlflow"
+            break
+        case 'kserve':
+            specificType = "inference-engine.kserve"
+            break
+        case 'kubeflow-pipelines':
+            specificType = "workflow-engine.kubeflow-pipelines"
+            break
+        case 'kubeflow-model-registry':
+            specificType = "ml-registry.kubeflow"
             break
     }
 
