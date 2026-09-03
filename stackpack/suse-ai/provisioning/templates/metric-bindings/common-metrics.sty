@@ -233,3 +233,66 @@
       componentSummary:
         weight: 3
     _type: MetricBinding
+
+  - id: -615
+    name: vGPU Utilization
+    description: GPU utilization reported for this pod's time-sliced vGPU replica.
+    queries:
+      - expression: DCGM_FI_DEV_GPU_UTIL{ k8s_node_name="${tags.node-name}", pod_name="${name}", vgpu!="" }
+        alias: "GPU ${gpu} / vGPU ${vgpu}"
+        primary: true
+    scope: type IN ("pod")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:pod-vgpu-utilization
+    unit: percent
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Utilization
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
+
+  - id: -616
+    name: vGPU Utilization by Container
+    description: GPU utilization for each container and vGPU replica in this pod. Newer dcgm-exporter versions derive pod series from per-process data; older versions duplicate the device value, so this binding uses max rather than summing.
+    queries:
+      - expression: max by (container_name, gpu, vgpu) (DCGM_FI_DEV_GPU_UTIL{ k8s_node_name="${tags.node-name}", pod_name="${name}", vgpu!="" })
+        alias: "${container_name} (GPU ${gpu} / vGPU ${vgpu})"
+        primary: true
+    scope: type IN ("pod")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:pod-vgpu-utilization-by-container
+    unit: percent
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Utilization
+      componentSummary:
+        weight: 2
+    _type: MetricBinding
+
+  - id: -617
+    name: vGPU Memory Usage
+    description: Framebuffer memory reported for this pod's time-sliced vGPU replica.
+    queries:
+      - expression: DCGM_FI_DEV_FB_USED{ k8s_node_name="${tags.node-name}", pod_name="${name}", vgpu!="" } * 1048576
+        alias: "GPU ${gpu} / vGPU ${vgpu}"
+        primary: true
+    scope: type IN ("pod")
+    identifier: urn:stackpack:suse-ai:shared:metric-binding:common:pod-vgpu-memory-usage
+    unit: bytes
+    chartType: line
+    priority: high
+    enabled: true
+    layout:
+      metricPerspective:
+        tab: GPU
+        section: Utilization
+      componentSummary:
+        weight: 2
+    _type: MetricBinding

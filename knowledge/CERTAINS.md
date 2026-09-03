@@ -42,6 +42,7 @@
 *   **Fact**: All 170+ metric bindings in `product-metrics.sty` have unique negative IDs ranging from -500 downwards.
 *   **Fact**: Top-level list items in included STY files MUST be indented with exactly 2 spaces (`  - _type: ...`).
 *   **Fact**: The `genai-system-active` monitor uses the aligned URN pattern: `suse-ai:product:inference-engine:${gen_ai_system}`.
+*   **Fact**: The vGPU container bindings preserve `(pod_namespace, pod_name, container_name, gpu, vgpu)` at node scope and `(container_name, gpu, vgpu)` at pod scope. The generated PR 51 merge against `main` has 255 unique StackPack IDs, zero Groovy lint errors, and both changed metric-binding STY files parse as YAML.
 
 ## 8. Taskfile Commands & Test Environment
 *   **Fact**: The `stackpack-uninstall` task in `Taskfile.yaml` correctly uninstalls all instances with status 'INSTALLED' or 'ERROR'.
