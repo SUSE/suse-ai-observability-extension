@@ -4,7 +4,8 @@
 
 Metric binding IDs are negative integers organized by category:
 - **-501 to -509**: vLLM system-scope metrics (consolidated multi-query bindings)
-- **-510 to -519**: Available (gap)
+- **-510**: Application-scoped GenAI metric (application-metrics.sty)
+- **-511 to -519**: Available (gap)
 - **-520 to -527**: vLLM per-model (genai-model) metrics
 - **-540 to -568**: Individual product metrics (vLLM, Ollama, etc.)
 - **-569 to -583**: Application-scoped GenAI metrics
@@ -13,8 +14,8 @@ Metric binding IDs are negative integers organized by category:
 - **-610 to -614**: Ollama metrics (ollama-metrics.sty)
 - **-615 to -617**: Pod-level vGPU metrics (common-metrics.sty)
 - **-620 to -629**: Qdrant metrics (qdrant-metrics.sty)
-- **-700 to -705**: GenAI global metrics (genai-metrics.sty)
-- **-2000 to -2004**: Milvus/OpenSearch/Elasticsearch metrics
+- **-700 to -705**: Elasticsearch metrics (elasticsearch-metrics.sty)
+- **-2000 to -2004**: GenAI global metrics (genai-metrics.sty)
 
 Always check for ID conflicts across ALL `.sty` files before assigning a new ID.
 
@@ -54,15 +55,21 @@ dcgm-exporter label names are easy to get wrong. Verified against upstream
 | `pod_name`, `pod_namespace`, `container_name` | `--use-old-namespace` (what this deployment uses) | Default mode emits `pod` / `namespace` / `container` instead |
 | `vgpu` | `KUBERNETES_VIRTUAL_GPUS=true` | Time-sliced vGPU replica index. Filter with `vgpu!=""` |
 | `GPU_I_ID`, `GPU_I_PROFILE` | MIG enabled | MIG partition, uppercase. Filter with `GPU_I_ID!=""` |
-| `gpu`, `UUID`, `device`, `modelName`, `Hostname` | always | |
+| `gpu`, `device`, `modelName` | always | Base GPU labels |
+| `UUID` / `uuid` | always | Default mode uses `UUID`; `--use-old-namespace` uses lowercase `uuid` |
+| `Hostname` / `hostname` | when a hostname is set | Exporters before NVIDIA commit `d5e5f510` use `Hostname`; that commit and newer code use lowercase `hostname` |
 
 `gpu_instance_id` is **not** a Prometheus label — it is only a JSON field name in
 dcgm-exporter's internal `Metric` struct. Filtering on it matches nothing.
 
-Time-sliced vGPU gives **attribution, not isolation**: DCGM duplicates the device-level
-value across every pod sharing the GPU. Never `sum` across vGPU series — utilization will
-exceed 100%. Use `max by (...)` and say so in the binding description. Only MIG provides
-hardware-partitioned per-instance values.
+Time-sliced vGPU gives **attribution, not hardware isolation**, but its pod-series values
+are version-dependent. Older exporters duplicate the device-level value across every pod
+sharing the GPU, so summing those series double-counts utilization. Exporters containing
+NVIDIA commit `fb5e3dc8` instead emit per-process `DCGM_FI_DEV_GPU_UTIL` and
+`DCGM_FI_DEV_FB_USED` values for pod series while retaining a device-level series. Preserve
+the full pod, container, GPU, and vGPU identity when aggregating; use `max by (...)` rather
+than collapsing or summing distinct replicas. Only MIG provides hardware-partitioned
+per-instance resources.
 
 `DCGM_FI_DEV_FB_USED` / `FB_FREE` / `FB_RESERVED` are reported in **MiB**. A binding with
 `unit: bytes` must multiply by `1048576`.
