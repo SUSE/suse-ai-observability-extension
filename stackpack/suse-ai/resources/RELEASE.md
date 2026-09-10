@@ -2,9 +2,28 @@
 
 ## Version 2.2.0
 
+- Fixed the Collector examples' Kubeflow trace path bypassing tail sampling.
+  Product classification now runs before trace fan-out, dependency hints run
+  before sampling, and the separate topology exporter still sees all spans.
+- Preserved existing Kubernetes namespaces during application inference and
+  Model Registry specialization. Removed the topology exporter's static
+  namespace label; resource discovery supplies actual namespace metadata.
+- Corrected Model Registry monitor targets to the canonical ML-registry URN.
+  Validation and availability queries now follow the latest synthetic check,
+  including failure and recovery when the receiver emits different series.
+- Scoped KServe alerts and serving charts to KServe metrics. Reconcile lag now
+  measures the longest active work item; queue charts retain the queue name.
+- Scoped pod GPU/vGPU charts by cluster and namespace, and node charts by
+  cluster, to avoid mixing identically named workloads.
+- Restored five-minute topology data-source expiry after updates stop and
+  repaired the Milvus request-success metric-binding reference.
+- Added local Collector, PromQL, Groovy, and template regression checks through
+  `task stackpack-test`. Collector example changes require a Collector config
+  rollout in addition to upgrading the StackPack.
+
 - Added Kubeflow integration: KServe (`inference-engine.kserve`), Kubeflow Pipelines (`workflow-engine.kubeflow-pipelines`), Kubeflow Model Registry (`ml-registry.kubeflow`).
 - Re-enabled the **Workflow Engines** and **ML Registries** sidebar menu entries.
-- New OTel collector scrape jobs and transforms for Kubeflow metrics and traces (KUBEFLOW_NAMESPACE env var, `transform/kserve`, `transform/kubeflow-pipelines`, `transform/kubeflow-model-registry`, `traces/kubeflow-relations` pipeline).
+- New OTel collector scrape jobs and transforms for Kubeflow metrics and traces (`KUBEFLOW_NAMESPACE`, product resource tagging, and dependency hints on the sampled trace path).
 - New monitors for KServe and Kubeflow Pipelines, each with per-symptom
   remediation hints.
 - Expanded Kubeflow Pipelines coverage with KFP gRPC reliability, Argo workflow
@@ -18,7 +37,7 @@
   monitors.
 - Added agent execution, RAG retrieval quality, and generated demo-scenario
   metric bindings to the application and agent component types.
-- Improved product specialization and topology retention for Kubeflow products
+- Added product specialization and topology relations for Kubeflow products
   and demo applications.
 - Added pre-upload duplicate-ID and Groovy validation to the Taskfile workflow.
 

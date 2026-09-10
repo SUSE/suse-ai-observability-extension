@@ -80,6 +80,14 @@ per-instance resources.
 - `${tags.service.name}` → service name tag
 - `${__rate_interval}` → auto-calculated rate interval
 
+Kubernetes pod GPU bindings use `${tags.cluster-name}`, `${tags.node-name}`,
+`${tags.namespace}`, and `${name}` for the `k8s_cluster_name`, `k8s_node_name`,
+`pod_namespace`, and `pod_name` selectors respectively. Node bindings use
+`${tags.cluster-name}` and `${name}`. Scope these selectors before aggregation;
+pod and node names can repeat across clusters, and pod names can repeat across
+namespaces. The pod selectors target the documented DCGM `--use-old-namespace`
+label mode above.
+
 ## vLLM Metric Name Pattern
 
 vLLM metrics may have `:` or `_` separators depending on version:

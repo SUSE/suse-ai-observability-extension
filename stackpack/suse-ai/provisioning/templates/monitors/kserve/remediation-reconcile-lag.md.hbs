@@ -8,8 +8,11 @@ Triage:
    `kubectl logs -n <kserve-namespace> deploy/kserve-controller-manager -c manager --tail=100`.
 2. Check the controller pod for CPU/memory pressure:
    `kubectl top pod -n <kserve-namespace> -l control-plane=kserve-controller-manager`.
-3. Look at which controller workqueue is backed up in Prometheus:
-   `workqueue_depth` and `workqueue_unfinished_work_seconds` by `controller` over the last hour.
+3. Inspect the KServe workqueues in Prometheus, selecting `suse_ai_component_name="kserve"`
+   and grouping by `name`: `workqueue_depth` shows waiting work and
+   `workqueue_longest_running_processor_seconds` shows the longest active item.
+   `workqueue_unfinished_work_seconds` sums time across all active items and can
+   exceed the alert threshold even when no individual item is stuck.
 4. Confirm the InferenceServices it reconciles are healthy (stuck resources drive requeues):
    `kubectl get isvc -A`.
 5. Restart the controller if it is wedged:

@@ -1,7 +1,7 @@
 # Kubeflow integration
 
 **Current status:** KServe, Kubeflow Pipelines, and Kubeflow Model Registry have
-topology, traces, metrics, and monitors in StackPack 2.2.0. Model Registry
+topology, traces, metrics, and monitors in the official StackPack 2.2.0 source. Model Registry
 metrics are synthetic API health signals because the deployed registry does not
 publish a Prometheus endpoint.
 
@@ -15,9 +15,10 @@ publish a Prometheus endpoint.
 
 The SUSE AI synchronization keeps its own `urn:suse-ai:` identifiers so it does
 not take ownership of OpenTelemetry components. The Model Registry component
-retains the collector external identifier and has both the current
-`urn:suse-ai:product:ml-registry:kubeflow-model-registry` identifier and the
-legacy inference-engine identifier for compatibility.
+uses the canonical `urn:suse-ai:product:ml-registry:kubeflow-model-registry`
+identifier for monitor attachment. Metrics-only discovery creates that ID.
+When topology discovery supplies the legacy inference-engine external ID, the
+sync preserves it for relation resolution and adds the canonical ID as an alias.
 
 ## Collector configuration
 
@@ -72,10 +73,23 @@ Transforms must match the job names (`kubeflow-pipelines`,
 `kserve-inferenceservices`), not guessed workload names. OTTL in the shipping
 collector must use explicit nil guards; its lexer does not accept `??`.
 
+Application inference preserves an existing `k8s.namespace.name`, including
+when `service.namespace` describes a different logical namespace. Only missing
+Kubernetes namespaces fall back to `service.namespace` or `SUSE_AI_NAMESPACE`.
+The Model Registry synthetic check supplies `KUBEFLOW_NAMESPACE`, and its
+Groovy mapper preserves incoming namespace labels. The topology exporter's
+static `namespace` is empty because its product URNs aggregate across namespaces;
+namespace metadata comes from resource-based discovery when available.
+
 ## Topology relations
 
-`transform/kubeflow-relations` preserves normal trace attributes and adds the
-dependency hints used only by the topology export pipeline:
+KServe and KFP resource classification runs on trace ingress before fan-out.
+`transform/kubeflow-relations` adds `peer.service` hints on `traces/sampling`
+before tail sampling. There is no separate `traces/kubeflow-relations` backend
+export branch. The private `traces/topology` branch runs
+`transform/kubeflow-product-topology`, translating dependencies for the topology
+exporter without adding synthetic GenAI attributes to normal backend traces.
+It still sees spans rejected by tail sampling, preserving product relations:
 
 | Edge | Source evidence |
 |---|---|
@@ -83,10 +97,14 @@ dependency hints used only by the topology export pipeline:
 | application or pipeline -> Model Registry | client span URL containing `model-registry` |
 | pipeline -> KServe | instrumented deploy/predict client spans |
 
-The live topology contains all three specialized products. `sts topology
-inspect` resolves `kubeflow-pipelines`, `kubeflow-model-registry`,
+The August demo verification recorded all three specialized products. `sts topology
+inspect` resolved `kubeflow-pipelines`, `kubeflow-model-registry`,
 `agent-service`, `rag-service`, and `traffic-gen` to their SUSE AI component
 types.
+
+The topology data source expires elements after five minutes without updates.
+This is separate from the pinned Collector exporter's 15-minute retention of
+sparse relations across periodic complete snapshots.
 
 ## Metric bindings
 
@@ -96,6 +114,13 @@ types.
 - preprocess, predict, and postprocess step latency;
 - controller reconciliation rate and error ratio;
 - controller workqueue depth.
+
+KServe queries select `suse_ai_component_name="kserve"` before aggregating.
+The reconcile ratio reports zero for an idle observed controller or one with
+no error series, and remains empty when the controller's metrics are absent.
+Workqueue series use the `name` label. The lag monitor checks
+`workqueue_longest_running_processor_seconds`, which measures an individual
+active item; `workqueue_unfinished_work_seconds` sums time across active items.
 
 The model server uses `request_predict_seconds`-family histograms labeled by
 `model_name`. Queue-proxy `revision_*` metrics are not available in this chart.
@@ -125,6 +150,13 @@ they intentionally do not use `rate()`.
 - response-body validation;
 - response size;
 - connection or read errors.
+
+The receiver emits passed or failed validation samples, rather than a zero for
+the opposite outcome. Validation queries compare their timestamps so a new
+failure alerts and a new success clears the failure. Availability queries also
+select the latest status series per endpoint before aggregation, since
+`http_status_code` is absent on zero-valued status classes. With no eligible
+check samples, the queries stay empty rather than reporting success.
 
 ### Demo applications
 
