@@ -158,3 +158,5 @@ Reproduction setup and validation boundaries are in [REGRESSION_TESTS.md](REGRES
 
 *   **Fact**: The user explicitly requires repository work to include a commit and an opened pull request before the task is considered complete. This delivery requirement is recorded in `AGENTS.md` section 6.
 *   **Fact**: A fresh `git fetch --no-tags origin main` returned `f444ae428d711ce76eb49f6be0be0ed5b93a2d74`, matching the base used to implement and validate the fixes. The official StackPack version remains `2.2.0`.
+*   **Fact**: The fixes, regression tests, documentation, and delivery rule were committed as `387486dd93c34f6bd67992bb5bdce4eb1ab6ad6f` and pushed to `origin/fix/2.2.0-regressions`. [Pull request #59](https://github.com/SUSE/suse-ai-observability-extension/pull/59) is open against `main`; GitHub reported it mergeable after creation.
+*   **Fact**: The pre-PR `task stackpack-sync-status` retry again received connection-refused errors from `localhost:8081` for the list request and all three describe requests. Live deployment verification remains outstanding.
