@@ -15,7 +15,9 @@
       threshold: 0.05
       metric:
         query: >-
-          (sum(rate(controller_runtime_reconcile_total{result="error"}[5m])) / sum(rate(controller_runtime_reconcile_total[5m]))) or vector(0)
+          (sum(rate(controller_runtime_reconcile_total{suse_ai_component_name="kserve",result="error"}[5m]))
+          or (0 * sum(rate(controller_runtime_reconcile_total{suse_ai_component_name="kserve"}[5m]))))
+          / clamp_min(sum(rate(controller_runtime_reconcile_total{suse_ai_component_name="kserve"}[5m])), 1e-9)
         aliasTemplate: "Reconcile error ratio"
         unit: percentunit
       titleTemplate: "KServe controller reconcile error rate exceeds 5%"
@@ -38,7 +40,7 @@
       threshold: 2.0
       metric:
         query: >-
-          histogram_quantile(0.95, sum by (le) (rate(request_predict_seconds_bucket[5m])))
+          histogram_quantile(0.95, sum by (le) (rate(request_predict_seconds_bucket{suse_ai_component_name="kserve"}[5m])))
         aliasTemplate: "P95 predict latency"
         unit: s
       titleTemplate: "KServe P95 predict latency above 2s"
@@ -50,8 +52,8 @@
     name: KServe Controller Reconcile Lag
     identifier: urn:stackpack:suse-ai:shared:monitor:kserve-reconcile-lag
     description: |
-      Triggers when the KServe controller workqueue has unfinished work older
-      than 60 seconds, indicating reconciliation is falling behind.
+      Triggers when a KServe controller work item has been processing for more
+      than 60 seconds, indicating reconciliation may be stuck.
     status: ENABLED
     intervalSeconds: 60
     function: {{ get "urn:stackpack:common:monitor-function:threshold" }}
@@ -61,7 +63,7 @@
       threshold: 60
       metric:
         query: >-
-          max(workqueue_unfinished_work_seconds)
+          max(workqueue_longest_running_processor_seconds{suse_ai_component_name="kserve"})
         aliasTemplate: "Lag (s)"
         unit: s
       titleTemplate: "KServe controller reconcile lag above 60s"

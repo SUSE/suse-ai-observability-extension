@@ -129,6 +129,12 @@ task stackpack-upload
 
 Every upload requires a new version number. `stackpack-upload` runs
 `stackpack-validate` first and does not reuse a stale `/tmp` archive.
+To advance past versions already consumed by validation builds, use
+`task version-up TARGET_VERSION=<higher-major.minor.patch>`.
+
+Run `task stackpack-test` before releasing Collector, metric-binding, monitor,
+or synchronization changes. The [regression test guide](knowledge/REGRESSION_TESTS.md)
+lists the local runtime prerequisites and the boundaries covered by the tests.
 
 To uninstall all instances (useful for a clean re-install):
 

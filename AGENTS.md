@@ -26,3 +26,6 @@
 *   **Groovy Linting**: Always use `npm-groovy-lint` before finalizing changes to Groovy scripts to ensure syntax and style compliance.
 *   **Groovy LSP**: A language server is available at `~/groovy-language-server/build/libs/groovy-language-server-all.jar` for advanced development support.
 *   Taskfile: Always prioritize creating tasks in the Taskfile, and using pre-defined tasks for any action needed.
+
+## 6. Delivery
+*   **Commit and PR**: For repository changes, commit the work, push the branch, and open or update a pull request before considering the task complete, unless the user explicitly requests otherwise.

@@ -2,7 +2,7 @@
     name: "Request Rate"
     description: "Inference (predict) requests per second per model."
     queries:
-      - expression: 'sum by (model_name) (rate(request_predict_seconds_count[${__rate_interval}]))'
+      - expression: 'sum by (model_name) (rate(request_predict_seconds_count{suse_ai_component_name="kserve"}[${__rate_interval}]))'
         alias: "${model_name}"
         primary: true
     scope: 'type = "inference-engine.kserve"'
@@ -23,12 +23,12 @@
     name: "Predict Latency"
     description: "P50/P95/P99 of model predict latency."
     queries:
-      - expression: 'histogram_quantile(0.99, sum by (le) (rate(request_predict_seconds_bucket[${__rate_interval}])))'
+      - expression: 'histogram_quantile(0.99, sum by (le) (rate(request_predict_seconds_bucket{suse_ai_component_name="kserve"}[${__rate_interval}])))'
         alias: "P99"
-      - expression: 'histogram_quantile(0.95, sum by (le) (rate(request_predict_seconds_bucket[${__rate_interval}])))'
+      - expression: 'histogram_quantile(0.95, sum by (le) (rate(request_predict_seconds_bucket{suse_ai_component_name="kserve"}[${__rate_interval}])))'
         alias: "P95"
         primary: true
-      - expression: 'histogram_quantile(0.50, sum by (le) (rate(request_predict_seconds_bucket[${__rate_interval}])))'
+      - expression: 'histogram_quantile(0.50, sum by (le) (rate(request_predict_seconds_bucket{suse_ai_component_name="kserve"}[${__rate_interval}])))'
         alias: "P50"
     scope: 'type = "inference-engine.kserve"'
     identifier: "urn:stackpack:suse-ai:shared:metric-binding:kserve:latency-p95"
@@ -48,12 +48,12 @@
     name: "Per-Step Latency P95"
     description: "P95 of preprocess, predict, and postprocess steps."
     queries:
-      - expression: 'histogram_quantile(0.95, sum by (le) (rate(request_preprocess_seconds_bucket[${__rate_interval}])))'
+      - expression: 'histogram_quantile(0.95, sum by (le) (rate(request_preprocess_seconds_bucket{suse_ai_component_name="kserve"}[${__rate_interval}])))'
         alias: "preprocess P95"
-      - expression: 'histogram_quantile(0.95, sum by (le) (rate(request_predict_seconds_bucket[${__rate_interval}])))'
+      - expression: 'histogram_quantile(0.95, sum by (le) (rate(request_predict_seconds_bucket{suse_ai_component_name="kserve"}[${__rate_interval}])))'
         alias: "predict P95"
         primary: true
-      - expression: 'histogram_quantile(0.95, sum by (le) (rate(request_postprocess_seconds_bucket[${__rate_interval}])))'
+      - expression: 'histogram_quantile(0.95, sum by (le) (rate(request_postprocess_seconds_bucket{suse_ai_component_name="kserve"}[${__rate_interval}])))'
         alias: "postprocess P95"
     scope: 'type = "inference-engine.kserve"'
     identifier: "urn:stackpack:suse-ai:shared:metric-binding:kserve:step-latency"
@@ -94,7 +94,10 @@
     name: "Reconcile Error Ratio"
     description: "Fraction of KServe controller reconciliations ending in error."
     queries:
-      - expression: '(sum(rate(controller_runtime_reconcile_total{result="error",suse_ai_component_name="kserve"}[${__rate_interval}])) / sum(rate(controller_runtime_reconcile_total{suse_ai_component_name="kserve"}[${__rate_interval}]))) or vector(0)'
+      - expression: >-
+          (sum(rate(controller_runtime_reconcile_total{suse_ai_component_name="kserve",result="error"}[${__rate_interval}]))
+          or (0 * sum(rate(controller_runtime_reconcile_total{suse_ai_component_name="kserve"}[${__rate_interval}]))))
+          / clamp_min(sum(rate(controller_runtime_reconcile_total{suse_ai_component_name="kserve"}[${__rate_interval}])), 1e-9)
         alias: "error ratio"
         primary: true
     scope: 'type = "inference-engine.kserve"'
@@ -113,10 +116,10 @@
 
   - id: -635
     name: "Workqueue Depth"
-    description: "Current controller workqueue depth per controller."
+    description: "Current controller workqueue depth per named queue."
     queries:
-      - expression: 'max by (controller) (workqueue_depth{suse_ai_component_name="kserve"})'
-        alias: "${controller}"
+      - expression: 'max by (name) (workqueue_depth{suse_ai_component_name="kserve"})'
+        alias: "${name}"
         primary: true
     scope: 'type = "inference-engine.kserve"'
     identifier: "urn:stackpack:suse-ai:shared:metric-binding:kserve:workqueue-depth"

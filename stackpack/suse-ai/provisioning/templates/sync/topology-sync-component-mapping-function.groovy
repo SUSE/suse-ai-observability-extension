@@ -14,8 +14,7 @@ if (componentName == "kubeflow-model-registry" || externalId == registryLegacyId
                 def value = label.toString()
                 if (!value.startsWith("suse.ai.component.type:") &&
                     !value.startsWith("suse.ai.component.name:") &&
-                    !value.startsWith("suse.ai.category:") &&
-                    !value.startsWith("k8s.namespace.name:")) {
+                    !value.startsWith("suse.ai.category:")) {
                     labels.add(value.toString())
                 }
             }
@@ -25,7 +24,6 @@ if (componentName == "kubeflow-model-registry" || externalId == registryLegacyId
     labels.add("suse.ai.component.type:ml-registry".toString())
     labels.add("suse.ai.component.name:kubeflow-model-registry".toString())
     labels.add("suse.ai.category:ml-registry".toString())
-    labels.add("k8s.namespace.name:kubeflow".toString())
     data.labels = labels
     data.name = "kubeflow-model-registry".toString()
     data.layer = (data.layer ?: "Services").toString()

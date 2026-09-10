@@ -158,10 +158,9 @@
     pluginId: Sts
     config:
       autoExpireElements: true
-      # Product relations are inferred from spans, which may be sparse in a
-      # demo. Keep them for one day while still allowing genuinely stale
-      # topology to expire automatically.
-      expireElementsAfter: 86400000
+      # Expire stale topology after five minutes without updates. The exporter
+      # separately retains sparse span-derived relations across snapshots.
+      expireElementsAfter: 300000
       _type: Sts.StsTopologyDataSourceConfig
       id: -1118
       supportedWindowingMethods: []

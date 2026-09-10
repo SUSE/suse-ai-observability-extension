@@ -2,12 +2,21 @@
     name: "API Availability"
     description: "Synthetic Model Registry API check, split by HTTP status class."
     queries:
-      - expression: 'max(httpcheck_status{suse_ai_component_name="kubeflow-model-registry",http_status_class="2xx"})'
+      - expression: >-
+          min(httpcheck_status{suse_ai_component_name="kubeflow-model-registry",http_status_class="2xx"}
+          and topk by (k8s_cluster_name, service_instance_id, http_url) (1,
+          timestamp(httpcheck_status{suse_ai_component_name="kubeflow-model-registry",http_status_class="2xx"})))
         alias: "2xx"
         primary: true
-      - expression: 'max(httpcheck_status{suse_ai_component_name="kubeflow-model-registry",http_status_class="4xx"})'
+      - expression: >-
+          max(httpcheck_status{suse_ai_component_name="kubeflow-model-registry",http_status_class="4xx"}
+          and topk by (k8s_cluster_name, service_instance_id, http_url) (1,
+          timestamp(httpcheck_status{suse_ai_component_name="kubeflow-model-registry",http_status_class="4xx"})))
         alias: "4xx"
-      - expression: 'max(httpcheck_status{suse_ai_component_name="kubeflow-model-registry",http_status_class="5xx"})'
+      - expression: >-
+          max(httpcheck_status{suse_ai_component_name="kubeflow-model-registry",http_status_class="5xx"}
+          and topk by (k8s_cluster_name, service_instance_id, http_url) (1,
+          timestamp(httpcheck_status{suse_ai_component_name="kubeflow-model-registry",http_status_class="5xx"})))
         alias: "5xx"
     scope: 'type = "ml-registry.kubeflow"'
     identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-model-registry:availability"
@@ -51,10 +60,21 @@
     name: "Response Validation"
     description: "Whether the Model Registry response contains the expected API collection shape."
     queries:
-      - expression: 'max(httpcheck_validation_passed{suse_ai_component_name="kubeflow-model-registry",validation_type="contains"})'
+      # The receiver emits only the passed OR failed series at each check.
+      # Compare timestamps so a previous failure clears on the next success.
+      # With no checks, leave the result absent (UNKNOWN), rather than healthy.
+      - expression: >-
+          1 - (max(httpcheck_validation_failed{suse_ai_component_name="kubeflow-model-registry",validation_type="contains"}
+          unless (timestamp(httpcheck_validation_failed{suse_ai_component_name="kubeflow-model-registry",validation_type="contains"})
+          < timestamp(httpcheck_validation_passed{suse_ai_component_name="kubeflow-model-registry",validation_type="contains"})))
+          or (0 * max(httpcheck_validation_passed{suse_ai_component_name="kubeflow-model-registry",validation_type="contains"})))
         alias: "passed"
         primary: true
-      - expression: '1 - max(httpcheck_validation_passed{suse_ai_component_name="kubeflow-model-registry",validation_type="contains"})'
+      - expression: >-
+          max(httpcheck_validation_failed{suse_ai_component_name="kubeflow-model-registry",validation_type="contains"}
+          unless (timestamp(httpcheck_validation_failed{suse_ai_component_name="kubeflow-model-registry",validation_type="contains"})
+          < timestamp(httpcheck_validation_passed{suse_ai_component_name="kubeflow-model-registry",validation_type="contains"})))
+          or (0 * max(httpcheck_validation_passed{suse_ai_component_name="kubeflow-model-registry",validation_type="contains"}))
         alias: "failed"
     scope: 'type = "ml-registry.kubeflow"'
     identifier: "urn:stackpack:suse-ai:shared:metric-binding:kubeflow-model-registry:validation"

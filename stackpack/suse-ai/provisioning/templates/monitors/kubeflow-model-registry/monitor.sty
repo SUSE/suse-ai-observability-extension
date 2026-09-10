@@ -14,11 +14,13 @@
       threshold: 1
       metric:
         query: >-
-          max(httpcheck_status{suse_ai_component_name="kubeflow-model-registry",http_status_class="2xx"})
+          min(httpcheck_status{suse_ai_component_name="kubeflow-model-registry",http_status_class="2xx"}
+          and topk by (k8s_cluster_name, service_instance_id, http_url) (1,
+          timestamp(httpcheck_status{suse_ai_component_name="kubeflow-model-registry",http_status_class="2xx"})))
         aliasTemplate: "2xx availability"
         unit: short
       titleTemplate: "Kubeflow Model Registry API is unavailable"
-      urnTemplate: "urn:suse-ai:product:inference-engine:kubeflow-model-registry"
+      urnTemplate: "urn:suse-ai:product:ml-registry:kubeflow-model-registry"
     remediationHint: {{ include "templates/monitors/kubeflow-model-registry/remediation-unavailable.md.hbs" "identity" }}
 
   - _type: Monitor
@@ -41,7 +43,7 @@
         aliasTemplate: "API check duration"
         unit: ms
       titleTemplate: "Kubeflow Model Registry API latency exceeds one second"
-      urnTemplate: "urn:suse-ai:product:inference-engine:kubeflow-model-registry"
+      urnTemplate: "urn:suse-ai:product:ml-registry:kubeflow-model-registry"
     remediationHint: {{ include "templates/monitors/kubeflow-model-registry/remediation-slow.md.hbs" "identity" }}
 
   - _type: Monitor
@@ -60,9 +62,12 @@
       threshold: 0
       metric:
         query: >-
-          1 - max(httpcheck_validation_passed{suse_ai_component_name="kubeflow-model-registry",validation_type="contains"})
+          max(httpcheck_validation_failed{suse_ai_component_name="kubeflow-model-registry",validation_type="contains"}
+          unless (timestamp(httpcheck_validation_failed{suse_ai_component_name="kubeflow-model-registry",validation_type="contains"})
+          < timestamp(httpcheck_validation_passed{suse_ai_component_name="kubeflow-model-registry",validation_type="contains"})))
+          or (0 * max(httpcheck_validation_passed{suse_ai_component_name="kubeflow-model-registry",validation_type="contains"}))
         aliasTemplate: "failed validation"
         unit: short
       titleTemplate: "Kubeflow Model Registry response validation failed"
-      urnTemplate: "urn:suse-ai:product:inference-engine:kubeflow-model-registry"
+      urnTemplate: "urn:suse-ai:product:ml-registry:kubeflow-model-registry"
     remediationHint: {{ include "templates/monitors/kubeflow-model-registry/remediation-invalid-response.md.hbs" "identity" }}

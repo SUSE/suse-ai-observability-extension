@@ -19,16 +19,27 @@ tasks:
       - '{{.RUNTIME}} push {{.IMAGE}}:{{.VERSION}}'
 
   version-up:
-    desc: Increments the stackpack version (patch)
+    desc: Increment the StackPack patch, or set a higher TARGET_VERSION
+    env:
+      TARGET_VERSION: '{{.TARGET_VERSION | default ""}}'
+    cmds:
+      - python3 scripts/bump-version.py
+
+  stackpack-test:
+    desc: Run Collector, query, template and Groovy regressions (see knowledge/REGRESSION_TESTS.md)
+    cmds:
+      - npx --yes --package npm-groovy-lint@18.0.0 -c 'python3 -B -m unittest discover -s tests -v'
+
+  stackpack-sync-status:
+    desc: Read the installed SUSE AI synchronization status and error details
     cmds:
       - |
-        VERSION=$(grep 'version =' stackpack/suse-ai/stackpack.conf | cut -d'"' -f2)
-        BASE=$(echo $VERSION | cut -d'.' -f1-2)
-        PATCH=$(echo $VERSION | cut -d'.' -f3)
-        NEW_PATCH=$((PATCH + 1))
-        NEW_VERSION="$BASE.$NEW_PATCH"
-        sed -i "s/version = \"$VERSION\"/version = \"$NEW_VERSION\"/" stackpack/suse-ai/stackpack.conf
-        echo "StackPack version updated to $NEW_VERSION"
+        sync_status=0
+        sts topology-sync list || sync_status=$?
+        for sync_name in suse-ai suse-ai-products suse-ai-topology; do
+          sts topology-sync describe --identifier "urn:stackpack:suse-ai:shared:sync:$sync_name" || sync_status=$?
+        done
+        exit "$sync_status"
 
   stackpack-upload:
     desc: Zips, uploads and upgrades the stackpack
@@ -47,7 +58,8 @@ tasks:
     desc: Validates StackPack IDs and Groovy synchronization scripts
     cmds:
       - python3 scripts/check-id-conflicts.py
-      - npx --yes npm-groovy-lint 'stackpack/suse-ai/provisioning/templates/**/*.groovy' --failon error
+      - npx --yes npm-groovy-lint@18.0.0 'stackpack/suse-ai/provisioning/templates/**/*.groovy' --failon error
+      - npx --yes npm-groovy-lint@18.0.0 --path tests --files '*.groovy' --failon error
 
   stackpack-uninstall:
     desc: Uninstall all installed instances of SUSE AI Observability stackpack

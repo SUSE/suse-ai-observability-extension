@@ -555,8 +555,8 @@ spec:
               - set(attributes["suse.ai.managed"], "true")
               - set(attributes["suse.ai.component.type"], "application")
               - set(attributes["suse.ai.component.name"], attributes["service.name"])
-              - set(attributes["k8s.namespace.name"], attributes["service.namespace"]) where attributes["service.namespace"] != nil
-              - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["service.namespace"] == nil
+              - set(attributes["k8s.namespace.name"], attributes["service.namespace"]) where attributes["service.namespace"] != nil and attributes["k8s.namespace.name"] == nil
+              - set(attributes["k8s.namespace.name"], "${env:SUSE_AI_NAMESPACE}") where attributes["service.namespace"] == nil and attributes["k8s.namespace.name"] == nil
 
       filter/genai-spans:
         error_mode: ignore
@@ -640,7 +640,9 @@ spec:
       topology:
         endpoint: http://suse-observability-router.suse-observability.svc.cluster.local:8080
         api_key: ${env:API_KEY}
-        namespace: ${env:SUSE_AI_NAMESPACE}
+        # Product URNs aggregate across namespaces. Resource telemetry supplies
+        # actual namespace labels; a static exporter namespace would mislabel them.
+        namespace: ""
         # Cluster identity is a label only; the pinned image supports cluster_name.
         cluster_name: ${env:K8S_CLUSTER_NAME}
         tls:
@@ -681,7 +683,7 @@ spec:
         # enrichment done here, so they don't repeat it.
         traces:
           receivers: [otlp, jaeger]
-          processors: [memory_limiter, k8s_attributes, filter/dropMissingK8sAttributes, resource]
+          processors: [memory_limiter, k8s_attributes, filter/dropMissingK8sAttributes, resource, transform/kserve-traces, transform/kfp-traces]
           exporters: [forward]
         traces/spanmetrics:
           receivers: [forward]
@@ -689,7 +691,8 @@ spec:
           exporters: [spanmetrics]
         traces/sampling:
           receivers: [forward]
-          processors: [memory_limiter, tail_sampling, batch]
+          # Keep dependency hints on the sampled trace path.
+          processors: [memory_limiter, transform/kubeflow-relations, tail_sampling, batch]
           exporters: [otlp]
         traces/model-relations:
           receivers: [forward]
@@ -703,12 +706,6 @@ spec:
           receivers: [forward]
           processors: [memory_limiter, transform/kubeflow-product-topology, batch]
           exporters: [topology]
-        # Tag KServe and Kubeflow Pipelines spans, then surface product
-        # dependencies through peer.service.
-        traces/kubeflow-relations:
-          receivers: [forward]
-          processors: [memory_limiter, transform/kserve-traces, transform/kfp-traces, transform/kubeflow-relations, batch]
-          exporters: [otlp]
 
         metrics:
           receivers: [otlp, spanmetrics, prometheus]

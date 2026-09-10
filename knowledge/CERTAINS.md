@@ -99,3 +99,62 @@
 *   **Fact**: The chart's `kubernetesAttributes` preset prepends `k8sattributes` ahead of configured processors. Defining `k8s_attributes` explicitly and wiring it after `memory_limiter` keeps `memory_limiter` first in every rendered pipeline while retaining the preset's metadata, pod-label, OTel-annotation, and pod-association behavior.
 *   **Fact**: With a `1Gi` container memory limit and `useGOMEMLIMIT: true`, both chart `0.149.0` and chart `0.165.0` render one `GOMEMLIMIT=819MiB` environment variable.
 *   **Fact**: The PR 54 Helm-rendered configuration and Operator configuration both pass `validate` with `ghcr.io/suse/suse-ai-opentelemetry-collector:0.156.0`; the four-resource Operator manifest also passes strict kubeconform validation, including the `OpenTelemetryCollector` v1beta1 schema.
+
+## 14. Container Release Verification (2026-08-20)
+
+The first two entries preserve the historical build/push record. The 2026-09-09 recheck below verifies artifact contents and the registry digest, rather than independently reconstructing which commands originally built or pushed it.
+
+*   **Fact**: Git tag `v2.2.0-rc0` at commit `510ceabdea69b8a01ecc0e3716b378cc766b3e17` was built through the Taskfile as the Linux/amd64 image `ghcr.io/thbertoldi/suse-ai-observability-extension-setup:2.2.0-rc0` and pushed successfully. GHCR resolves the published manifest to `sha256:2096051ea2ca18f436946f93f116fb19cb9d1cbcadf579e7577261e2a593b7f1`.
+*   **Fact**: The published release-candidate image contains StackState CLI `3.3.8` and an intact `/mnt/suse-ai.sts` archive with StackPack version `2.2.0`. Source validation reported 249/249 unique StackPack IDs and zero Groovy lint errors.
+*   **Fact**: On 2026-09-09, GHCR returned the same RC0 manifest digest. The locally cached RC0 image reported CLI `3.3.8`; its archive passed ZIP integrity checking, contained 249 unique numeric StackPack IDs, and all 100 packaged files matched `v2.2.0-rc0` byte-for-byte. The final `v2.2.0` tag has different `common-metrics.sty` and `gpu-metrics.sty` contents despite the same embedded `2.2.0` version. RC0 artifact validation therefore does not establish final-release equivalence.
+
+## 15. Topology Exporter Compatibility (2026-09-03)
+*   **Fact**: SUSE AI StackPack source tags `v2.0.0` and `v2.0.1` consume `sts_topo_suse-ai_local`; the checked `v2.1.0` and `v2.2.0` tags consume `sts_topo_suse-ai_collector`.
+*   **Fact**: Collector `v0.149.0` exposes configurable `instance_type` and `instance_url` values, defaulting to `suse-ai` and `local`; pairing that exporter with SUSE AI StackPack `2.1.0` or `2.2.0` requires `instance_url: collector`. This is only the stream-identity requirement: `v0.149.0` does not expose the `cluster_name` or `retention` configuration keys used by newer exporter versions.
+*   **Fact**: `K8S_CLUSTER_NAME` supplies the `k8s.cluster.name` resource identity and must match the Kubernetes StackPack cluster name, but it is not the SUSE AI topology stream identifier and must not be substituted for `instance_url`.
+*   **Fact**: Collector `v0.149.0` clears accumulated components and relations when taking a snapshot. Commit `b0670b6` introduced retention across flushes, and the checked `v0.156.0` exporter defaults that retention to 15 minutes. Exporter retention is separate from the StackPack topology data source's `expireElementsAfter` setting.
+*   **Fact**: At extension tag `v2.2.0` (`f444ae428d711ce76eb49f6be0be0ed5b93a2d74`), both Collector examples pin image `0.156.0`, omit `instance_url`, and set `cluster_name` separately; that Collector fixes the topology stream contract to `suse-ai`/`collector`. This records the extension's pin, not the latest Collector release.
+
+## 16. Version 2.2.0 Review (2026-09-09)
+
+Evidence, reproduction conditions, severity, and validation limits are recorded in [REVIEW_2.2.0.md](REVIEW_2.2.0.md).
+
+*   **Fact**: `main` was fast-forwarded from `510ceab` to `f444ae4`, matching remote tag `v2.2.0`. Remote tag `v2.1.0` resolves to `5274216`. The `CERTAINS.md` conflict was between independent appended sections; upstream content and both local sections were preserved, with the local sections renumbered to 14 and 15.
+*   **Fact**: `task stackpack-validate` passed with 255 unique numeric IDs and zero Groovy lint errors (27 warnings). The expanded master template contains 269 unique node identifiers. The upstream Helm chart `0.165.0` render and Operator Collector configuration both passed the pinned `0.156.0` image's `validate` command using placeholder environment values and a dummy ServiceAccount token file.
+*   **Fact**: In a local comparison using the same Collector executable, the unchanged tail sampler rejected a 600-span ordinary HTTP trace in both versions. The `2.1.0` trace-export branches emitted zero spans; the added `2.2.0` `traces/kubeflow-relations` branch emitted all 600 spans.
+*   **Fact**: Given GenAI metrics with `k8s.namespace.name=tenant-a` and no `service.namespace`, the application-inference pipeline preserved `tenant-a` in `2.1.0` and changed it to `suse-private-ai` in `2.2.0` with that `SUSE_AI_NAMESPACE` value.
+*   **Fact**: Executing the `2.2.0` Groovy mapper with a Model Registry namespace label of `ml-platform` replaced it with `kubeflow`. The product ID extractor, when given the synthetic check's `ml-registry` tags, produced the canonical ML-registry identifier without the legacy inference-engine identifier referenced by all three Model Registry monitors.
+
+*   **Fact**: With Collector `0.156.0`, an HTTP 200 response missing the configured `"items"` substring emitted `httpcheck.validation.failed=1` and no `httpcheck.validation.passed` sample. With only the failed signal present, the shipped invalid-response monitor expression returned an empty vector in a local VictoriaMetrics query.
+*   **Fact**: In local query fixtures, the shipped KServe monitors returned a 90.91% reconcile error ratio and 120 seconds of unfinished work from an unrelated controller while the KServe series had zero errors and zero unfinished work. The new pod vGPU container binding returned 90% for a 10% pod when another namespace contained a same-named pod on the same node with a matching container/GPU/vGPU and 90% utilization.
+*   **Fact**: Live synchronization could not be checked: `sts topology-sync list` and `sts topology-sync describe` failed to connect to the configured `localhost:8081` endpoint; the alternate `local` context at `127.0.0.1:8090` also refused connections. This review did not upload or deploy a StackPack.
+
+## 17. Fix Verification with Temporary Version 2.2.10 (2026-09-09)
+
+The following facts record validation of the corrected working tree using
+temporary version metadata `2.2.10`, before the official `2.2.0` designation in
+section 18. They do not describe an installed release.
+Reproduction setup and validation boundaries are in [REGRESSION_TESTS.md](REGRESSION_TESTS.md).
+
+*   **Fact**: `task version-up TARGET_VERSION=2.2.10` advanced `stackpack.conf` from `2.2.0` to `2.2.10`, above the recorded temporary validation versions `2.2.8` and `2.2.9`. Isolated Git fixtures verified default patch increments, explicit higher targets, and rejection of downgrades, invalid versions, and versions consumed by release/candidate tags.
+*   **Fact**: `task stackpack-test` passed all 19 tests using the Collector executable extracted from image `0.156.0`, VictoriaMetrics `v1.151.0`, and the Groovy runtime bundled with `npm-groovy-lint@18.0.0`. The Helm example rendered with upstream chart `0.165.0`; both full Collector configs passed the pinned executable's `validate` command using placeholder credentials.
+*   **Fact**: For both Collector examples, the runtime fixtures exported zero backend spans from a rejected 600-span ordinary trace and exactly one copy of each of three accepted Kubeflow fixture spans. KServe/Registry `peer.service` hints remained present. The actual topology exporter sent KFP-to-KServe and KFP-to-Registry relations to a local HTTP intake without adding synthetic GenAI provider attributes to the ordinary backend trace path.
+*   **Fact**: Application-inference fixtures preserved `tenant-a` both with and without a conflicting logical `service.namespace`. Missing namespaces fell back to `service.namespace` or `SUSE_AI_NAMESPACE`. Both actual HTTP-check pipelines produced Model Registry resources with `k8s.namespace.name=ml-platform` when `KUBEFLOW_NAMESPACE=ml-platform`.
+*   **Fact**: The Groovy fixtures preserved incoming namespace labels, including multiple namespaces, without inventing one when absent. Both canonical and legacy topology discovery paths retained their external IDs and exposed the canonical ML-registry identifier now targeted by all three Model Registry monitors. Unrelated Milvus topology remained unchanged.
+*   **Fact**: Exact Model Registry monitor/chart queries evaluated correctly against sparse failed/passed samples through failure, recovery, and relapse; an independent healthy endpoint did not hide a failed endpoint. Availability queries followed changing HTTP-status label sets, and absent check samples yielded empty results.
+*   **Fact**: KServe query fixtures excluded unrelated controller errors and lag, still returned a 50% error ratio and 90-second lag for actual KServe failures, retained two distinct named queues, and distinguished missing controller metrics from an idle observed controller.
+*   **Fact**: GPU query fixtures selected the intended pod's value of 10 instead of same-named workloads' 90/99 values in another namespace/cluster. Node vGPU queries retained both namespaces from the selected cluster and excluded the other cluster. The framebuffer query returned bytes after multiplying MiB by `1048576`.
+*   **Fact**: The topology data source is configured to expire elements after `300000` milliseconds without updates. All packaged metric-binding references resolve after correcting the Milvus request-success reference. All 25 component-type `iconbase64` fields match `HEAD` byte-for-byte.
+*   **Fact**: `task stackpack-validate` passed with 255 unique numeric IDs and zero Groovy lint errors across five shipped scripts and one test fixture. The linter still reports 26 warnings in shipped scripts and four in the fixture. `git diff --check` passed, and there are no unmerged index entries.
+*   **Fact**: `task stackpack-sync-status` attempted `sts topology-sync list` and `describe` for all three SUSE AI sync identifiers. Each request failed because `localhost:8081` refused the connection. No StackPack upload, upgrade, or Collector rollout was performed; live provisioning, monitor attachment, and upgrade behavior remain unverified.
+
+## 18. Official Version 2.2.0 Designation (2026-09-10)
+
+*   **Fact**: The user explicitly designated `2.2.0` as the official version for the corrected source and stated that they would recreate the tag. This supersedes the earlier proposal to release these fixes as `2.2.10`.
+*   **Fact**: `stackpack.conf` now declares `version = "2.2.0"`. The release notes combine the fixes and Kubeflow additions under a single `Version 2.2.0` entry, and the current Kubeflow guide uses `2.2.0`.
+*   **Fact**: The original review remains tied to commit `f444ae428d711ce76eb49f6be0be0ed5b93a2d74`, and section 17 preserves the validation history under its temporary metadata. This metadata update did not recreate or push a Git tag.
+
+## 19. Commit and Pull Request Delivery (2026-09-10)
+
+*   **Fact**: The user explicitly requires repository work to include a commit and an opened pull request before the task is considered complete. This delivery requirement is recorded in `AGENTS.md` section 6.
+*   **Fact**: A fresh `git fetch --no-tags origin main` returned `f444ae428d711ce76eb49f6be0be0ed5b93a2d74`, matching the base used to implement and validate the fixes. The official StackPack version remains `2.2.0`.
