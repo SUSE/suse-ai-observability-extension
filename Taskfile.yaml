@@ -35,6 +35,11 @@ tasks:
     cmds:
       - python3 -B -m unittest discover -s integrations/open-webui/tests -v
 
+  ollama-test:
+    desc: Test the read-only Ollama runtime metrics exporter
+    cmds:
+      - python3 -B -m unittest discover -s integrations/ollama/tests -v
+
   stackpack-sync-status:
     desc: Read the installed SUSE AI synchronization status and error details
     cmds:

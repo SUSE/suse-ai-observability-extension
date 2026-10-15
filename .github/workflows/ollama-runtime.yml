@@ -1,0 +1,24 @@
+name: Validate Ollama runtime exporter
+
+on:
+  pull_request:
+    paths:
+      - 'integrations/ollama/**'
+      - '.github/workflows/ollama-runtime.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'integrations/ollama/**'
+      - '.github/workflows/ollama-runtime.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: Test actual exporter and API failure behavior
+        run: python3 -B -m unittest discover -s integrations/ollama/tests -v
