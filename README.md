@@ -166,6 +166,10 @@ sts topology-sync describe --id <id>
 
 The `knowledge/` directory contains detailed documentation on the project architecture, component types, metric bindings, monitor creation, and design decisions. Start with `knowledge/ARCH.md` for an overview.
 
+The [Open WebUI Ollama integration](integrations/open-webui/README.md) describes
+the in-process provider adapter, native trace correlation and explicitly resolved
+client dependencies for Open WebUI 0.6.41.
+
 ## License
 
 [Apache 2.0](LICENSE)

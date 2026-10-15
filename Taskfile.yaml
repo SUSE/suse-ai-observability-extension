@@ -30,6 +30,11 @@ tasks:
     cmds:
       - npx --yes --package npm-groovy-lint@18.0.0 -c 'python3 -B -m unittest discover -s tests -v'
 
+  open-webui-test:
+    desc: Test the in-process Open WebUI integration (install integrations/open-webui/tests/requirements.txt first)
+    cmds:
+      - python3 -B -m unittest discover -s integrations/open-webui/tests -v
+
   stackpack-sync-status:
     desc: Read the installed SUSE AI synchronization status and error details
     cmds:

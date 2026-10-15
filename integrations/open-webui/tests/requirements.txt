@@ -1,0 +1,5 @@
+opentelemetry-sdk==1.33.1
+opentelemetry-instrumentation-aiohttp-client==0.54b1
+pydantic==2.12.5
+aiohttp==3.12.15
+starlette==0.41.3
