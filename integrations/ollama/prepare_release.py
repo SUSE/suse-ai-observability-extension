@@ -54,11 +54,8 @@ def main():
 
     source = output / "source"
     source.mkdir()
-    for src, dest in ((SOURCE / "Containerfile", "Dockerfile"), (SOURCE / "ollama_metrics.py", "ollama_metrics.py"),
-                      (SOURCE / "LICENSE", "LICENSE"), (SOURCE / "README.md", "README.md"),
-                      (SOURCE / "sidecar-patch.yaml", "sidecar-patch.yaml"),
-                      (SOURCE / "release/_service", "_service")):
-        shutil.copyfile(src, source / dest)
+    for name in ("Containerfile", ".dockerignore", "ollama_metrics.py", "LICENSE", "README.md", "sidecar-patch.yaml"):
+        shutil.copyfile(SOURCE / name, source / name)
     shutil.copytree(SOURCE / "tests", source / "tests", ignore=shutil.ignore_patterns("__pycache__"))
     (source / "REVISION").write_text(image_revisions["amd64"] + "\n")
     digest = (output / "digest.txt").read_text().strip()
@@ -79,7 +76,7 @@ def main():
                                                  cwd=ROOT, text=True).splitlines(),
         "source_sha256": {str(p.relative_to(source)): hashlib.sha256(p.read_bytes()).hexdigest()
                           for p in sorted(source.rglob("*")) if p.is_file()},
-        "release_status": "Local candidate only. SUSE build-service submission and registry promotion require approval."
+        "release_status": "Local candidate only. SUSE packaging and registry publication are maintained in a separate repository."
     }
     (output / "release.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps(report, indent=2))

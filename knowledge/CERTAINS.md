@@ -168,3 +168,10 @@ Reproduction setup and validation boundaries are in [REGRESSION_TESTS.md](REGRES
 *   **Fact**: [GitHub Actions run 40702557446](https://github.com/SUSE/suse-ai-observability-extension/actions/runs/40702557446) passed both native amd64 and native arm64 jobs at commit `23f7929092fdccb5bb0594336db146dbfb593b30`, including image builds and restricted-container endpoint tests.
 *   **Fact**: The proposed reference remains `registry.suse.com/ai/containers/suse-ai-ollama-exporter:0.1.0`. The source branch and PR description were updated; no registry image or Git tag was published. SUSE release ownership and promotion remain unconfirmed.
 *   **Fact**: The topology-sync list and three describe requests could not connect to the configured backend during this validation. Live topology and deployment behavior remain unverified.
+
+## 21. Ollama Packaging Repository Boundary (2026-10-28)
+
+*   **Fact**: The user designated a separate repository for SUSE build-service packaging. This repository no longer supplies `integrations/ollama/release/_service`, build-service directives or the `%DISTURL%` placeholder in the Containerfile.
+*   **Fact**: `task ollama-release-prepare` still builds and tests both image architectures and exports a local OCI layout. Its source snapshot now preserves `Containerfile` and `.dockerignore`; it contains neither a renamed `Dockerfile` nor `_service`. Snapshot contents and recorded checksums were verified against the source files.
+*   **Fact**: Validation after this cleanup passed eight exporter tests, two strategic-merge patch tests and two restricted-container tests per architecture. Both `/healthz` and `/metrics` returned HTTP 200 under UID/GID 65532, a read-only root filesystem, zero capability sets, `NoNewPrivs=1` and `Seccomp=2`. Local amd64 ran natively and arm64 ran through QEMU.
+*   **Fact**: The topology-sync list and three describe requests again failed because `127.0.0.1:18080` refused connections. No registry image or Git tag was published during this cleanup.

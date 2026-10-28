@@ -89,7 +89,7 @@ arguments, argument overrides, populated/empty/failed API snapshots and
 overriding the image's user or mounting the source. CI runs on native amd64 and
 arm64 runners and only builds and tests locally.
 
-## SUSE registry release handoff
+## Local release validation and packaging ownership
 
 Keep the image version independent of the StackPack version. This exporter
 supplies ordinary Prometheus metrics to the Collector for either StackPack
@@ -118,27 +118,21 @@ then writes a new `.resources/ollama-release-*/` directory containing:
 - `digest.txt` and `release.json`: the local OCI index digest, per-platform
   digests, source commit/status and source-file checksums.
 - `test-output.txt`: complete build and test output.
-- `source/`: the build-service `Dockerfile` (copied from the Containerfile),
-  script, license, README, sidecar patch, tests, `REVISION` and `_service` metadata helper.
+- `source/`: a snapshot of the upstream `Containerfile`, `.dockerignore`, script,
+  license, README, sidecar patch and tests, plus `REVISION`.
 
 The `podman manifest push` command in this task writes to the local `oci:`
 filesystem transport. It does not contact a destination registry, create Git
 tags, push a branch or open a PR. A local digest is not evidence of publication;
 the SUSE build service may produce a different digest.
 
-After explicit approval, hand the reviewed source to the SUSE AI container
-release owner. An existing related setup image records `Devel:AI`, repository
-`containers`, as its SUSE build-service origin; confirm that project and the
-proposed package `suse-ai-ollama-exporter-container` with the owner before
-submission. Configure the approved project's base-image dependency and enable
-`x86_64` and `aarch64`. The recipe includes the standard
-[OBS build tags and architecture directives](https://openbuildservice.org/help/manuals/obs-user-guide/cha-obs-supported-formats).
-The maintainer must confirm the build-tag mapping and promotion route to the
-proposed `registry.suse.com/ai/containers/suse-ai-ollama-exporter` repository.
-The `%DISTURL%` label is a build-service placeholder until that build occurs;
-set `org.opencontainers.image.revision` from the bundled `REVISION` file.
+SUSE build-service packaging and registry publication are maintained in a
+separate repository. That repository owns service definitions, build-service
+directives and metadata, release tags and registry promotion. It can consume
+this repository's Containerfile and source revision, then use the tests to
+validate its linux/amd64 and linux/arm64 release images.
 
-The staged source can be tested independently of this repository's Taskfile:
+The source snapshot can be tested independently of this repository's Taskfile:
 
 ```bash
 python3 -B -m unittest discover -s tests -v
@@ -147,8 +141,6 @@ CONTAINER_RUNTIME=podman OLLAMA_PLATFORM=linux/amd64 \
   OLLAMA_IMAGE=YOUR_BUILT_IMAGE python3 -B tests/container_smoke.py -v
 ```
 
-Run the tests against both resulting SUSE builds and complete the product's
-normal registry review and promotion process. Record the published index
+After the packaging repository publishes the image, record its index
 digest, verify that it contains linux/amd64 and linux/arm64, and use that digest
 in the sidecar patch. Do not substitute a local image ID or the BCI base digest.
-Registry publication, source/tag pushes and PR creation require confirmation.
