@@ -1,12 +1,15 @@
 # Strategic merge patch for an existing Ollama Deployment, not a new workload.
-# Create the ollama-runtime-metrics ConfigMap from ollama_metrics.py first.
+# The image must be published through the SUSE registry release process first.
 spec:
   template:
     spec:
       containers:
         - name: ollama-runtime-metrics
-          image: python:3.13-alpine@sha256:2d9aefe2fef018a7eb2c13064c89c71929800fd2e5dccdbf52ea5da5bb8d929a
-          command: [python3, -B, /opt/ollama-metrics/ollama_metrics.py]
+          image: registry.suse.com/ai/containers/suse-ai-ollama-exporter:0.1.0
+          # Clear the old ConfigMap-based command/mount when upgrading in place.
+          command: null
+          args: null
+          volumeMounts: null
           ports:
             - name: ollama-metrics
               containerPort: 11435
@@ -20,15 +23,11 @@ spec:
             readOnlyRootFilesystem: true
             allowPrivilegeEscalation: false
             capabilities: {drop: [ALL]}
+            seccompProfile: {type: RuntimeDefault}
           readinessProbe:
             httpGet: {path: /healthz, port: ollama-metrics}
           livenessProbe:
             httpGet: {path: /healthz, port: ollama-metrics}
-          volumeMounts:
-            - name: ollama-runtime-metrics
-              mountPath: /opt/ollama-metrics
-              readOnly: true
       volumes:
         - name: ollama-runtime-metrics
-          configMap:
-            name: ollama-runtime-metrics
+          $patch: delete

@@ -1,0 +1,30 @@
+#!BuildTag: ai/containers/suse-ai-ollama-exporter:0.1.0
+#!BuildTag: ai/containers/suse-ai-ollama-exporter:0.1.0-%RELEASE%
+#!BuildName: suse-ai-ollama-exporter
+#!BuildVersion: 0.1.0
+#!ExclusiveArch: x86_64 aarch64
+
+# Multi-architecture index; update this pin when taking SUSE base-image fixes.
+FROM registry.suse.com/bci/python:3.13@sha256:c2fdbafcbfdfe9b52dbf1c93e0a672e8a53ec9ec56059c6bbb3eae9b645f3c4e
+
+LABEL org.opencontainers.image.title="SUSE AI Ollama runtime exporter" \
+      org.opencontainers.image.description="Read-only Ollama process residency metrics from the local /api/ps endpoint." \
+      org.opencontainers.image.version="0.1.0" \
+      org.opencontainers.image.licenses="Apache-2.0" \
+      org.opencontainers.image.source="https://github.com/SUSE/suse-ai-observability-extension" \
+      org.opencontainers.image.url="https://github.com/SUSE/suse-ai-observability-extension/tree/main/integrations/ollama" \
+      org.opencontainers.image.ref.name="0.1.0" \
+      org.opensuse.reference="registry.suse.com/ai/containers/suse-ai-ollama-exporter:0.1.0" \
+      org.openbuildservice.disturl="%DISTURL%" \
+      org.opencontainers.image.base.name="registry.suse.com/bci/python:3.13" \
+      org.opencontainers.image.base.digest="sha256:c2fdbafcbfdfe9b52dbf1c93e0a672e8a53ec9ec56059c6bbb3eae9b645f3c4e"
+
+# Keep parent directories traversable for UID 65532 with both Docker and Podman.
+COPY ollama_metrics.py /opt/ollama-metrics/ollama_metrics.py
+COPY LICENSE /usr/share/licenses/suse-ai-ollama-exporter/LICENSE
+
+ENV PYTHONUNBUFFERED=1
+USER 65532:65532
+EXPOSE 11435
+ENTRYPOINT ["python3", "-B", "/opt/ollama-metrics/ollama_metrics.py"]
+CMD ["--ollama-url", "http://127.0.0.1:11434", "--port", "11435"]
