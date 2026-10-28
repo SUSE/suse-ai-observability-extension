@@ -160,3 +160,11 @@ Reproduction setup and validation boundaries are in [REGRESSION_TESTS.md](REGRES
 *   **Fact**: A fresh `git fetch --no-tags origin main` returned `f444ae428d711ce76eb49f6be0be0ed5b93a2d74`, matching the base used to implement and validate the fixes. The official StackPack version remains `2.2.0`.
 *   **Fact**: The fixes, regression tests, documentation, and delivery rule were committed as `387486dd93c34f6bd67992bb5bdce4eb1ab6ad6f` and pushed to `origin/fix/2.2.0-regressions`. [Pull request #59](https://github.com/SUSE/suse-ai-observability-extension/pull/59) is open against `main`; GitHub reported it mergeable after creation.
 *   **Fact**: The pre-PR `task stackpack-sync-status` retry again received connection-refused errors from `localhost:8081` for the list request and all three describe requests. Live deployment verification remains outstanding.
+
+## 20. Ollama SUSE Image Validation and PR Delivery (2026-10-28)
+
+*   **Fact**: Commit `23f7929` adds the SUSE BCI Python 3.13 exporter image, ConfigMap-free sidecar migration, container tests and local release-bundle preparation to [PR #61](https://github.com/SUSE/suse-ai-observability-extension/pull/61), on `feat/native-ai-runtime-instrumentation`.
+*   **Fact**: Local validation passed eight exporter tests, two offline strategic-merge tests and two container tests per architecture. The amd64 image ran natively; the arm64 image ran through QEMU. Both endpoints returned HTTP 200 with UID/GID 65532, zero capability sets, a read-only root filesystem, `NoNewPrivs=1` and `Seccomp=2`.
+*   **Fact**: [GitHub Actions run 40702557446](https://github.com/SUSE/suse-ai-observability-extension/actions/runs/40702557446) passed both native amd64 and native arm64 jobs at commit `23f7929092fdccb5bb0594336db146dbfb593b30`, including image builds and restricted-container endpoint tests.
+*   **Fact**: The proposed reference remains `registry.suse.com/ai/containers/suse-ai-ollama-exporter:0.1.0`. The source branch and PR description were updated; no registry image or Git tag was published. SUSE release ownership and promotion remain unconfirmed.
+*   **Fact**: The topology-sync list and three describe requests could not connect to the configured backend during this validation. Live topology and deployment behavior remain unverified.
