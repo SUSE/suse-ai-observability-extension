@@ -134,7 +134,7 @@ synthetic topology pipelines.
 
 The Collector integration test verifies transformations using real OTLP traces,
 metrics, and logs. Follow the test commands in the
-[StackPack README](../../stackpacks/suse-ai/README.md) with `AI_COLLECTOR_IMAGE`
+[StackPack README](../../stackpack/suse-ai/README.md) with `AI_COLLECTOR_IMAGE`
 set. It starts an isolated container with local file exporters and sends no
 telemetry to SUSE Observability.
 
@@ -226,10 +226,6 @@ state and guardrails. Guardrail charts need an enabled guardrail and actual requ
 Guardrail `status=error` can include both policy rejections and execution failures;
 LLM failure counters include guardrail rejections. Security and upstream-failure
 monitors must use the deployment's actual policy and route selection.
-
-The colleague's four monitor definitions were referenced in the shared message but
-were not attached to this workspace. Exact thresholds and route exclusions remain
-pending; this does not certify those overrides as compatible.
 
 ## Explicitly resolved client dependencies
 

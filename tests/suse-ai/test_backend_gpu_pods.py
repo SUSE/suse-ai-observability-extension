@@ -35,7 +35,7 @@ class BackendGpuPodsTest(BackendTestCase):
              / "stackstate-cli/config.yaml").read_text()
         )
         cls.context = next(
-            c["context"] for c in config["contexts"] if c["name"] == config["current-context"]
+            c["context"] for c in config["contexts"] if c["name"] == (os.environ.get("STS_CONTEXT") or config["current-context"])
         )
 
     def test_real_workload_eligibility_and_bound_queries(self):

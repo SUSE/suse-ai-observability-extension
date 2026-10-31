@@ -26,33 +26,34 @@ GenAI instrumentation. Runtime model values are shown only for a successful,
 current API observation. These exporter metrics are separate from Ollama's
 HTTP endpoint checks.
 
-Run the same Python tests as CI from the repository root:
+From the public extension repository root, install test dependencies and run:
 
 ```sh
-python3 -m venv /tmp/suse-ai-tests
-/tmp/suse-ai-tests/bin/pip install -r tests/suse-ai/requirements.txt
-/tmp/suse-ai-tests/bin/python -m unittest discover -s tests/suse-ai -v
+python3 -m venv .resources/native-tests
+.resources/native-tests/bin/pip install -r tests/requirements.txt
+CONTAINER_RUNTIME=docker task stackpack-test PYTHON=.resources/native-tests/bin/python
+CONTAINER_RUNTIME=docker task stackpack-validate
+task stackpack-package
 ```
 
-Docker integration tests run when `AI_COLLECTOR_IMAGE` and `AI_PROMETHEUS_IMAGE`
-are set. Use the pinned images from the `validate` job in
-[the CI workflow](../../.github/workflows/stackpacks-ci.yml).
+The Taskfile uses immutable validator, Collector and Prometheus pins from
+[`scripts/ci/stackpack-images.env`](../../scripts/ci/stackpack-images.env).
+Podman is also supported with `CONTAINER_RUNTIME=podman`. Backend tests are
+separately enabled with `AI_LIVE_TESTS=1` and the documented fixture environment.
 
-For package validation, set `VALIDATOR_IMAGE` to the image pinned in the CI
-workflow's `validate` job and use the existing repository script:
+The release artifact is `dist/suse-ai-3.0.0.sts`, accompanied by `SHA256SUMS`.
+Packaging uses a plain ZIP with sorted entries, fixed timestamps and permissions.
+It needs GNU coreutils/findutils and Info-ZIP, with no CLI or network access.
+For comparison, CLI 3.9.2 can package the same file contents:
 
 ```sh
-bash scripts/ci/validate_stackpack.sh stackpacks/suse-ai
+STS_EXPERIMENTAL_STACKPACKS=1 sts stackpack package -d stackpack/suse-ai -f /tmp/suse-ai-cli.sts
 ```
 
-Package with the same command used by CI:
-
-```sh
-cd stackpacks/suse-ai
-STS_EXPERIMENTAL_STACKPACKS=1 sts stackpack package
-```
-
-Use CLI 3.9 or later. The validator image is the repository CI pin. Packaging and
-offline validation do not establish runtime compatibility with every 2.11
-release. Validate topology and metric behavior on the target instance before
-retiring the custom topology exporter.
+The public extension release uses version 3.0.0. Its native settings come from
+StackVista/suse-stackpacks 34c1246 (upstream package version 3.0.1).
+See the [release and migration record](../../knowledge/NATIVE_STACKPACK_RELEASE.md)
+for the exact import inventory, adaptations and setup-container contract.
+Use CLI 3.9.2 for setup. Packaging and offline validation do not establish runtime
+compatibility with every 2.11 release. Validate topology and metric behavior on
+the target instance before retiring the custom topology exporter.

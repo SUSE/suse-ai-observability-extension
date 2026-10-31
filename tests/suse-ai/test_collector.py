@@ -49,7 +49,7 @@ class CollectorTest(unittest.TestCase):
             with self.subTest(overlay=overlay):
                 subprocess.run(
                     [
-                        "docker", "run", "--rm", "--network", "none",
+                        os.environ.get("AI_CONTAINER_RUNTIME", "docker"), "run", "--rm", "--network", "none",
                         "-v", f"{ROOT / 'examples/suse-ai'}:/config:ro,z",
                         "-e", "SUSE_OBSERVABILITY_OTLP_ENDPOINT=localhost:4317",
                         "-e", "SUSE_OBSERVABILITY_API_KEY=test",
@@ -94,7 +94,7 @@ class CollectorTest(unittest.TestCase):
             config_path.write_text(yaml.safe_dump(config, sort_keys=False))
             subprocess.run(
                 [
-                    "docker",
+                    os.environ.get("AI_CONTAINER_RUNTIME", "docker"),
                     "run",
                     "--detach",
                     "--name",
@@ -114,7 +114,7 @@ class CollectorTest(unittest.TestCase):
                 endpoint = (
                     "http://"
                     + subprocess.check_output(
-                        ["docker", "port", container, "4318/tcp"], text=True
+                        [os.environ.get("AI_CONTAINER_RUNTIME", "docker"), "port", container, "4318/tcp"], text=True
                     ).strip()
                 )
                 now = time.time_ns()
@@ -336,7 +336,7 @@ class CollectorTest(unittest.TestCase):
                 time.sleep(3)
                 # Graceful shutdown flushes the final batch before counting spans.
                 subprocess.run(
-                    ["docker", "stop", "--time", "10", container],
+                    [os.environ.get("AI_CONTAINER_RUNTIME", "docker"), "stop", "--time", "10", container],
                     check=True,
                     capture_output=True,
                 )
@@ -459,7 +459,7 @@ class CollectorTest(unittest.TestCase):
             except Exception:
                 print(
                     subprocess.check_output(
-                        ["docker", "logs", container],
+                        [os.environ.get("AI_CONTAINER_RUNTIME", "docker"), "logs", container],
                         stderr=subprocess.STDOUT,
                         text=True,
                     )
@@ -467,7 +467,7 @@ class CollectorTest(unittest.TestCase):
                 raise
             finally:
                 subprocess.run(
-                    ["docker", "rm", "--force", container],
+                    [os.environ.get("AI_CONTAINER_RUNTIME", "docker"), "rm", "--force", container],
                     check=False,
                     capture_output=True,
                 )

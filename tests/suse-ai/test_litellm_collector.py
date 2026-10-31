@@ -95,7 +95,7 @@ class LiteLLMCollectorTest(unittest.TestCase):
             (directory / "collector.yaml").write_text(yaml.safe_dump(config))
             container = "suse-ai-litellm-" + uuid.uuid4().hex[:10]
             subprocess.run([
-                "docker", "run", "--detach", "--name", container, "--network", "host",
+                os.environ.get("AI_CONTAINER_RUNTIME", "docker"), "run", "--detach", "--name", container, "--network", "host",
                 "-v", f"{directory}:/test:rw,z", "-e", "OBSERVED_NAMESPACE=ai-test",
                 "-e", "K8S_CLUSTER_NAME=test-cluster", "-e", "LITELLM_SERVICE_NAME=team-proxy",
                 "-e", "LITELLM_METRICS_PORT=(" + "|".join(str(s.server_port) for s in servers) + ")",
@@ -137,7 +137,7 @@ class LiteLLMCollectorTest(unittest.TestCase):
                     self.assertEqual(mapped["identifier"], "urn:opentelemetry:namespace/ai-test:service/team-proxy")
                     self.assertEqual(mapped["tags"]["suse.ai.category"], "model-proxy")
                 self.assertTrue(all(s.paths and set(s.paths) == {"/metrics/"} for s in servers))
-                log = subprocess.check_output(["docker", "logs", container], stderr=subprocess.STDOUT, text=True)
+                log = subprocess.check_output([os.environ.get("AI_CONTAINER_RUNTIME", "docker"), "logs", container], stderr=subprocess.STDOUT, text=True)
                 self.assertNotIn('"level":"error"', log.lower())
             finally:
-                subprocess.run(["docker", "rm", "--force", container], check=True, capture_output=True)
+                subprocess.run([os.environ.get("AI_CONTAINER_RUNTIME", "docker"), "rm", "--force", container], check=True, capture_output=True)

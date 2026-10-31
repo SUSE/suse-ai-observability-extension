@@ -82,7 +82,7 @@ def run_promql_cases(cases):
         )
         result = subprocess.run(
             [
-                "docker",
+                os.environ.get("AI_CONTAINER_RUNTIME", "docker"),
                 "run",
                 "--rm",
                 "--network",

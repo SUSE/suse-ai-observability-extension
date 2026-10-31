@@ -49,7 +49,7 @@ class IdentityCollectorTest(IdentityCases, unittest.TestCase):
         cls.container = "suse-ai-identity-" + uuid.uuid4().hex[:10]
         subprocess.run(
             [
-                "docker",
+                os.environ.get("AI_CONTAINER_RUNTIME", "docker"),
                 "run",
                 "-d",
                 "--name",
@@ -66,13 +66,13 @@ class IdentityCollectorTest(IdentityCases, unittest.TestCase):
         )
         cls.addClassCleanup(
             lambda: subprocess.run(
-                ["docker", "rm", "-f", cls.container], check=False, capture_output=True
+                [os.environ.get("AI_CONTAINER_RUNTIME", "docker"), "rm", "-f", cls.container], check=False, capture_output=True
             )
         )
         cls.endpoint = (
             "http://"
             + subprocess.check_output(
-                ["docker", "port", cls.container, "4318/tcp"], text=True
+                [os.environ.get("AI_CONTAINER_RUNTIME", "docker"), "port", cls.container, "4318/tcp"], text=True
             ).strip()
         )
         cls.wait_for(cls.ready, "OTLP listener")
@@ -100,7 +100,7 @@ class IdentityCollectorTest(IdentityCases, unittest.TestCase):
                 return
             time.sleep(0.1)
         logs = subprocess.check_output(
-            ["docker", "logs", cls.container], stderr=subprocess.STDOUT, text=True
+            [os.environ.get("AI_CONTAINER_RUNTIME", "docker"), "logs", cls.container], stderr=subprocess.STDOUT, text=True
         )
         raise AssertionError(f"Timed out waiting for {description}\n{logs[-4000:]}")
 

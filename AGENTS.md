@@ -1,7 +1,7 @@
 # Agent Rules & Constraints - GenAI Observability StackPack
 
 ## 1. Versioning Protocol
-*   **NEVER** reuse a version number. Every upload to the `sts` CLI must have an incremented version in `stackpack.conf`.
+*   **NEVER** reuse a version number. Every upload to the `sts` CLI must have an new version in `stackpack/suse-ai/stackpack.yaml` (native schema v2).
 *   **Overwrite Strategy**: Always use `--unlocked-strategy overwrite` when upgrading to ensure your changes are actually applied.
 
 ## 2. Code & Documentation Integrity

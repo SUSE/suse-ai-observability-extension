@@ -1,0 +1,928 @@
+{
+  "repository": "StackVista/suse-stackpacks",
+  "revision": "34c1246fed112f1f0a4adc219be42839217bcff0",
+  "upstream_version": "3.0.1",
+  "import_commit": "bd9ec8a",
+  "files": [
+    {
+      "source": "examples/suse-ai/README.md",
+      "target": "examples/suse-ai/README.md",
+      "upstream_sha256": "edec70dc0556f5be630f2eab70ed3e488ee98b1e85de9beffc48b6a7b25cf79f"
+    },
+    {
+      "source": "examples/suse-ai/collector.yaml",
+      "target": "examples/suse-ai/collector.yaml",
+      "upstream_sha256": "c92ba232ddae99b9ab98b617f31233cae3eb0b2a97199c5b2400135499239cd5"
+    },
+    {
+      "source": "examples/suse-ai/dcgm-receiver.yaml",
+      "target": "examples/suse-ai/dcgm-receiver.yaml",
+      "upstream_sha256": "c3cd1733473afd17cb95cc39b55832202a92beca0bd972e63c494d746b59e2ba"
+    },
+    {
+      "source": "examples/suse-ai/kubernetes-receiver.yaml",
+      "target": "examples/suse-ai/kubernetes-receiver.yaml",
+      "upstream_sha256": "2de46497d5ec3d0d4dc62153160188964b6f7f5d57d1fa89fb4839bdddeaa9e2"
+    },
+    {
+      "source": "examples/suse-ai/kubernetes/collector.yaml",
+      "target": "examples/suse-ai/kubernetes/collector.yaml",
+      "upstream_sha256": "68c95181372e57c29a17390ecfb7089759cd95e26500b46d62df46634e10c22c"
+    },
+    {
+      "source": "examples/suse-ai/kustomization.yaml",
+      "target": "examples/suse-ai/kustomization.yaml",
+      "upstream_sha256": "9b8f88aaa37be96580f66ca17b007520e7e8faf745a5653e549020e266cfa2ad"
+    },
+    {
+      "source": "examples/suse-ai/litellm-receiver.yaml",
+      "target": "examples/suse-ai/litellm-receiver.yaml",
+      "upstream_sha256": "711521a08868e4867b5096fb5aca416e1eb4c538413fd16479a9cde9c391d062"
+    },
+    {
+      "source": "examples/suse-ai/vllm-receiver.yaml",
+      "target": "examples/suse-ai/vllm-receiver.yaml",
+      "upstream_sha256": "12b70af0592cb22be39924e2b0e3a207b817596765f9bddd82ef192a4b7b6e10"
+    },
+    {
+      "source": "scripts/ci/validate_stackpack.sh",
+      "target": "scripts/ci/validate_stackpack.sh",
+      "upstream_sha256": "ece5cd3198131490b65d5a55c2748c950f3b26d7f534f0b457c395babf32736a"
+    },
+    {
+      "source": "stackpacks/suse-ai/README.md",
+      "target": "stackpack/suse-ai/README.md",
+      "upstream_sha256": "d0a787079e525f08c8860c9fbe316023e3cf571072ddf601d1190271a2efa394"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/agent.svg",
+      "target": "stackpack/suse-ai/icons/agent.svg",
+      "upstream_sha256": "256b9d51087d26f401debfa5bd0330a1bf8480f09c8bf755e978c88a69376957"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/application.svg",
+      "target": "stackpack/suse-ai/icons/application.svg",
+      "upstream_sha256": "f23f88b80cf4f329aec5c1409e621df0300fe4a2c7e774837fe2751ca7fd3a39"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/inference-engine.svg",
+      "target": "stackpack/suse-ai/icons/inference-engine.svg",
+      "upstream_sha256": "b5ee1874b69d216fbc420c6118fac9b2fcc9eeb6ab6a7fc374c6a6512e48b993"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/mcp-server.png",
+      "target": "stackpack/suse-ai/icons/mcp-server.png",
+      "upstream_sha256": "a6b231e9b977c9652dadf6486981045c94bdb951431e87d8222edd17ab79b4c7"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/menu/agent.svg",
+      "target": "stackpack/suse-ai/icons/menu/agent.svg",
+      "upstream_sha256": "256b9d51087d26f401debfa5bd0330a1bf8480f09c8bf755e978c88a69376957"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/menu/all.svg",
+      "target": "stackpack/suse-ai/icons/menu/all.svg",
+      "upstream_sha256": "226d1b09d75e3fe5947b795b23f43e1e95a203c406bc28d09498af9d706aacc9"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/menu/gpu.svg",
+      "target": "stackpack/suse-ai/icons/menu/gpu.svg",
+      "upstream_sha256": "b9f26180315726916cadb1603aa0ebe66a8997903c7e0b4dc2f9e7e0f62db299"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/menu/inference-engine.svg",
+      "target": "stackpack/suse-ai/icons/menu/inference-engine.svg",
+      "upstream_sha256": "9c8b908aadf32a4e43a26eb19adebe0e63beae4eff0911295d77d72f04973f90"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/menu/suse-ai.svg",
+      "target": "stackpack/suse-ai/icons/menu/suse-ai.svg",
+      "upstream_sha256": "feccdc61cfb8ad96c04c588217265cbea11dddaf00c9b321f0bad40cf9256bff"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/menu/vectordb.svg",
+      "target": "stackpack/suse-ai/icons/menu/vectordb.svg",
+      "upstream_sha256": "4dd3b0865c7423c77992cea51f17d23cae0a48f27282c41ab024abef8ad96d7b"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/ml-registry.png",
+      "target": "stackpack/suse-ai/icons/ml-registry.png",
+      "upstream_sha256": "a6b231e9b977c9652dadf6486981045c94bdb951431e87d8222edd17ab79b4c7"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/model-proxy.png",
+      "target": "stackpack/suse-ai/icons/model-proxy.png",
+      "upstream_sha256": "a6b231e9b977c9652dadf6486981045c94bdb951431e87d8222edd17ab79b4c7"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/model.svg",
+      "target": "stackpack/suse-ai/icons/model.svg",
+      "upstream_sha256": "4f5de1501c3ff7f8d223ebba024dfb90a3711f952e62c2dcb683b8cc97e65d68"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/products/elasticsearch.svg",
+      "target": "stackpack/suse-ai/icons/products/elasticsearch.svg",
+      "upstream_sha256": "700c89b6a24210508088b75dc87ec0d6a6ad0c36d5d8f2985326b830fe1b853d"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/products/kserve.svg",
+      "target": "stackpack/suse-ai/icons/products/kserve.svg",
+      "upstream_sha256": "9c8cacd1a31db26f7c9c1ee769b898452226f1a7a5615954d6e00226915eb04b"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/products/kubeflow-model-registry.svg",
+      "target": "stackpack/suse-ai/icons/products/kubeflow-model-registry.svg",
+      "upstream_sha256": "b59e1de9d17e1579fa995967197e61f06156f6791967d77439929aeae7d55957"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/products/kubeflow-pipelines.svg",
+      "target": "stackpack/suse-ai/icons/products/kubeflow-pipelines.svg",
+      "upstream_sha256": "0e05f7027511bcb25e0602a7769449cafcb4d2c3b17722d43171b56443145e19"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/products/litellm.svg",
+      "target": "stackpack/suse-ai/icons/products/litellm.svg",
+      "upstream_sha256": "700c89b6a24210508088b75dc87ec0d6a6ad0c36d5d8f2985326b830fe1b853d"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/products/milvus.svg",
+      "target": "stackpack/suse-ai/icons/products/milvus.svg",
+      "upstream_sha256": "0a7a323f2fa0f35d6c537de8067c98fe9ffc15b37069eab59e1b54a84d14a9fa"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/products/mlflow.svg",
+      "target": "stackpack/suse-ai/icons/products/mlflow.svg",
+      "upstream_sha256": "700c89b6a24210508088b75dc87ec0d6a6ad0c36d5d8f2985326b830fe1b853d"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/products/ollama.svg",
+      "target": "stackpack/suse-ai/icons/products/ollama.svg",
+      "upstream_sha256": "b5ee1874b69d216fbc420c6118fac9b2fcc9eeb6ab6a7fc374c6a6512e48b993"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/products/open-webui.svg",
+      "target": "stackpack/suse-ai/icons/products/open-webui.svg",
+      "upstream_sha256": "8b121fb357830dca0d49486173cb91c31f675e7832c58a4e79f4114787e4b451"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/products/opensearch.svg",
+      "target": "stackpack/suse-ai/icons/products/opensearch.svg",
+      "upstream_sha256": "917cf6cf27f1f7108686e46b78510d9bad9eb16001630affaf95fcf79aeed634"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/products/qdrant.svg",
+      "target": "stackpack/suse-ai/icons/products/qdrant.svg",
+      "upstream_sha256": "72d93f12136746531322e8e9f7adfba3338a88cadc4d2a999e5845bedf2667b6"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/products/vllm.svg",
+      "target": "stackpack/suse-ai/icons/products/vllm.svg",
+      "upstream_sha256": "ba6bab9a8067c534991757373725b21f05994bf92de316dd978f6b89bf29051e"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/search-engine.png",
+      "target": "stackpack/suse-ai/icons/search-engine.png",
+      "upstream_sha256": "a6b231e9b977c9652dadf6486981045c94bdb951431e87d8222edd17ab79b4c7"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/ui.svg",
+      "target": "stackpack/suse-ai/icons/ui.svg",
+      "upstream_sha256": "a259db7a67f407724b9d6622b3cd9ea3218596a91c6b361d01ad19cb38992fd3"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/vectordb.svg",
+      "target": "stackpack/suse-ai/icons/vectordb.svg",
+      "upstream_sha256": "0a7a323f2fa0f35d6c537de8067c98fe9ffc15b37069eab59e1b54a84d14a9fa"
+    },
+    {
+      "source": "stackpacks/suse-ai/icons/workflow-engine.png",
+      "target": "stackpack/suse-ai/icons/workflow-engine.png",
+      "upstream_sha256": "a6b231e9b977c9652dadf6486981045c94bdb951431e87d8222edd17ab79b4c7"
+    },
+    {
+      "source": "stackpacks/suse-ai/includes/remediation-hints/kserve/remediation-error-rate.md.hbs",
+      "target": "stackpack/suse-ai/includes/remediation-hints/kserve/remediation-error-rate.md.hbs",
+      "upstream_sha256": "aa472150a967618a963baf686f990740731b6a5054144984e3be15a40858bef3"
+    },
+    {
+      "source": "stackpacks/suse-ai/includes/remediation-hints/kserve/remediation-latency.md.hbs",
+      "target": "stackpack/suse-ai/includes/remediation-hints/kserve/remediation-latency.md.hbs",
+      "upstream_sha256": "99a5996b15070f9ec385c73441133ad3effec11ae58023bd7dc0c98e46ef79c6"
+    },
+    {
+      "source": "stackpacks/suse-ai/includes/remediation-hints/kserve/remediation-reconcile-lag.md.hbs",
+      "target": "stackpack/suse-ai/includes/remediation-hints/kserve/remediation-reconcile-lag.md.hbs",
+      "upstream_sha256": "2a9a65c50cf940808692fe63427208a4e722a0b28b70ccd9bf12eb3f8fe88725"
+    },
+    {
+      "source": "stackpacks/suse-ai/includes/remediation-hints/kubeflow-model-registry/remediation-invalid-response.md.hbs",
+      "target": "stackpack/suse-ai/includes/remediation-hints/kubeflow-model-registry/remediation-invalid-response.md.hbs",
+      "upstream_sha256": "39f10cba797765137611111adab3521b990961ccc36479fe2b87c07c8e40521d"
+    },
+    {
+      "source": "stackpacks/suse-ai/includes/remediation-hints/kubeflow-model-registry/remediation-slow.md.hbs",
+      "target": "stackpack/suse-ai/includes/remediation-hints/kubeflow-model-registry/remediation-slow.md.hbs",
+      "upstream_sha256": "f45b181054e61d20bdd78eabe17c31674266bf2d8f94790c4d8fbb1c2af41ed3"
+    },
+    {
+      "source": "stackpacks/suse-ai/includes/remediation-hints/kubeflow-model-registry/remediation-unavailable.md.hbs",
+      "target": "stackpack/suse-ai/includes/remediation-hints/kubeflow-model-registry/remediation-unavailable.md.hbs",
+      "upstream_sha256": "61abe51dece297a75b1c6b26b3cb66da3f74e482ea83c6aec3cfd1d6838f2a8c"
+    },
+    {
+      "source": "stackpacks/suse-ai/includes/remediation-hints/kubeflow-pipelines/remediation-api-down.md.hbs",
+      "target": "stackpack/suse-ai/includes/remediation-hints/kubeflow-pipelines/remediation-api-down.md.hbs",
+      "upstream_sha256": "a3cefb9389a560cc5cd2e2bd96c4b42f775fcaf0ed407a40aa8c5866889ffa51"
+    },
+    {
+      "source": "stackpacks/suse-ai/includes/remediation-hints/kubeflow-pipelines/remediation-controller-down.md.hbs",
+      "target": "stackpack/suse-ai/includes/remediation-hints/kubeflow-pipelines/remediation-controller-down.md.hbs",
+      "upstream_sha256": "4ae361a6c4a027d82a07828cf299fdb5fbc0d9e9fe31e69a67071085c7c7b2aa"
+    },
+    {
+      "source": "stackpacks/suse-ai/includes/remediation-hints/kubeflow-pipelines/remediation-grpc-errors.md.hbs",
+      "target": "stackpack/suse-ai/includes/remediation-hints/kubeflow-pipelines/remediation-grpc-errors.md.hbs",
+      "upstream_sha256": "d288a3b095261a62f9158e494226e91016965dee5316d41e4621f4782cce2c90"
+    },
+    {
+      "source": "stackpacks/suse-ai/includes/remediation-hints/kubeflow-pipelines/remediation-image-pull.md.hbs",
+      "target": "stackpack/suse-ai/includes/remediation-hints/kubeflow-pipelines/remediation-image-pull.md.hbs",
+      "upstream_sha256": "86a9a3acafa66a25480d8d42b88c985adf5a23b0f4a5a1186c2a8a5c1a92fcd0"
+    },
+    {
+      "source": "stackpacks/suse-ai/includes/remediation-hints/kubeflow-pipelines/remediation-reconcile-lag.md.hbs",
+      "target": "stackpack/suse-ai/includes/remediation-hints/kubeflow-pipelines/remediation-reconcile-lag.md.hbs",
+      "upstream_sha256": "36b2a3c9972232d578bfafdda5771af8e6ac75dc97d5a5880fb472968d8f4c74"
+    },
+    {
+      "source": "stackpacks/suse-ai/includes/remediation-hints/kubeflow-pipelines/remediation-run-failures.md.hbs",
+      "target": "stackpack/suse-ai/includes/remediation-hints/kubeflow-pipelines/remediation-run-failures.md.hbs",
+      "upstream_sha256": "aed1c19350eb18dfc4d9934c19c4fc77ada4d978ba1caa1c8e9887f6917ce419"
+    },
+    {
+      "source": "stackpacks/suse-ai/includes/remediation-hints/milvus/remediation-failures.md.hbs",
+      "target": "stackpack/suse-ai/includes/remediation-hints/milvus/remediation-failures.md.hbs",
+      "upstream_sha256": "49932f7db94a83d699a364fba7c1868b86b1b340ec8112fffc07a116990be00b"
+    },
+    {
+      "source": "stackpacks/suse-ai/includes/remediation-hints/milvus/remediation-latency.md.hbs",
+      "target": "stackpack/suse-ai/includes/remediation-hints/milvus/remediation-latency.md.hbs",
+      "upstream_sha256": "d783cef8bb2ca0654766fb76c61326ef732cb5e3272f96331fa62ead8a2416d7"
+    },
+    {
+      "source": "stackpacks/suse-ai/includes/remediation-hints/milvus/remediation-search-latency.md.hbs",
+      "target": "stackpack/suse-ai/includes/remediation-hints/milvus/remediation-search-latency.md.hbs",
+      "upstream_sha256": "538cc3406914ed4a0f24945b59eea1d190fd04257596e9c170eb113c0c3010b4"
+    },
+    {
+      "source": "stackpacks/suse-ai/includes/remediation-hints/opensearch/remediation-red.md.hbs",
+      "target": "stackpack/suse-ai/includes/remediation-hints/opensearch/remediation-red.md.hbs",
+      "upstream_sha256": "1ef431f8e7f1a21270397fea1a240bd983f895ca856b59ac4d70729ee70e8db3"
+    },
+    {
+      "source": "stackpacks/suse-ai/includes/remediation-hints/opensearch/remediation-yellow.md.hbs",
+      "target": "stackpack/suse-ai/includes/remediation-hints/opensearch/remediation-yellow.md.hbs",
+      "upstream_sha256": "15d6caa9d023638399274d8d5a961377b24cd8d73a8aeaf9e94fdd62cfa4b84b"
+    },
+    {
+      "source": "stackpacks/suse-ai/includes/remediation-hints/qdrant/remediation-grpc-failures.md.hbs",
+      "target": "stackpack/suse-ai/includes/remediation-hints/qdrant/remediation-grpc-failures.md.hbs",
+      "upstream_sha256": "c64b232ed9d5191c7e7b41a7bbbeade1c21576de3978747269560bbf18494cdc"
+    },
+    {
+      "source": "stackpacks/suse-ai/includes/remediation-hints/qdrant/remediation-memory.md.hbs",
+      "target": "stackpack/suse-ai/includes/remediation-hints/qdrant/remediation-memory.md.hbs",
+      "upstream_sha256": "e292068fec9cf2c597484ac85418748bea2fccdc391259b505d08723d244847a"
+    },
+    {
+      "source": "stackpacks/suse-ai/includes/remediation-hints/qdrant/remediation-rest-failures.md.hbs",
+      "target": "stackpack/suse-ai/includes/remediation-hints/qdrant/remediation-rest-failures.md.hbs",
+      "upstream_sha256": "5972f909954f1e4b152830e81a4ebb7eb0bc90fd74038c81bd6c48bedce4971a"
+    },
+    {
+      "source": "stackpacks/suse-ai/includes/remediation-hints/qdrant/remediation-rest-latency.md.hbs",
+      "target": "stackpack/suse-ai/includes/remediation-hints/qdrant/remediation-rest-latency.md.hbs",
+      "upstream_sha256": "844fd198e1960b796c6d1c53daff22dc28b982d5ca1cb91729f99336a900f23c"
+    },
+    {
+      "source": "stackpacks/suse-ai/includes/remediation-hints/vllm/remediation-gpu-cache.md.hbs",
+      "target": "stackpack/suse-ai/includes/remediation-hints/vllm/remediation-gpu-cache.md.hbs",
+      "upstream_sha256": "1241df3115f37736f1898aa2a6b4ad586840cb34e02586569adde889ef6d3608"
+    },
+    {
+      "source": "stackpacks/suse-ai/includes/remediation-hints/vllm/remediation-queue.md.hbs",
+      "target": "stackpack/suse-ai/includes/remediation-hints/vllm/remediation-queue.md.hbs",
+      "upstream_sha256": "e75ce69674ab32201582a2525ea4cae65a3666b77537aca5990d78b8bcca9372"
+    },
+    {
+      "source": "stackpacks/suse-ai/resources/configuration.md",
+      "target": "stackpack/suse-ai/resources/configuration.md",
+      "upstream_sha256": "389f0e779b5bc11f57b2d77a8c52dd1bca8b5624d22733b812c01977fbb9e70b"
+    },
+    {
+      "source": "stackpacks/suse-ai/resources/deprovisioning.md",
+      "target": "stackpack/suse-ai/resources/deprovisioning.md",
+      "upstream_sha256": "8c7cef3cd634dd759162a0e4e305343c8371a6d63ec819d2a7a3e17f3a529bd7"
+    },
+    {
+      "source": "stackpacks/suse-ai/resources/detailed-overview.md",
+      "target": "stackpack/suse-ai/resources/detailed-overview.md",
+      "upstream_sha256": "4d6c899556d25311edffdb4ab107a998deca6dcd3a3b2e754d931055d0b98abb"
+    },
+    {
+      "source": "stackpacks/suse-ai/resources/enabled.md",
+      "target": "stackpack/suse-ai/resources/enabled.md",
+      "upstream_sha256": "84deb8c34e6d45b29f143a074d52a63081dee7cc29e4b5bc7a4d82178d2200b8"
+    },
+    {
+      "source": "stackpacks/suse-ai/resources/error.md",
+      "target": "stackpack/suse-ai/resources/error.md",
+      "upstream_sha256": "2142cea571b19744b20a8c7026544633870b35e337dcbe58c1cc7b1d286c7f08"
+    },
+    {
+      "source": "stackpacks/suse-ai/resources/logo.png",
+      "target": "stackpack/suse-ai/resources/logo.png",
+      "upstream_sha256": "5a618d554fc4af0e49aac2675c867afa78f1d51c61963f49f407ee04af564058"
+    },
+    {
+      "source": "stackpacks/suse-ai/resources/overview.md",
+      "target": "stackpack/suse-ai/resources/overview.md",
+      "upstream_sha256": "8bca06e831b2d7a85c45f768813494a40119da2141d9918b7b138459a979a2cf"
+    },
+    {
+      "source": "stackpacks/suse-ai/resources/provisioning.md",
+      "target": "stackpack/suse-ai/resources/provisioning.md",
+      "upstream_sha256": "7ff1cab5fdfa3bf20196a093f5aeac8d534244f941e0871e1a1a5efcb56d868b"
+    },
+    {
+      "source": "stackpacks/suse-ai/resources/waitingfordata.md",
+      "target": "stackpack/suse-ai/resources/waitingfordata.md",
+      "upstream_sha256": "37358dcdf859b4d2731d77b890b0539088b53bc3f52d3a24a2b16c1fbcab9ac6"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/component-mappings/agents.sty",
+      "target": "stackpack/suse-ai/settings/genai/component-mappings/agents.sty",
+      "upstream_sha256": "e08373fa2eb8e516d9d4b5876ba0469af351460fb9ca4e6a75caaf1a6a406101"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/component-mappings/database-dependencies.sty",
+      "target": "stackpack/suse-ai/settings/genai/component-mappings/database-dependencies.sty",
+      "upstream_sha256": "e187731a95606b12aef32e55ba7e6c2a97a4db4c522c707ef7a98abf0bfffaf4"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/component-mappings/http-probes.sty",
+      "target": "stackpack/suse-ai/settings/genai/component-mappings/http-probes.sty",
+      "upstream_sha256": "dabf0128a23f0b5e98071e8e519de57aa74fb6a200972f4e2a775758536fc26b"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/component-mappings/models-metrics.sty",
+      "target": "stackpack/suse-ai/settings/genai/component-mappings/models-metrics.sty",
+      "upstream_sha256": "7c295293c4abf8dc18958e2b25b7956b00cb42f6220c56bfa882a9f384b78787"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/component-mappings/models-traces.sty",
+      "target": "stackpack/suse-ai/settings/genai/component-mappings/models-traces.sty",
+      "upstream_sha256": "db44d701d94c022d08927eacc426711f9e629d1c5646282f1b714468e7b9ca7a"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/component-mappings/service-instances-metrics.sty",
+      "target": "stackpack/suse-ai/settings/genai/component-mappings/service-instances-metrics.sty",
+      "upstream_sha256": "8f4328b4bc9b0a2b6d84fb75d91602ce4c35967676a0e427fb717d7e98e67c8c"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/component-mappings/service-instances-traces.sty",
+      "target": "stackpack/suse-ai/settings/genai/component-mappings/service-instances-traces.sty",
+      "upstream_sha256": "e4b3bf9ca67b034f9a0ae0692f5b8130523f910b248b4fea0a7fe66fc490464a"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/component-mappings/services-metrics.sty",
+      "target": "stackpack/suse-ai/settings/genai/component-mappings/services-metrics.sty",
+      "upstream_sha256": "dd7efd7671b83e88380e3807060b6709ddd81d1b239193cf0d434468414ace35"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/component-mappings/services-traces.sty",
+      "target": "stackpack/suse-ai/settings/genai/component-mappings/services-traces.sty",
+      "upstream_sha256": "264da8e2b6605576b4631dbf700e0070ba2387f26bbb9737b25c538ffb3eb6f1"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/monitors/http-probe-unavailable.sty",
+      "target": "stackpack/suse-ai/settings/genai/monitors/http-probe-unavailable.sty",
+      "upstream_sha256": "637e7011801635e3915921b438655b3820c4a9926f0b7704d84fed86fd9870d5"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/monitors/metric-stream-active.sty",
+      "target": "stackpack/suse-ai/settings/genai/monitors/metric-stream-active.sty",
+      "upstream_sha256": "388e2e63d9ac15de6f21a9a94b5dfdd971870b9eee4343c2348c28a3651bab2d"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/monitors/model-usage-errors.sty",
+      "target": "stackpack/suse-ai/settings/genai/monitors/model-usage-errors.sty",
+      "upstream_sha256": "9e6f87795db7d937c003296bf2311fc96a696fc2de6775cc7dbbf4f97ec61410"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/monitors/model-usage-latency.sty",
+      "target": "stackpack/suse-ai/settings/genai/monitors/model-usage-latency.sty",
+      "upstream_sha256": "e3a26900e75d242591fb334256338f4bbd8a4430086bbfa1217d853a73793876"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/presentations/agents.sty",
+      "target": "stackpack/suse-ai/settings/genai/presentations/agents.sty",
+      "upstream_sha256": "3474de5f484461853f8bd6569de9df777e411e5022a23784f7440d9a41946eea"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/presentations/all.sty",
+      "target": "stackpack/suse-ai/settings/genai/presentations/all.sty",
+      "upstream_sha256": "7ab2499936649e2c71a967d7613a0f1b1e20096a82a5f619bd93a3a24daaac3e"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/presentations/applications.sty",
+      "target": "stackpack/suse-ai/settings/genai/presentations/applications.sty",
+      "upstream_sha256": "5ad658de0452fbd646da82a36fd8bd7a608d33252f7aebf11a292c589c1362e2"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/presentations/common.sty",
+      "target": "stackpack/suse-ai/settings/genai/presentations/common.sty",
+      "upstream_sha256": "7f08ac2879abfeb873be628f6d25f8944982ca76b6f842822969c2d619102383"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/presentations/data-services.sty",
+      "target": "stackpack/suse-ai/settings/genai/presentations/data-services.sty",
+      "upstream_sha256": "2b43e9e93a71945c8db83658de0fa87184429bedbed3670f3c28a0c8780fd64b"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/presentations/database-dependencies.sty",
+      "target": "stackpack/suse-ai/settings/genai/presentations/database-dependencies.sty",
+      "upstream_sha256": "7c701bcc949ee46bbb96ca501a742c28afd4e0207a21e0e5d1599d6414e88bd5"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/presentations/example-application-metrics.sty",
+      "target": "stackpack/suse-ai/settings/genai/presentations/example-application-metrics.sty",
+      "upstream_sha256": "06e748ee25d5deba4cd9299bd30c376043cfc6af7e1f031089130e12fe299f35"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/presentations/highlights.sty",
+      "target": "stackpack/suse-ai/settings/genai/presentations/highlights.sty",
+      "upstream_sha256": "ef5508eaca228ce40ae5dbf5992048c7c08821768b2460ece27c6df3a41de032"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/presentations/http-probes.sty",
+      "target": "stackpack/suse-ai/settings/genai/presentations/http-probes.sty",
+      "upstream_sha256": "e7b9533d57e847e8123d5ec6d6303f430353b0e26c348b798a13c8fc9025955f"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/presentations/inference.sty",
+      "target": "stackpack/suse-ai/settings/genai/presentations/inference.sty",
+      "upstream_sha256": "28f747a7a5455e5d273bd577ef739460173d9009a8390b042dff3967f31f5563"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/presentations/instances.sty",
+      "target": "stackpack/suse-ai/settings/genai/presentations/instances.sty",
+      "upstream_sha256": "4e0141e768922b4f537ac823bfc0e7b737f82422fc626983de2765f02a8aa54e"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/presentations/metrics.sty",
+      "target": "stackpack/suse-ai/settings/genai/presentations/metrics.sty",
+      "upstream_sha256": "8dc580ef48f6f2780362ef7bdc8efae56a455f3ef09bb8d0ea542865298ba53d"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/presentations/model-inventory.sty",
+      "target": "stackpack/suse-ai/settings/genai/presentations/model-inventory.sty",
+      "upstream_sha256": "37ef4ae9fe4a0bdb99d4f8cfadd25ffe1644e2d5bb20e71e8bd1c9cd26af6635"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/presentations/model-metrics.sty",
+      "target": "stackpack/suse-ai/settings/genai/presentations/model-metrics.sty",
+      "upstream_sha256": "30733ea8c3675e1dbc6343269c9b78de16f19091698d6350faf29e0864744430"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/presentations/models.sty",
+      "target": "stackpack/suse-ai/settings/genai/presentations/models.sty",
+      "upstream_sha256": "633ce30334c15bbe038a43e2e87d459450619659c65f786a8db0bc04bbea8926"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/presentations/role-agent.sty",
+      "target": "stackpack/suse-ai/settings/genai/presentations/role-agent.sty",
+      "upstream_sha256": "6cf29e1ea67d933e4147c137f6d4801795094da1512b80f0d627939af414d968"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/presentations/role-application.sty",
+      "target": "stackpack/suse-ai/settings/genai/presentations/role-application.sty",
+      "upstream_sha256": "e576aa1070b8362641bf8a09b637b83b5647ed885d5c9f77e74edca0693e03c0"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/presentations/role-inference-engine.sty",
+      "target": "stackpack/suse-ai/settings/genai/presentations/role-inference-engine.sty",
+      "upstream_sha256": "5d6c7cb34a16ff59914de4f89865139e90a0fc8d30b2239b5749729ab7f09d88"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/presentations/role-mcp-server.sty",
+      "target": "stackpack/suse-ai/settings/genai/presentations/role-mcp-server.sty",
+      "upstream_sha256": "7753faffa68f315dfc7ba030aaa7502dcc5ec37f1636b7ef4840ed92e6d1cb65"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/presentations/role-ml-registry.sty",
+      "target": "stackpack/suse-ai/settings/genai/presentations/role-ml-registry.sty",
+      "upstream_sha256": "d5cb682ab056043c0dc8c013c080b28f098f39520c60078dfe924acc743f637a"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/presentations/role-model-proxy.sty",
+      "target": "stackpack/suse-ai/settings/genai/presentations/role-model-proxy.sty",
+      "upstream_sha256": "ac14d2b07d8570749f19b60eb253f5d6f0f79f76d32b35bad897097b33010110"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/presentations/role-search-engine.sty",
+      "target": "stackpack/suse-ai/settings/genai/presentations/role-search-engine.sty",
+      "upstream_sha256": "86934305cc7fc3a4f4099551138a845a54ef1d420dd2f1f52cb043b193484aaf"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/presentations/role-ui.sty",
+      "target": "stackpack/suse-ai/settings/genai/presentations/role-ui.sty",
+      "upstream_sha256": "d173d6c40155957ae7a293f33aa526e30f6750b8e0f6cd800ba2a68b369c7fae"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/presentations/role-vectordb.sty",
+      "target": "stackpack/suse-ai/settings/genai/presentations/role-vectordb.sty",
+      "upstream_sha256": "c5aad1b2e533bfae8d686baaa44bca0bfeebc9d79b40f247abbd4f8f3494f0ce"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/presentations/role-workflow-engine.sty",
+      "target": "stackpack/suse-ai/settings/genai/presentations/role-workflow-engine.sty",
+      "upstream_sha256": "a1b6c4f459bff5c1f43174a8502bf5c6ad50fe45cc3408aa2057e2f1af381cc0"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/presentations/served-models.sty",
+      "target": "stackpack/suse-ai/settings/genai/presentations/served-models.sty",
+      "upstream_sha256": "d26cd6a4520f9fcd60f3a8415d73b999936ca8636f2de9ef4f26a0fae91c1795"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/presentations/services.sty",
+      "target": "stackpack/suse-ai/settings/genai/presentations/services.sty",
+      "upstream_sha256": "fda0ef95652b1466c15d7c3c0ec77d81bae29edf534104dccf97c59798218917"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/relation-mappings/service-agent.sty",
+      "target": "stackpack/suse-ai/settings/genai/relation-mappings/service-agent.sty",
+      "upstream_sha256": "d2530712bf8e36994cfe02f0c9e983af25fc0f5398b66c5eb6689d8ccaaa545e"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/relation-mappings/service-calls.sty",
+      "target": "stackpack/suse-ai/settings/genai/relation-mappings/service-calls.sty",
+      "upstream_sha256": "054894dfe27472317686498676bc63ec2e01b6a2a1a0ff7c52e20e6dd0b15391"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/genai/relation-mappings/service-database.sty",
+      "target": "stackpack/suse-ai/settings/genai/relation-mappings/service-database.sty",
+      "upstream_sha256": "1a36c6acaa4a9cc028e79a7d15f1f9d9deddb257f177d4c42856487e6974f028"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/gpu/component-mappings/pods.sty",
+      "target": "stackpack/suse-ai/settings/gpu/component-mappings/pods.sty",
+      "upstream_sha256": "3a35ab56cda89edff71e471fb48a9c0a8bc08009ff9d36b0e6f62b4d423cf3fd"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/gpu/monitors/nvidia-xid-errors.sty",
+      "target": "stackpack/suse-ai/settings/gpu/monitors/nvidia-xid-errors.sty",
+      "upstream_sha256": "6b89f2423c9b6fc86cc116bbc3bb722e3b18618517786afee5f638f019a6da8b"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/gpu/presentations/gpu-nodes.sty",
+      "target": "stackpack/suse-ai/settings/gpu/presentations/gpu-nodes.sty",
+      "upstream_sha256": "8421b790a29172e56d8be0ce22bbff3e0c4be06086873e1b3e25bb6927fd7cf6"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/gpu/presentations/gpu-pods.sty",
+      "target": "stackpack/suse-ai/settings/gpu/presentations/gpu-pods.sty",
+      "upstream_sha256": "0d599019e20071830de217c82cfe598c1dac07b0828466a64de6c8bd779ce842"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/main-menu.sty",
+      "target": "stackpack/suse-ai/settings/main-menu.sty",
+      "upstream_sha256": "f05ce0889d346f48d74a96b126851cbd1069c5053ccb92c305e5c196b5350ec2"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/elasticsearch/presentation.sty",
+      "target": "stackpack/suse-ai/settings/products/elasticsearch/presentation.sty",
+      "upstream_sha256": "f4fe70e2e064dce6e1de3c59c36413e182bbacc6155f3dc3fbcd24159c35542e"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/kserve/monitors/kserve-error-rate.sty",
+      "target": "stackpack/suse-ai/settings/products/kserve/monitors/kserve-error-rate.sty",
+      "upstream_sha256": "8930b4f2a6f2dee6aa4a047dc71f096eea8bc40c0229bfa0df86ba218ba647d7"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/kserve/monitors/kserve-latency-p95.sty",
+      "target": "stackpack/suse-ai/settings/products/kserve/monitors/kserve-latency-p95.sty",
+      "upstream_sha256": "48807cc7ad3176e803c1f845f97cccca446932f682b27e729a16dac2491a524a"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/kserve/monitors/kserve-reconcile-lag.sty",
+      "target": "stackpack/suse-ai/settings/products/kserve/monitors/kserve-reconcile-lag.sty",
+      "upstream_sha256": "954d02c0db499bb67a85feab9c7fafc42585f2acffe5dce2d194d0f7fcfac742"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/kserve/presentation.sty",
+      "target": "stackpack/suse-ai/settings/products/kserve/presentation.sty",
+      "upstream_sha256": "8d9effe2e167547f14c4b071804eb55f1924df7ddb1fc06c2371a23c475551ba"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/kubeflow-model-registry/monitors/kubeflow-model-registry-invalid-response.sty",
+      "target": "stackpack/suse-ai/settings/products/kubeflow-model-registry/monitors/kubeflow-model-registry-invalid-response.sty",
+      "upstream_sha256": "8113760bf350291ed9f3d0ebc1732e432ce2545b67affb1b5a3ac9d87bf47e98"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/kubeflow-model-registry/monitors/kubeflow-model-registry-slow.sty",
+      "target": "stackpack/suse-ai/settings/products/kubeflow-model-registry/monitors/kubeflow-model-registry-slow.sty",
+      "upstream_sha256": "7efd57f2f0a64a17ee966d96212d87f3cea213304c3e697277b27c28cacedcee"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/kubeflow-model-registry/monitors/kubeflow-model-registry-unavailable.sty",
+      "target": "stackpack/suse-ai/settings/products/kubeflow-model-registry/monitors/kubeflow-model-registry-unavailable.sty",
+      "upstream_sha256": "fed94ae0687c430ae76eb78bb132cb68d61883672588cf7b0026fe709ffeab5c"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/kubeflow-model-registry/presentation.sty",
+      "target": "stackpack/suse-ai/settings/products/kubeflow-model-registry/presentation.sty",
+      "upstream_sha256": "309392dbc2e4768cb5a769bc324e849fd7d918c0c183798f1982c5c2819eb701"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/kubeflow-pipelines/monitors/kfp-api-down.sty",
+      "target": "stackpack/suse-ai/settings/products/kubeflow-pipelines/monitors/kfp-api-down.sty",
+      "upstream_sha256": "98405d3211d1d9091fd2fdba8f43603256e156bce6f9f43d0989d2accda88a9a"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/kubeflow-pipelines/monitors/kfp-grpc-error-ratio.sty",
+      "target": "stackpack/suse-ai/settings/products/kubeflow-pipelines/monitors/kfp-grpc-error-ratio.sty",
+      "upstream_sha256": "677efa123c69b89e3a415285e7075ba363c66802742d4f0e3d35e72595233d7c"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/kubeflow-pipelines/monitors/kfp-image-pull-failures.sty",
+      "target": "stackpack/suse-ai/settings/products/kubeflow-pipelines/monitors/kfp-image-pull-failures.sty",
+      "upstream_sha256": "d8d03ab911d979102a46da62b936ebe899932110c55803a493de72d568e725c8"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/kubeflow-pipelines/monitors/kfp-run-failures.sty",
+      "target": "stackpack/suse-ai/settings/products/kubeflow-pipelines/monitors/kfp-run-failures.sty",
+      "upstream_sha256": "76f2e81c0def806e59374f5a3d2c989b3dc4f5f7eddfe59e80551d584203f630"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/kubeflow-pipelines/monitors/kfp-workflow-controller-down.sty",
+      "target": "stackpack/suse-ai/settings/products/kubeflow-pipelines/monitors/kfp-workflow-controller-down.sty",
+      "upstream_sha256": "1189015fafd6674220a5baf25f04bde21469010c695022411cc8aff7f3d36f12"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/kubeflow-pipelines/monitors/kfp-workflow-queue-lag.sty",
+      "target": "stackpack/suse-ai/settings/products/kubeflow-pipelines/monitors/kfp-workflow-queue-lag.sty",
+      "upstream_sha256": "1975b6e1180646278e38514edff213411027ce52ced7ca89f9bc2174d8e6f398"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/kubeflow-pipelines/presentation.sty",
+      "target": "stackpack/suse-ai/settings/products/kubeflow-pipelines/presentation.sty",
+      "upstream_sha256": "b283e93cc66dd40a1b9a9f6b23bb2adf11f09f0f4ad0ff571db9be7de4fc49de"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/litellm/presentation.sty",
+      "target": "stackpack/suse-ai/settings/products/litellm/presentation.sty",
+      "upstream_sha256": "2efd9d28f987760e5b8f71abd06dd626d44d5d51680129239fb544ba3d37577c"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/milvus/monitors/milvus-high-request-latency.sty",
+      "target": "stackpack/suse-ai/settings/products/milvus/monitors/milvus-high-request-latency.sty",
+      "upstream_sha256": "ce94d67e72e9798f90d11e442388dbf42ec7c20f1938f50ead8f5bb0a718ddfd"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/milvus/monitors/milvus-high-search-latency.sty",
+      "target": "stackpack/suse-ai/settings/products/milvus/monitors/milvus-high-search-latency.sty",
+      "upstream_sha256": "8a8046cbf8af2370b0247162b74f63c9913f6ff43c8812892bcc4c674bb478a7"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/milvus/monitors/milvus-request-failed-rate.sty",
+      "target": "stackpack/suse-ai/settings/products/milvus/monitors/milvus-request-failed-rate.sty",
+      "upstream_sha256": "f59609d2865c097d3f53a4e3f44ee12676b5efd1b27ce0c6809baec17c38923d"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/milvus/presentation.sty",
+      "target": "stackpack/suse-ai/settings/products/milvus/presentation.sty",
+      "upstream_sha256": "655f64e37252fa54b13bb878bcb05c5e91b5e64cf0389ce37f9d69d3e71621bc"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/mlflow/presentation.sty",
+      "target": "stackpack/suse-ai/settings/products/mlflow/presentation.sty",
+      "upstream_sha256": "eec1ac9ade02d7ef2ad8ed8bea9c1a3707130075c8702dc919e33b7a1b080b43"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/ollama/presentation.sty",
+      "target": "stackpack/suse-ai/settings/products/ollama/presentation.sty",
+      "upstream_sha256": "024e9a8a77798997439e8f54313e2eaf003d3eadd47ef2c883b2ba9a1a9d3b0b"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/ollama/runtime.sty",
+      "target": "stackpack/suse-ai/settings/products/ollama/runtime.sty",
+      "upstream_sha256": "3e0c5f3e476ed93bb8eb31b90458f3396cb887ac5215f8ebb37f6819adb59fb4"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/open-webui/presentation.sty",
+      "target": "stackpack/suse-ai/settings/products/open-webui/presentation.sty",
+      "upstream_sha256": "d336d13ba25d1c946b1b217d2aa0592229647431f47d2ddc58b07e2b847ec47a"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/opensearch/monitors/opensearch-cluster-red.sty",
+      "target": "stackpack/suse-ai/settings/products/opensearch/monitors/opensearch-cluster-red.sty",
+      "upstream_sha256": "e3e4bc8b201ff0541ff6b0827bd0075401c7802b1c72b52d88c6922bf019808a"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/opensearch/monitors/opensearch-cluster-yellow.sty",
+      "target": "stackpack/suse-ai/settings/products/opensearch/monitors/opensearch-cluster-yellow.sty",
+      "upstream_sha256": "ba3be5dcb04cf2814c1fa31a773958fe8417ea616bfaf4f5009241eeee47b390"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/opensearch/presentation.sty",
+      "target": "stackpack/suse-ai/settings/products/opensearch/presentation.sty",
+      "upstream_sha256": "fafea7663f52ea071f004e7a02b4bf547431bf6689da44a611eb925ecf5ebb7e"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/qdrant/monitors/qdrant-grpc-api-failures.sty",
+      "target": "stackpack/suse-ai/settings/products/qdrant/monitors/qdrant-grpc-api-failures.sty",
+      "upstream_sha256": "763fd5cf1cb4b31629858576da62c161958227ff128ef3e1cfb108cdf7a9ac5c"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/qdrant/monitors/qdrant-high-memory-usage.sty",
+      "target": "stackpack/suse-ai/settings/products/qdrant/monitors/qdrant-high-memory-usage.sty",
+      "upstream_sha256": "d27f3844569ccb552b557da3b8c89cde8e69dfa058046033835b10ce59bf7705"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/qdrant/monitors/qdrant-high-rest-latency.sty",
+      "target": "stackpack/suse-ai/settings/products/qdrant/monitors/qdrant-high-rest-latency.sty",
+      "upstream_sha256": "a66f820fb8aa29ca634196e4e061d021a382e052889d280d70cc0fac3f5d5173"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/qdrant/monitors/qdrant-rest-api-failures.sty",
+      "target": "stackpack/suse-ai/settings/products/qdrant/monitors/qdrant-rest-api-failures.sty",
+      "upstream_sha256": "eeed5e1a9a0497d49bd58ee14ae09aaee994e894f142703353165882fbdb4bbe"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/qdrant/presentation.sty",
+      "target": "stackpack/suse-ai/settings/products/qdrant/presentation.sty",
+      "upstream_sha256": "379da08b1bc05d305a1a1c1e6f021a114ba18e7257a4bdbf86ad8eb28f198b31"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/vllm/model-mapping.sty",
+      "target": "stackpack/suse-ai/settings/products/vllm/model-mapping.sty",
+      "upstream_sha256": "99c7e0a62b6a59ad896e69da4012dbf9b69ce68aa204a3fccf21be49f2d38633"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/vllm/model-relation.sty",
+      "target": "stackpack/suse-ai/settings/products/vllm/model-relation.sty",
+      "upstream_sha256": "766013789a3b84d4a2cd5ffd883f0358fe3130c267fbf849d4f704770479236e"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/vllm/monitors/vllm-high-e2e-latency.sty",
+      "target": "stackpack/suse-ai/settings/products/vllm/monitors/vllm-high-e2e-latency.sty",
+      "upstream_sha256": "a882923e655e5ccbba287f688d6038b2a78100045c8205dd001d213d9fed15f6"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/vllm/monitors/vllm-high-gpu-cache-usage.sty",
+      "target": "stackpack/suse-ai/settings/products/vllm/monitors/vllm-high-gpu-cache-usage.sty",
+      "upstream_sha256": "4be53a54f981135ba8c6ec543431a7a86534213cb20ef85896dec9ba79eb762c"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/vllm/monitors/vllm-high-ttft.sty",
+      "target": "stackpack/suse-ai/settings/products/vllm/monitors/vllm-high-ttft.sty",
+      "upstream_sha256": "9b25074999bd541f78570f917b1f55a006453022e68f887c01db34d4ae657c15"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/vllm/monitors/vllm-request-queue-buildup.sty",
+      "target": "stackpack/suse-ai/settings/products/vllm/monitors/vllm-request-queue-buildup.sty",
+      "upstream_sha256": "560cfb75da46d1976065c918b32aac426a7223bec6e39ea8ed8a974129288e35"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/vllm/presentation.sty",
+      "target": "stackpack/suse-ai/settings/products/vllm/presentation.sty",
+      "upstream_sha256": "2dd89344111b670ed7c115a0f068942dbfb5bfcb20a5c12f83474ddba97870b5"
+    },
+    {
+      "source": "stackpacks/suse-ai/settings/products/vllm/served-models.sty",
+      "target": "stackpack/suse-ai/settings/products/vllm/served-models.sty",
+      "upstream_sha256": "589c798429985d6abafca5504e03203f7441dda645c9b0fb0debfcf0ca054634"
+    },
+    {
+      "source": "stackpacks/suse-ai/stackpack.yaml",
+      "target": "stackpack/suse-ai/stackpack.yaml",
+      "upstream_sha256": "038d85f0b9b6482508c051cbff2e3f2e173f04c2854910a9c1a8c2ad91395cc3"
+    },
+    {
+      "source": "tests/fixtures/invalid-component-mapping/resources/logo.svg",
+      "target": "tests/fixtures/invalid-component-mapping/resources/logo.svg",
+      "upstream_sha256": "0ee78688694f23fb6387df42a64e5f32fbbdeaa0ed4d0b087f137e9ced15c446"
+    },
+    {
+      "source": "tests/fixtures/invalid-component-mapping/resources/overview.md",
+      "target": "tests/fixtures/invalid-component-mapping/resources/overview.md",
+      "upstream_sha256": "62ab45d2864165400348bcd849c49747d5b6d7366dda5d509dc92095f0406a71"
+    },
+    {
+      "source": "tests/fixtures/invalid-component-mapping/settings/mapping.sty",
+      "target": "tests/fixtures/invalid-component-mapping/settings/mapping.sty",
+      "upstream_sha256": "4718a8cafb382b298909c5de6ab14cf91a97e63606d01f37ad76bccba6b634aa"
+    },
+    {
+      "source": "tests/fixtures/invalid-component-mapping/stackpack.yaml",
+      "target": "tests/fixtures/invalid-component-mapping/stackpack.yaml",
+      "upstream_sha256": "04d4f990f17947593d64e026b13e6ede6969463850dc594848ffd67f6f18e12b"
+    },
+    {
+      "source": "tests/suse-ai/identity_fixture.py",
+      "target": "tests/suse-ai/identity_fixture.py",
+      "upstream_sha256": "49f2dc1120bf3e6b67d329fd484ee9872fd30d9bd209a4999c8bdd40994d97da"
+    },
+    {
+      "source": "tests/suse-ai/promql-cases.yaml",
+      "target": "tests/suse-ai/promql-cases.yaml",
+      "upstream_sha256": "a91661d9f16cc55af1f25e46d404d351be009866eb7b9a8503b9aee9aacebcaa"
+    },
+    {
+      "source": "tests/suse-ai/requirements.txt",
+      "target": "tests/suse-ai/requirements.txt",
+      "upstream_sha256": "a7c35a6a6a3aafe368649df372b73b606c9ddc642cf571f2e2ee153a4957d8ff"
+    },
+    {
+      "source": "tests/suse-ai/test_backend_database_dependencies.py",
+      "target": "tests/suse-ai/test_backend_database_dependencies.py",
+      "upstream_sha256": "66cf3633a4cb2b2b5bfc0b305d8d92d8544ca0f2fb26bcedc5b18e057b28a2b6"
+    },
+    {
+      "source": "tests/suse-ai/test_backend_gpu_pods.py",
+      "target": "tests/suse-ai/test_backend_gpu_pods.py",
+      "upstream_sha256": "82b0d572109f2022573c27b11c7f64fc32be3ac16ce561b3583bb9dc60fbf639"
+    },
+    {
+      "source": "tests/suse-ai/test_backend_identity.py",
+      "target": "tests/suse-ai/test_backend_identity.py",
+      "upstream_sha256": "2b7a50929c4bb6b96382a8ff3e5e4b070abb7005e516b2a00ac7b9f96ca48ac4"
+    },
+    {
+      "source": "tests/suse-ai/test_backend_metrics.py",
+      "target": "tests/suse-ai/test_backend_metrics.py",
+      "upstream_sha256": "acde3c06ea208f7d7337b38f3feb3df843afe0e4068d9a3616a229694a92186f"
+    },
+    {
+      "source": "tests/suse-ai/test_backend_presentation_identity.py",
+      "target": "tests/suse-ai/test_backend_presentation_identity.py",
+      "upstream_sha256": "f53b407ecbd9171b1435232cb40b86a0a1599b7dd71fa71423e49624fe6e1763"
+    },
+    {
+      "source": "tests/suse-ai/test_backend_relations.py",
+      "target": "tests/suse-ai/test_backend_relations.py",
+      "upstream_sha256": "7c28fe1c972fe65c0ec111386f022dc89231ec25b152a82f5d4b94f8d820fdd5"
+    },
+    {
+      "source": "tests/suse-ai/test_collector.py",
+      "target": "tests/suse-ai/test_collector.py",
+      "upstream_sha256": "814a8b77fdcb2f1f3bb84613a23bf6bd04b0bc36931192bb5c48a3f384c0e03b"
+    },
+    {
+      "source": "tests/suse-ai/test_contract.py",
+      "target": "tests/suse-ai/test_contract.py",
+      "upstream_sha256": "78070bdd1ac1cadb67e6365c889f1914509967322d0019cb3262d6977425ef93"
+    },
+    {
+      "source": "tests/suse-ai/test_database_dependencies.py",
+      "target": "tests/suse-ai/test_database_dependencies.py",
+      "upstream_sha256": "2d9e362e611868c32ca8ec6b7d5e23940aec4a2f574987b011458428ec62b714"
+    },
+    {
+      "source": "tests/suse-ai/test_gpu_pods.py",
+      "target": "tests/suse-ai/test_gpu_pods.py",
+      "upstream_sha256": "a4b99ba008d522c06e8f6c7e1f4b8911920881aaa14f109f177aebc4469e2922"
+    },
+    {
+      "source": "tests/suse-ai/test_identity.py",
+      "target": "tests/suse-ai/test_identity.py",
+      "upstream_sha256": "1914f27943905560ed7ff21c14cf2deb9bf75a5bbe93858fcea1a5a2a19cf2db"
+    },
+    {
+      "source": "tests/suse-ai/test_identity_collector.py",
+      "target": "tests/suse-ai/test_identity_collector.py",
+      "upstream_sha256": "48b7316b439a84cc92382f8bfe21112170ffd0e14e6f52795ca8841fd23e612f"
+    },
+    {
+      "source": "tests/suse-ai/test_litellm_collector.py",
+      "target": "tests/suse-ai/test_litellm_collector.py",
+      "upstream_sha256": "33e3d570fc645e2f052782ce5945c028579c89c25b41a229c9a3ad8f5322acae"
+    },
+    {
+      "source": "tests/suse-ai/test_product_metrics.py",
+      "target": "tests/suse-ai/test_product_metrics.py",
+      "upstream_sha256": "c127a8def044b2ff28a718f132aa71fe843afc65dc24e27fa7615192614594a8"
+    },
+    {
+      "source": "tests/suse-ai/test_promql.py",
+      "target": "tests/suse-ai/test_promql.py",
+      "upstream_sha256": "5afd96e27515353fc90ff525c33f741902f96d13e622b9e90b35c061bc7fafde"
+    },
+    {
+      "source": "tests/suse-ai/test_runtime_observations.py",
+      "target": "tests/suse-ai/test_runtime_observations.py",
+      "upstream_sha256": "1dd36e27b1ea38c6c6b9fb1708d1726f15b473ae20b8fb96bdff721855d2b6f3"
+    }
+  ]
+}

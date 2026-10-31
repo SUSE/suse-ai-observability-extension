@@ -9,11 +9,11 @@ import subprocess
 
 def main():
     root = Path(__file__).resolve().parents[1]
-    path = root / "stackpack/suse-ai/stackpack.conf"
+    path = root / "stackpack/suse-ai/stackpack.yaml"
     content = path.read_text()
-    match = re.search(r'^version = "(\d+\.\d+\.\d+)"$', content, re.MULTILINE)
+    match = re.search(r'^version: [\"\']?(\d+\.\d+\.\d+)[\"\']?$', content, re.MULTILINE)
     if not match:
-        raise SystemExit("Expected one stable major.minor.patch version in stackpack.conf")
+        raise SystemExit("Expected one stable major.minor.patch version in stackpack.yaml")
     current = tuple(map(int, match[1].split(".")))
     target = os.environ.get("TARGET_VERSION") or ".".join(
         map(str, (*current[:2], current[2] + 1))

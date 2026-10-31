@@ -16,7 +16,7 @@ import urllib.request
 
 import yaml
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 TEMPLATES = ROOT / "stackpack/suse-ai/provisioning/templates"
 ENV = dict(os.environ, API_KEY="test-placeholder", K8S_CLUSTER_NAME="alpha",
            SUSE_AI_NAMESPACE="suse-private-ai", KUBEFLOW_NAMESPACE="ml-platform",

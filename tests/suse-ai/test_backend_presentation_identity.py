@@ -11,7 +11,7 @@ import time
 import uuid
 
 from identity_fixture import attrs
-from test_backend_identity import BackendTestCase
+from test_backend_identity import BackendTestCase, STS
 
 
 class BackendPresentationIdentityTest(BackendTestCase):
@@ -71,7 +71,7 @@ class BackendPresentationIdentityTest(BackendTestCase):
 
             self.capture("probe-chart-" + health + code, self.wait_for(observed_value, "latest probe status"))
             result = json.loads(subprocess.check_output([
-                "sts", "monitor", "run", "--identifier", "urn:stackpack:suse-ai:monitor:http-probe-unavailable", "-o", "json",
+                *STS, "monitor", "run", "--identifier", "urn:stackpack:suse-ai:monitor:http-probe-unavailable", "-o", "json",
             ]))
             self.capture("probe-monitor-" + health + code, result)
             state = next(s for s in result["run-result"]["checkStates"]["CheckStates"]["checkStates"]

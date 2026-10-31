@@ -20,6 +20,10 @@ import yaml
 from identity_fixture import attrs
 from test_contract import BY_ID
 
+STS = ["sts"]
+if os.environ.get("STS_CONTEXT"):
+    STS += ["--context", os.environ["STS_CONTEXT"]]
+
 
 @unittest.skipUnless(
     os.environ.get("AI_LIVE_TESTS") == "1", "Opt-in backend composition test"
@@ -58,28 +62,30 @@ class BackendTestCase(unittest.TestCase):
         cls.context = next(
             c["context"]
             for c in config["contexts"]
-            if c["name"] == config["current-context"]
+            if c["name"] == (os.environ.get("STS_CONTEXT") or config["current-context"])
         )
         cls.prefix = "identity-" + uuid.uuid4().hex[:8]
         for kind in ("component", "relation"):
             result = subprocess.check_output(
-                ["sts", f"otel-{kind}-mapping", "list", "-o", "json"]
+                [*STS, f"otel-{kind}-mapping", "list", "-o", "json"]
             )
             (cls.evidence / f"{kind}-mappings.json").write_bytes(result)
         (cls.evidence / "stackpacks.json").write_bytes(
-            subprocess.check_output(["sts", "stackpack", "list", "-o", "json"])
+            subprocess.check_output([*STS, "stackpack", "list", "-o", "json"])
         )
 
     @classmethod
     def api(cls, path, body=None):
-        # Read precisely the CLI's active configuration; never select a URL or context.
+        # Use the same explicitly selected or active CLI context for API requests.
+        headers = {"Content-Type": "application/json"}
+        if cls.context.get("service-token"):
+            headers["X-API-Key"] = cls.context["service-token"]
+        else:
+            headers["X-API-Token"] = cls.context["api-token"]
         request = Request(
             cls.context["url"].rstrip("/") + path,
             None if body is None else json.dumps(body).encode(),
-            {
-                "X-API-Token": cls.context["api-token"],
-                "Content-Type": "application/json",
-            },
+            headers,
         )
         with urlopen(request, timeout=30) as response:
             return json.load(response)
@@ -358,7 +364,7 @@ class BackendIdentityTest(BackendTestCase):
         monitor = json.loads(
             subprocess.check_output(
                 [
-                    "sts",
+                    *STS,
                     "monitor",
                     "status",
                     "--identifier",

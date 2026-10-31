@@ -19,7 +19,7 @@ import yaml
 
 
 ROOT = Path(__file__).resolve().parents[2]
-PACK = ROOT / "stackpacks/suse-ai"
+PACK = ROOT / "stackpack/suse-ai"
 
 
 class Loader(yaml.SafeLoader):

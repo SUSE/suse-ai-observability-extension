@@ -6,6 +6,8 @@ vars:
   IMAGE: '{{.IMAGE_NAME | default "suse-ai-observability"}}'
   VERSION: '{{.IMAGE_VERSION | default "latest"}}'
   RUNTIME: '{{.CONTAINER_RUNTIME | default "podman"}}'
+  PYTHON: '{{.PYTHON | default "python3"}}'
+  STS_CONTEXT: '{{.STS_CONTEXT | default ""}}'
   OLLAMA_IMAGE: '{{.OLLAMA_IMAGE | default "registry.suse.com/ai/containers/suse-ai-ollama-exporter:0.1.0"}}'
   OLLAMA_PLATFORM: '{{.OLLAMA_PLATFORM | default "linux/amd64"}}'
   OLLAMA_REVISION:
@@ -35,9 +37,29 @@ tasks:
       - python3 scripts/bump-version.py
 
   stackpack-test:
-    desc: Run Collector, query, template and Groovy regressions (see knowledge/REGRESSION_TESTS.md)
+    desc: Run native mapping, query, Collector and release tests (Docker/Podman required)
+    env:
+      AI_CONTAINER_RUNTIME: '{{.RUNTIME}}'
+      STS_CONTEXT: '{{.STS_CONTEXT}}'
     cmds:
-      - npx --yes --package npm-groovy-lint@18.0.0 -c 'python3 -B -m unittest discover -s tests -v'
+      - bash -c 'source scripts/ci/stackpack-images.env; exec "{{.PYTHON}}" -B -m unittest discover -s tests/suse-ai -v'
+      - task: stackpack-release-test
+
+  stackpack-release-test:
+    desc: Test deterministic packaging, version updates and installer state transitions
+    cmds:
+      - '{{.PYTHON}} -B -m unittest discover -s tests -p "test_*.py" -v'
+
+  stackpack-package:
+    aliases: [stackpack-build]
+    desc: Build dist/suse-ai-<version>.sts and SHA256SUMS reproducibly, without sts or network
+    cmds:
+      - bash scripts/package-stackpack.sh
+
+  stackpack-test-legacy-collector:
+    desc: Test the retained 2.x Collector examples (requires COLLECTOR_BIN)
+    cmds:
+      - '{{.PYTHON}} -B -m unittest discover -s tests/legacy -p test_collector.py -v'
 
   open-webui-test:
     desc: Test the in-process Open WebUI integration (install integrations/open-webui/tests/requirements.txt first)
@@ -77,44 +99,35 @@ tasks:
       - python3 -B integrations/ollama/prepare_release.py
 
   stackpack-sync-status:
-    desc: Read the installed SUSE AI synchronization status and error details
+    desc: List and describe every installed synchronization, including active errorDetails
+    env:
+      STS_CONTEXT: '{{.STS_CONTEXT}}'
     cmds:
-      - |
-        sync_status=0
-        sts topology-sync list || sync_status=$?
-        for sync_name in suse-ai suse-ai-products suse-ai-topology; do
-          sts topology-sync describe --identifier "urn:stackpack:suse-ai:shared:sync:$sync_name" || sync_status=$?
-        done
-        exit "$sync_status"
+      - bash scripts/stackpack-sync-status.sh
 
   stackpack-upload:
-    desc: Zips, uploads and upgrades the stackpack
-    deps: [stackpack-validate]
+    desc: Validate/package, then upload once and install or upgrade SUSE AI
     cmds:
-      - |
-        STACKPACK_VERSION=$(grep 'version =' stackpack/suse-ai/stackpack.conf | cut -d'"' -f2)
-        ARCHIVE="/tmp/suse-ai-${STACKPACK_VERSION}.sts"
-        rm -f "$ARCHIVE"
-        cd stackpack/suse-ai
-        zip -r "$ARCHIVE" stackpack.conf provisioning resources
-        sts stackpack upload --file "$ARCHIVE"
-        sts stackpack upgrade --name suse-ai --unlocked-strategy overwrite
+      - task: stackpack-validate
+      - task: stackpack-package
+      - bash scripts/run-setup.sh
+    env:
+      STS_CONTEXT: '{{.STS_CONTEXT}}'
 
   stackpack-validate:
-    desc: Validates StackPack IDs and Groovy synchronization scripts
+    desc: Validate native settings with the pinned server and reject an invalid CEL control
+    env:
+      CONTAINER_RUNTIME: '{{.RUNTIME}}'
     cmds:
-      - python3 scripts/check-id-conflicts.py
-      - npx --yes npm-groovy-lint@18.0.0 'stackpack/suse-ai/provisioning/templates/**/*.groovy' --failon error
-      - npx --yes npm-groovy-lint@18.0.0 --path tests --files '*.groovy' --failon error
+      - bash scripts/ci/validate-native-stackpack.sh
 
   stackpack-uninstall:
-    desc: Uninstall all installed instances of SUSE AI Observability stackpack
+    desc: Uninstall SUSE AI instances and wait for removal
+    env:
+      STS_CONTEXT: '{{.STS_CONTEXT}}'
+      UNINSTALL: 'true'
     cmds:
-      - |
-        sts stackpack list-instances --name suse-ai -o json | jq -r '.instances[] | select(.status == "INSTALLED" or .status == "ERROR") | .id' | while read ID; do
-          echo "Uninstalling instance $ID"
-          sts stackpack uninstall --id "$ID" --name suse-ai
-        done
+      - bash scripts/run-setup.sh
 
   sts-script:
     desc: Runs a Groovy script from a file (use FILE=path/to/script.groovy)

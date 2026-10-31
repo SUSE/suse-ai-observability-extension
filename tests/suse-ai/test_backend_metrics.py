@@ -9,7 +9,7 @@ import subprocess
 import time
 
 from identity_fixture import attrs
-from test_backend_identity import BackendTestCase
+from test_backend_identity import BackendTestCase, STS
 
 
 class BackendMetricsTest(BackendTestCase):
@@ -241,7 +241,7 @@ class BackendMetricsTest(BackendTestCase):
                 json.loads(
                     subprocess.check_output(
                         [
-                            "sts",
+                            *STS,
                             "monitor",
                             "run",
                             "--identifier",
