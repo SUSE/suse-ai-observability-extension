@@ -1,0 +1,21 @@
+nodes:
+- _type: Monitor
+  name: Kubeflow Workflow Controller Down
+  identifier: urn:stackpack:suse-ai:monitor:kfp-workflow-controller-down
+  description: |
+    Triggers when the Argo Workflow Controller scrape target is down.
+  status: ENABLED
+  intervalSeconds: 60
+  function: urn:stackpack:common:monitor-function:threshold
+  arguments:
+    comparator: LT
+    failureState: CRITICAL
+    threshold: 1
+    metric:
+      query: min by (service_namespace, service_name) (up{suse_ai_product="kubeflow-pipelines", service_namespace!="",
+        service_name!="", service_name="kubeflow-workflow-controller"})
+      aliasTemplate: Kubeflow Workflow Controller Down
+      unit: short
+    titleTemplate: Kubeflow workflow controller is down
+    urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
+  remediationHint: !include 'remediation-hints/kubeflow-pipelines/remediation-controller-down.md.hbs'

@@ -1,0 +1,610 @@
+# Synthetic series with repeated service names in distinct namespaces.
+# The test loads expressions from the package, so these cases exercise shipped queries.
+cases:
+  - name: XID monitoring distinguishes healthy counts from missing data and keeps cluster identities
+    series:
+      - series: DCGM_EXP_XID_ERRORS_COUNT{k8s_cluster_name="a",k8s_node_name="gpu-node",gpu="0"}
+        values: 0+0x10
+      - series: DCGM_FI_DEV_XID_ERRORS{k8s_cluster_name="a",k8s_node_name="gpu-node",gpu="0"}
+        values: 31+0x10
+      - series: DCGM_EXP_XID_ERRORS_COUNT{k8s_cluster_name="b",k8s_node_name="gpu-node",gpu="0",xid="31"}
+        values: 2+0x10
+      - series: DCGM_EXP_XID_ERRORS_COUNT{k8s_cluster_name="b",k8s_node_name="gpu-node",gpu="1"}
+        values: 0+0x10
+      - series: DCGM_FI_DEV_XID_ERRORS{k8s_cluster_name="legacy",k8s_node_name="gpu-node"}
+        values: 79+0x10
+      - series: DCGM_EXP_XID_ERRORS_COUNT{k8s_cluster_name="zero-code",k8s_node_name="gpu-node",xid="0"}
+        values: 10+0x10
+      - series: DCGM_EXP_XID_ERRORS_COUNT{k8s_node_name="no-cluster",xid="31"}
+        values: 1+0x10
+      - series: DCGM_FI_DEV_XID_ERRORS{k8s_cluster_name="no-node"}
+        values: 31+0x10
+    checks:
+      - monitor: nvidia-xid-errors
+        samples:
+          - labels: '{k8s_cluster_name="a",k8s_node_name="gpu-node"}'
+            value: 0
+          - labels: '{k8s_cluster_name="b",k8s_node_name="gpu-node"}'
+            value: 2
+          - labels: '{k8s_cluster_name="legacy",k8s_node_name="gpu-node"}'
+            value: 79
+          - labels: '{k8s_cluster_name="zero-code",k8s_node_name="gpu-node"}'
+            value: 0
+  - name: XID errors expire and absent telemetry stays absent
+    series:
+      - series: DCGM_EXP_XID_ERRORS_COUNT{k8s_cluster_name="a",k8s_node_name="gpu-node",xid="31"}
+        values: 1 stale _ _ _ _ _ _
+      - series: DCGM_EXP_XID_ERRORS_COUNT{k8s_cluster_name="a",k8s_node_name="gpu-node"}
+        values: 0+0x10
+      - series: DCGM_FI_DEV_XID_ERRORS{k8s_cluster_name="stopped",k8s_node_name="gpu-node"}
+        values: 0 stale _ _ _ _ _ _
+    checks:
+      - monitor: nvidia-xid-errors
+        eval_time: 4m
+        samples:
+          - labels: '{k8s_cluster_name="a",k8s_node_name="gpu-node"}'
+            value: 1
+          - labels: '{k8s_cluster_name="stopped",k8s_node_name="gpu-node"}'
+            value: 0
+      - monitor: nvidia-xid-errors
+        eval_time: 6m
+        samples:
+          - labels: '{k8s_cluster_name="a",k8s_node_name="gpu-node"}'
+            value: 0
+  - name: XID monitor creates no checks without exporter data
+    series: []
+    checks:
+      - monitor: nvidia-xid-errors
+        samples: []
+  - name: vLLM request rate uses server counters and excludes other services and namespaces
+    series:
+      - series: vllm_request_success_total{service_namespace="prod-eu",service_name="assistant",service_instance_id="a",model_name="llama3",finished_reason="stop"}
+        values: 0+60x10
+      - series: vllm:request_success_total{service_namespace="prod-eu",service_name="assistant",service_instance_id="b",model_name="llama3",finished_reason="length"}
+        values: 0+120x10
+      - series: vllm_request_success_total{service_namespace="other",service_name="assistant",model_name="llama3"}
+        values: 0+600x10
+      - series: vllm_request_success_total{service_namespace="prod-eu",service_name="other",model_name="llama3"}
+        values: 0+600x10
+      - series: gen_ai_client_operation_duration_seconds_count{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3"}
+        values: 0+600x10
+    checks:
+      - presentation: product-vllm
+        metric: suse-ai-vllm-request-rate
+        samples:
+          - labels: '{model_name="llama3"}'
+            value: 3
+  - name: Missing vLLM request telemetry remains absent
+    series: []
+    checks:
+      - presentation: product-vllm
+        metric: suse-ai-vllm-request-rate
+        samples: []
+  - name: GPU host charts use existing host identity and convert memory from MiB
+    series:
+      - series: system_cpu_user{sts_host="gpu-1-cluster-a"}
+        values: 10+0x10
+      - series: system_cpu_system{sts_host="gpu-1-cluster-a"}
+        values: 5+0x10
+      - series: system_mem_usable{sts_host="gpu-1-cluster-a"}
+        values: 2048+0x10
+      - series: system_mem_usable{sts_host="gpu-1-cluster-b"}
+        values: 32768+0x10
+    checks:
+      - presentation: gpu-nodes
+        metric: suse-ai-common-node-host-cpu
+        samples:
+          - labels: '{sts_host="gpu-1-cluster-a"}'
+            value: 15
+      - presentation: gpu-nodes
+        metric: suse-ai-common-node-host-memory
+        samples:
+          - labels: '{sts_host="gpu-1-cluster-a"}'
+            value: 2147483648
+  - name: vLLM service and served-model charts aggregate replicas within their identity
+    series:
+      - series: vllm_prompt_tokens_total{service_namespace="prod-eu",service_name="assistant",service_instance_id="a",model_name="llama3"}
+        values: 0+60x10
+      - series: vllm_prompt_tokens_total{service_namespace="prod-eu",service_name="assistant",service_instance_id="b",model_name="llama3"}
+        values: 0+120x10
+      - series: vllm_num_requests_waiting{service_namespace="prod-eu",service_name="assistant",service_instance_id="a",model_name="llama3"}
+        values: 1+0x10
+      - series: vllm_num_requests_waiting{service_namespace="prod-eu",service_name="assistant",service_instance_id="b",model_name="llama3"}
+        values: 2+0x10
+      - series: vllm_e2e_request_latency_seconds_sum{service_namespace="prod-eu",service_name="assistant",service_instance_id="a",model_name="llama3"}
+        values: 0+6x10
+      - series: vllm_e2e_request_latency_seconds_count{service_namespace="prod-eu",service_name="assistant",service_instance_id="a",model_name="llama3"}
+        values: 0+60x10
+      - series: vllm_e2e_request_latency_seconds_sum{service_namespace="prod-eu",service_name="assistant",service_instance_id="b",model_name="llama3"}
+        values: 0+60x10
+      - series: vllm_e2e_request_latency_seconds_count{service_namespace="prod-eu",service_name="assistant",service_instance_id="b",model_name="llama3"}
+        values: 0+120x10
+    checks:
+      - presentation: product-vllm
+        metric: suse-ai-vllm-token-throughput-prompt
+        samples:
+          - labels: '{model_name="llama3"}'
+            value: 3
+      - presentation: product-vllm
+        metric: suse-ai-vllm-req-waiting
+        samples:
+          - labels: '{model_name="llama3"}'
+            value: 3
+      - presentation: served-models-vllm
+        metric: suse-ai-genai-model-token-throughput-prompt
+        samples:
+          - labels: '{}'
+            value: 3
+      - presentation: served-models-vllm
+        metric: suse-ai-genai-model-e2e-latency
+        query_alias: Average
+        samples:
+          - labels: '{}'
+            value: 0.36666666666666664
+
+  - name: DCGM framebuffer memory converts MiB to bytes for node and pod charts
+    series:
+      - series: DCGM_FI_DEV_FB_USED{k8s_cluster_name="cluster-a",k8s_node_name="component-name",gpu="0"}
+        values: 9990+0x10
+      - series: DCGM_FI_DEV_FB_USED{k8s_cluster_name="cluster-a",k8s_node_name="gpu-1",pod_namespace="ai",pod_name="component-name",gpu="0"}
+        values: 9990+0x10
+    checks:
+      - presentation: gpu-nodes
+        metric: suse-ai-common-node-gpu-framebuffer-mem-used
+        samples:
+          - labels: '{k8s_cluster_name="cluster-a",k8s_node_name="component-name",gpu="0"}'
+            value: 10475274240
+      - presentation: gpu-pods
+        metric: suse-ai-common-pod-gpu-framebuffer-mem-used
+        samples:
+          - labels: '{k8s_cluster_name="cluster-a",k8s_node_name="gpu-1",pod_namespace="ai",pod_name="component-name",gpu="0"}'
+            value: 10475274240
+
+  - name: GenAI freshness distinguishes stopped telemetry from an idle application
+    series:
+      - series: gen_ai_client_operation_duration_seconds_count{service_namespace="stopped",service_name="assistant"}
+        values: 1 stale _ _ _ _ _
+      - series: gen_ai_client_operation_duration_seconds_count{service_namespace="idle",service_name="assistant"}
+        values: 1+0x20
+      - series: gen_ai_client_operation_duration_seconds_count{service_namespace="disabled",service_name="assistant",suse_ai_managed="false"}
+        values: 1 stale _ _ _ _ _
+    checks:
+      - monitor: genai-metric-stream-active
+        eval_time: 6m
+        samples:
+          - labels: '{service_namespace="stopped",service_name="assistant"}'
+            value: 360
+          - labels: '{service_namespace="idle",service_name="assistant"}'
+            value: 0
+      - monitor: genai-metric-stream-active
+        eval_time: 16m
+        samples:
+          - labels: '{service_namespace="idle",service_name="assistant"}'
+            value: 0
+
+  - name: Milvus millisecond histograms are shown and monitored in seconds
+    series:
+      - series: milvus_proxy_req_latency_bucket{suse_ai_product="milvus",service_namespace="prod-eu",service_name="assistant",function_name="Search",le="100"}
+        values: 0+10x10
+      - series: milvus_proxy_req_latency_bucket{suse_ai_product="milvus",service_namespace="prod-eu",service_name="assistant",function_name="Search",le="+Inf"}
+        values: 0+10x10
+      - series: milvus_proxy_req_latency_sum{suse_ai_product="milvus",service_namespace="prod-eu",service_name="assistant",function_name="Search"}
+        values: 0+500x10
+      - series: milvus_proxy_req_latency_count{suse_ai_product="milvus",service_namespace="prod-eu",service_name="assistant",function_name="Search"}
+        values: 0+10x10
+    checks:
+      - presentation: product-milvus
+        metric: suse-ai-milvus-vectordb-system-average-request-latency
+        samples:
+          - labels: '{function_name="Search"}'
+            value: 0.05
+      - monitor: milvus-high-request-latency
+        samples:
+          - labels: '{service_namespace="prod-eu",service_name="assistant"}'
+            value: 0.099
+
+  - name: GenAI ratios exclude another namespace
+    series:
+      - series: gen_ai_client_operation_duration_seconds_count{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3"}
+        values: 0+10x10
+      - series: gen_ai_client_token_usage_sum{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_token_type="input"}
+        values: 0+100x10
+      - series: gen_ai_client_token_usage_sum{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_token_type="output"}
+        values: 0+50x10
+      - series: gen_ai_usage_cost_USD_sum{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3"}
+        values: 0+0.2x10
+      - series: gen_ai_client_operation_duration_seconds_count{service_namespace="other",service_name="assistant",gen_ai_request_model="llama3"}
+        values: 0+200x10
+      - series: gen_ai_client_token_usage_sum{service_namespace="other",service_name="assistant",gen_ai_request_model="llama3",gen_ai_token_type="input"}
+        values: 0+90000x10
+    checks:
+      - presentation: genai-metrics
+        metric: suse-ai-tokens-per-request
+        samples:
+          - labels: '{gen_ai_request_model="llama3"}'
+            value: 15
+      - presentation: genai-metrics
+        metric: suse-ai-cost-per-request
+        samples:
+          - labels: '{gen_ai_request_model="llama3"}'
+            value: 0.02
+
+  - name: vLLM health is separated by namespace
+    series:
+      - series: vllm_gpu_cache_usage_perc{suse_ai_product="vllm",service_namespace="prod-eu",service_name="inference",model_name="llama3"}
+        values: 0.95+0x10
+      - series: vllm_gpu_cache_usage_perc{suse_ai_product="vllm",service_namespace="other",service_name="inference",model_name="llama3"}
+        values: 0.1+0x10
+    checks:
+      - monitor: vllm-high-gpu-cache-usage
+        samples:
+          - labels: '{service_namespace="prod-eu",service_name="inference"}'
+            value: 0.95
+          - labels: '{service_namespace="other",service_name="inference"}'
+            value: 0.1
+
+  - name: Sparse Model Registry validation recovers independently
+    series:
+      - series: httpcheck_validation_failed{suse_ai_product="kubeflow-model-registry",service_namespace="prod-eu",service_name="registry",validation_type="contains",http_url="https://registry.example"}
+        values: 1 _ _ _ _ _
+      - series: httpcheck_validation_passed{suse_ai_product="kubeflow-model-registry",service_namespace="prod-eu",service_name="registry",validation_type="contains",http_url="https://registry.example"}
+        values: _ _ 1 _ _ _
+      - series: httpcheck_validation_failed{suse_ai_product="kubeflow-model-registry",service_namespace="other",service_name="registry",validation_type="contains",http_url="https://registry.example"}
+        values: _ _ _ 1 _ _
+      - series: httpcheck_validation_passed{suse_ai_product="kubeflow-model-registry",service_namespace="other",service_name="registry",validation_type="contains",http_url="https://registry.example"}
+        values: _ 1 _ _ _ _
+    checks:
+      - monitor: kubeflow-model-registry-invalid-response
+        samples:
+          - labels: '{service_namespace="prod-eu",service_name="registry"}'
+            value: 0
+          - labels: '{service_namespace="other",service_name="registry"}'
+            value: 1
+
+  - name: Missing telemetry does not become a healthy global product
+    series: []
+    checks:
+      - monitor: kfp-run-failures
+        samples: []
+      - monitor: kfp-grpc-error-ratio
+        samples: []
+
+  - name: Successful pipeline runs provide a scoped zero failure value
+    series:
+      - series: argo_workflows_count_total{suse_ai_product="kubeflow-pipelines",service_namespace="prod-eu",service_name="workflow-controller",phase="Succeeded"}
+        values: 0+1x10
+    checks:
+      - monitor: kfp-run-failures
+        samples:
+          - labels: '{service_namespace="prod-eu",service_name="workflow-controller"}'
+            value: 0
+
+  - name: Model errors aggregate caller replicas and exclude other endpoints, providers,
+      namespaces and models
+    series:
+    - series: gen_ai_client_operation_duration_seconds_count{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="vllm.ai.svc",server_port="8000",service_instance_id="a"}
+      values: 0+54x10
+    - series: gen_ai_client_operation_duration_seconds_count{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="vllm.ai.svc",server_port="8000",service_instance_id="b"}
+      values: 0+54x10
+    - series: gen_ai_client_operation_duration_seconds_count{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="vllm.ai.svc",server_port="8000",error_type="TimeoutError",service_instance_id="a"}
+      values: 0+12x10
+    - series: gen_ai_client_operation_duration_seconds_count{service_namespace="other",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="vllm.ai.svc",server_port="8000",error_type="TimeoutError"}
+      values: 0+600x10
+    - series: gen_ai_client_operation_duration_seconds_count{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="other",gen_ai_provider_name="openai",server_address="vllm.ai.svc",server_port="8000",error_type="TimeoutError"}
+      values: 0+600x10
+    - series: gen_ai_client_operation_duration_seconds_count{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="other",server_address="vllm.ai.svc",server_port="8000",error_type="TimeoutError"}
+      values: 0+600x10
+    - series: gen_ai_client_operation_duration_seconds_count{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="other",server_port="8000",error_type="TimeoutError"}
+      values: 0+600x10
+    - series: gen_ai_client_operation_duration_seconds_count{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="vllm.ai.svc",server_port="8001",error_type="TimeoutError"}
+      values: 0+600x10
+    checks:
+    - monitor: model-usage-errors
+      samples:
+      - labels: '{}'
+        value: 0.1
+    - presentation: models
+      column: suse_ai_usage_requests
+      samples:
+      - labels: '{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="vllm.ai.svc",server_port="8000"}'
+        value: 2
+  - name: Model inventory throughput keeps runtime identity and aggregates only its replicas
+    series:
+    - series: vllm_generation_tokens_total{service_namespace="prod-eu",service_name="assistant",model_name="llama3",service_instance_id="a"}
+      values: 0+60x10
+    - series: vllm_generation_tokens_total{service_namespace="prod-eu",service_name="assistant",model_name="llama3",service_instance_id="b"}
+      values: 0+120x10
+    - series: vllm_generation_tokens_total{service_namespace="other",service_name="assistant",model_name="llama3"}
+      values: 0+600x10
+    - series: vllm_generation_tokens_total{service_namespace="prod-eu",service_name="other",model_name="llama3"}
+      values: 0+600x10
+    - series: vllm_generation_tokens_total{service_namespace="prod-eu",service_name="assistant",model_name="other"}
+      values: 0+600x10
+    checks:
+    - presentation: model-inventory
+      column: suse_ai_model_output_tokens
+      samples:
+      - labels: '{service_namespace="prod-eu",service_name="assistant",model_name="llama3"}'
+        value: 3
+  - name: Successful model calls without an error series evaluate clear
+    series:
+    - series: gen_ai_client_operation_duration_seconds_count{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="vllm.ai.svc",server_port="8000"}
+      values: 0+60x10
+    checks:
+    - monitor: model-usage-errors
+      samples:
+      - labels: '{}'
+        value: 0
+  - name: Idle or absent model calls do not manufacture a successful result
+    series:
+    - series: gen_ai_client_operation_duration_seconds_count{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="vllm.ai.svc",server_port="8000"}
+      values: 7+0x10
+    checks:
+    - monitor: model-usage-errors
+      samples: []
+
+  - name: LiteLLM deduplicates scrape copies while preserving replicas keys and organizations
+    series:
+      - series: litellm_proxy_total_requests_metric_total{service_namespace="prod-eu",service_name="assistant",service_instance_id="a",requested_model="qwen",hashed_api_key="key-a",org_id="org-a",scraper="collector"}
+        values: 0+60x10
+      - series: litellm_proxy_requests_metric_total{service_namespace="prod-eu",service_name="assistant",service_instance_id="a",requested_model="qwen",hashed_api_key="key-a",org_id="org-a",scraper="agent"}
+        values: 0+60x10
+      - series: litellm_proxy_total_requests_metric_total{service_namespace="prod-eu",service_name="assistant",service_instance_id="a",requested_model="qwen",hashed_api_key="key-b",org_id="org-a"}
+        values: 0+120x10
+      - series: litellm_proxy_total_requests_metric_total{service_namespace="prod-eu",service_name="assistant",service_instance_id="a",requested_model="qwen",hashed_api_key="key-a",org_id="org-b"}
+        values: 0+180x10
+      - series: litellm_proxy_total_requests_metric_total{service_namespace="prod-eu",service_name="assistant",service_instance_id="b",requested_model="qwen",hashed_api_key="key-a",org_id="org-a"}
+        values: 0+240x10
+      - series: litellm_proxy_total_requests_metric_total{service_namespace="other",service_name="assistant",requested_model="qwen"}
+        values: 0+6000x10
+      - series: litellm_proxy_total_requests_metric_total{service_namespace="prod-eu",service_name="other",requested_model="qwen"}
+        values: 0+6000x10
+    checks:
+      - presentation: product-litellm
+        metric: suse-ai-litellm-request-rate
+        samples:
+          - labels: '{requested_model="qwen"}'
+            value: 10
+
+  - name: LiteLLM guardrail increments handle resets and duplicate scrapers without losing replicas
+    series:
+      - series: litellm_guardrail_requests_total{service_namespace="prod-eu",service_name="assistant",service_instance_id="a",guardrail_name="prompt-policy",status="error",hook_type="pre_call",scraper="collector"}
+        values: 100 102 104 1 3 5
+      - series: litellm_guardrail_requests{service_namespace="prod-eu",service_name="assistant",service_instance_id="a",guardrail_name="prompt-policy",status="error",hook_type="pre_call",scraper="agent"}
+        values: 100 102 104 1 3 5
+      - series: litellm_guardrail_requests_total{service_namespace="prod-eu",service_name="assistant",service_instance_id="b",guardrail_name="prompt-policy",status="error",hook_type="pre_call"}
+        values: 0+4x10
+      - series: litellm_guardrail_requests_total{service_namespace="prod-eu",service_name="assistant",service_instance_id="a",guardrail_name="prompt-policy",status="success",hook_type="pre_call"}
+        values: 0+10x10
+    checks:
+      - presentation: product-litellm
+        metric: suse-ai-litellm-guardrail-requests
+        samples:
+          - labels: '{guardrail_name="prompt-policy",status="error"}'
+            value: 28.75
+          - labels: '{guardrail_name="prompt-policy",status="success"}'
+            value: 50
+
+  - name: LiteLLM latency combines replica histograms after deduplicating copies
+    series:
+      - series: litellm_request_total_latency_metric_bucket{service_namespace="prod-eu",service_name="assistant",service_instance_id="a",requested_model="qwen",le="1",scraper="collector"}
+        values: 0+40x10
+      - series: litellm_request_total_latency_metric_bucket{service_namespace="prod-eu",service_name="assistant",service_instance_id="a",requested_model="qwen",le="2",scraper="collector"}
+        values: 0+40x10
+      - series: litellm_request_total_latency_metric_bucket{service_namespace="prod-eu",service_name="assistant",service_instance_id="a",requested_model="qwen",le="+Inf",scraper="collector"}
+        values: 0+40x10
+      - series: litellm_request_total_latency_metric_bucket{service_namespace="prod-eu",service_name="assistant",service_instance_id="a",requested_model="qwen",le="1",scraper="agent"}
+        values: 0+40x10
+      - series: litellm_request_total_latency_metric_bucket{service_namespace="prod-eu",service_name="assistant",service_instance_id="a",requested_model="qwen",le="2",scraper="agent"}
+        values: 0+40x10
+      - series: litellm_request_total_latency_metric_bucket{service_namespace="prod-eu",service_name="assistant",service_instance_id="a",requested_model="qwen",le="+Inf",scraper="agent"}
+        values: 0+40x10
+      - series: litellm_request_total_latency_metric_bucket{service_namespace="prod-eu",service_name="assistant",service_instance_id="b",requested_model="qwen",le="1"}
+        values: 0+0x10
+      - series: litellm_request_total_latency_metric_bucket{service_namespace="prod-eu",service_name="assistant",service_instance_id="b",requested_model="qwen",le="2"}
+        values: 0+20x10
+      - series: litellm_request_total_latency_metric_bucket{service_namespace="prod-eu",service_name="assistant",service_instance_id="b",requested_model="qwen",le="+Inf"}
+        values: 0+20x10
+    checks:
+      - presentation: product-litellm
+        metric: suse-ai-litellm-latency-p95
+        samples:
+          - labels: '{requested_model="qwen"}'
+            value: 1.85
+
+  - name: LiteLLM missing telemetry stays absent
+    series: []
+    checks:
+      - presentation: product-litellm
+        metric: suse-ai-litellm-request-rate
+        samples: []
+      - presentation: product-litellm
+        metric: suse-ai-litellm-backend-state
+        samples: []
+      - presentation: product-litellm
+        metric: suse-ai-litellm-guardrail-requests
+        samples: []
+      - presentation: product-litellm
+        metric: suse-ai-litellm-in-flight
+        samples: []
+
+  - name: LiteLLM gauges deduplicate scrapers and backend placeholder IDs
+    series:
+      - series: litellm_in_flight_requests{service_namespace="prod-eu",service_name="assistant",service_instance_id="a",scraper="collector"}
+        values: 3+0x10
+      - series: litellm_in_flight_requests{service_namespace="prod-eu",service_name="assistant",service_instance_id="a",scraper="agent"}
+        values: 3+0x10
+      - series: litellm_in_flight_requests{service_namespace="prod-eu",service_name="assistant",service_instance_id="b"}
+        values: 4+0x10
+      - series: litellm_in_flight_requests{service_namespace="other",service_name="assistant",service_instance_id="a"}
+        values: 50+0x10
+      - series: litellm_deployment_state{service_namespace="prod-eu",service_name="assistant",service_instance_id="a",litellm_model_name="qwen",model_id="",api_base="http://inference:8000"}
+        values: 0+0x10
+      - series: litellm_deployment_state{service_namespace="prod-eu",service_name="assistant",service_instance_id="a",litellm_model_name="qwen",model_id="backend-1",api_base="http://inference:8000",scraper="collector"}
+        values: 1+0x10
+      - series: litellm_deployment_state{service_namespace="prod-eu",service_name="assistant",service_instance_id="a",litellm_model_name="qwen",model_id="backend-1",api_base="http://inference:8000",scraper="agent"}
+        values: 1+0x10
+      - series: litellm_deployment_state{service_namespace="prod-eu",service_name="assistant",service_instance_id="b",litellm_model_name="qwen",model_id="backend-1",api_base="http://inference:8000"}
+        values: 2+0x10
+    checks:
+      - presentation: product-litellm
+        metric: suse-ai-litellm-in-flight
+        samples:
+          - labels: '{}'
+            value: 7
+      - presentation: product-litellm
+        metric: suse-ai-litellm-backend-state
+        samples:
+          - labels: '{litellm_model_name="qwen",api_base="http://inference:8000"}'
+            value: 2
+  - name: Model monitors distinguish missing endpoint dimensions and quote literal endpoints
+    series:
+    - series: gen_ai_client_operation_duration_seconds_count{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai"}
+      values: 0+480x10
+    - series: gen_ai_client_operation_duration_seconds_count{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",error_type="TimeoutError"}
+      values: 0+120x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",le="1"}
+      values: 0+0x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",le="10"}
+      values: 0+0x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",le="30"}
+      values: 0+0x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",le="60"}
+      values: 0+600x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",le="+Inf"}
+      values: 0+600x10
+    - series: gen_ai_client_operation_duration_seconds_count{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_port="8000"}
+      values: 0+600x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_port="8000",le="1"}
+      values: 0+0x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_port="8000",le="10"}
+      values: 0+600x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_port="8000",le="30"}
+      values: 0+600x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_port="8000",le="60"}
+      values: 0+600x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_port="8000",le="+Inf"}
+      values: 0+600x10
+    - series: gen_ai_client_operation_duration_seconds_count{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="vllm.ai.svc"}
+      values: 0+360x10
+    - series: gen_ai_client_operation_duration_seconds_count{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="vllm.ai.svc",error_type="TimeoutError"}
+      values: 0+240x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="vllm.ai.svc",le="1"}
+      values: 0+0x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="vllm.ai.svc",le="10"}
+      values: 0+600x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="vllm.ai.svc",le="30"}
+      values: 0+600x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="vllm.ai.svc",le="60"}
+      values: 0+600x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="vllm.ai.svc",le="+Inf"}
+      values: 0+600x10
+    - series: gen_ai_client_operation_duration_seconds_count{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="vllm.ai.svc",server_port="8000"}
+      values: 0+600x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="vllm.ai.svc",server_port="8000",le="1"}
+      values: 0+0x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="vllm.ai.svc",server_port="8000",le="10"}
+      values: 0+0x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="vllm.ai.svc",server_port="8000",le="30"}
+      values: 0+0x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="vllm.ai.svc",server_port="8000",le="60"}
+      values: 0+600x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="vllm.ai.svc",server_port="8000",le="+Inf"}
+      values: 0+600x10
+    - series: gen_ai_client_operation_duration_seconds_count{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="model.+[1].example",server_port="8000"}
+      values: 0+240x10
+    - series: gen_ai_client_operation_duration_seconds_count{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="model.+[1].example",server_port="8000",error_type="TimeoutError"}
+      values: 0+360x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="model.+[1].example",server_port="8000",le="1"}
+      values: 0+0x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="model.+[1].example",server_port="8000",le="10"}
+      values: 0+600x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="model.+[1].example",server_port="8000",le="30"}
+      values: 0+600x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="model.+[1].example",server_port="8000",le="60"}
+      values: 0+600x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="model.+[1].example",server_port="8000",le="+Inf"}
+      values: 0+600x10
+    - series: gen_ai_client_operation_duration_seconds_count{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="modelXX1xexample",server_port="8000"}
+      values: 0+60x10
+    - series: gen_ai_client_operation_duration_seconds_count{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="modelXX1xexample",server_port="8000",error_type="TimeoutError"}
+      values: 0+540x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="modelXX1xexample",server_port="8000",le="1"}
+      values: 0+0x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="modelXX1xexample",server_port="8000",le="10"}
+      values: 0+0x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="modelXX1xexample",server_port="8000",le="30"}
+      values: 0+0x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="modelXX1xexample",server_port="8000",le="60"}
+      values: 0+600x10
+    - series: gen_ai_client_operation_duration_seconds_bucket{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="modelXX1xexample",server_port="8000",le="+Inf"}
+      values: 0+600x10
+    checks:
+    - monitor: model-usage-errors
+      endpoint: &id001 {}
+      samples:
+      - labels: '{}'
+        value: 0.2
+    - monitor: model-usage-latency
+      endpoint: *id001
+      samples:
+      - labels: '{}'
+        value: 58.5
+    - monitor: model-usage-errors
+      endpoint: &id002
+        server.port: '8000'
+      samples:
+      - labels: '{}'
+        value: 0.0
+    - monitor: model-usage-latency
+      endpoint: *id002
+      samples:
+      - labels: '{}'
+        value: 9.55
+    - monitor: model-usage-errors
+      endpoint: &id003
+        server.address: vllm.ai.svc
+      samples:
+      - labels: '{}'
+        value: 0.4
+    - monitor: model-usage-latency
+      endpoint: *id003
+      samples:
+      - labels: '{}'
+        value: 9.55
+    - monitor: model-usage-errors
+      endpoint: &id004
+        server.address: vllm.ai.svc
+        server.port: '8000'
+      samples:
+      - labels: '{}'
+        value: 0.0
+    - monitor: model-usage-latency
+      endpoint: *id004
+      samples:
+      - labels: '{}'
+        value: 58.5
+    - monitor: model-usage-errors
+      endpoint: &id005
+        server.address: model.+[1].example
+        server.port: '8000'
+      samples:
+      - labels: '{}'
+        value: 0.6
+    - monitor: model-usage-latency
+      endpoint: *id005
+      samples:
+      - labels: '{}'
+        value: 9.55
+    - monitor: model-usage-errors
+      endpoint: &id006
+        server.address: modelXX1xexample
+        server.port: '8000'
+      samples:
+      - labels: '{}'
+        value: 0.9
+    - monitor: model-usage-latency
+      endpoint: *id006
+      samples:
+      - labels: '{}'
+        value: 58.5

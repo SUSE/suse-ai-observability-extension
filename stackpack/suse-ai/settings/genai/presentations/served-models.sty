@@ -1,0 +1,88 @@
+nodes:
+- _type: ComponentPresentation
+  name: Model deployment
+  identifier: urn:stackpack:suse-ai:component-presentation:served-models
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: (type = "genai served model" and label = "stackpack:suse-ai")
+  rank:
+    specificity: 220
+  presentation:
+    icon: !icon model.svg
+    overview:
+      name:
+        singular: model deployment
+        plural: model deployment
+        title: Model deployment
+      columns:
+      - columnId: health
+        title: Health
+        projection:
+          _type: HealthProjection
+          value: healthState
+      - columnId: otel_name
+        title: Name
+        projection:
+          _type: ComponentLinkProjection
+          name: name
+          identifier: identifiers[0]
+      - columnId: otel_namespace
+        title: Service namespace
+        projection:
+          _type: TextProjection
+          value: tags.singleValue('service.namespace')
+      - columnId: suse_ai_service
+        title: Service
+        projection:
+          _type: TextProjection
+          value: tags.singleValue('service.name')
+      - columnId: suse_ai_model_latency
+        title: Request latency P95
+        projection:
+          _type: MetricProjection
+          sparkline: true
+          decimalPlaces: 2
+          unit: s
+          query: histogram_quantile(0.95, sum by(service_namespace, service_name, model_name, le) (rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_bucket",
+            service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}",
+            model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}])))
+          metricId: suse-ai-genai-model-e2e-latency
+      - columnId: suse_ai_model_ttft
+        title: Time to first token P95
+        projection:
+          _type: MetricProjection
+          sparkline: true
+          decimalPlaces: 2
+          unit: s
+          query: histogram_quantile(0.95, sum by(service_namespace, service_name, model_name, le) (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket",
+            service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}",
+            model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}])))
+          metricId: suse-ai-genai-model-ttft-latency
+      - columnId: suse_ai_model_output_tokens
+        title: Output tokens / s
+        projection:
+          _type: MetricProjection
+          sparkline: true
+          decimalPlaces: 2
+          unit: short
+          query: sum by(service_namespace, service_name, model_name) (rate({__name__=~"vllm(:|_)generation_tokens_total", service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}]))
+          metricId: suse-ai-genai-model-token-throughput-generation
+      sort:
+      - columnId: health
+      - columnId: otel_name
+    highlight:
+      title: Model deployment
+      relatedResources:
+      - resourceId: suse_ai_service
+        title: Related services
+        order: 90
+        topologyQuery: >-
+          withNeighborsOf(direction = "both", components = (identifier = "${identifiers[0]}"), levels = "1") and type
+          = "otel service"
+        presentationIdentifier: urn:stackpack:suse-ai:component-presentation:services
+      links:
+      - linkId: suse_ai_model_inventory
+        title: All models
+        target: /#/views/urn:stackpack:suse-ai:component-presentation:model-inventory
+        order: 50

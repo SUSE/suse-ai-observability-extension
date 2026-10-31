@@ -1,0 +1,21 @@
+nodes:
+- _type: Monitor
+  name: OpenSearch Cluster Yellow Status
+  identifier: urn:stackpack:suse-ai:monitor:opensearch-cluster-yellow
+  description: Indicates if the OpenSearch cluster status is yellow.
+  intervalSeconds: 60
+  status: ENABLED
+  function: urn:stackpack:common:monitor-function:threshold
+  arguments:
+    threshold: 0.0
+    comparator: GT
+    failureState: DEVIATING
+    metric:
+      aliasTemplate: OpenSearch Cluster Yellow Status
+      query: max by (service_namespace, service_name) (elasticsearch_cluster_health{suse_ai_product="opensearch", service_namespace!="",
+        service_name!="", status="yellow"}) or (0 * sum by (service_namespace, service_name) (elasticsearch_cluster_health{suse_ai_product="opensearch",
+        service_namespace!="", service_name!=""}))
+      unit: short
+    titleTemplate: OpenSearch Cluster Yellow Status
+    urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
+  remediationHint: !include 'remediation-hints/opensearch/remediation-yellow.md.hbs'

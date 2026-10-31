@@ -1,0 +1,21 @@
+nodes:
+- _type: Monitor
+  name: Milvus Request Failed Rate
+  identifier: urn:stackpack:suse-ai:monitor:milvus-request-failed-rate
+  description: Indicates if Milvus is experiencing request failures.
+  intervalSeconds: 60
+  status: ENABLED
+  function: urn:stackpack:common:monitor-function:threshold
+  arguments:
+    threshold: 0.0
+    comparator: GT
+    failureState: CRITICAL
+    metric:
+      aliasTemplate: Milvus Request Failed Rate
+      query: |-
+        sum by (service_namespace, service_name) (rate(milvus_proxy_req_count_total{suse_ai_product="milvus", service_namespace!="", service_name!="", status=~"fail|fail_input|fail_system"}[5m]))
+        or (0 * sum by (service_namespace, service_name) (rate(milvus_proxy_req_count_total{suse_ai_product="milvus", service_namespace!="", service_name!="", status=~"total|success"}[5m])))
+      unit: reqps
+    titleTemplate: Milvus Request Failures
+    urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
+  remediationHint: !include 'remediation-hints/milvus/remediation-failures.md.hbs'

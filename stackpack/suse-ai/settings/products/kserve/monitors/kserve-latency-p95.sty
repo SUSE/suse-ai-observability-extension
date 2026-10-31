@@ -1,0 +1,22 @@
+nodes:
+- _type: Monitor
+  name: KServe Predict Latency P95 High
+  identifier: urn:stackpack:suse-ai:monitor:kserve-latency-p95
+  description: |
+    Triggers when the P95 model predict latency exceeds 2 seconds
+    over 5 minutes.
+  status: ENABLED
+  intervalSeconds: 60
+  function: urn:stackpack:common:monitor-function:threshold
+  arguments:
+    comparator: GT
+    failureState: DEVIATING
+    threshold: 2.0
+    metric:
+      query: histogram_quantile(0.95, sum by (service_namespace, service_name, le) (rate(request_predict_seconds_bucket{suse_ai_product="kserve",
+        service_namespace!="", service_name!=""}[5m])))
+      aliasTemplate: KServe Predict Latency P95 High
+      unit: s
+    titleTemplate: KServe P95 predict latency above 2s
+    urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
+  remediationHint: !include 'remediation-hints/kserve/remediation-latency.md.hbs'

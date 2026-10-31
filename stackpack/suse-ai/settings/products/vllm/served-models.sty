@@ -1,0 +1,211 @@
+nodes:
+- _type: ComponentPresentation
+  name: Served Models Vllm
+  identifier: urn:stackpack:suse-ai:component-presentation:served-models-vllm
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: (type = "genai served model" and label = "suse.ai.product:vllm" and label = "stackpack:suse-ai")
+  rank:
+    specificity: 240
+  presentation:
+    highlight:
+      metrics:
+      - sectionId: suse-ai-served-models-vllm
+        title: vLLM
+        order: 200
+        metrics:
+        - metricId: suse-ai-genai-model-e2e-latency
+          order: 100
+        - metricId: suse-ai-genai-model-ttft-latency
+          order: 99
+        - metricId: suse-ai-genai-model-tpot-latency
+          order: 98
+    metricPerspective:
+      tabs:
+      - tabId: suse-ai-performance
+        title: Performance
+        order: 50
+        sections:
+        - sectionId: suse-ai-performance-latency
+          title: Latency
+          order: 50
+          metrics:
+          - metricId: suse-ai-genai-model-e2e-latency
+            order: 100
+          - metricId: suse-ai-genai-model-ttft-latency
+            order: 99
+          - metricId: suse-ai-genai-model-tpot-latency
+            order: 98
+        - sectionId: suse-ai-performance-throughput
+          title: Throughput
+          order: 49
+          metrics:
+          - metricId: suse-ai-genai-model-token-throughput-prompt
+            order: 97
+          - metricId: suse-ai-genai-model-token-throughput-generation
+            order: 96
+        - sectionId: suse-ai-performance-cache-utilization
+          title: Cache Utilization
+          order: 48
+          metrics:
+          - metricId: suse-ai-genai-model-gpu-cache-usage
+            order: 95
+        - sectionId: suse-ai-performance-scheduler
+          title: Scheduler
+          order: 47
+          metrics:
+          - metricId: suse-ai-genai-model-req-running
+            order: 94
+          - metricId: suse-ai-genai-model-req-waiting
+            order: 93
+    summary:
+      metrics:
+      - summaryMetricId: suse-ai-genai-model-e2e-latency-summary
+        name: End-to-End Request Latency
+        metricId: suse-ai-genai-model-e2e-latency
+        order: 100
+        unit: s
+        decimalPlaces: 2
+        query: |-
+          histogram_quantile(0.99, sum by(le) (rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_bucket", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}])))
+      - summaryMetricId: suse-ai-genai-model-ttft-latency-summary
+        name: Time To First Token Latency
+        metricId: suse-ai-genai-model-ttft-latency
+        order: 99
+        unit: s
+        decimalPlaces: 2
+        query: |-
+          histogram_quantile(0.99, sum by(le) (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}])))
+      - summaryMetricId: suse-ai-genai-model-tpot-latency-summary
+        name: Time Per Output Token Latency
+        metricId: suse-ai-genai-model-tpot-latency
+        order: 98
+        unit: s
+        decimalPlaces: 2
+        query: |-
+          histogram_quantile(0.99, sum by(le) (rate({__name__=~"vllm(:|_)time_per_output_token_seconds_bucket", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}])))
+      - summaryMetricId: suse-ai-genai-model-token-throughput-prompt-summary
+        name: Token Throughput (Prompt)
+        metricId: suse-ai-genai-model-token-throughput-prompt
+        order: 97
+        unit: short
+        decimalPlaces: 2
+        query: |-
+          sum(rate({__name__=~"vllm(:|_)prompt_tokens_total", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}]))
+  metrics:
+  - metricId: suse-ai-genai-model-e2e-latency
+    name: End-to-End Request Latency
+    metricQueries:
+    - expression: |-
+        histogram_quantile(0.99, sum by(le) (rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_bucket", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}])))
+      alias: P99
+    - expression: |-
+        histogram_quantile(0.95, sum by(le) (rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_bucket", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}])))
+      alias: P95
+      primary: true
+    - expression: |-
+        histogram_quantile(0.90, sum by(le) (rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_bucket", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}])))
+      alias: P90
+    - expression: |-
+        histogram_quantile(0.50, sum by(le) (rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_bucket", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}])))
+      alias: P50
+    - expression: |-
+        sum(rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_sum", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}])) / sum(rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_count", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}]))
+      alias: Average
+    chart:
+      _type: TimeSeriesChart
+      unit: s
+  - metricId: suse-ai-genai-model-ttft-latency
+    name: Time To First Token Latency
+    metricQueries:
+    - expression: |-
+        histogram_quantile(0.99, sum by(le) (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}])))
+      alias: P99
+    - expression: |-
+        histogram_quantile(0.95, sum by(le) (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}])))
+      alias: P95
+      primary: true
+    - expression: |-
+        histogram_quantile(0.90, sum by(le) (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}])))
+      alias: P90
+    - expression: |-
+        histogram_quantile(0.50, sum by(le) (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}])))
+      alias: P50
+    - expression: |-
+        sum(rate({__name__=~"vllm(:|_)time_to_first_token_seconds_sum", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}])) / sum(rate({__name__=~"vllm(:|_)time_to_first_token_seconds_count", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}]))
+      alias: Average
+    chart:
+      _type: TimeSeriesChart
+      unit: s
+  - metricId: suse-ai-genai-model-tpot-latency
+    name: Time Per Output Token Latency
+    metricQueries:
+    - expression: |-
+        histogram_quantile(0.99, sum by(le) (rate({__name__=~"vllm(:|_)time_per_output_token_seconds_bucket", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}])))
+      alias: P99
+    - expression: |-
+        histogram_quantile(0.95, sum by(le) (rate({__name__=~"vllm(:|_)time_per_output_token_seconds_bucket", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}])))
+      alias: P95
+      primary: true
+    - expression: |-
+        histogram_quantile(0.90, sum by(le) (rate({__name__=~"vllm(:|_)time_per_output_token_seconds_bucket", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}])))
+      alias: P90
+    - expression: |-
+        histogram_quantile(0.50, sum by(le) (rate({__name__=~"vllm(:|_)time_per_output_token_seconds_bucket", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}])))
+      alias: P50
+    - expression: |-
+        sum(rate({__name__=~"vllm(:|_)time_per_output_token_seconds_sum", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}])) / sum(rate({__name__=~"vllm(:|_)time_per_output_token_seconds_count", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}]))
+      alias: Average
+    chart:
+      _type: TimeSeriesChart
+      unit: s
+  - metricId: suse-ai-genai-model-token-throughput-prompt
+    name: Token Throughput (Prompt)
+    metricQueries:
+    - expression: |-
+        sum(rate({__name__=~"vllm(:|_)prompt_tokens_total", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}]))
+      alias: Prompt Tokens/Sec
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: short
+  - metricId: suse-ai-genai-model-token-throughput-generation
+    name: Token Throughput (Generation)
+    metricQueries:
+    - expression: |-
+        sum(rate({__name__=~"vllm(:|_)generation_tokens_total", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}]))
+      alias: Generation Tokens/Sec
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: short
+  - metricId: suse-ai-genai-model-gpu-cache-usage
+    name: GPU Cache Usage
+    metricQueries:
+    - expression: |-
+        max(vllm_gpu_cache_usage_perc{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"} or vllm:gpu_cache_usage_perc{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"})
+      alias: GPU Cache Usage
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: percentunit
+  - metricId: suse-ai-genai-model-req-running
+    name: Number of Requests Running
+    metricQueries:
+    - expression: |-
+        sum(vllm_num_requests_running{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"} or vllm:num_requests_running{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"})
+      alias: req
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: short
+  - metricId: suse-ai-genai-model-req-waiting
+    name: Number of Requests Waiting
+    metricQueries:
+    - expression: |-
+        sum(vllm_num_requests_waiting{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"} or vllm:num_requests_waiting{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", model_name="${tags.singleValue('vllm.model.name')}"})
+      alias: req
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: short

@@ -1,0 +1,11 @@
+name: invalid-component-mapping
+version: "0.0.1"
+schemaVersion: "2.0"
+displayName: Invalid component mapping
+logoUrl: !resource "logo.svg"
+overviewUrl: !resource "overview.md"
+detailedOverviewUrl: !resource "overview.md"
+categories: []
+configurationUrls: {}
+provision:
+  companionStackPacks: []

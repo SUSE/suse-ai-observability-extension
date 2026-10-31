@@ -1,0 +1,60 @@
+nodes:
+# A separate contribution preserves eligibility when a product also emits
+# resources without the probe marker through the generic service mappings.
+- _type: OtelComponentMapping
+  name: HTTP probe service eligibility
+  identifier: urn:stackpack:suse-ai:otel-component-mapping:http-probe-services
+  input:
+    signal: [METRICS]
+    resource:
+      condition: >-
+        'service.name' in resource.attributes && resource.attributes['service.name'] != '' &&
+        'suse.ai.observation.kind' in resource.attributes && resource.attributes['suse.ai.observation.kind'] == 'http-probe' &&
+        !('suse.ai.managed' in resource.attributes && string(resource.attributes['suse.ai.managed']) == 'false')
+      scope:
+        metric:
+          condition: metric.name.startsWith('httpcheck.')
+          action: "'CREATE'"
+  vars:
+  - name: namespace
+    value: "'service.namespace' in resource.attributes && resource.attributes['service.namespace'] != '' ? resource.attributes['service.namespace'] : 'default'"
+  output:
+    identifier: "'urn:opentelemetry:namespace/' + vars.namespace + ':service/' + resource.attributes['service.name']"
+    name: resource.attributes['service.name']
+    typeName: "'otel service'"
+    required:
+      tags:
+      - source: "'http-probe'"
+        target: suse.ai.observation.kind
+  rank:
+    specificity: 150
+  expireAfter: 900000
+- _type: OtelComponentMapping
+  name: HTTP probe service instance eligibility
+  identifier: urn:stackpack:suse-ai:otel-component-mapping:http-probe-service-instances
+  input:
+    signal: [METRICS]
+    resource:
+      condition: >-
+        'service.name' in resource.attributes && resource.attributes['service.name'] != '' &&
+        'service.instance.id' in resource.attributes && resource.attributes['service.instance.id'] != '' &&
+        'suse.ai.observation.kind' in resource.attributes && resource.attributes['suse.ai.observation.kind'] == 'http-probe' &&
+        !('suse.ai.managed' in resource.attributes && string(resource.attributes['suse.ai.managed']) == 'false')
+      scope:
+        metric:
+          condition: metric.name.startsWith('httpcheck.')
+          action: "'CREATE'"
+  vars:
+  - name: namespace
+    value: "'service.namespace' in resource.attributes && resource.attributes['service.namespace'] != '' ? resource.attributes['service.namespace'] : 'default'"
+  output:
+    identifier: "'urn:opentelemetry:namespace/' + vars.namespace + ':service/' + resource.attributes['service.name'] + ':serviceInstance/' + resource.attributes['service.instance.id']"
+    name: "resource.attributes['service.name'] + ' - ' + resource.attributes['service.instance.id']"
+    typeName: "'otel service instance'"
+    required:
+      tags:
+      - source: "'http-probe'"
+        target: suse.ai.observation.kind
+  rank:
+    specificity: 150
+  expireAfter: 900000

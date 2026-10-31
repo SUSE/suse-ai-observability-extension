@@ -1,0 +1,25 @@
+nodes:
+  - _type: OtelComponentMapping
+    name: Invalid component mapping
+    identifier: urn:stackpack:validator-test:otel-component-mapping:invalid
+    input:
+      signal: [LOGS]
+      resource:
+        scope:
+          log:
+            action: "'CREATE'"
+            condition: "true"
+    vars: []
+    output:
+      identifier: "'urn:validator-test:component'"
+      name: "undeclaredValidationControl"
+      typeName: "'vm'"
+      required:
+        configuration: "{}"
+        tags: []
+      optional:
+        status: "{}"
+        tags: []
+    rank:
+      specificity: 10.0
+    expireAfter: 900000

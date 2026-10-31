@@ -1,0 +1,74 @@
+nodes:
+- _type: ComponentPresentation
+  name: Agents
+  identifier: urn:stackpack:suse-ai:component-presentation:agents
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: (type = "genai agent" and label = "stackpack:suse-ai")
+  rank:
+    specificity: 210
+  presentation:
+    icon: !icon agent.svg
+    overview:
+      name:
+        singular: Agent
+        plural: agents
+        title: Agents
+      columns:
+      - columnId: health
+        title: Health
+        projection:
+          _type: HealthProjection
+          value: healthState
+      - columnId: otel_name
+        title: Name
+        projection:
+          _type: ComponentLinkProjection
+          name: name
+          identifier: identifiers[0]
+      - columnId: otel_namespace
+        title: Service namespace
+        projection:
+          _type: TextProjection
+          value: tags.singleValue('service.namespace')
+      - columnId: suse_ai_service
+        title: Service
+        projection:
+          _type: TextProjection
+          value: tags.singleValue('service.name')
+      sort:
+      - columnId: health
+      - columnId: otel_name
+    highlight:
+      title: Agent
+      fields:
+      - fieldId: suse_ai_gen_ai.agent.name
+        title: Agent
+        order: 90
+        projection:
+          _type: TextProjection
+          value: tags.singleValue('gen_ai.agent.name')
+      relatedResources:
+      - resourceId: suse_ai_service
+        title: Hosting service
+        order: 90
+        topologyQuery: >-
+          withNeighborsOf(direction = "both", components = (identifier = "${identifiers[0]}"), levels = "1") and type
+          = "otel service"
+        presentationIdentifier: urn:stackpack:suse-ai:component-presentation:services
+      - resourceId: suse_ai_models
+        title: Service model usage
+        order: 80
+        topologyQuery: >-
+          type = "genai model usage" and label = "service.namespace:${tags.singleValue('service.namespace')}" and label = "service.name:${tags.singleValue('service.name')}"
+        presentationIdentifier: urn:stackpack:suse-ai:component-presentation:models
+    tracesPerspective:
+      showTraces: true
+      spanFilter:
+        serviceName:
+        - ${tags.singleValue('service.name')}
+        attributes:
+          service.namespace:
+          - ${tags.singleValue('service.namespace')}
+          gen_ai.agent.name:
+          - ${tags.singleValue('gen_ai.agent.name')}

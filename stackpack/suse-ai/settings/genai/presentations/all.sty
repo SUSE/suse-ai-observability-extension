@@ -1,0 +1,51 @@
+nodes:
+- _type: ComponentPresentation
+  name: AI overview
+  identifier: urn:stackpack:suse-ai:component-presentation:all
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: label = "stackpack:suse-ai" and type IN ("otel service", "genai served model", "genai database dependency")
+  rank:
+    specificity: 205
+  presentation:
+    overview:
+      name:
+        singular: AI component
+        plural: AI components
+        title: Overview
+      columns:
+      - columnId: health
+        title: Health
+        projection:
+          _type: HealthProjection
+          value: healthState
+      - columnId: otel_name
+        title: Name
+        projection:
+          _type: ComponentLinkProjection
+          name: name
+          identifier: identifiers[0]
+      - columnId: suse_ai_category
+      - columnId: otel_namespace
+        title: Service namespace
+        projection:
+          _type: TextProjection
+          value: tags.singleValue('service.namespace')
+      - columnId: otel_k8s_cluster
+      - columnId: suse_ai_observer_service
+      - columnId: suse_ai_observer_cluster
+      sort:
+      - columnId: health
+      - columnId: otel_name
+      mainMenu:
+        group: SUSE AI
+        icon: !icon menu/all.svg
+        order: 100
+    topology:
+      groupingEnabled: true
+      showIndirectRelations: false
+      minimumGroupSize: 8
+      groupedByLayers: false
+      groupedByDomains: false
+      autoGrouping: false
+      connectedComponents: false

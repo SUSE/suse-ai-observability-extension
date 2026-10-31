@@ -1,0 +1,22 @@
+nodes:
+- _type: Monitor
+  name: Kubeflow Workflow Queue Lag
+  identifier: urn:stackpack:suse-ai:monitor:kfp-workflow-queue-lag
+  description: |
+    Triggers when an Argo controller queue item remains active for more than
+    five minutes.
+  status: ENABLED
+  intervalSeconds: 60
+  function: urn:stackpack:common:monitor-function:threshold
+  arguments:
+    comparator: GT
+    failureState: DEVIATING
+    threshold: 300
+    metric:
+      query: max by (service_namespace, service_name) (argo_workflows_queue_longest_running{suse_ai_product="kubeflow-pipelines",
+        service_namespace!="", service_name!=""})
+      aliasTemplate: Kubeflow Workflow Queue Lag
+      unit: s
+    titleTemplate: Kubeflow workflow queue lag exceeds five minutes
+    urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
+  remediationHint: !include 'remediation-hints/kubeflow-pipelines/remediation-reconcile-lag.md.hbs'

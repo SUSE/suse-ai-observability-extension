@@ -1,0 +1,47 @@
+nodes:
+- _type: OtelRelationMapping
+  identifier: urn:stackpack:suse-ai:otel-relation-mapping:service-database
+  name: Service calls an observed database
+  input:
+    signal:
+    - TRACES
+    resource:
+      condition: >-
+        'service.name' in resource.attributes && resource.attributes['service.name'] != '' &&
+        !('suse.ai.managed' in resource.attributes && string(resource.attributes['suse.ai.managed']) == 'false')
+      scope:
+        span:
+          condition: >-
+            span.kind == 'Client' &&
+            'db.system.name' in span.attributes && span.attributes['db.system.name'] in
+            ['milvus', 'qdrant', 'opensearch', 'elasticsearch'] &&
+            'server.address' in span.attributes && span.attributes['server.address'] != '' &&
+            !('suse.ai.peer.service.name' in span.attributes && span.attributes['suse.ai.peer.service.name'] != '' &&
+              'suse.ai.peer.service.namespace' in span.attributes && span.attributes['suse.ai.peer.service.namespace'] != '' &&
+              'k8s.cluster.name' in resource.attributes && resource.attributes['k8s.cluster.name'] != '' &&
+              'suse.ai.peer.cluster' in span.attributes &&
+              span.attributes['suse.ai.peer.cluster'] == resource.attributes['k8s.cluster.name'])
+          action: "'CREATE'"
+  vars:
+  - name: namespace
+    value: >-
+      'service.namespace' in resource.attributes && resource.attributes['service.namespace'] != ''
+      ? resource.attributes['service.namespace'] : 'default'
+  - name: service
+    value: resource.attributes['service.name']
+  - name: cluster
+    value: "'k8s.cluster.name' in resource.attributes ? resource.attributes['k8s.cluster.name'] : ''"
+  - name: system
+    value: span.attributes['db.system.name']
+  - name: address
+    value: span.attributes['server.address']
+  - name: port
+    value: "'server.port' in span.attributes ? string(span.attributes['server.port']) : ''"
+  expireAfter: 900000
+  output:
+    sourceId: "'urn:opentelemetry:namespace/' + vars.namespace + ':service/' + vars.service"
+    targetId: >-
+      'urn:suse-ai:database-dependency:cluster/' + vars.cluster + ':namespace/' + vars.namespace +
+      ':service/' + vars.service + ':system/' + vars.system + ':server/' + vars.address + ':port/' + vars.port
+    typeName: "'synchronous'"
+    dependencyType: "'CONNECTION'"

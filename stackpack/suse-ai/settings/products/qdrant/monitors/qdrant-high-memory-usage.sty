@@ -1,0 +1,20 @@
+nodes:
+- _type: Monitor
+  name: Qdrant High Memory Usage
+  identifier: urn:stackpack:suse-ai:monitor:qdrant-high-memory-usage
+  description: Indicates if Qdrant active memory allocation is approaching capacity.
+  intervalSeconds: 60
+  status: ENABLED
+  function: urn:stackpack:common:monitor-function:threshold
+  arguments:
+    threshold: 4294967296
+    comparator: GT
+    failureState: DEVIATING
+    metric:
+      aliasTemplate: Qdrant High Memory Usage
+      query: max by (service_namespace, service_name) (memory_active_bytes{suse_ai_product="qdrant", service_namespace!="",
+        service_name!=""})
+      unit: bytes
+    titleTemplate: Qdrant High Memory Usage
+    urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
+  remediationHint: !include 'remediation-hints/qdrant/remediation-memory.md.hbs'

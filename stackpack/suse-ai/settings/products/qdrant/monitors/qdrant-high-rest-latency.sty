@@ -1,0 +1,20 @@
+nodes:
+- _type: Monitor
+  name: Qdrant High REST API Latency
+  identifier: urn:stackpack:suse-ai:monitor:qdrant-high-rest-latency
+  description: Indicates if Qdrant REST API average response duration is too high.
+  intervalSeconds: 60
+  status: ENABLED
+  function: urn:stackpack:common:monitor-function:threshold
+  arguments:
+    threshold: 2.0
+    comparator: GT
+    failureState: DEVIATING
+    metric:
+      aliasTemplate: Qdrant High REST API Latency
+      query: max by (service_namespace, service_name) (rest_responses_avg_duration_seconds{suse_ai_product="qdrant",
+        service_namespace!="", service_name!=""})
+      unit: s
+    titleTemplate: Qdrant High REST API Latency
+    urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
+  remediationHint: !include 'remediation-hints/qdrant/remediation-rest-latency.md.hbs'

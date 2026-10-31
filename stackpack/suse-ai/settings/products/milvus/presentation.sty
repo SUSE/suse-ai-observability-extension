@@ -1,0 +1,208 @@
+nodes:
+- _type: ComponentPresentation
+  name: Product Milvus
+  identifier: urn:stackpack:suse-ai:component-presentation:product-milvus
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: (label = "stackpack:open-telemetry" and type in ("otel service", "otel service instance") and label = "stackpack:suse-ai")
+      and label = "suse.ai.product:milvus"
+  rank:
+    specificity: 240
+  presentation:
+    highlight:
+      metrics:
+      - sectionId: suse-ai-product-milvus
+        title: Milvus
+        order: 200
+        metrics:
+        - metricId: suse-ai-milvus-vectordb-system-search-latency
+          order: 100
+        - metricId: suse-ai-milvus-vectordb-system-request-success-rate
+          order: 99
+        - metricId: suse-ai-milvus-vectordb-system-insert-vector-search-rate
+          order: 98
+    icon: !icon products/milvus.svg
+    metricPerspective:
+      tabs:
+      - tabId: suse-ai-vectordb
+        title: VectorDB
+        order: 50
+        sections:
+        - sectionId: suse-ai-vectordb-latency
+          title: Latency
+          order: 50
+          metrics:
+          - metricId: suse-ai-milvus-vectordb-system-request-latency-p99
+            order: 100
+          - metricId: suse-ai-milvus-vectordb-system-average-request-latency
+            order: 99
+          - metricId: suse-ai-milvus-vectordb-system-search-latency
+            order: 96
+          - metricId: suse-ai-milvus-vectordb-system-average-search-latency
+            order: 95
+          - metricId: suse-ai-milvus-vectordb-system-mutation-send-latency
+            order: 91
+          - metricId: suse-ai-milvus-vectordb-system-average-mutation-send-latency
+            order: 90
+        - sectionId: suse-ai-vectordb-utilization
+          title: Utilization
+          order: 49
+          metrics:
+          - metricId: suse-ai-milvus-vectordb-system-invsert-vector-count-rate
+            order: 98
+          - metricId: suse-ai-milvus-vectordb-system-insert-vector-search-rate
+            order: 97
+        - sectionId: suse-ai-vectordb-request
+          title: Request
+          order: 48
+          metrics:
+          - metricId: suse-ai-milvus-vectordb-system-request-success-rate
+            order: 94
+          - metricId: suse-ai-milvus-vectordb-system-request-failed-rate
+            order: 93
+          - metricId: suse-ai-milvus-vectordb-system-failed-requests-count
+            order: 92
+    summary:
+      metrics:
+      - summaryMetricId: suse-ai-milvus-vectordb-system-request-latency-p99-summary
+        name: Request Latency (P99)
+        metricId: suse-ai-milvus-vectordb-system-request-latency-p99
+        order: 100
+        unit: s
+        decimalPlaces: 2
+        query: |-
+          (histogram_quantile(0.99, sum by (le, pod, node_id, function_name) (rate(milvus_proxy_req_latency_bucket{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))) / 1000
+      - summaryMetricId: suse-ai-milvus-vectordb-system-average-request-latency-summary
+        name: Average Request Latency
+        metricId: suse-ai-milvus-vectordb-system-average-request-latency
+        order: 99
+        unit: s
+        decimalPlaces: 2
+        query: |-
+          (sum by(function_name) (increase(milvus_proxy_req_latency_sum{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))  / sum by(function_name) (increase(milvus_proxy_req_latency_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))) / 1000
+      - summaryMetricId: suse-ai-milvus-vectordb-system-invsert-vector-count-rate-summary
+        name: Insert Vector Count Rate
+        metricId: suse-ai-milvus-vectordb-system-invsert-vector-count-rate
+        order: 98
+        unit: cps
+        decimalPlaces: 2
+        query: |-
+          sum(rate(milvus_proxy_insert_vectors_count_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
+      - summaryMetricId: suse-ai-milvus-vectordb-system-insert-vector-search-rate-summary
+        name: Search Vector Count Rate
+        metricId: suse-ai-milvus-vectordb-system-insert-vector-search-rate
+        order: 97
+        unit: cps
+        decimalPlaces: 2
+        query: |-
+          sum(rate(milvus_proxy_search_vectors_count_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
+  metrics:
+  - metricId: suse-ai-milvus-vectordb-system-request-latency-p99
+    name: Request Latency (P99)
+    metricQueries:
+    - expression: |-
+        (histogram_quantile(0.99, sum by (le, pod, node_id, function_name) (rate(milvus_proxy_req_latency_bucket{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))) / 1000
+      alias: ${function_name}
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: s
+  - metricId: suse-ai-milvus-vectordb-system-average-request-latency
+    name: Average Request Latency
+    metricQueries:
+    - expression: |-
+        (sum by(function_name) (increase(milvus_proxy_req_latency_sum{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))  / sum by(function_name) (increase(milvus_proxy_req_latency_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))) / 1000
+      alias: ${function_name}
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: s
+  - metricId: suse-ai-milvus-vectordb-system-invsert-vector-count-rate
+    name: Insert Vector Count Rate
+    metricQueries:
+    - expression: |-
+        sum(rate(milvus_proxy_insert_vectors_count_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
+      alias: Count Rate
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: cps
+  - metricId: suse-ai-milvus-vectordb-system-insert-vector-search-rate
+    name: Search Vector Count Rate
+    metricQueries:
+    - expression: |-
+        sum(rate(milvus_proxy_search_vectors_count_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
+      alias: Count Rate
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: cps
+  - metricId: suse-ai-milvus-vectordb-system-search-latency
+    name: Search Latency (P99)
+    metricQueries:
+    - expression: |-
+        (histogram_quantile(0.99, sum by (le) (rate(milvus_proxy_sq_latency_bucket{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))) / 1000
+      alias: Latency
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: s
+  - metricId: suse-ai-milvus-vectordb-system-average-search-latency
+    name: Average Search Latency
+    metricQueries:
+    - expression: |-
+        (sum by (query_type) (increase(milvus_proxy_sq_latency_sum{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))  / sum by (query_type) (increase(milvus_proxy_sq_latency_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))) / 1000
+      alias: ${query_type}
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: s
+  - metricId: suse-ai-milvus-vectordb-system-request-success-rate
+    name: Request Success Rate
+    metricQueries:
+    - expression: |-
+        sum by (function_name) (rate(milvus_proxy_req_count_total{status="success", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
+      alias: ${function_name}
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: reqps
+  - metricId: suse-ai-milvus-vectordb-system-request-failed-rate
+    name: Request Failed Rate
+    metricQueries:
+    - expression: |-
+        sum by (function_name) (rate(milvus_proxy_req_count_total{status=~"fail|fail_input|fail_system", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])) or (0 * sum by (function_name) (rate(milvus_proxy_req_count_total{status=~"total|success", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))
+      alias: ${function_name}
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: reqps
+  - metricId: suse-ai-milvus-vectordb-system-failed-requests-count
+    name: Failed Requests Count
+    metricQueries:
+    - expression: sum(milvus_proxy_req_count_total{status=~"fail|fail_input|fail_system", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}) or (0 * sum(milvus_proxy_req_count_total{status=~"total|success", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}))
+      alias: Failure Count
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: short
+  - metricId: suse-ai-milvus-vectordb-system-mutation-send-latency
+    name: Mutation Send Latency  (P99)
+    metricQueries:
+    - expression: |-
+        (histogram_quantile(0.99, sum by (le, msg_type) (rate(milvus_proxy_mutation_send_latency_bucket{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))) / 1000
+      alias: ${msg_type}
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: s
+  - metricId: suse-ai-milvus-vectordb-system-average-mutation-send-latency
+    name: Average Mutation Send Latency
+    metricQueries:
+    - expression: |-
+        (sum by (msg_type) (increase(milvus_proxy_mutation_send_latency_sum{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])) / sum by(msg_type) (increase(milvus_proxy_mutation_send_latency_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))) / 1000
+      alias: ${msg_type}
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: s

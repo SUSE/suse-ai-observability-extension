@@ -1,0 +1,145 @@
+nodes:
+- _type: ComponentPresentation
+  name: Product Elasticsearch
+  identifier: urn:stackpack:suse-ai:component-presentation:product-elasticsearch
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: (label = "stackpack:open-telemetry" and type in ("otel service", "otel service instance") and label = "stackpack:suse-ai")
+      and label = "suse.ai.product:elasticsearch"
+  rank:
+    specificity: 240
+  presentation:
+    highlight:
+      metrics:
+      - sectionId: suse-ai-product-elasticsearch
+        title: Elasticsearch
+        order: 200
+        metrics:
+        - metricId: suse-ai-elasticsearch-vectordb-pending-tasks-count
+          order: 100
+        - metricId: suse-ai-elasticsearch-vectordb-green
+          order: 99
+        - metricId: suse-ai-elasticsearch-vectordb-yellow
+          order: 98
+    icon: !icon products/elasticsearch.svg
+    metricPerspective:
+      tabs:
+      - tabId: suse-ai-vectordb
+        title: VectorDB
+        order: 50
+        sections:
+        - sectionId: suse-ai-vectordb-request
+          title: Request
+          order: 50
+          metrics:
+          - metricId: suse-ai-elasticsearch-vectordb-pending-tasks-count
+            order: 100
+        - sectionId: suse-ai-vectordb-status
+          title: Status
+          order: 49
+          metrics:
+          - metricId: suse-ai-elasticsearch-vectordb-green
+            order: 99
+          - metricId: suse-ai-elasticsearch-vectordb-yellow
+            order: 98
+          - metricId: suse-ai-elasticsearch-vectordb-red
+            order: 97
+        - sectionId: suse-ai-vectordb-disk-space
+          title: Disk Space
+          order: 48
+          metrics:
+          - metricId: suse-ai-elasticsearch-vectordb-free-space
+            order: 96
+        - sectionId: suse-ai-vectordb-operations
+          title: Operations
+          order: 47
+          metrics:
+          - metricId: suse-ai-elasticsearch-vectordb-operation
+            order: 95
+    summary:
+      metrics:
+      - summaryMetricId: suse-ai-elasticsearch-vectordb-pending-tasks-count-summary
+        name: Pending Tasks
+        metricId: suse-ai-elasticsearch-vectordb-pending-tasks-count
+        order: 100
+        unit: short
+        decimalPlaces: 2
+        query: sum(elasticsearch_cluster_pending_tasks{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"})
+      - summaryMetricId: suse-ai-elasticsearch-vectordb-green-summary
+        name: Cluster Status (Green)
+        metricId: suse-ai-elasticsearch-vectordb-green
+        order: 99
+        unit: short
+        decimalPlaces: 2
+        query: elasticsearch_cluster_health{status="green", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}
+      - summaryMetricId: suse-ai-elasticsearch-vectordb-yellow-summary
+        name: Cluster Status (Yellow)
+        metricId: suse-ai-elasticsearch-vectordb-yellow
+        order: 98
+        unit: short
+        decimalPlaces: 2
+        query: elasticsearch_cluster_health{status="yellow", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}
+      - summaryMetricId: suse-ai-elasticsearch-vectordb-red-summary
+        name: Cluster Status (Red)
+        metricId: suse-ai-elasticsearch-vectordb-red
+        order: 97
+        unit: short
+        decimalPlaces: 2
+        query: elasticsearch_cluster_health{status="red", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}
+  metrics:
+  - metricId: suse-ai-elasticsearch-vectordb-pending-tasks-count
+    name: Pending Tasks
+    metricQueries:
+    - expression: sum(elasticsearch_cluster_pending_tasks{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"})
+      alias: Pending tasks count
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: short
+  - metricId: suse-ai-elasticsearch-vectordb-green
+    name: Cluster Status (Green)
+    metricQueries:
+    - expression: elasticsearch_cluster_health{status="green", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}
+      alias: Cluster is Green (no issues)
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: short
+  - metricId: suse-ai-elasticsearch-vectordb-yellow
+    name: Cluster Status (Yellow)
+    metricQueries:
+    - expression: elasticsearch_cluster_health{status="yellow", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}
+      alias: Cluster is Yellow (deviating)
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: short
+  - metricId: suse-ai-elasticsearch-vectordb-red
+    name: Cluster Status (Red)
+    metricQueries:
+    - expression: elasticsearch_cluster_health{status="red", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}
+      alias: Cluster is Red (attention required)
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: short
+  - metricId: suse-ai-elasticsearch-vectordb-free-space
+    name: Free Disk (%)
+    metricQueries:
+    - expression: |-
+        (elasticsearch_node_fs_disk_free_bytes{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"} / elasticsearch_node_fs_disk_total_bytes{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}) * 100
+      alias: ${elasticsearch_node_name}
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: percent
+  - metricId: suse-ai-elasticsearch-vectordb-operation
+    name: Completed Operations Count
+    metricQueries:
+    - expression: |-
+        sum(elasticsearch_index_operations_completed_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}) by (operation)
+      alias: ${operation}
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: short

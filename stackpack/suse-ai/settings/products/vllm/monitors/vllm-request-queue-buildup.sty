@@ -1,0 +1,20 @@
+nodes:
+- _type: Monitor
+  name: vLLM Request Queue Buildup
+  identifier: urn:stackpack:suse-ai:monitor:vllm-request-queue-buildup
+  description: Indicates if vLLM has excessive requests waiting in the queue.
+  intervalSeconds: 60
+  status: ENABLED
+  function: urn:stackpack:common:monitor-function:threshold
+  arguments:
+    threshold: 10.0
+    comparator: GT
+    failureState: DEVIATING
+    metric:
+      aliasTemplate: vLLM Request Queue Buildup
+      query: max by (service_namespace, service_name) (vllm_num_requests_waiting{suse_ai_product="vllm", service_namespace!="",
+        service_name!=""} or vllm:num_requests_waiting{suse_ai_product="vllm", service_namespace!="", service_name!=""})
+      unit: short
+    titleTemplate: vLLM Request Queue Buildup
+    urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
+  remediationHint: !include 'remediation-hints/vllm/remediation-queue.md.hbs'

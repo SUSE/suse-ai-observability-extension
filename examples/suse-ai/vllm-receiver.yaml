@@ -1,0 +1,28 @@
+# Optional overlay for collector.yaml. One scrape target represents one service
+# instance; the Prometheus receiver derives service.name from job_name and
+# service.instance.id from the target. Keep these identities stable.
+receivers:
+  prometheus/vllm:
+    config:
+      scrape_configs:
+        - job_name: ${env:VLLM_SERVICE_NAME}
+          scrape_interval: 30s
+          static_configs:
+            - targets: ["${env:VLLM_METRICS_TARGET}"]
+
+processors:
+  resource/vllm:
+    attributes:
+      - key: service.namespace
+        value: ${env:VLLM_SERVICE_NAMESPACE}
+        action: insert
+      - key: suse.ai.product
+        value: vllm
+        action: insert
+
+service:
+  pipelines:
+    metrics/vllm:
+      receivers: [prometheus/vllm]
+      processors: [memory_limiter, resource/vllm, transform/suse_ai_resource, batch]
+      exporters: [otlp_grpc/suse]

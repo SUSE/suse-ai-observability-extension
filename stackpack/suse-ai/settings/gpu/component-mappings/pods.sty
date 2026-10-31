@@ -1,0 +1,36 @@
+nodes:
+- _type: OtelComponentMapping
+  name: GPU pod telemetry
+  description: Marks native Kubernetes pods with workload-attributed DCGM telemetry for GPU presentations.
+  identifier: urn:stackpack:suse-ai:otel-component-mapping:gpu-pods
+  input:
+    signal:
+    - METRICS
+    resource:
+      condition: >-
+        'k8s.cluster.name' in resource.attributes && resource.attributes['k8s.cluster.name'] != '' &&
+        'k8s.node.name' in resource.attributes && resource.attributes['k8s.node.name'] != ''
+      scope:
+        metric:
+          condition: >-
+            metric.name in ['DCGM_FI_DEV_GPU_UTIL', 'DCGM_FI_DEV_FB_USED',
+              'DCGM_FI_DEV_GPU_TEMP', 'DCGM_FI_DEV_POWER_USAGE']
+          datapoint:
+            # These are DCGM's workload labels, not the exporter's k8s.pod.* resource.
+            condition: >-
+              'pod_namespace' in datapoint.attributes && datapoint.attributes['pod_namespace'] != '' &&
+              'pod_name' in datapoint.attributes && datapoint.attributes['pod_name'] != ''
+            action: '''CREATE'''
+  output:
+    identifier: >-
+      'urn:kubernetes:/' + resource.attributes['k8s.cluster.name'] + ':' +
+      datapoint.attributes['pod_namespace'] + ':pod/' + datapoint.attributes['pod_name']
+    name: datapoint.attributes['pod_name']
+    typeName: '''pod'''
+    required:
+      tags:
+      - source: '''dcgm'''
+        target: suse.ai.gpu.telemetry
+  rank:
+    specificity: 50
+  expireAfter: 300000

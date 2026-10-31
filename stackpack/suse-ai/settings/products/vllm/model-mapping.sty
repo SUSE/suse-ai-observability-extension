@@ -1,0 +1,54 @@
+nodes:
+- _type: OtelComponentMapping
+  identifier: urn:stackpack:suse-ai:otel-component-mapping:vllm-models
+  name: vLLM served models
+  input:
+    signal:
+    - METRICS
+    resource:
+      condition: '''service.name'' in resource.attributes && resource.attributes[''service.name''] != '''' && !(''suse.ai.managed''
+        in resource.attributes && string(resource.attributes[''suse.ai.managed'']) == ''false'')'
+      scope:
+        metric:
+          condition: metric.name.startsWith('vllm:') || metric.name.startsWith('vllm_')
+          datapoint:
+            condition: '''model_name'' in datapoint.attributes && datapoint.attributes[''model_name''] != '''''
+            action: '''CREATE'''
+  vars:
+  - name: namespace
+    value: '''service.namespace'' in resource.attributes && resource.attributes[''service.namespace''] != '''' ? resource.attributes[''service.namespace'']
+      : ''default'''
+  - name: service
+    value: resource.attributes['service.name']
+  - name: model
+    value: datapoint.attributes['model_name']
+  expireAfter: 900000
+  rank:
+    specificity: 150
+  output:
+    # Values are unescaped; embedded field separators can collide (see the example README).
+    identifier: >-
+      'urn:suse-ai:namespace/' + vars.namespace + ':service/' + vars.service
+      + ':served-model/' + vars.model
+    name: vars.model
+    typeName: '''genai served model'''
+    required:
+      tags:
+      - source: '''suse-ai'''
+        target: stackpack
+      - source: vars.namespace
+        target: service.namespace
+      - source: vars.service
+        target: service.name
+      - source: vars.namespace
+        target: suse.ai.metric.service_namespace
+      - source: vars.service
+        target: suse.ai.metric.service_name
+      - source: vars.model
+        target: vllm.model.name
+      - source: '''vllm'''
+        target: suse.ai.product
+    optional:
+      tags:
+      - source: resource.attributes['k8s.cluster.name']
+        target: cluster-name
