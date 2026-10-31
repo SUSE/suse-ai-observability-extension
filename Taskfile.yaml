@@ -6,6 +6,15 @@ vars:
   IMAGE: '{{.IMAGE_NAME | default "suse-ai-observability"}}'
   VERSION: '{{.IMAGE_VERSION | default "latest"}}'
   RUNTIME: '{{.CONTAINER_RUNTIME | default "podman"}}'
+  OLLAMA_IMAGE: '{{.OLLAMA_IMAGE | default "registry.suse.com/ai/containers/suse-ai-ollama-exporter:0.1.0"}}'
+  OLLAMA_PLATFORM: '{{.OLLAMA_PLATFORM | default "linux/amd64"}}'
+  OLLAMA_REVISION:
+    sh: |
+      revision=$(git rev-parse HEAD)
+      if [ -n "$(git status --porcelain -- integrations/ollama)" ]; then
+        revision="$revision-dirty"
+      fi
+      printf '%s' "$revision"
 
 tasks:
   build:
@@ -29,6 +38,43 @@ tasks:
     desc: Run Collector, query, template and Groovy regressions (see knowledge/REGRESSION_TESTS.md)
     cmds:
       - npx --yes --package npm-groovy-lint@18.0.0 -c 'python3 -B -m unittest discover -s tests -v'
+
+  open-webui-test:
+    desc: Test the in-process Open WebUI integration (install integrations/open-webui/tests/requirements.txt first)
+    cmds:
+      - python3 -B -m unittest discover -s integrations/open-webui/tests -v
+
+  ollama-test:
+    desc: Test the read-only Ollama runtime metrics exporter
+    cmds:
+      - python3 -B -m unittest discover -s integrations/ollama/tests -v
+
+  ollama-image-build:
+    desc: Build the Ollama exporter locally (OLLAMA_PLATFORM=linux/amd64 or linux/arm64)
+    cmds:
+      - >-
+        {{.RUNTIME}} build --platform '{{.OLLAMA_PLATFORM}}'
+        --label 'org.opencontainers.image.revision={{.OLLAMA_REVISION}}'
+        -f integrations/ollama/Containerfile -t '{{.OLLAMA_IMAGE}}' integrations/ollama
+
+  ollama-patch-test:
+    desc: Check sidecar installation and ConfigMap migration with local kubectl strategic merges
+    cmds:
+      - python3 -B integrations/ollama/tests/sidecar_patch.py -v
+
+  ollama-image-test:
+    desc: Check the built image's endpoints under the sidecar security restrictions
+    env:
+      CONTAINER_RUNTIME: '{{.RUNTIME}}'
+      OLLAMA_IMAGE: '{{.OLLAMA_IMAGE}}'
+      OLLAMA_PLATFORM: '{{.OLLAMA_PLATFORM}}'
+    cmds:
+      - python3 -B integrations/ollama/tests/container_smoke.py -v
+
+  ollama-release-prepare:
+    desc: Build/test both architectures and export a LOCAL release bundle (Podman; never publishes)
+    cmds:
+      - python3 -B integrations/ollama/prepare_release.py
 
   stackpack-sync-status:
     desc: Read the installed SUSE AI synchronization status and error details

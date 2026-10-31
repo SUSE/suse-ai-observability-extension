@@ -1,0 +1,46 @@
+name: Validate Ollama runtime exporter
+
+on:
+  pull_request:
+    paths:
+      - 'integrations/ollama/**'
+      - '.github/workflows/ollama-runtime.yml'
+      - 'Taskfile.yaml'
+  push:
+    branches: [main]
+    paths:
+      - 'integrations/ollama/**'
+      - '.github/workflows/ollama-runtime.yml'
+      - 'Taskfile.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            platform: linux/amd64
+          - runner: ubuntu-24.04-arm
+            platform: linux/arm64
+    runs-on: ${{ matrix.runner }}
+    env:
+      CONTAINER_RUNTIME: docker
+      OLLAMA_IMAGE: suse-ai-ollama-exporter:test
+      OLLAMA_PLATFORM: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: Test actual exporter and API failure behavior
+        run: python3 -B -m unittest discover -s integrations/ollama/tests -v
+      - name: Check sidecar installation and migration without a cluster
+        run: python3 -B integrations/ollama/tests/sidecar_patch.py -v
+      - name: Build the SUSE image locally
+        run: >-
+          docker build --platform "$OLLAMA_PLATFORM" --label "org.opencontainers.image.revision=$GITHUB_SHA"
+          -f integrations/ollama/Containerfile -t "$OLLAMA_IMAGE" integrations/ollama
+      - name: Check packaged endpoints, user, filesystem and capabilities
+        run: python3 -B integrations/ollama/tests/container_smoke.py -v

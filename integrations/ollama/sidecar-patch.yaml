@@ -1,0 +1,33 @@
+# Strategic merge patch for an existing Ollama Deployment, not a new workload.
+# The image must be published through the SUSE registry release process first.
+spec:
+  template:
+    spec:
+      containers:
+        - name: ollama-runtime-metrics
+          image: registry.suse.com/ai/containers/suse-ai-ollama-exporter:0.1.0
+          # Clear the old ConfigMap-based command/mount when upgrading in place.
+          command: null
+          args: null
+          volumeMounts: null
+          ports:
+            - name: ollama-metrics
+              containerPort: 11435
+          resources:
+            requests: {cpu: 10m, memory: 32Mi}
+            limits: {cpu: 100m, memory: 64Mi}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
+            seccompProfile: {type: RuntimeDefault}
+          readinessProbe:
+            httpGet: {path: /healthz, port: ollama-metrics}
+          livenessProbe:
+            httpGet: {path: /healthz, port: ollama-metrics}
+      volumes:
+        - name: ollama-runtime-metrics
+          $patch: delete
