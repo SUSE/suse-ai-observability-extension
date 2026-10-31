@@ -24,10 +24,15 @@ snapshot as current. `/healthz` tests the exporter process only.
 
 The reference patch adds the packaged SUSE exporter to an existing Deployment.
 It reads `127.0.0.1:11434/api/ps` within that pod and exposes `/metrics` on 11435.
-The proposed release image is
-`registry.suse.com/ai/containers/suse-ai-ollama-exporter:0.1.0`; publication is
-pending the SUSE registry release process. Use the patch only after that image
-is available, and pin its published multi-architecture digest for deployment.
+The release image is
+`registry.suse.com/ai/containers/suse/suse-ai-ollama-exporter:<version>`, where
+`<version>` is the extension release version without the leading `v`. The first
+release is `3.0.0`. Publication and image-mirror promotion are still pending.
+Before applying `sidecar-patch.yaml`, replace
+`<PUBLISHED_MULTI_ARCH_INDEX_DIGEST>` with the published SUSE registry index's
+64-character SHA-256 value. The placeholder is intentionally not a usable
+digest; do not substitute a local image ID, a platform digest or the BCI base
+digest.
 The image bakes in the script and defaults to UID/GID 65532. The patch enforces
 a read-only root filesystem, drops all capabilities, disables privilege
 escalation and uses the runtime's default seccomp profile. No writable directory
@@ -69,6 +74,7 @@ task ollama-test
 task ollama-patch-test
 task ollama-image-build
 task ollama-image-test
+task workflows-lint
 ```
 
 The standard-library tests exercise the actual HTTP exporter and API failures,
@@ -86,14 +92,63 @@ image reference. The image tests exercise the baked-in entrypoint and default
 arguments, argument overrides, populated/empty/failed API snapshots and
 `/healthz`. They check the actual process UID/GID, zero capability sets,
 `no_new_privs`, seccomp, read-only root mount and a rejected write to `/tmp`, without
-overriding the image's user or mounting the source. CI runs on native amd64 and
-arm64 runners and only builds and tests locally.
+overriding the image's user or mounting the source. They also check the OCI
+version and reference labels. `OLLAMA_VERSION` defaults to `3.0.0`; set it to
+the intended extension release version for both build and test tasks. The
+`ollama-runtime.yml` CI workflow runs on native amd64 and arm64 runners and
+only builds and tests locally. `task workflows-lint` requires `actionlint`.
 
-## Local release validation and packaging ownership
+## Release publication and promotion
 
-Keep the image version independent of the StackPack version. This exporter
-supplies ordinary Prometheus metrics to the Collector for either StackPack
-generation; building it does not require a StackPack upload or topology change.
+The exporter uses the extension's release version, starting with `3.0.0`:
+
+```text
+extension release vX.Y.Z
+  -> ghcr.io/suse/suse-ai-ollama-exporter:X.Y.Z (linux/amd64 + linux/arm64)
+  -> image-mirror
+  -> registry.suse.com/ai/containers/suse/suse-ai-ollama-exporter:X.Y.Z
+```
+
+The [publication workflow](../../.github/workflows/publish-ollama-exporter.yml)
+runs when a GitHub release is published, or through `workflow_dispatch` against
+an existing `vX.Y.Z` tag. Branch dispatches and prerelease tag suffixes are
+rejected before publishing. It builds and tests each architecture on a native
+runner, pushes each image by digest, and joins them into one manifest list.
+`docker/metadata-action` creates `X.Y.Z`, `X.Y` and `sha-<short-commit>` tags;
+`latest` is disabled. Both OCI version and reference labels use `X.Y.Z`.
+Pull requests never publish images. The setup image is built in IBS; its old
+GitHub publication workflow targeting the nonexistent `trunk` branch was removed.
+
+Publication requires these manual steps:
+
+1. Merge the workflow before creating the extension's `v3.0.0` release tag and
+   publishing the GitHub release. Creating a tag alone does not trigger this
+   workflow. To retry an existing release, use
+   `gh workflow run publish-ollama-exporter.yml --repo SUSE/suse-ai-observability-extension --ref v3.0.0`.
+2. After the first publication, a **SUSE organization admin must make the
+   `suse-ai-ollama-exporter` GHCR package public**, as for the Collector package.
+   [New GHCR packages are private by default](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#pushing-container-images),
+   even when the source repository is public. This workflow does not change
+   package visibility.
+3. Configure the image-mirror mapping from
+   `ghcr.io/suse/suse-ai-ollama-exporter:3.0.0` to
+   `registry.suse.com/ai/containers/suse/suse-ai-ollama-exporter:3.0.0` in the
+   separate mirror configuration and complete its promotion process.
+4. Inspect both registries and verify that the promoted index contains
+   `linux/amd64` and `linux/arm64`:
+
+   ```bash
+   docker buildx imagetools inspect ghcr.io/suse/suse-ai-ollama-exporter:3.0.0
+   docker buildx imagetools inspect registry.suse.com/ai/containers/suse/suse-ai-ollama-exporter:3.0.0
+   ```
+
+   Record the SUSE registry's top-level index digest and replace the digest
+   placeholder in `sidecar-patch.yaml` before deployment. Use the destination
+   registry's digest, which must be checked after mirroring.
+
+## Local release validation
+
+Building this exporter does not require a StackPack upload or topology change.
 
 The Containerfile uses the multi-architecture SUSE BCI Python 3.13 index pinned
 by digest. Python's HTTP, JSON, networking and TLS modules come from that image;
@@ -106,7 +161,7 @@ both architectures when taking base-image fixes. The bundled Apache-2.0
 Prepare a local handoff from the repository root:
 
 ```bash
-task ollama-release-prepare
+task ollama-release-prepare OLLAMA_VERSION=3.0.0
 ```
 
 This requires Task, Python, kubectl, Podman and either native execution or
@@ -124,23 +179,15 @@ then writes a new `.resources/ollama-release-*/` directory containing:
 The `podman manifest push` command in this task writes to the local `oci:`
 filesystem transport. It does not contact a destination registry, create Git
 tags, push a branch or open a PR. A local digest is not evidence of publication;
-the SUSE build service may produce a different digest.
-
-SUSE build-service packaging and registry publication are maintained in a
-separate repository. That repository owns service definitions, build-service
-directives and metadata, release tags and registry promotion. It can consume
-this repository's Containerfile and source revision, then use the tests to
-validate its linux/amd64 and linux/arm64 release images.
+the GHCR build and the promoted SUSE registry index must be inspected separately.
+The local bundle remains useful for offline review; release publication is
+owned by the GitHub workflow and SUSE promotion by image-mirror.
 
 The source snapshot can be tested independently of this repository's Taskfile:
 
 ```bash
 python3 -B -m unittest discover -s tests -v
 python3 -B tests/sidecar_patch.py -v
-CONTAINER_RUNTIME=podman OLLAMA_PLATFORM=linux/amd64 \
+CONTAINER_RUNTIME=podman OLLAMA_PLATFORM=linux/amd64 OLLAMA_VERSION=3.0.0 \
   OLLAMA_IMAGE=YOUR_BUILT_IMAGE python3 -B tests/container_smoke.py -v
 ```
-
-After the packaging repository publishes the image, record its index
-digest, verify that it contains linux/amd64 and linux/arm64, and use that digest
-in the sidecar patch. Do not substitute a local image ID or the BCI base digest.

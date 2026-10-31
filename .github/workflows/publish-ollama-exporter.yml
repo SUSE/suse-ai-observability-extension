@@ -1,0 +1,180 @@
+name: Publish Ollama exporter
+
+on:
+  release:
+    types: [published]
+  # Select an existing extension release tag, e.g. --ref v3.0.0.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  IMAGE_NAME: ghcr.io/suse/suse-ai-ollama-exporter
+
+concurrency:
+  group: publish-ollama-exporter-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  metadata:
+    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+      labels: ${{ steps.meta.outputs.labels }}
+      json: ${{ steps.meta.outputs.json }}
+    steps:
+      - name: Require an extension release tag
+        id: release
+        shell: bash
+        run: |
+          if [[ ! "$GITHUB_REF" =~ ^refs/tags/v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo '::error::Select an extension release tag vX.Y.Z (for example, --ref v3.0.0).'
+            exit 1
+          fi
+          echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout release
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Extract image tags and labels
+        id: meta
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          flavor: latest=false
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,format=short
+          labels: |
+            org.opencontainers.image.version=${{ steps.release.outputs.version }}
+            org.opencontainers.image.ref.name=${{ steps.release.outputs.version }}
+
+  build:
+    needs: metadata
+    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            platform: linux/amd64
+            arch: amd64
+          - runner: ubuntu-24.04-arm
+            platform: linux/arm64
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+      packages: write
+    env:
+      CONTAINER_RUNTIME: docker
+      OLLAMA_IMAGE: suse-ai-ollama-exporter:test
+      OLLAMA_PLATFORM: ${{ matrix.platform }}
+      OLLAMA_VERSION: ${{ needs.metadata.outputs.version }}
+    steps:
+      - name: Checkout release
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Test exporter and sidecar patch
+        run: |
+          python3 -B -m unittest discover -s integrations/ollama/tests -v
+          python3 -B integrations/ollama/tests/sidecar_patch.py -v
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4
+
+      - name: Build image for local testing
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: integrations/ollama
+          file: integrations/ollama/Containerfile
+          platforms: ${{ matrix.platform }}
+          build-args: VERSION=${{ needs.metadata.outputs.version }}
+          labels: ${{ needs.metadata.outputs.labels }}
+          tags: ${{ env.OLLAMA_IMAGE }}
+          load: true
+
+      - name: Test packaged endpoints, security restrictions and version labels
+        run: python3 -B integrations/ollama/tests/container_smoke.py -v
+
+      - name: Log in to GHCR
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push tested image by digest
+        id: build
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: integrations/ollama
+          file: integrations/ollama/Containerfile
+          platforms: ${{ matrix.platform }}
+          build-args: VERSION=${{ needs.metadata.outputs.version }}
+          labels: ${{ needs.metadata.outputs.labels }}
+          outputs: type=image,name=${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
+
+      - name: Export digest
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          mkdir -p /tmp/digests
+          touch "/tmp/digests/${DIGEST#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: digests-${{ matrix.arch }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    needs: [metadata, build]
+    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          path: /tmp/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - name: Log in to GHCR
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4
+
+      - name: Create and push multi-architecture manifest
+        working-directory: /tmp/digests
+        env:
+          METADATA_JSON: ${{ needs.metadata.outputs.json }}
+        run: |
+          tags=()
+          while IFS= read -r tag; do
+            tags+=(--tag "$tag")
+          done < <(jq -r '.tags[]' <<< "$METADATA_JSON")
+          images=()
+          for digest in *; do
+            images+=("$IMAGE_NAME@sha256:$digest")
+          done
+          test "${#images[@]}" -eq 2
+          docker buildx imagetools create "${tags[@]}" "${images[@]}"
+
+      - name: Inspect published image
+        env:
+          VERSION: ${{ needs.metadata.outputs.version }}
+        run: docker buildx imagetools inspect "$IMAGE_NAME:$VERSION"
