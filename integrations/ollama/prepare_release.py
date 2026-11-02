@@ -3,17 +3,16 @@
 from datetime import datetime, timezone
 import hashlib
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
 import tempfile
 
-from ollama_metrics import VERSION
-
-
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "integrations/ollama"
-IMAGE = f"registry.suse.com/ai/containers/suse-ai-ollama-exporter:{VERSION}"
+VERSION = os.environ.get("OLLAMA_VERSION", "3.0.0")
+IMAGE = f"registry.suse.com/ai/containers/suse/suse-ai-ollama-exporter:{VERSION}"
 
 
 def main():
@@ -37,7 +36,8 @@ def main():
         run("task", "ollama-patch-test")
         local = f"localhost/suse-ai-ollama-exporter:{output.name}"
         for arch in ("amd64", "arm64"):
-            variables = ("RUNTIME=podman", f"OLLAMA_PLATFORM=linux/{arch}", f"OLLAMA_IMAGE={local}-{arch}")
+            variables = ("RUNTIME=podman", f"OLLAMA_PLATFORM=linux/{arch}",
+                         f"OLLAMA_IMAGE={local}-{arch}", f"OLLAMA_VERSION={VERSION}")
             run("task", "ollama-image-build", *variables)
             run("task", "ollama-image-test", *variables)
             image_revisions[arch] = subprocess.check_output(
@@ -76,7 +76,7 @@ def main():
                                                  cwd=ROOT, text=True).splitlines(),
         "source_sha256": {str(p.relative_to(source)): hashlib.sha256(p.read_bytes()).hexdigest()
                           for p in sorted(source.rglob("*")) if p.is_file()},
-        "release_status": "Local candidate only. SUSE packaging and registry publication are maintained in a separate repository."
+        "release_status": "Local candidate only. GitHub releases publish to GHCR; image-mirror promotes to registry.suse.com."
     }
     (output / "release.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps(report, indent=2))

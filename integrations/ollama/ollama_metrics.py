@@ -10,7 +10,6 @@ from urllib.parse import urlsplit
 from urllib.request import ProxyHandler, HTTPRedirectHandler, build_opener
 
 
-VERSION = "0.1.0"
 MAX_RESPONSE_BYTES = 1024 * 1024
 FIELDS = {
     "size": ("ollama_model_size_bytes", "Model allocation reported by Ollama /api/ps in bytes."),

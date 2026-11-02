@@ -8,7 +8,8 @@ vars:
   RUNTIME: '{{.CONTAINER_RUNTIME | default "podman"}}'
   PYTHON: '{{.PYTHON | default "python3"}}'
   STS_CONTEXT: '{{.STS_CONTEXT | default ""}}'
-  OLLAMA_IMAGE: '{{.OLLAMA_IMAGE | default "registry.suse.com/ai/containers/suse-ai-ollama-exporter:0.1.0"}}'
+  OLLAMA_VERSION: '{{.OLLAMA_VERSION | default "3.0.0"}}'
+  OLLAMA_IMAGE: '{{.OLLAMA_IMAGE | default (printf "registry.suse.com/ai/containers/suse/suse-ai-ollama-exporter:%s" .OLLAMA_VERSION)}}'
   OLLAMA_PLATFORM: '{{.OLLAMA_PLATFORM | default "linux/amd64"}}'
   OLLAMA_REVISION:
     sh: |
@@ -76,6 +77,7 @@ tasks:
     cmds:
       - >-
         {{.RUNTIME}} build --platform '{{.OLLAMA_PLATFORM}}'
+        --build-arg 'VERSION={{.OLLAMA_VERSION}}'
         --label 'org.opencontainers.image.revision={{.OLLAMA_REVISION}}'
         -f integrations/ollama/Containerfile -t '{{.OLLAMA_IMAGE}}' integrations/ollama
 
@@ -90,13 +92,21 @@ tasks:
       CONTAINER_RUNTIME: '{{.RUNTIME}}'
       OLLAMA_IMAGE: '{{.OLLAMA_IMAGE}}'
       OLLAMA_PLATFORM: '{{.OLLAMA_PLATFORM}}'
+      OLLAMA_VERSION: '{{.OLLAMA_VERSION}}'
     cmds:
       - python3 -B integrations/ollama/tests/container_smoke.py -v
 
   ollama-release-prepare:
     desc: Build/test both architectures and export a LOCAL release bundle (Podman; never publishes)
+    env:
+      OLLAMA_VERSION: '{{.OLLAMA_VERSION}}'
     cmds:
       - python3 -B integrations/ollama/prepare_release.py
+
+  workflows-lint:
+    desc: Check GitHub Actions workflows with actionlint
+    cmds:
+      - actionlint -color
 
   stackpack-sync-status:
     desc: List and describe every installed synchronization, including active errorDetails

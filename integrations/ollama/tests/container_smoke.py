@@ -14,7 +14,8 @@ import uuid
 
 
 RUNTIME = os.environ.get("CONTAINER_RUNTIME", "podman")
-IMAGE = os.environ.get("OLLAMA_IMAGE", "registry.suse.com/ai/containers/suse-ai-ollama-exporter:0.1.0")
+VERSION = os.environ.get("OLLAMA_VERSION", "3.0.0")
+IMAGE = os.environ.get("OLLAMA_IMAGE", f"registry.suse.com/ai/containers/suse/suse-ai-ollama-exporter:{VERSION}")
 PLATFORM = os.environ.get("OLLAMA_PLATFORM", "linux/amd64")
 API = """
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -109,6 +110,9 @@ class ContainerTest(unittest.TestCase):
             self.assertEqual(response.status, 204)
 
     def test_default_entrypoint_with_restricted_filesystem_and_capabilities(self):
+        labels = json.loads(run("image", "inspect", IMAGE))[0]["Config"]["Labels"]
+        self.assertEqual(labels["org.opencontainers.image.version"], VERSION)
+        self.assertEqual(labels["org.opencontainers.image.ref.name"], VERSION)
         exporter = self.start("--network", f"container:{self.api}", IMAGE)
         origin = self.origin(11435)
         self.assertEqual(self.fetch(origin + "/healthz"), "ok\n")
