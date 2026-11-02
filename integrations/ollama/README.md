@@ -112,10 +112,13 @@ extension release vX.Y.Z
 The [publication workflow](../../.github/workflows/publish-ollama-exporter.yml)
 runs when a GitHub release is published, or through `workflow_dispatch` against
 an existing `vX.Y.Z` tag. Branch dispatches and prerelease tag suffixes are
-rejected before publishing. It builds and tests each architecture on a native
+rejected before publishing. It builds each architecture on a native
 runner, pushes each image by digest, and joins them into one manifest list.
 `docker/metadata-action` creates `X.Y.Z`, `X.Y` and `sha-<short-commit>` tags;
 `latest` is disabled. Both OCI version and reference labels use `X.Y.Z`.
+Exporter, sidecar patch and container tests run in `ollama-runtime.yml` for
+relevant pull requests and pushes to `main`. The publication workflow does
+not repeat those tests.
 Pull requests never publish images. The setup image is built in IBS; its old
 GitHub publication workflow targeting the nonexistent `trunk` branch was removed.
 
