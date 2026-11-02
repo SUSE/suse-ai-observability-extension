@@ -138,9 +138,9 @@ contract, not backend provisioning or schema migration.
 
 | Scenario | Installer behavior | Evidence available in this task |
 | --- | --- | --- |
-| Fresh | Ensure `kubernetes-v2` per cluster and `open-telemetry`; upload once; install exact bundled version with wait; read back status/version | CLI boundary and real-CLI HTTP-fixture tests passed; live pending |
-| Successful re-run | Read installed state; no upload, install, upgrade or deletion | Real CLI sent no additional HTTP mutations; live pending |
-| 2.2.0 → 3.0.0 | Upload if absent; verify server's `nextVersion` equals bundled version; upgrade with `--unlocked-strategy overwrite --wait`; verify final state | Tests assert command, strategy and retained instance ID; actual schema transition pending |
+| Fresh | Ensure `kubernetes-v2` per cluster and `open-telemetry`; upload once; install exact bundled version with wait; read back status/version | Live 3.0.0 instance `73808763791700`, `INSTALLED`; new Kubernetes companion accepted at `WAITING_FOR_DATA` |
+| Successful re-run | Read installed state; no upload, install, upgrade or deletion | Live fresh and post-upgrade re-runs made only read calls; instance IDs and update timestamps unchanged |
+| 2.2.0 → 3.0.0 | Upload if absent; verify server's `nextVersion` equals bundled version; upgrade with `--unlocked-strategy overwrite --wait`; verify final state | Live old-schema instance `93492368154496` upgraded to native 3.0.0 with the same ID; no reinstall |
 | Newer installed version | Fail before changing companions or AI | Test passed |
 | Different server upgrade target | Fail instead of installing an unintended version | Test passed |
 | Read/auth/upload/upgrade failure | Fail; no claim that upload failure means “already exists”; no automatic uninstall | Failure-injection tests passed |
@@ -151,11 +151,22 @@ companion setup also handles the existing chart's per-cluster Kubernetes
 configuration. The three old SUSE AI Groovy synchronizations are not present in
 this package; `stackpack-sync-status` enumerates and describes actual sync IDs.
 
-The migration defaults to the server's upgrade API. A separate local deployment
-record reports a successful 2.0.0 → 3.0.1 upgrade on Observability 2.11.1, but it
-does not prove 2.2.0 → 3.0.0 and is not counted as this task's verification.
-If the target backend rejects the schema transition, inspect its error and
-preserve/export local customizations before choosing a controlled reinstall:
+CLI 3.9.2's `install --wait` waits for `INSTALLED` and timed out after five
+minutes for a newly provisioned Kubernetes companion at `WAITING_FOR_DATA`.
+The installer now submits companion installation without that flag and polls
+until `INSTALLED` or `WAITING_FOR_DATA`, failing on an error or timeout. SUSE AI
+itself still requires `INSTALLED`. The real-CLI regression fixture now returns
+`WAITING_FOR_DATA` for Kubernetes, exercising this behavior without telemetry.
+
+The server's normal upgrade API successfully migrated 2.2.0 to 3.0.0 on the
+user-provided November 2 Observability 2.11.1 environment with CLI 3.9.2. It
+preserved the instance ID and removed the three old SUSE AI synchronizations.
+Neither experimental StackPack environment variable was set for that upgrade.
+No schema-specific flag or destructive reinstall was needed.
+
+Before upgrading a customized 2.x installation, export its settings because
+`overwrite` replaces unlocked settings. If a different backend rejects the
+transition, inspect its error before choosing this explicit recovery path:
 
 ```bash
 # Set the same authentication/STS_CONTEXT used by setup. Save settings first.
@@ -175,8 +186,8 @@ links tied to removed IDs, and continuity of 2.x synthetic component identities.
 Native service/instance views compose with OpenTelemetry; the old synthetic
 product/model identities are not migrated by this script. `overwrite` also
 replaces unlocked settings during normal upgrade. The script issues no
-telemetry-storage deletion command. Exact retention/history effects still need
-verification on the target backend.
+telemetry-storage deletion command. The November 2 backend had no AI telemetry;
+historical data continuity and customized override migration were not tested.
 
 `CLEANUP_LEGACY=true` remains an explicit maintenance mode for the old “GenAI
 Observability” menu and autosync instances with both `sts_instance_type=suse-ai`
@@ -184,7 +195,7 @@ and a selected cluster URL. It no longer matches unrelated autosync instances
 by URL alone. It is not run for a fresh install or normal 2.x migration; owned
 2.x resources should be removed through StackPack provisioning/deprovisioning.
 
-## Verification and remaining live gate
+## Verification
 
 Local checks passed: 67 native tests (12 opt-in backend tests skipped), 15
 release tests, server validation of 93 nodes and rejection of the invalid CEL
@@ -194,30 +205,58 @@ and `/tmp/suse-ai-release-validate.log`.
 The HTTP-fixture test uses the installed CLI 3.9.2, not a replacement executable;
 the other installer tests inject CLI failures and state transitions.
 
-The requested `local-demo-20261026` context refuses connections at
-`127.0.0.1:18080`. Its saved kubeconfig cannot reach `suse-rancher.demo:443`.
-Newer deployment records identify `local-demo-20261030` as a different backend
-already containing 3.0.1; its saved kubeconfig also times out. Both resolve the
-Rancher endpoint to `35.95.71.90`. List and describe requests were attempted,
-but no live `errorDetails` or rendered AI views could be read. No StackPack
-was uploaded or installed by this task. A question about using the replacement
-demo is pending; the explicit October 26 target has not been silently replaced.
+On October 30 the requested October 26 context and the newer October 30
+kubeconfig were unreachable. The historical failed checks remain recorded in
+`CERTAINS.md`. On November 2 the user supplied a replacement kubeconfig and
+credentials, enabling the following live checks. A private CLI configuration
+named `local-demo-20261102` was used without changing the user's global context.
 
-After access is restored, capture the actual catalog, installed settings and
-every topology-sync description before testing. Use CLI 3.9.2 and the exact
-release archive for fresh install, a second invocation, and installation of
-the unmodified old 2.2.0 package followed by the new installer. Upload each
-version only once, reusing catalog entries for later scenarios. Preserve
-available newer versions: the installer will refuse an unexpected
-`nextVersion`; do not delete catalog versions merely to force a test through.
-An isolated test backend/catalog may be necessary if 3.0.1 is offered instead.
+The replacement backend initially had no SUSE AI catalog entry or instance.
+The old 2.2.0 archive came from the unmodified package at this repository's
+base commit `1fc9319` (100 files). Both 2.2.0 and the exact reproducible 3.0.0
+archive were uploaded once. The sequence was fresh 3.0.0 install, no-op re-run,
+remove that test instance, install 2.2.0, upgrade through the new `init.sh`,
+and another no-op re-run. No catalog versions were deleted or replaced.
 
-For each scenario, save `sts stackpack list`, `list-instances`,
-`sts topology-sync list`, and `describe --id <nodeId>` for every returned sync.
-Compare active `errorDetails` with the baseline, separately from cumulative
-counters. Check the native inventories, component highlights and charts through
-an authenticated browser session; API/query checks alone are not proof that
-the views render. The requested live acceptance gate is still open.
+`sts stackpack list`, topology-sync list and every returned sync description
+were saved for baseline, fresh, re-run, legacy, upgrade and post-upgrade
+re-run. Once SUSE AI existed in the catalog, snapshots also saved
+`list-instances` and `list-versions`. All observed syncs were `Running`, with
+cumulative `errors: 0` and `errorDetails: []`. The final syncs are:
+
+| Synchronization | Node ID |
+| --- | --- |
+| Agent | `263987850596316` |
+| Kubernetes - local | `232505802755175` |
+| Kubernetes - suse-ai | `271228421880615` |
+
+The legacy install additionally had `SUSE AI` (`174686616215848`), `SUSE AI
+Products` (`234150997558210`) and `SUSE AI Topology` (`82864948584708`), all
+without errors. The normal upgrade removed them, without `CLEANUP_LEGACY`.
+The existing OpenTelemetry instance and the existing `suse-ai` Kubernetes
+companion were retained. A `local` Kubernetes companion was added by the test.
+
+The live test exposed and verified the companion readiness fix described
+above. After that fix all 15 release regressions passed, as did shellcheck
+and Bash syntax checks; the `.sts` hash is unchanged. Evidence is stored outside
+Git in `/home/thbertoldi/suse/qa/extension-v3-setup-20261102-29gb77gq/`, including
+scenario logs, sanitized CLI argument audits, JSON snapshots and private
+settings exports. Credentials and browser sessions are not repository files.
+
+An authenticated Chromium session rendered all six SUSE AI menu inventories:
+Overview, Applications & agents, Models, Inference, Data services and GPU
+infrastructure. Each overview API returned HTTP 200, with no page errors or
+failed requests; screenshots and DOM text were saved as `upgrade-view-*.png`
+and `upgrade-view-*.json`. The menu and each screenshot were visually checked.
+The inventories had zero components, so these checks establish rendering of
+the native definitions and empty states, not populated highlights or charts.
+The opt-in telemetry/backend tests remain unrun on this empty environment.
+
+Browser access used the configured `https://suse-observability` origin through
+an ingress port-forward. The initial localhost browser attempt returned HTTP
+403 with `Allowed Origin header values: https://suse-observability`; using the
+configured origin resolved it without changing server security settings.
+CLI token access through the router port-forward worked throughout.
 
 ## IBS and chart handoff
 

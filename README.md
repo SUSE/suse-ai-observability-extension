@@ -126,8 +126,11 @@ The init script will:
 
 Re-running an already successful setup performs reads only. Authentication,
 upload and provisioning errors stop setup. Newer installed versions are not
-downgraded. The 2.2.0 migration and any controlled reinstall require the
-[validation and recovery procedure](knowledge/NATIVE_STACKPACK_RELEASE.md).
+downgraded. Companion provisioning accepts `WAITING_FOR_DATA`; SUSE AI must
+reach `INSTALLED`. The 2.2.0 → 3.0.0 upgrade was verified with CLI 3.9.2 on
+Observability 2.11.1 and preserves the instance ID without a reinstall. See the
+[migration evidence and recovery procedure](knowledge/NATIVE_STACKPACK_RELEASE.md)
+before upgrading installations with local customizations.
 
 **Uninstall:**
 

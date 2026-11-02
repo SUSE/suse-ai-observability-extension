@@ -75,13 +75,13 @@ read_clusters() {
 }
 
 ensure_companion() {
-  local name=$1 cluster=${2:-} matching
-  read_instances "$name"
+  local name=$1 cluster=${2:-} matching filter='.instances'
   if [[ "$name" == kubernetes-v2 ]]; then
-    matching=$(jq --arg cluster "$cluster" '[.instances[] | select(.config.kubernetes_cluster_name == $cluster)]' <<<"$instances")
-  else
-    matching=$(jq '.instances' <<<"$instances")
+    # shellcheck disable=SC2016 # $cluster is supplied to jq with --arg.
+    filter='[.instances[] | select(.config.kubernetes_cluster_name == $cluster)]'
   fi
+  read_instances "$name"
+  matching=$(jq --arg cluster "$cluster" "$filter" <<<"$instances")
   if [[ $(jq 'length' <<<"$matching") != 0 ]]; then
     jq -e 'all(.status == "INSTALLED" or .status == "WAITING_FOR_DATA")' <<<"$matching" >/dev/null ||
       fail "$name has an incomplete or failed instance; inspect it before retrying"
@@ -90,8 +90,24 @@ ensure_companion() {
   fi
   local parameters=()
   if [[ -n "$cluster" ]]; then parameters=(-p "kubernetes_cluster_name=$cluster"); fi
-  run_sts stackpack install --name "$name" "${parameters[@]}" --wait --timeout "${WAIT_SECONDS}s" ||
+  # CLI --wait waits for INSTALLED even when provisioning succeeded and the
+  # companion is waiting for its first telemetry. Accept either ready state.
+  run_sts stackpack install --name "$name" "${parameters[@]}" ||
     fail "Could not install $name"
+  local deadline=$((SECONDS + WAIT_SECONDS))
+  while true; do
+    read_instances "$name"
+    matching=$(jq --arg cluster "$cluster" "$filter" <<<"$instances")
+    if jq -e 'length > 0 and all(.status == "INSTALLED" or .status == "WAITING_FOR_DATA")' <<<"$matching" >/dev/null; then
+      log "$name ${cluster:+for $cluster }configured"
+      return
+    fi
+    if jq -e 'any(.status == "ERROR" or .status == "DEPROVISIONING")' <<<"$matching" >/dev/null; then
+      fail "$name provisioning failed; inspect its instance"
+    fi
+    (( SECONDS < deadline )) || fail "Timed out waiting for $name provisioning"
+    sleep 2
+  done
 }
 
 install_ai() {

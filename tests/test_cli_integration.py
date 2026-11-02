@@ -63,7 +63,8 @@ class RealCliTest(unittest.TestCase):
                     self.send_json(pack("suse-ai"))
                 elif parsed.path.endswith("/provision"):
                     name = parsed.path.split("/")[-2]
-                    item = {"id": 100 + sum(map(len, instances.values())), "status": "INSTALLED",
+                    item = {"id": 100 + sum(map(len, instances.values())),
+                            "status": "WAITING_FOR_DATA" if name == "kubernetes-v2" else "INSTALLED",
                             "stackPackVersion": "3.0.0", "lastUpdateTimestamp": 0,
                             "config": json.loads(body)}
                     instances[name].append(item)
