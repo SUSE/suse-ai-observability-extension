@@ -1,29 +1,41 @@
-name: Validate StackPack IDs
+name: Validate StackPack
 
 on:
   pull_request:
     paths:
       - 'stackpack/**'
-      - 'scripts/check-id-conflicts.py'
+      - 'scripts/ci/**'
+      - 'tests/fixtures/invalid-component-mapping/**'
+      - 'Taskfile.yaml'
       - '.github/workflows/validate-ids.yml'
   push:
     branches:
       - main
     paths:
       - 'stackpack/**'
-      - 'scripts/check-id-conflicts.py'
+      - 'scripts/ci/**'
+      - 'tests/fixtures/invalid-component-mapping/**'
+      - 'Taskfile.yaml'
       - '.github/workflows/validate-ids.yml'
   workflow_dispatch:
 
 jobs:
-  check-id-conflicts:
-    runs-on: ubuntu-latest
+  validate-stackpack:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     permissions:
       contents: read
+    env:
+      CONTAINER_RUNTIME: docker
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - name: Check for duplicate StackPack IDs
-        run: python3 scripts/check-id-conflicts.py stackpack
+      - name: Set up Task
+        uses: go-task/setup-task@70f2430ad412f838533de8c0515c749ffb2b8bd3 # v1
+        with:
+          version: '3.42.1'
+
+      - name: Validate native settings and reject the invalid mapping fixture
+        run: task stackpack-validate
