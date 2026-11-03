@@ -1,0 +1,44 @@
+nodes:
+- _type: ComponentPresentation
+  name: Inference
+  identifier: urn:stackpack:suse-ai:component-presentation:inference
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: label = "stackpack:suse-ai" and type = "otel service" and label IN ("suse.ai.category:inference-engine",
+      "suse.ai.category:model-proxy")
+  rank:
+    specificity: 225
+  presentation:
+    overview:
+      name:
+        singular: inference service
+        plural: inference services
+        title: Inference
+      columns:
+      - columnId: health
+        title: Health
+        projection:
+          _type: HealthProjection
+          value: healthState
+      - columnId: otel_name
+        title: Name
+        projection:
+          _type: ComponentLinkProjection
+          name: name
+          identifier: identifiers[0]
+      - columnId: otel_namespace
+        title: Service namespace
+        projection:
+          _type: TextProjection
+          value: tags.singleValue('service.namespace')
+      - columnId: suse_ai_category
+      - columnId: suse_ai_product
+      - columnId: otel_k8s_cluster
+      - columnId: otel_k8s_namespace
+      sort:
+      - columnId: health
+      - columnId: otel_name
+      mainMenu:
+        group: SUSE AI
+        icon: !icon menu/inference-engine.svg
+        order: 70

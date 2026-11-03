@@ -1,0 +1,37 @@
+nodes:
+- _type: OtelRelationMapping
+  identifier: urn:stackpack:suse-ai:otel-relation-mapping:service-calls
+  name: AI service calls
+  description: Service-level calls observed by the AI Collector's standard service-graph connector. Preserves companion instance relations.
+  input:
+    signal: [METRICS]
+    resource:
+      scope:
+        metric:
+          condition: metric.name == 'suse.ai.service.calls'
+          datapoint:
+            condition: >-
+              'client' in datapoint.attributes && datapoint.attributes['client'] != '' &&
+              'server' in datapoint.attributes && datapoint.attributes['server'] != '' &&
+              'connection_type' in datapoint.attributes && datapoint.attributes['connection_type'] == '' &&
+              (!('virtual_node' in datapoint.attributes) || datapoint.attributes['virtual_node'] == '')
+            action: "'CREATE'"
+  vars:
+  - name: client
+    value: datapoint.attributes['client']
+  - name: clientNamespace
+    value: >-
+      'client_service.namespace' in datapoint.attributes && datapoint.attributes['client_service.namespace'] != ''
+      ? datapoint.attributes['client_service.namespace'] : 'default'
+  - name: server
+    value: datapoint.attributes['server']
+  - name: serverNamespace
+    value: >-
+      'server_service.namespace' in datapoint.attributes && datapoint.attributes['server_service.namespace'] != ''
+      ? datapoint.attributes['server_service.namespace'] : 'default'
+  expireAfter: 900000
+  output:
+    sourceId: "'urn:opentelemetry:namespace/' + vars.clientNamespace + ':service/' + vars.client"
+    targetId: "'urn:opentelemetry:namespace/' + vars.serverNamespace + ':service/' + vars.server"
+    typeName: "'synchronous'"
+    dependencyType: "'CONNECTION'"

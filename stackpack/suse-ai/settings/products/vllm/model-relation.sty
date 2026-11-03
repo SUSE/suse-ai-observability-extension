@@ -1,0 +1,32 @@
+nodes:
+- _type: OtelRelationMapping
+  identifier: urn:stackpack:suse-ai:otel-relation-mapping:vllm-models
+  name: vLLM service serves model
+  input:
+    signal:
+    - METRICS
+    resource:
+      condition: '''service.name'' in resource.attributes && resource.attributes[''service.name''] != '''' && !(''suse.ai.managed''
+        in resource.attributes && string(resource.attributes[''suse.ai.managed'']) == ''false'')'
+      scope:
+        metric:
+          condition: metric.name.startsWith('vllm:') || metric.name.startsWith('vllm_')
+          datapoint:
+            condition: '''model_name'' in datapoint.attributes && datapoint.attributes[''model_name''] != '''''
+            action: '''CREATE'''
+  vars:
+  - name: namespace
+    value: '''service.namespace'' in resource.attributes && resource.attributes[''service.namespace''] != '''' ? resource.attributes[''service.namespace'']
+      : ''default'''
+  - name: service
+    value: resource.attributes['service.name']
+  - name: model
+    value: datapoint.attributes['model_name']
+  expireAfter: 900000
+  output:
+    sourceId: '''urn:opentelemetry:namespace/'' + vars.namespace + '':service/'' + vars.service'
+    targetId: >-
+      'urn:suse-ai:namespace/' + vars.namespace + ':service/' + vars.service
+      + ':served-model/' + vars.model
+    typeName: '''serves-model'''
+    dependencyType: '''CONNECTION'''

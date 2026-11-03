@@ -1,0 +1,20 @@
+nodes:
+- _type: Monitor
+  name: vLLM High GPU Cache Usage
+  identifier: urn:stackpack:suse-ai:monitor:vllm-high-gpu-cache-usage
+  description: Indicates if vLLM GPU cache usage is approaching capacity.
+  intervalSeconds: 60
+  status: ENABLED
+  function: urn:stackpack:common:monitor-function:threshold
+  arguments:
+    threshold: 0.9
+    comparator: GT
+    failureState: CRITICAL
+    metric:
+      aliasTemplate: vLLM High GPU Cache Usage
+      query: max by (service_namespace, service_name) (vllm_gpu_cache_usage_perc{suse_ai_product="vllm", service_namespace!="",
+        service_name!=""} or vllm:gpu_cache_usage_perc{suse_ai_product="vllm", service_namespace!="", service_name!=""})
+      unit: percentunit
+    titleTemplate: vLLM High GPU Cache Usage
+    urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
+  remediationHint: !include 'remediation-hints/vllm/remediation-gpu-cache.md.hbs'

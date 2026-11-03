@@ -1,0 +1,21 @@
+nodes:
+- _type: Monitor
+  name: Qdrant gRPC API Failures
+  identifier: urn:stackpack:suse-ai:monitor:qdrant-grpc-api-failures
+  description: Indicates if Qdrant is returning failed gRPC API responses.
+  intervalSeconds: 60
+  status: ENABLED
+  function: urn:stackpack:common:monitor-function:threshold
+  arguments:
+    threshold: 0.0
+    comparator: GT
+    failureState: CRITICAL
+    metric:
+      aliasTemplate: Qdrant gRPC API Failures
+      query: |-
+        sum by (service_namespace, service_name) (rate(grpc_responses_total{suse_ai_product="qdrant", service_namespace!="", service_name!="", status=~"[1-9][0-9]*"}[5m]))
+        or (0 * sum by (service_namespace, service_name) (rate(grpc_responses_total{suse_ai_product="qdrant", service_namespace!="", service_name!="", status=~"[0-9]+"}[5m])))
+      unit: reqps
+    titleTemplate: Qdrant gRPC API Failures
+    urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
+  remediationHint: !include 'remediation-hints/qdrant/remediation-grpc-failures.md.hbs'

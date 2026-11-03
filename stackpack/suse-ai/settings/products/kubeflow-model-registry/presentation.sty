@@ -1,0 +1,129 @@
+nodes:
+- _type: ComponentPresentation
+  name: Product Kubeflow Model Registry
+  identifier: urn:stackpack:suse-ai:component-presentation:product-kubeflow-model-registry
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: (label = "stackpack:open-telemetry" and type in ("otel service", "otel service instance") and label = "stackpack:suse-ai")
+      and label = "suse.ai.product:kubeflow-model-registry"
+  rank:
+    specificity: 240
+  presentation:
+    highlight:
+      metrics:
+      - sectionId: suse-ai-product-kubeflow-model-registry
+        title: Kubeflow Model Registry
+        order: 200
+        metrics:
+        - metricId: suse-ai-kubeflow-model-registry-availability
+          order: 100
+        - metricId: suse-ai-kubeflow-model-registry-check-duration
+          order: 99
+        - metricId: suse-ai-kubeflow-model-registry-validation
+          order: 98
+    icon: !icon products/kubeflow-model-registry.svg
+    metricPerspective:
+      tabs:
+      - tabId: suse-ai-kubeflow-model-registry
+        title: Kubeflow Model Registry
+        order: 50
+        sections:
+        - sectionId: suse-ai-kubeflow-model-registry-api-health
+          title: API Health
+          order: 50
+          metrics:
+          - metricId: suse-ai-kubeflow-model-registry-availability
+            order: 100
+          - metricId: suse-ai-kubeflow-model-registry-check-duration
+            order: 99
+          - metricId: suse-ai-kubeflow-model-registry-validation
+            order: 98
+          - metricId: suse-ai-kubeflow-model-registry-response-size
+            order: 97
+          - metricId: suse-ai-kubeflow-model-registry-check-errors
+            order: 96
+    summary:
+      metrics:
+      - summaryMetricId: suse-ai-kubeflow-model-registry-availability-summary
+        name: API Availability
+        metricId: suse-ai-kubeflow-model-registry-availability
+        order: 100
+        unit: short
+        decimalPlaces: 2
+        query: |-
+          min(httpcheck_status{http_status_class="2xx", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"} and topk by (k8s_cluster_name, service_instance_id, http_url) (1, timestamp(httpcheck_status{http_status_class="2xx", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"})))
+      - summaryMetricId: suse-ai-kubeflow-model-registry-check-duration-summary
+        name: API Check Duration
+        metricId: suse-ai-kubeflow-model-registry-check-duration
+        order: 99
+        unit: ms
+        decimalPlaces: 2
+        query: |-
+          max(httpcheck_duration_milliseconds{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"} or httpcheck_duration{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"})
+      - summaryMetricId: suse-ai-kubeflow-model-registry-validation-summary
+        name: Response Validation
+        metricId: suse-ai-kubeflow-model-registry-validation
+        order: 98
+        unit: short
+        decimalPlaces: 2
+        query: |-
+          1 - (max(httpcheck_validation_failed{validation_type="contains", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"} unless (timestamp(httpcheck_validation_failed{validation_type="contains", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}) < timestamp(httpcheck_validation_passed{validation_type="contains", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}))) or (0 * max(httpcheck_validation_passed{validation_type="contains", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"})))
+  metrics:
+  - metricId: suse-ai-kubeflow-model-registry-availability
+    name: API Availability
+    metricQueries:
+    - expression: |-
+        min(httpcheck_status{http_status_class="2xx", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"} and topk by (k8s_cluster_name, service_instance_id, http_url) (1, timestamp(httpcheck_status{http_status_class="2xx", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"})))
+      alias: 2xx
+      primary: true
+    - expression: |-
+        max(httpcheck_status{http_status_class="4xx", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"} and topk by (k8s_cluster_name, service_instance_id, http_url) (1, timestamp(httpcheck_status{http_status_class="4xx", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"})))
+      alias: 4xx
+    - expression: |-
+        max(httpcheck_status{http_status_class="5xx", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"} and topk by (k8s_cluster_name, service_instance_id, http_url) (1, timestamp(httpcheck_status{http_status_class="5xx", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"})))
+      alias: 5xx
+    chart:
+      _type: TimeSeriesChart
+      unit: short
+  - metricId: suse-ai-kubeflow-model-registry-check-duration
+    name: API Check Duration
+    metricQueries:
+    - expression: |-
+        max(httpcheck_duration_milliseconds{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"} or httpcheck_duration{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"})
+      alias: duration
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: ms
+  - metricId: suse-ai-kubeflow-model-registry-validation
+    name: Response Validation
+    metricQueries:
+    - expression: |-
+        1 - (max(httpcheck_validation_failed{validation_type="contains", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"} unless (timestamp(httpcheck_validation_failed{validation_type="contains", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}) < timestamp(httpcheck_validation_passed{validation_type="contains", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}))) or (0 * max(httpcheck_validation_passed{validation_type="contains", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"})))
+      alias: passed
+      primary: true
+    - expression: |-
+        max(httpcheck_validation_failed{validation_type="contains", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"} unless (timestamp(httpcheck_validation_failed{validation_type="contains", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}) < timestamp(httpcheck_validation_passed{validation_type="contains", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}))) or (0 * max(httpcheck_validation_passed{validation_type="contains", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}))
+      alias: failed
+    chart:
+      _type: TimeSeriesChart
+      unit: short
+  - metricId: suse-ai-kubeflow-model-registry-response-size
+    name: API Response Size
+    metricQueries:
+    - expression: |-
+        max(httpcheck_response_size_bytes{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"} or httpcheck_response_size{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"})
+      alias: response
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: bytes
+  - metricId: suse-ai-kubeflow-model-registry-check-errors
+    name: Synthetic Check Errors
+    metricQueries:
+    - expression: sum by (error_message) (httpcheck_error{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"})
+      alias: ${error_message}
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: short

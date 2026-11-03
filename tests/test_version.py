@@ -5,7 +5,7 @@ import subprocess
 import tempfile
 import unittest
 
-from support import ROOT
+ROOT = Path(__file__).resolve().parents[1]
 
 
 class VersionRegressions(unittest.TestCase):
@@ -17,8 +17,8 @@ class VersionRegressions(unittest.TestCase):
         (self.directory / "stackpack/suse-ai").mkdir(parents=True)
         self.script = self.directory / "scripts/bump-version.py"
         shutil.copyfile(ROOT / "scripts/bump-version.py", self.script)
-        self.conf = self.directory / "stackpack/suse-ai/stackpack.conf"
-        self.original = 'name = "suse-ai"\nversion = "2.2.0"\n'
+        self.conf = self.directory / "stackpack/suse-ai/stackpack.yaml"
+        self.original = 'name: suse-ai\nversion: 3.0.0\n'
         self.conf.write_text(self.original)
         self.git("init", "--quiet")
         self.git("add", ".")
@@ -34,14 +34,14 @@ class VersionRegressions(unittest.TestCase):
 
     def test_increments_and_explicit_higher_version(self):
         self.assertEqual(self.bump().returncode, 0)
-        self.assertIn('version = "2.2.1"', self.conf.read_text())
-        self.assertEqual(self.bump("2.2.10").returncode, 0)
-        self.assertEqual(self.conf.read_text(), self.original.replace("2.2.0", "2.2.10"))
+        self.assertIn('version: 3.0.1', self.conf.read_text())
+        self.assertEqual(self.bump("3.0.10").returncode, 0)
+        self.assertEqual(self.conf.read_text(), self.original.replace("3.0.0", "3.0.10"))
 
     def test_rejects_reuse_downgrades_and_invalid_versions(self):
-        self.git("tag", "v2.2.3-rc0")
-        self.git("tag", "v2.2.4")
-        for target in ("2.2.0", "2.1.9", "02.2.10", "2.2.10;false", "2.2.3", "2.2.4"):
+        self.git("tag", "v3.0.3-rc0")
+        self.git("tag", "v3.0.4")
+        for target in ("3.0.0", "2.9.9", "03.0.10", "3.0.10;false", "3.0.3", "3.0.4"):
             with self.subTest(target=target):
                 self.assertNotEqual(self.bump(target).returncode, 0)
                 self.assertEqual(self.conf.read_text(), self.original)

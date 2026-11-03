@@ -1,5 +1,11 @@
 # Regression checks
 
+> This guide records the 2.x regression suite. For native v3 release tests use
+> [NATIVE_STACKPACK_RELEASE.md](NATIVE_STACKPACK_RELEASE.md). The old Collector
+> examples remain testable with `task stackpack-test-legacy-collector`; the old
+> STY/Groovy/query tests were superseded by `tests/suse-ai`. Historical commands
+> below refer to the 2.x source layout.
+
 Run `task stackpack-validate` for numeric ID conflicts and Groovy lint, and
 `task stackpack-test` for behavior tests. Tests read the current working-tree
 Collector YAML and StackPack templates; the expected outcomes are regression

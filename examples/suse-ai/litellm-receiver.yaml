@@ -1,0 +1,65 @@
+# Optional Kubernetes overlay for collector.yaml. The Collector needs read access
+# to services/endpoints/pods in OBSERVED_NAMESPACE. Enable LiteLLM's prometheus
+# callback and either allow private metrics access or configure authorization below.
+receivers:
+  prometheus/litellm:
+    config:
+      scrape_configs:
+        - job_name: ${env:LITELLM_SERVICE_NAME:-litellm}
+          scrape_interval: 15s
+          metrics_path: /metrics/
+          kubernetes_sd_configs:
+            - role: endpoints
+              namespaces:
+                names: ["${env:OBSERVED_NAMESPACE}"]
+          relabel_configs:
+            - source_labels: [__meta_kubernetes_service_name]
+              regex: ${env:LITELLM_K8S_SERVICE_NAME:-litellm-router}
+              action: keep
+            - source_labels: [__address__]
+              regex: .*:${env:LITELLM_METRICS_PORT:-4000}
+              action: keep
+            - source_labels: [__meta_kubernetes_pod_uid]
+              regex: .+
+              action: keep
+            - source_labels: [__meta_kubernetes_pod_uid]
+              target_label: k8s_pod_uid
+            - source_labels: [__meta_kubernetes_pod_name]
+              target_label: k8s_pod_name
+            - source_labels: [__meta_kubernetes_pod_node_name]
+              target_label: k8s_node_name
+
+processors:
+  transform/litellm_identity:
+    error_mode: propagate
+    metric_statements:
+      - context: datapoint
+        statements:
+          - set(resource.attributes["service.instance.id"], datapoint.attributes["k8s_pod_uid"])
+          - set(resource.attributes["k8s.pod.uid"], datapoint.attributes["k8s_pod_uid"])
+          - set(resource.attributes["k8s.pod.name"], datapoint.attributes["k8s_pod_name"])
+          - set(resource.attributes["k8s.node.name"], datapoint.attributes["k8s_node_name"])
+          - delete_key(datapoint.attributes, "k8s_pod_uid")
+          - delete_key(datapoint.attributes, "k8s_pod_name")
+          - delete_key(datapoint.attributes, "k8s_node_name")
+  resource/litellm:
+    attributes:
+      - key: service.namespace
+        value: ${env:OBSERVED_NAMESPACE}
+        action: insert
+      - key: k8s.namespace.name
+        value: ${env:OBSERVED_NAMESPACE}
+        action: insert
+      - key: k8s.cluster.name
+        value: ${env:K8S_CLUSTER_NAME}
+        action: insert
+      - key: suse.ai.product
+        value: litellm
+        action: insert
+
+service:
+  pipelines:
+    metrics/litellm:
+      receivers: [prometheus/litellm]
+      processors: [memory_limiter, transform/litellm_identity, resource/litellm, transform/suse_ai_resource, batch]
+      exporters: [otlp_grpc/suse]

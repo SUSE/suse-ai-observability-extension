@@ -1,0 +1,13 @@
+# Kubeflow Model Registry API Slow
+
+This monitor detects a Model Registry API check duration above **{{threshold}} milliseconds** for [{{labels.service_name}}](/#/components/{{componentUrnForUrl}}).
+
+Compare the metric and threshold in this monitor's chart at the time of the alert.
+
+Triage:
+
+1. Compare registry pod CPU, memory, and restart counts with the alert interval.
+2. Inspect registry logs for slow database calls, connection-pool exhaustion, or retries.
+3. Check database latency and storage pressure.
+4. Measure the registered-models response size; large unpaginated responses can increase latency.
+5. Repeat the authenticated request from the collector pod to separate service latency from network latency.

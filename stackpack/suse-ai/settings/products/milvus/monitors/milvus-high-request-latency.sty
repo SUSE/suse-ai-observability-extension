@@ -1,0 +1,21 @@
+nodes:
+- _type: Monitor
+  name: Milvus High Request Latency
+  identifier: urn:stackpack:suse-ai:monitor:milvus-high-request-latency
+  description: Indicates if Milvus request latency exceeds acceptable thresholds.
+  intervalSeconds: 60
+  status: ENABLED
+  function: urn:stackpack:common:monitor-function:threshold
+  arguments:
+    threshold: 5.0
+    comparator: GT
+    failureState: DEVIATING
+    metric:
+      aliasTemplate: Milvus High Request Latency
+      query: (max by (service_namespace, service_name) (histogram_quantile(0.99, sum by (service_namespace, service_name,
+        le, function_name) (rate(milvus_proxy_req_latency_bucket{suse_ai_product="milvus", service_namespace!="", service_name!=""}[5m])))))
+        / 1000
+      unit: s
+    titleTemplate: Milvus High Request Latency
+    urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
+  remediationHint: !include 'remediation-hints/milvus/remediation-latency.md.hbs'

@@ -1,0 +1,20 @@
+nodes:
+- _type: ComponentPresentation
+  name: mlflow product
+  identifier: urn:stackpack:suse-ai:component-presentation:product-mlflow
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: (label = "stackpack:open-telemetry" and type in ("otel service", "otel service instance") and label = "stackpack:suse-ai")
+      and label = "suse.ai.product:mlflow"
+  rank:
+    specificity: 240
+  presentation:
+    icon: !icon products/mlflow.svg
+    highlight:
+      fields:
+      - fieldId: suse_ai_product
+        title: Product
+        order: 45
+        projection:
+          _type: TextProjection
+          value: '''mlflow'''

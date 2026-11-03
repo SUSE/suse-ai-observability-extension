@@ -1,0 +1,109 @@
+nodes:
+- _type: ComponentPresentation
+  name: Ollama runtime observations
+  identifier: urn:stackpack:suse-ai:component-presentation:product-ollama-runtime
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: label = "stackpack:open-telemetry" and label = "stackpack:suse-ai" and type in ("otel service", "otel
+      service instance") and label = "suse.ai.product:ollama"
+  rank:
+    specificity: 241
+  presentation:
+    icon: !icon products/ollama.svg
+    highlight:
+      metrics:
+      - sectionId: suse-ai-product-ollama-runtime
+        title: Ollama runtime
+        order: 190
+        metrics:
+        - &id001
+          metricId: suse-ai-ollama-api-up
+          order: 100
+        - &id002
+          metricId: suse-ai-ollama-loaded-models
+          order: 99
+        - &id003
+          metricId: suse-ai-ollama-model-size
+          order: 98
+    metricPerspective:
+      tabs:
+      - tabId: suse-ai-product-ollama-runtime
+        title: Ollama runtime
+        order: 55
+        sections:
+        - sectionId: suse-ai-product-ollama-runtime
+          title: Ollama runtime
+          order: 50
+          metrics:
+          - *id001
+          - *id002
+          - *id003
+          - metricId: suse-ai-ollama-model-vram
+            order: 97
+          - metricId: suse-ai-ollama-model-context
+            order: 96
+  metrics:
+  - metricId: suse-ai-ollama-api-up
+    name: Runtime API Read Success
+    metricQueries:
+    - expression: |-
+        min(ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"} and topk by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (1, timestamp(ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"})))
+      alias: 1 = successful /api/ps read
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: short
+  - metricId: suse-ai-ollama-loaded-models
+    name: Loaded Model Copies
+    metricQueries:
+    - expression: |-
+        sum(max by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (
+          ollama_loaded_models{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}
+          and (timestamp(ollama_loaded_models{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}) == on (k8s_cluster_name, service_namespace, service_name, service_instance_id) group_left
+            max by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (timestamp(ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}) and (ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"} == 1) and topk by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (1, timestamp(ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}))))))
+      alias: Across observed replicas
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: short
+  - metricId: suse-ai-ollama-model-size
+    name: Loaded Model Size
+    metricQueries:
+    - expression: |-
+        sum by (model) (max by (k8s_cluster_name, service_namespace, service_name, service_instance_id, model) (
+          ollama_model_size_bytes{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}
+          and (timestamp(ollama_model_size_bytes{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}) == on (k8s_cluster_name, service_namespace, service_name, service_instance_id) group_left
+            max by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (timestamp(ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}) and (ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"} == 1) and topk by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (1, timestamp(ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}))))))
+      alias: ${model}
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: bytes
+  - metricId: suse-ai-ollama-model-vram
+    name: Model VRAM Residency
+    metricQueries:
+    - expression: |-
+        sum by (model) (max by (k8s_cluster_name, service_namespace, service_name, service_instance_id, model) (
+          ollama_model_vram_bytes{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}
+          and (timestamp(ollama_model_vram_bytes{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}) == on (k8s_cluster_name, service_namespace, service_name, service_instance_id) group_left
+            max by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (timestamp(ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}) and (ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"} == 1) and topk by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (1, timestamp(ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}))))))
+      alias: ${model}
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: bytes
+  - metricId: suse-ai-ollama-model-context
+    name: Model Context Length
+    metricQueries:
+    - expression: |-
+        max by (model, service_instance_id) (
+          ollama_model_context_length{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}
+          and (timestamp(ollama_model_context_length{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}) == on (k8s_cluster_name, service_namespace, service_name, service_instance_id) group_left
+            max by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (timestamp(ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}) and (ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"} == 1) and topk by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (1, timestamp(ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"})))))
+      alias: ${model} / ${service_instance_id}
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: short
+  description: Observed /api/ps loaded-model copies, reported size/VRAM residency and context length. Not inference
+    utilization, request counts or token throughput. Model values are hidden when the runtime API read fails.

@@ -1,0 +1,59 @@
+nodes:
+- _type: ComponentPresentation
+  name: Observed HTTP endpoint checks
+  identifier: urn:stackpack:suse-ai:component-presentation:http-probes
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: label = "stackpack:open-telemetry" and label = "stackpack:suse-ai" and type in ("otel service", "otel
+      service instance") and label = "suse.ai.observation.kind:http-probe"
+  rank:
+    specificity: 241
+  presentation:
+    highlight:
+      metrics:
+      - sectionId: suse-ai-http-probes
+        title: Endpoint checks
+        order: 190
+        metrics:
+        - &id001
+          metricId: suse-ai-http-probe-success
+          order: 100
+        - &id002
+          metricId: suse-ai-http-probe-duration
+          order: 99
+    metricPerspective:
+      tabs:
+      - tabId: suse-ai-http-probes
+        title: Endpoint checks
+        order: 55
+        sections:
+        - sectionId: suse-ai-http-probes
+          title: Endpoint checks
+          order: 50
+          metrics:
+          - *id001
+          - *id002
+  metrics:
+  - metricId: suse-ai-http-probe-success
+    name: HTTP Probe Success (1 = 2xx)
+    metricQueries:
+    - expression: min(httpcheck_status{http_status_class="2xx", suse_ai_observation_kind="http-probe", __multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"} and topk by (k8s_cluster_name, service_namespace, service_name, service_instance_id,
+        http_url) (1, timestamp(httpcheck_status{http_status_class="2xx", suse_ai_observation_kind="http-probe",
+        __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"})))
+      alias: All observed endpoints
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: short
+  - metricId: suse-ai-http-probe-duration
+    name: HTTP Probe Duration
+    metricQueries:
+    - expression: max(httpcheck_duration_milliseconds{suse_ai_observation_kind="http-probe", __multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"} or httpcheck_duration{suse_ai_observation_kind="http-probe", __multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"})
+      alias: Slowest endpoint check
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: ms

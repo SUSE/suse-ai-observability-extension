@@ -1,0 +1,49 @@
+nodes:
+- _type: ComponentPresentation
+  name: Applications
+  identifier: urn:stackpack:suse-ai:component-presentation:role-application
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: >-
+      label = "stackpack:open-telemetry" and label = "stackpack:suse-ai" and type = "otel service"
+      and (label IN ("suse.ai.category:application")
+      or not label IN ("suse.ai.category:application", "suse.ai.category:agent", "suse.ai.category:ui", "suse.ai.category:inference-engine", "suse.ai.category:model-proxy", "suse.ai.category:vectordb", "suse.ai.category:search-engine", "suse.ai.category:mcp-server", "suse.ai.category:workflow-engine", "suse.ai.category:ml-registry"))
+  rank:
+    specificity: 230
+  presentation:
+    icon: !icon application.svg
+    filters:
+    - filterId: otel_namespace
+    - filterId: k8s_cluster
+    - filterId: k8s_namespace
+    - filterId: suse_ai_suse_ai_category
+    - filterId: suse_ai_suse_ai_product
+    overview:
+      name:
+        singular: Application
+        plural: applications
+        title: Applications
+      columns:
+      - columnId: health
+        title: Health
+        projection:
+          _type: HealthProjection
+          value: healthState
+      - columnId: otel_name
+        title: Name
+        projection:
+          _type: ComponentLinkProjection
+          name: name
+          identifier: identifiers[0]
+      - columnId: otel_namespace
+        title: Service namespace
+        projection:
+          _type: TextProjection
+          value: tags.singleValue('service.namespace')
+      - columnId: suse_ai_category
+      - columnId: suse_ai_product
+      - columnId: otel_k8s_cluster
+      - columnId: otel_k8s_namespace
+      sort:
+      - columnId: health
+      - columnId: otel_name

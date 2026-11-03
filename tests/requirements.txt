@@ -1,1 +1,1 @@
-PyYAML==6.0.3
+-r suse-ai/requirements.txt

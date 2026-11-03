@@ -1,0 +1,382 @@
+nodes:
+- _type: ComponentPresentation
+  name: Product Kubeflow Pipelines
+  identifier: urn:stackpack:suse-ai:component-presentation:product-kubeflow-pipelines
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: (label = "stackpack:open-telemetry" and type in ("otel service", "otel service instance") and label = "stackpack:suse-ai")
+      and label = "suse.ai.product:kubeflow-pipelines"
+  rank:
+    specificity: 240
+  presentation:
+    icon: !icon products/kubeflow-pipelines.svg
+    metricPerspective:
+      tabs:
+      - tabId: suse-ai-kubeflow-pipelines
+        title: Kubeflow Pipelines
+        order: 50
+        sections:
+        - sectionId: suse-ai-kubeflow-pipelines-pipeline-runs
+          title: Pipeline Runs
+          order: 50
+          metrics:
+          - metricId: suse-ai-kubeflow-pipelines-run-api-rate
+            order: 100
+          - metricId: suse-ai-kubeflow-pipelines-total-runs
+            order: 98
+          - metricId: suse-ai-kubeflow-pipelines-run-success-rate
+            order: 96
+          - metricId: suse-ai-kubeflow-pipelines-run-outcomes
+            order: 95
+        - sectionId: suse-ai-kubeflow-pipelines-control-plane
+          title: Control Plane
+          order: 49
+          metrics:
+          - metricId: suse-ai-kubeflow-pipelines-pipeline-api-rate
+            order: 99
+          - metricId: suse-ai-kubeflow-pipelines-object-inventory
+            order: 97
+        - sectionId: suse-ai-kubeflow-pipelines-workflow-runtime
+          title: Workflow Runtime
+          order: 48
+          metrics:
+          - metricId: suse-ai-kubeflow-pipelines-workflows-by-phase
+            order: 94
+          - metricId: suse-ai-kubeflow-pipelines-reconcile-latency-p95
+            order: 90
+          - metricId: suse-ai-kubeflow-pipelines-pending-pods
+            order: 87
+          - metricId: suse-ai-kubeflow-pipelines-pods-by-phase
+            order: 86
+          - metricId: suse-ai-kubeflow-pipelines-controller-error-rate
+            order: 85
+        - sectionId: suse-ai-kubeflow-pipelines-api-reliability
+          title: API Reliability
+          order: 47
+          metrics:
+          - metricId: suse-ai-kubeflow-pipelines-grpc-request-rate
+            order: 93
+          - metricId: suse-ai-kubeflow-pipelines-grpc-error-ratio
+            order: 92
+          - metricId: suse-ai-kubeflow-pipelines-grpc-latency-p95
+            order: 91
+        - sectionId: suse-ai-kubeflow-pipelines-controller-queue
+          title: Controller Queue
+          order: 46
+          metrics:
+          - metricId: suse-ai-kubeflow-pipelines-queue-work
+            order: 89
+          - metricId: suse-ai-kubeflow-pipelines-oldest-queue-item
+            order: 88
+          - metricId: suse-ai-kubeflow-pipelines-queue-retry-rate
+            order: 84
+        - sectionId: suse-ai-kubeflow-pipelines-demo-lifecycle
+          title: Demo Lifecycle
+          order: 45
+          metrics:
+          - metricId: suse-ai-kubeflow-pipelines-demo-step-duration-p95
+            order: 83
+          - metricId: suse-ai-kubeflow-pipelines-demo-model-accuracy
+            order: 82
+          - metricId: suse-ai-kubeflow-pipelines-demo-smoke-tests
+            order: 81
+    summary:
+      metrics:
+      - summaryMetricId: suse-ai-kubeflow-pipelines-run-api-rate-summary
+        name: Run API Request Rate
+        metricId: suse-ai-kubeflow-pipelines-run-api-rate
+        order: 100
+        unit: reqps
+        decimalPlaces: 2
+        query: |-
+          rate(run_server_create_requests_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])
+      - summaryMetricId: suse-ai-kubeflow-pipelines-total-runs-summary
+        name: Total Pipeline Runs
+        metricId: suse-ai-kubeflow-pipelines-total-runs
+        order: 98
+        unit: short
+        decimalPlaces: 2
+        query: run_server_run_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}
+      - summaryMetricId: suse-ai-kubeflow-pipelines-run-success-rate-summary
+        name: Pipeline Run Success Rate
+        metricId: suse-ai-kubeflow-pipelines-run-success-rate
+        order: 96
+        unit: percentunit
+        decimalPlaces: 2
+        query: |-
+          (sum(resource_manager_workflow_runs_success{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}) or (0 * sum(resource_manager_workflow_runs_failed{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}))) / (sum({__name__=~"resource_manager_workflow_runs_(success|failed)", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}) > 0)
+      - summaryMetricId: suse-ai-kubeflow-pipelines-run-outcomes-summary
+        name: Pipeline Run Outcomes
+        metricId: suse-ai-kubeflow-pipelines-run-outcomes
+        order: 95
+        unit: short
+        decimalPlaces: 2
+        query: sum(resource_manager_workflow_runs_success{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}) or (0 * sum(resource_manager_workflow_runs_failed{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}))
+  metrics:
+  - metricId: suse-ai-kubeflow-pipelines-run-api-rate
+    name: Run API Request Rate
+    metricQueries:
+    - expression: |-
+        rate(run_server_create_requests_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])
+      alias: create
+    - expression: rate(run_server_get_requests_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])
+      alias: get
+      primary: true
+    - expression: rate(run_server_list_requests_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])
+      alias: list
+    - expression: |-
+        rate(run_server_terminate_requests_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])
+      alias: terminate
+    chart:
+      _type: TimeSeriesChart
+      unit: reqps
+  - metricId: suse-ai-kubeflow-pipelines-pipeline-api-rate
+    name: Pipeline API Request Rate
+    metricQueries:
+    - expression: |-
+        rate(pipeline_server_create_requests_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])
+      alias: create
+    - expression: |-
+        rate(pipeline_server_list_requests_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])
+      alias: list
+      primary: true
+    - expression: |-
+        rate(pipeline_server_get_requests_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])
+      alias: get
+    - expression: rate(pipeline_upload_requests_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])
+      alias: upload
+    chart:
+      _type: TimeSeriesChart
+      unit: reqps
+  - metricId: suse-ai-kubeflow-pipelines-total-runs
+    name: Total Pipeline Runs
+    metricQueries:
+    - expression: run_server_run_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}
+      alias: runs
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: short
+  - metricId: suse-ai-kubeflow-pipelines-object-inventory
+    name: Object Inventory
+    metricQueries:
+    - expression: pipeline_server_pipeline_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}
+      alias: pipelines
+      primary: true
+    - expression: pipeline_server_pipeline_version_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}
+      alias: versions
+    - expression: job_server_job_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}
+      alias: recurring jobs
+    chart:
+      _type: TimeSeriesChart
+      unit: short
+  - metricId: suse-ai-kubeflow-pipelines-run-success-rate
+    name: Pipeline Run Success Rate
+    metricQueries:
+    - expression: |-
+        (sum(resource_manager_workflow_runs_success{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}) or (0 * sum(resource_manager_workflow_runs_failed{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}))) / (sum({__name__=~"resource_manager_workflow_runs_(success|failed)", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}) > 0)
+      alias: success rate
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: percentunit
+  - metricId: suse-ai-kubeflow-pipelines-run-outcomes
+    name: Pipeline Run Outcomes
+    metricQueries:
+    - expression: sum(resource_manager_workflow_runs_success{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}) or (0 * sum(resource_manager_workflow_runs_failed{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}))
+      alias: succeeded
+      primary: true
+    - expression: sum(resource_manager_workflow_runs_failed{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}) or (0 * sum(resource_manager_workflow_runs_success{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}))
+      alias: failed
+    chart:
+      _type: TimeSeriesChart
+      unit: short
+  - metricId: suse-ai-kubeflow-pipelines-workflows-by-phase
+    name: Workflows by Phase
+    metricQueries:
+    - expression: sum by (phase) (argo_workflows_gauge{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"})
+      alias: ${phase}
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: short
+  - metricId: suse-ai-kubeflow-pipelines-grpc-request-rate
+    name: gRPC Request Rate
+    metricQueries:
+    - expression: |-
+        sum by (grpc_method) (rate(grpc_server_handled_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
+      alias: ${grpc_method}
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: reqps
+  - metricId: suse-ai-kubeflow-pipelines-grpc-error-ratio
+    name: gRPC Error Ratio
+    metricQueries:
+    - expression: |-
+        (sum(rate(grpc_server_handled_total{grpc_code!="OK", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])) or (0 * sum(rate(grpc_server_handled_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))) / clamp_min(sum(rate(grpc_server_handled_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])), 0.001)
+      alias: error ratio
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: percentunit
+  - metricId: suse-ai-kubeflow-pipelines-grpc-latency-p95
+    name: gRPC Handling Latency P95
+    metricQueries:
+    - expression: |-
+        histogram_quantile(0.95, sum by (le, grpc_method) (rate(grpc_server_handling_seconds_bucket{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))
+      alias: ${grpc_method}
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: s
+  - metricId: suse-ai-kubeflow-pipelines-reconcile-latency-p95
+    name: Workflow Reconcile Latency P95
+    metricQueries:
+    - expression: |-
+        histogram_quantile(0.95, sum by (le) (rate(argo_workflows_operation_duration_seconds_bucket{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))
+      alias: P95
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: s
+  - metricId: suse-ai-kubeflow-pipelines-queue-work
+    name: Workflow Queue Work
+    metricQueries:
+    - expression: max by (queue_name) (argo_workflows_queue_depth_gauge{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"})
+      alias: ${queue_name} depth
+      primary: true
+    - expression: |-
+        max by (queue_name) (argo_workflows_queue_unfinished_work{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"})
+      alias: ${queue_name} unfinished
+    chart:
+      _type: TimeSeriesChart
+      unit: short
+  - metricId: suse-ai-kubeflow-pipelines-oldest-queue-item
+    name: Oldest Queue Item
+    metricQueries:
+    - expression: |-
+        max by (queue_name) (argo_workflows_queue_longest_running{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"})
+      alias: ${queue_name}
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: s
+  - metricId: suse-ai-kubeflow-pipelines-pending-pods
+    name: Pending Workflow Pods
+    metricQueries:
+    - expression: |-
+        sum(argo_workflows_pods_gauge{phase="Pending", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"})
+      alias: Pending
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: short
+  - metricId: suse-ai-kubeflow-pipelines-pods-by-phase
+    name: Workflow Pods by Phase
+    metricQueries:
+    - expression: |-
+        sum by (phase) (argo_workflows_pods_gauge{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"})
+      alias: ${phase}
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: short
+  - metricId: suse-ai-kubeflow-pipelines-controller-error-rate
+    name: Workflow Controller Error Rate
+    metricQueries:
+    - expression: |-
+        sum by (cause) (rate(argo_workflows_error_count_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
+      alias: ${cause}
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: cps
+  - metricId: suse-ai-kubeflow-pipelines-queue-retry-rate
+    name: Workflow Queue Retry Rate
+    metricQueries:
+    - expression: |-
+        sum by (queue_name) (rate(argo_workflows_queue_retries_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
+      alias: ${queue_name}
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: cps
+  - metricId: suse-ai-kubeflow-pipelines-demo-step-duration-p95
+    name: Demo Step Duration P95
+    metricQueries:
+    - expression: |-
+        histogram_quantile(0.95, sum by (le, step) (last_over_time(suse_ai_kubeflow_pipeline_step_duration_seconds_bucket{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[24h]) and topk(1, tlast_over_time(suse_ai_kubeflow_pipeline_step_duration_seconds_bucket{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[24h])) by (le, step)))
+      alias: ${step}
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: s
+  - metricId: suse-ai-kubeflow-pipelines-demo-model-accuracy
+    name: Demo Model Accuracy
+    metricQueries:
+    - expression: |-
+        (sum(last_over_time(suse_ai_kubeflow_model_accuracy_sum{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[24h]) and topk(1, tlast_over_time(suse_ai_kubeflow_model_accuracy_sum{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[24h]))) / clamp_min(sum(last_over_time(suse_ai_kubeflow_model_accuracy_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[24h]) and topk(1, tlast_over_time(suse_ai_kubeflow_model_accuracy_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[24h]))), 1))
+      alias: accuracy
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: percentunit
+  - metricId: suse-ai-kubeflow-pipelines-demo-smoke-tests
+    name: Deployment Smoke Test Outcomes
+    metricQueries:
+    - expression: |-
+        sum by (inference_service, outcome) (last_over_time(suse_ai_kubeflow_deployment_smoke_test_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[24h]) and topk(1, tlast_over_time(suse_ai_kubeflow_deployment_smoke_test_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[24h])) by (inference_service))
+      alias: ${inference_service} ${outcome}
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: short
+
+# These service names match the Collector convention used by the uptime monitors.
+# Custom service names retain the shared metric definitions without API/controller
+# Highlights until their process role can be identified explicitly.
+- _type: ComponentPresentation
+  name: Kubeflow Pipelines API Highlights
+  identifier: urn:stackpack:suse-ai:component-presentation:kubeflow-pipelines-api-highlights
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: (label = "stackpack:open-telemetry" and type in ("otel service", "otel service instance") and label = "stackpack:suse-ai")
+      and label = "suse.ai.product:kubeflow-pipelines" and label = "service.name:kubeflow-pipelines"
+  rank:
+    specificity: 250
+  presentation:
+    highlight:
+      metrics:
+      - sectionId: suse-ai-product-kubeflow-pipelines-api
+        title: Kubeflow Pipelines API
+        order: 200
+        metrics:
+        - metricId: suse-ai-kubeflow-pipelines-run-api-rate
+          order: 100
+        - metricId: suse-ai-kubeflow-pipelines-total-runs
+          order: 99
+        - metricId: suse-ai-kubeflow-pipelines-run-success-rate
+          order: 98
+- _type: ComponentPresentation
+  name: Kubeflow Workflow Controller Highlights
+  identifier: urn:stackpack:suse-ai:component-presentation:kubeflow-pipelines-controller-highlights
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: (label = "stackpack:open-telemetry" and type in ("otel service", "otel service instance") and label = "stackpack:suse-ai")
+      and label = "suse.ai.product:kubeflow-pipelines" and label = "service.name:kubeflow-workflow-controller"
+  rank:
+    specificity: 250
+  presentation:
+    highlight:
+      metrics:
+      - sectionId: suse-ai-product-kubeflow-pipelines-controller
+        title: Kubeflow Workflow Controller
+        order: 200
+        metrics:
+        - metricId: suse-ai-kubeflow-pipelines-workflows-by-phase
+          order: 100
+        - metricId: suse-ai-kubeflow-pipelines-pods-by-phase
+          order: 99
+        - metricId: suse-ai-kubeflow-pipelines-oldest-queue-item
+          order: 98

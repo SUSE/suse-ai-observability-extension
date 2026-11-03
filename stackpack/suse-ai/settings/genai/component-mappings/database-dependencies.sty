@@ -1,0 +1,80 @@
+nodes:
+- _type: OtelComponentMapping
+  identifier: urn:stackpack:suse-ai:otel-component-mapping:database-dependencies
+  name: Databases observed by clients
+  description: Unresolved database endpoints observed by a calling service; not instrumented server resources.
+  input:
+    signal:
+    - TRACES
+    resource:
+      condition: >-
+        'service.name' in resource.attributes && resource.attributes['service.name'] != '' &&
+        !('suse.ai.managed' in resource.attributes && string(resource.attributes['suse.ai.managed']) == 'false')
+      scope:
+        span:
+          # Keep this selection equal to service-database.sty. A verified peer
+          # uses the existing Count connector/service-calls mapping instead.
+          condition: >-
+            span.kind == 'Client' &&
+            'db.system.name' in span.attributes && span.attributes['db.system.name'] in
+            ['milvus', 'qdrant', 'opensearch', 'elasticsearch'] &&
+            'server.address' in span.attributes && span.attributes['server.address'] != '' &&
+            !('suse.ai.peer.service.name' in span.attributes && span.attributes['suse.ai.peer.service.name'] != '' &&
+              'suse.ai.peer.service.namespace' in span.attributes && span.attributes['suse.ai.peer.service.namespace'] != '' &&
+              'k8s.cluster.name' in resource.attributes && resource.attributes['k8s.cluster.name'] != '' &&
+              'suse.ai.peer.cluster' in span.attributes &&
+              span.attributes['suse.ai.peer.cluster'] == resource.attributes['k8s.cluster.name'])
+          action: "'CREATE'"
+  vars:
+  - name: namespace
+    value: >-
+      'service.namespace' in resource.attributes && resource.attributes['service.namespace'] != ''
+      ? resource.attributes['service.namespace'] : 'default'
+  - name: service
+    value: resource.attributes['service.name']
+  - name: cluster
+    value: "'k8s.cluster.name' in resource.attributes ? resource.attributes['k8s.cluster.name'] : ''"
+  - name: system
+    value: span.attributes['db.system.name']
+  - name: address
+    value: span.attributes['server.address']
+  - name: port
+    value: "'server.port' in span.attributes ? string(span.attributes['server.port']) : ''"
+  expireAfter: 900000
+  rank:
+    specificity: 150
+  output:
+    # A caller-scoped observation, not a global identity for a physical server.
+    # Like native identifiers, values are unescaped (see the example README).
+    identifier: >-
+      'urn:suse-ai:database-dependency:cluster/' + vars.cluster + ':namespace/' + vars.namespace +
+      ':service/' + vars.service + ':system/' + vars.system + ':server/' + vars.address + ':port/' + vars.port
+    name: >-
+      vars.system + ' at ' + vars.address + (vars.port != '' ? ':' + vars.port : '') + ' (observed)'
+    typeName: "'genai database dependency'"
+    required:
+      tags:
+      - source: "'suse-ai'"
+        target: stackpack
+      - source: "'client-observed'"
+        target: suse.ai.discovery
+      - source: "vars.system in ['milvus', 'qdrant'] ? 'vectordb' : 'search-engine'"
+        target: suse.ai.category
+      - source: vars.system
+        target: suse.ai.product
+      - source: vars.system
+        target: db.system.name
+      - source: vars.namespace
+        target: service.namespace
+      - source: vars.service
+        target: service.name
+      - source: vars.address
+        target: server.address
+      - source: vars.port
+        target: server.port
+      # These describe the observer. Never assign its pod/node/cluster to the database.
+      - source: >-
+          vars.cluster != '' ? {'suse.ai.observer.cluster': vars.cluster,
+          'suse.ai.trace.k8s.cluster.name': vars.cluster} : {}
+        pattern: '^(.*)$'
+        target: '${1}'

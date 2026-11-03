@@ -1,0 +1,55 @@
+nodes:
+- _type: ComponentPresentation
+  name: AI service instances
+  identifier: urn:stackpack:suse-ai:component-presentation:instances
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: (label = "stackpack:open-telemetry" and type = "otel service instance" and label = "stackpack:suse-ai")
+  rank:
+    specificity: 210
+  presentation:
+    icon: !icon application.svg
+    filters:
+    - filterId: otel_namespace
+    - filterId: k8s_cluster
+    - filterId: k8s_namespace
+    - filterId: suse_ai_suse_ai_category
+    - filterId: suse_ai_suse_ai_product
+    overview:
+      name:
+        singular: AI service instance
+        plural: ai service instances
+        title: AI service instances
+      columns:
+      - columnId: health
+        title: Health
+        projection:
+          _type: HealthProjection
+          value: healthState
+      - columnId: otel_name
+        title: Name
+        projection:
+          _type: ComponentLinkProjection
+          name: name
+          identifier: identifiers[0]
+      - columnId: otel_namespace
+        title: Service namespace
+        projection:
+          _type: TextProjection
+          value: tags.singleValue('service.namespace')
+      - columnId: suse_ai_category
+      - columnId: suse_ai_product
+      - columnId: otel_k8s_cluster
+      - columnId: otel_k8s_namespace
+      sort:
+      - columnId: health
+      - columnId: otel_name
+    highlight:
+      title: AI service instance
+      fields:
+      - fieldId: suse_ai_product
+        title: Product
+        order: 45
+        projection:
+          _type: TextProjection
+          value: "'suse.ai.product' in tags ? tags['suse.ai.product'].join(', ') : ''"

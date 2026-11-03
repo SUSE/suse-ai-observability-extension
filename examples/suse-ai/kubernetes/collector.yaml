@@ -1,0 +1,114 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ai-collector
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ai-collector
+rules:
+  - apiGroups: [""]
+    resources: [pods, services, endpoints]
+    verbs: [get, list, watch]
+  - apiGroups: [apps]
+    resources: [replicasets]
+    verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ai-collector
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ai-collector
+subjects:
+  - kind: ServiceAccount
+    name: ai-collector
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-collector
+  template:
+    metadata:
+      labels:
+        app: ai-collector
+    spec:
+      serviceAccountName: ai-collector
+      containers:
+        - name: collector
+          image: otel/opentelemetry-collector-contrib:0.156.0@sha256:125bdbeb7590cc1952c5b3430ecf14063568980c2c93d5b38676cc0446ed8108
+          args:
+            - --config=/config/collector.yaml
+            - --config=/config/kubernetes-receiver.yaml
+          env:
+            - name: OBSERVED_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: K8S_CLUSTER_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: ai-collector-settings
+                  key: cluster-name
+            - name: SUSE_OBSERVABILITY_OTLP_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: ai-collector-settings
+                  key: otlp-endpoint
+            - name: SUSE_OBSERVABILITY_OTLP_INSECURE
+              valueFrom:
+                configMapKeyRef:
+                  name: ai-collector-settings
+                  key: otlp-insecure
+                  optional: true
+            - name: SUSE_OBSERVABILITY_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: suse-observability-api-key
+                  key: API_KEY
+          ports:
+            - name: otlp-grpc
+              containerPort: 4317
+            - name: otlp-http
+              containerPort: 4318
+          readinessProbe:
+            tcpSocket:
+              port: otlp-grpc
+          resources:
+            requests:
+              cpu: 100m
+              memory: 192Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: ai-collector
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-collector
+spec:
+  selector:
+    app: ai-collector
+  ports:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: otlp-grpc
+    - name: otlp-http
+      port: 4318
+      targetPort: otlp-http

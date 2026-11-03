@@ -1,0 +1,45 @@
+# vLLM High GPU Cache Usage
+
+This monitor detects GPU KV cache occupancy above **{{threshold}}** (a fraction from 0 to 1) for [{{labels.service_name}}](/#/components/{{componentUrnForUrl}}).
+
+Compare the metric and threshold in this monitor's chart at the time of the alert.
+
+## Potential Impacts
+- Out of memory errors
+- Request failures or timeouts
+- Inability to process new requests
+- Model eviction from GPU memory
+
+## Diagnosis Steps
+1. **Check GPU Memory Usage**:
+   ```bash
+   kubectl exec -it <vllm-pod> -- nvidia-smi
+   ```
+2. **Review Request Patterns**:
+   - Check if requests with very long sequences are consuming cache
+   - Monitor `max_model_len` and actual sequence lengths
+3. **Check Model Configuration**:
+   - Review vLLM startup parameters
+   - Check `gpu_memory_utilization` setting (default 0.9)
+
+## Remediation Actions
+1. **Check Available KV Cache Capacity**:
+   - Compare cache occupancy with GPU memory use and request concurrency.
+   - Reducing `--gpu-memory-utilization` reduces memory available for KV cache.
+   - Increase the cache budget only if the GPU has sufficient free memory and no competing workloads need it.
+2. **Reduce Max Model Length**:
+   - Set `--max-model-len` to a smaller value if long sequences aren't needed
+   - This limits the maximum context length per request
+3. **Enable Tensor Parallelism**:
+   - Distribute model across multiple GPUs with `--tensor-parallel-size`
+   - Requires multiple GPUs per instance
+4. **Implement Request Limits**:
+   - Set `--max-num-seqs` to limit concurrent requests
+   - Add application-level request queuing
+5. **Use PagedAttention Optimization**:
+   - Ensure vLLM is using PagedAttention (enabled by default)
+   - Consider upgrading vLLM version for better memory management
+6. **Scale Horizontally**:
+   ```bash
+   kubectl scale deployment/vllm --replicas=3
+   ```

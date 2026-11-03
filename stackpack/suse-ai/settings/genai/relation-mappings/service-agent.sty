@@ -1,0 +1,34 @@
+nodes:
+- _type: OtelRelationMapping
+  identifier: urn:stackpack:suse-ai:otel-relation-mapping:service-agent
+  name: AI service contains named agent
+  input:
+    signal:
+    - TRACES
+    resource:
+      condition: '''service.name'' in resource.attributes && resource.attributes[''service.name''] != '''' && !(''suse.ai.managed''
+        in resource.attributes && string(resource.attributes[''suse.ai.managed'']) == ''false'')'
+      scope:
+        span:
+          condition: ('gen_ai.agent.name' in span.attributes && span.attributes['gen_ai.agent.name'] != '') || ('traceloop.span.kind'
+            in span.attributes && span.attributes['traceloop.span.kind'] == 'agent' && 'traceloop.entity.name' in span.attributes
+            && span.attributes['traceloop.entity.name'] != '')
+          action: '''CREATE'''
+  vars:
+  - name: namespace
+    value: '''service.namespace'' in resource.attributes && resource.attributes[''service.namespace''] != '''' ? resource.attributes[''service.namespace'']
+      : ''default'''
+  - name: service
+    value: resource.attributes['service.name']
+  - name: agent
+    value: >-
+      'gen_ai.agent.name' in span.attributes && span.attributes['gen_ai.agent.name'] != ''
+      ? string(span.attributes['gen_ai.agent.name']) : string(span.attributes['traceloop.entity.name'])
+  expireAfter: 900000
+  output:
+    sourceId: '''urn:opentelemetry:namespace/'' + vars.namespace + '':service/'' + vars.service'
+    targetId: >-
+      'urn:suse-ai:namespace/' + vars.namespace + ':service/' + vars.service
+      + ':agent/' + vars.agent
+    typeName: '''contains-agent'''
+    dependencyType: '''HIERARCHICAL'''

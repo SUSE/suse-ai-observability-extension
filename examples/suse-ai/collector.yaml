@@ -1,0 +1,320 @@
+# Tested with otel/opentelemetry-collector-contrib:0.156.0.
+# Keep existing product receivers; classify each emitting resource.
+# Do not enable this span_metrics connector when the receiving gateway already generates span metrics.
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+  transform/suse_ai_resource:
+    error_mode: ignore
+    trace_statements:
+    - context: resource
+      statements:
+      # Normalize before connectors and exporters derive dimensions and identities.
+      - set(resource.attributes["service.namespace"], resource.attributes["k8s.namespace.name"]) where
+        (resource.attributes["service.namespace"] == nil or resource.attributes["service.namespace"] == "")
+        and resource.attributes["k8s.namespace.name"] != nil and resource.attributes["k8s.namespace.name"] != ""
+      - delete_key(resource.attributes, "suse.ai.product") where resource.attributes["suse.ai.product"] == ""
+      - delete_key(resource.attributes, "suse.ai.component.type") where resource.attributes["suse.ai.component.type"] == ""
+      - set(resource.attributes["service.namespace"], "default") where resource.attributes["service.namespace"]
+        == nil or resource.attributes["service.namespace"] == ""
+      - set(resource.attributes["suse.ai.product"], "vllm") where resource.attributes["suse.ai.product"] == nil
+        and resource.attributes["suse.ai.component.type"] == "inference-engine.vllm"
+      - set(resource.attributes["suse.ai.product"], "ollama") where resource.attributes["suse.ai.product"] == nil
+        and resource.attributes["suse.ai.component.type"] == "inference-engine.ollama"
+      - set(resource.attributes["suse.ai.product"], "kserve") where resource.attributes["suse.ai.product"] == nil
+        and resource.attributes["suse.ai.component.type"] == "inference-engine.kserve"
+      - set(resource.attributes["suse.ai.product"], "litellm") where resource.attributes["suse.ai.product"] == nil
+        and resource.attributes["suse.ai.component.type"] == "model-proxy.litellm"
+      - set(resource.attributes["suse.ai.product"], "open-webui") where resource.attributes["suse.ai.product"] ==
+        nil and resource.attributes["suse.ai.component.type"] == "ui.open-webui"
+      - set(resource.attributes["suse.ai.product"], "milvus") where resource.attributes["suse.ai.product"] == nil
+        and resource.attributes["suse.ai.component.type"] == "vectordb.milvus"
+      - set(resource.attributes["suse.ai.product"], "qdrant") where resource.attributes["suse.ai.product"] == nil
+        and resource.attributes["suse.ai.component.type"] == "vectordb.qdrant"
+      - set(resource.attributes["suse.ai.product"], "opensearch") where resource.attributes["suse.ai.product"] ==
+        nil and resource.attributes["suse.ai.component.type"] == "search-engine.opensearch"
+      - set(resource.attributes["suse.ai.product"], "elasticsearch") where resource.attributes["suse.ai.product"]
+        == nil and resource.attributes["suse.ai.component.type"] == "search-engine.elasticsearch"
+      - set(resource.attributes["suse.ai.product"], "mlflow") where resource.attributes["suse.ai.product"] == nil
+        and resource.attributes["suse.ai.component.type"] == "ml-registry.mlflow"
+      - set(resource.attributes["suse.ai.product"], "kubeflow-model-registry") where resource.attributes["suse.ai.product"]
+        == nil and resource.attributes["suse.ai.component.type"] == "ml-registry.kubeflow"
+      - set(resource.attributes["suse.ai.product"], "kubeflow-pipelines") where resource.attributes["suse.ai.product"]
+        == nil and resource.attributes["suse.ai.component.type"] == "workflow-engine.kubeflow-pipelines"
+      - set(resource.attributes["suse.ai.product"], resource.attributes["suse.ai.component.name"]) where resource.attributes["suse.ai.product"]
+        == nil and resource.attributes["suse.ai.component.name"] != nil and IsMatch(resource.attributes["suse.ai.component.name"],
+        "^(vllm|ollama|kserve|litellm|open-webui|milvus|qdrant|opensearch|elasticsearch|mlflow|kubeflow-model-registry|kubeflow-pipelines)$")
+    metric_statements:
+    - context: resource
+      statements:
+      # Normalize before connectors and exporters derive dimensions and identities.
+      - set(resource.attributes["service.namespace"], resource.attributes["k8s.namespace.name"]) where
+        (resource.attributes["service.namespace"] == nil or resource.attributes["service.namespace"] == "")
+        and resource.attributes["k8s.namespace.name"] != nil and resource.attributes["k8s.namespace.name"] != ""
+      - delete_key(resource.attributes, "suse.ai.product") where resource.attributes["suse.ai.product"] == ""
+      - delete_key(resource.attributes, "suse.ai.component.type") where resource.attributes["suse.ai.component.type"] == ""
+      - set(resource.attributes["service.namespace"], "default") where resource.attributes["service.namespace"]
+        == nil or resource.attributes["service.namespace"] == ""
+      - set(resource.attributes["suse.ai.product"], "vllm") where resource.attributes["suse.ai.product"] == nil
+        and resource.attributes["suse.ai.component.type"] == "inference-engine.vllm"
+      - set(resource.attributes["suse.ai.product"], "ollama") where resource.attributes["suse.ai.product"] == nil
+        and resource.attributes["suse.ai.component.type"] == "inference-engine.ollama"
+      - set(resource.attributes["suse.ai.product"], "kserve") where resource.attributes["suse.ai.product"] == nil
+        and resource.attributes["suse.ai.component.type"] == "inference-engine.kserve"
+      - set(resource.attributes["suse.ai.product"], "litellm") where resource.attributes["suse.ai.product"] == nil
+        and resource.attributes["suse.ai.component.type"] == "model-proxy.litellm"
+      - set(resource.attributes["suse.ai.product"], "open-webui") where resource.attributes["suse.ai.product"] ==
+        nil and resource.attributes["suse.ai.component.type"] == "ui.open-webui"
+      - set(resource.attributes["suse.ai.product"], "milvus") where resource.attributes["suse.ai.product"] == nil
+        and resource.attributes["suse.ai.component.type"] == "vectordb.milvus"
+      - set(resource.attributes["suse.ai.product"], "qdrant") where resource.attributes["suse.ai.product"] == nil
+        and resource.attributes["suse.ai.component.type"] == "vectordb.qdrant"
+      - set(resource.attributes["suse.ai.product"], "opensearch") where resource.attributes["suse.ai.product"] ==
+        nil and resource.attributes["suse.ai.component.type"] == "search-engine.opensearch"
+      - set(resource.attributes["suse.ai.product"], "elasticsearch") where resource.attributes["suse.ai.product"]
+        == nil and resource.attributes["suse.ai.component.type"] == "search-engine.elasticsearch"
+      - set(resource.attributes["suse.ai.product"], "mlflow") where resource.attributes["suse.ai.product"] == nil
+        and resource.attributes["suse.ai.component.type"] == "ml-registry.mlflow"
+      - set(resource.attributes["suse.ai.product"], "kubeflow-model-registry") where resource.attributes["suse.ai.product"]
+        == nil and resource.attributes["suse.ai.component.type"] == "ml-registry.kubeflow"
+      - set(resource.attributes["suse.ai.product"], "kubeflow-pipelines") where resource.attributes["suse.ai.product"]
+        == nil and resource.attributes["suse.ai.component.type"] == "workflow-engine.kubeflow-pipelines"
+      - set(resource.attributes["suse.ai.product"], resource.attributes["suse.ai.component.name"]) where resource.attributes["suse.ai.product"]
+        == nil and resource.attributes["suse.ai.component.name"] != nil and IsMatch(resource.attributes["suse.ai.component.name"],
+        "^(vllm|ollama|kserve|litellm|open-webui|milvus|qdrant|opensearch|elasticsearch|mlflow|kubeflow-model-registry|kubeflow-pipelines)$")
+    - context: datapoint
+      statements:
+      - set(datapoint.attributes["service_namespace"], resource.attributes["service.namespace"]) where
+        datapoint.attributes["service_namespace"] != nil
+    log_statements:
+    - context: resource
+      statements:
+      # Normalize before connectors and exporters derive dimensions and identities.
+      - set(resource.attributes["service.namespace"], resource.attributes["k8s.namespace.name"]) where
+        (resource.attributes["service.namespace"] == nil or resource.attributes["service.namespace"] == "")
+        and resource.attributes["k8s.namespace.name"] != nil and resource.attributes["k8s.namespace.name"] != ""
+      - delete_key(resource.attributes, "suse.ai.product") where resource.attributes["suse.ai.product"] == ""
+      - delete_key(resource.attributes, "suse.ai.component.type") where resource.attributes["suse.ai.component.type"] == ""
+      - set(resource.attributes["service.namespace"], "default") where resource.attributes["service.namespace"]
+        == nil or resource.attributes["service.namespace"] == ""
+      - set(resource.attributes["suse.ai.product"], "vllm") where resource.attributes["suse.ai.product"] == nil
+        and resource.attributes["suse.ai.component.type"] == "inference-engine.vllm"
+      - set(resource.attributes["suse.ai.product"], "ollama") where resource.attributes["suse.ai.product"] == nil
+        and resource.attributes["suse.ai.component.type"] == "inference-engine.ollama"
+      - set(resource.attributes["suse.ai.product"], "kserve") where resource.attributes["suse.ai.product"] == nil
+        and resource.attributes["suse.ai.component.type"] == "inference-engine.kserve"
+      - set(resource.attributes["suse.ai.product"], "litellm") where resource.attributes["suse.ai.product"] == nil
+        and resource.attributes["suse.ai.component.type"] == "model-proxy.litellm"
+      - set(resource.attributes["suse.ai.product"], "open-webui") where resource.attributes["suse.ai.product"] ==
+        nil and resource.attributes["suse.ai.component.type"] == "ui.open-webui"
+      - set(resource.attributes["suse.ai.product"], "milvus") where resource.attributes["suse.ai.product"] == nil
+        and resource.attributes["suse.ai.component.type"] == "vectordb.milvus"
+      - set(resource.attributes["suse.ai.product"], "qdrant") where resource.attributes["suse.ai.product"] == nil
+        and resource.attributes["suse.ai.component.type"] == "vectordb.qdrant"
+      - set(resource.attributes["suse.ai.product"], "opensearch") where resource.attributes["suse.ai.product"] ==
+        nil and resource.attributes["suse.ai.component.type"] == "search-engine.opensearch"
+      - set(resource.attributes["suse.ai.product"], "elasticsearch") where resource.attributes["suse.ai.product"]
+        == nil and resource.attributes["suse.ai.component.type"] == "search-engine.elasticsearch"
+      - set(resource.attributes["suse.ai.product"], "mlflow") where resource.attributes["suse.ai.product"] == nil
+        and resource.attributes["suse.ai.component.type"] == "ml-registry.mlflow"
+      - set(resource.attributes["suse.ai.product"], "kubeflow-model-registry") where resource.attributes["suse.ai.product"]
+        == nil and resource.attributes["suse.ai.component.type"] == "ml-registry.kubeflow"
+      - set(resource.attributes["suse.ai.product"], "kubeflow-pipelines") where resource.attributes["suse.ai.product"]
+        == nil and resource.attributes["suse.ai.component.type"] == "workflow-engine.kubeflow-pipelines"
+      - set(resource.attributes["suse.ai.product"], resource.attributes["suse.ai.component.name"]) where resource.attributes["suse.ai.product"]
+        == nil and resource.attributes["suse.ai.component.name"] != nil and IsMatch(resource.attributes["suse.ai.component.name"],
+        "^(vllm|ollama|kserve|litellm|open-webui|milvus|qdrant|opensearch|elasticsearch|mlflow|kubeflow-model-registry|kubeflow-pipelines)$")
+  transform/genai_compat:
+    error_mode: ignore
+    trace_statements:
+    - context: span
+      statements:
+      - set(span.attributes["gen_ai.provider.name"], span.attributes["gen_ai.system"]) where span.attributes["gen_ai.provider.name"]
+        == nil and span.attributes["gen_ai.system"] != nil
+      - set(span.attributes["gen_ai.usage.input_tokens"], span.attributes["gen_ai.usage.prompt_tokens"]) where span.attributes["gen_ai.usage.input_tokens"]
+        == nil and span.attributes["gen_ai.usage.prompt_tokens"] != nil
+      - set(span.attributes["gen_ai.usage.output_tokens"], span.attributes["gen_ai.usage.completion_tokens"]) where
+        span.attributes["gen_ai.usage.output_tokens"] == nil and span.attributes["gen_ai.usage.completion_tokens"]
+        != nil
+      - set(span.attributes["gen_ai.agent.name"], span.attributes["traceloop.entity.name"]) where
+        (span.attributes["gen_ai.agent.name"] == nil or span.attributes["gen_ai.agent.name"] == "")
+        and span.attributes["traceloop.span.kind"] == "agent" and span.attributes["traceloop.entity.name"] != nil
+        and span.attributes["traceloop.entity.name"] != ""
+      - set(span.attributes["gen_ai.operation.name"], "invoke_agent") where span.attributes["gen_ai.operation.name"]
+        == nil and span.attributes["traceloop.span.kind"] == "agent"
+    metric_statements:
+    - context: datapoint
+      statements:
+      - set(datapoint.attributes["gen_ai.provider.name"], datapoint.attributes["gen_ai.system"]) where datapoint.attributes["gen_ai.provider.name"]
+        == nil and datapoint.attributes["gen_ai.system"] != nil
+      - set(datapoint.attributes["gen_ai.token.type"], datapoint.attributes["gen_ai.usage.token_type"]) where datapoint.attributes["gen_ai.token.type"]
+        == nil and datapoint.attributes["gen_ai.usage.token_type"] != nil
+  transform/suse_ai_database:
+    error_mode: ignore
+    trace_statements:
+    - context: span
+      statements:
+      # Canonical nonempty values win; never promote a client's DB identity to its resource.
+      - set(span.attributes["db.system.name"], span.attributes["db.system"]) where
+        (span.attributes["db.system.name"] == nil or span.attributes["db.system.name"] == "")
+        and span.attributes["db.system"] != nil and span.attributes["db.system"] != ""
+      - set(span.attributes["db.system"], span.attributes["db.system.name"]) where
+        (span.attributes["db.system"] == nil or span.attributes["db.system"] == "")
+        and span.attributes["db.system.name"] != nil and span.attributes["db.system.name"] != ""
+    - context: span
+      conditions:
+      - span.attributes["db.system.name"] != nil and span.attributes["db.system.name"] != ""
+      statements:
+      - set(span.attributes["server.address"], span.attributes["net.peer.name"]) where
+        (span.attributes["server.address"] == nil or span.attributes["server.address"] == "")
+        and span.attributes["net.peer.name"] != nil and span.attributes["net.peer.name"] != ""
+      - set(span.attributes["server.address"], span.attributes["net.peer.ip"]) where
+        (span.attributes["server.address"] == nil or span.attributes["server.address"] == "")
+        and span.attributes["net.peer.ip"] != nil and span.attributes["net.peer.ip"] != ""
+      - set(span.attributes["server.port"], span.attributes["net.peer.port"]) where
+        (span.attributes["server.port"] == nil or span.attributes["server.port"] == "")
+        and span.attributes["net.peer.port"] != nil and span.attributes["net.peer.port"] != ""
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+  filter/suse_ai_observations:
+    error_mode: propagate
+    metrics:
+      metric:
+      - 'name != "traces_service_graph_request_total" and name != "suse.ai.client.calls"'
+  cumulativetodelta/suse_ai_calls:
+    include:
+      metrics: [traces_service_graph_request_total]
+      match_type: strict
+    initial_value: keep
+    max_staleness: 20m
+  filter/suse_ai_idle_calls:
+    error_mode: propagate
+    metrics:
+      datapoint:
+      - '(metric.name == "traces_service_graph_request_total" or metric.name == "suse.ai.client.calls") and datapoint.value_int == 0'
+  transform/suse_ai_observations:
+    error_mode: propagate
+    metric_statements:
+    - context: datapoint
+      conditions:
+      - metric.name == "suse.ai.client.calls"
+      statements:
+      - set(datapoint.attributes["client"], resource.attributes["service.name"])
+      - set(datapoint.attributes["client_service.namespace"], resource.attributes["service.namespace"])
+      - set(datapoint.attributes["server"], datapoint.attributes["suse.ai.peer.service.name"])
+      - set(datapoint.attributes["server_service.namespace"], datapoint.attributes["suse.ai.peer.service.namespace"])
+      - set(datapoint.attributes["connection_type"], "")
+    - context: metric
+      statements:
+      - set(metric.name, "suse.ai.service.calls") where metric.name == "traces_service_graph_request_total" or metric.name == "suse.ai.client.calls"
+      - convert_sum_to_gauge() where metric.name == "suse.ai.service.calls"
+connectors:
+  # One delta observation per resolved provider CLIENT span. No idle cache.
+  count/suse_ai_clients:
+    spans:
+      suse.ai.client.calls:
+        description: Calls to explicitly resolved canonical services; topology observations only.
+        conditions:
+        - >-
+          kind == SPAN_KIND_CLIENT and
+          resource.attributes["service.name"] != nil and resource.attributes["service.name"] != "" and
+          resource.attributes["k8s.cluster.name"] != nil and resource.attributes["k8s.cluster.name"] != "" and
+          resource.attributes["suse.ai.managed"] != "false" and resource.attributes["suse.ai.managed"] != false and
+          attributes["server.address"] != nil and attributes["server.address"] != "" and
+          attributes["suse.ai.peer.service.name"] != nil and attributes["suse.ai.peer.service.name"] != "" and
+          attributes["suse.ai.peer.service.namespace"] != nil and attributes["suse.ai.peer.service.namespace"] != "" and
+          attributes["suse.ai.peer.cluster"] == resource.attributes["k8s.cluster.name"]
+        attributes:
+        - key: suse.ai.peer.service.name
+        - key: suse.ai.peer.service.namespace
+  service_graph/suse_ai:
+    dimensions: [service.namespace]
+    metrics_flush_interval: 15s
+    store:
+      ttl: 30s
+      max_items: 10000
+    virtual_node_peer_attributes: []
+    virtual_node_extra_label: true
+  span_metrics:
+    namespace: otel_span
+    histogram:
+      unit: s
+      explicit:
+        buckets:
+        - 5ms
+        - 10ms
+        - 50ms
+        - 100ms
+        - 500ms
+        - 1s
+        - 5s
+        - 10s
+        - 30s
+    dimensions:
+    - name: service.namespace
+    - name: service.instance.id
+    metrics_flush_interval: 15s
+    metrics_expiration: 5m
+    exemplars:
+      enabled: true
+exporters:
+  otlp_grpc/suse:
+    endpoint: ${env:SUSE_OBSERVABILITY_OTLP_ENDPOINT}
+    headers:
+      Authorization: SUSEObservability ${env:SUSE_OBSERVABILITY_API_KEY}
+    compression: gzip
+    sending_queue:
+      enabled: true
+      queue_size: 1000
+    retry_on_failure:
+      enabled: true
+service:
+  pipelines:
+    traces:
+      receivers:
+      - otlp
+      processors:
+      - memory_limiter
+      - transform/suse_ai_resource
+      - transform/genai_compat
+      - transform/suse_ai_database
+      - batch
+      exporters:
+      - otlp_grpc/suse
+      - span_metrics
+      - service_graph/suse_ai
+      - count/suse_ai_clients
+    metrics/suse_ai_observations:
+      receivers: [service_graph/suse_ai, count/suse_ai_clients]
+      processors: [memory_limiter, filter/suse_ai_observations, cumulativetodelta/suse_ai_calls, filter/suse_ai_idle_calls, transform/suse_ai_observations, batch]
+      exporters: [otlp_grpc/suse]
+    metrics:
+      receivers:
+      - otlp
+      - span_metrics
+      processors:
+      - memory_limiter
+      - transform/suse_ai_resource
+      - transform/genai_compat
+      - batch
+      exporters:
+      - otlp_grpc/suse
+    logs:
+      receivers:
+      - otlp
+      processors:
+      - memory_limiter
+      - transform/suse_ai_resource
+      - batch
+      exporters:
+      - otlp_grpc/suse

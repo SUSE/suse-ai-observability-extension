@@ -1,0 +1,85 @@
+nodes:
+- _type: OtelComponentMapping
+  name: SUSE AI service instances traces
+  description: Adds AI classification to the canonical OTel identity; leaves the base OTel type and telemetry resource
+    intact.
+  identifier: urn:stackpack:suse-ai:otel-component-mapping:service-instances-traces
+  input:
+    signal:
+    - TRACES
+    resource:
+      condition: '''service.name'' in resource.attributes && resource.attributes[''service.name''] != '''' && ''service.instance.id''
+        in resource.attributes && resource.attributes[''service.instance.id''] != '''' && !(''suse.ai.managed'' in resource.attributes
+        && string(resource.attributes[''suse.ai.managed'']) == ''false'')'
+      action: >-
+        (('suse.ai.component.type' in resource.attributes && resource.attributes['suse.ai.component.type'] !=
+        '') || ('suse.ai.product' in resource.attributes && resource.attributes['suse.ai.product'] != '') ||
+        ('suse.ai.managed' in resource.attributes && string(resource.attributes['suse.ai.managed']) ==
+        'true')) ? 'CREATE' : 'CONTINUE'
+      scope:
+        span:
+          condition: '''gen_ai.operation.name'' in span.attributes || ''gen_ai.agent.name'' in span.attributes || ''gen_ai.provider.name''
+            in span.attributes || ''gen_ai.system'' in span.attributes || ''gen_ai.request.model'' in span.attributes
+            || (''traceloop.span.kind'' in span.attributes && span.attributes[''traceloop.span.kind''] == ''agent'')'
+          action: '''CREATE'''
+  vars:
+  - name: namespace
+    value: '''service.namespace'' in resource.attributes && resource.attributes[''service.namespace''] != '''' ? resource.attributes[''service.namespace'']
+      : ''default'''
+  - name: service
+    value: resource.attributes['service.name']
+  - name: product
+    value: |-
+      ('suse.ai.product' in resource.attributes && resource.attributes['suse.ai.product'] != '') ? resource.attributes['suse.ai.product'] :
+      ('suse.ai.component.type' in resource.attributes && resource.attributes['suse.ai.component.type'] in {'inference-engine.vllm': 'vllm', 'inference-engine.ollama': 'ollama', 'inference-engine.kserve': 'kserve', 'model-proxy.litellm': 'litellm', 'ui.open-webui': 'open-webui', 'vectordb.milvus': 'milvus', 'vectordb.qdrant': 'qdrant', 'search-engine.opensearch': 'opensearch', 'search-engine.elasticsearch': 'elasticsearch', 'ml-registry.mlflow': 'mlflow', 'ml-registry.kubeflow': 'kubeflow-model-registry', 'workflow-engine.kubeflow-pipelines': 'kubeflow-pipelines'}) ? {'inference-engine.vllm': 'vllm', 'inference-engine.ollama': 'ollama', 'inference-engine.kserve': 'kserve', 'model-proxy.litellm': 'litellm', 'ui.open-webui': 'open-webui', 'vectordb.milvus': 'milvus', 'vectordb.qdrant': 'qdrant', 'search-engine.opensearch': 'opensearch', 'search-engine.elasticsearch': 'elasticsearch', 'ml-registry.mlflow': 'mlflow', 'ml-registry.kubeflow': 'kubeflow-model-registry', 'workflow-engine.kubeflow-pipelines': 'kubeflow-pipelines'}[resource.attributes['suse.ai.component.type']] :
+      ('suse.ai.component.name' in resource.attributes && resource.attributes['suse.ai.component.name'] in ['vllm', 'ollama', 'kserve', 'litellm', 'open-webui', 'milvus', 'qdrant', 'opensearch', 'elasticsearch', 'mlflow', 'kubeflow-model-registry', 'kubeflow-pipelines']) ? resource.attributes['suse.ai.component.name'] : ''
+  - name: role
+    value: |-
+      ('suse.ai.product' in resource.attributes && resource.attributes['suse.ai.product'] in {'vllm': 'inference-engine', 'ollama': 'inference-engine', 'kserve': 'inference-engine', 'litellm': 'model-proxy', 'open-webui': 'ui', 'milvus': 'vectordb', 'qdrant': 'vectordb', 'opensearch': 'search-engine', 'elasticsearch': 'search-engine', 'mlflow': 'ml-registry', 'kubeflow-model-registry': 'ml-registry', 'kubeflow-pipelines': 'workflow-engine'}) ? {'vllm': 'inference-engine', 'ollama': 'inference-engine', 'kserve': 'inference-engine', 'litellm': 'model-proxy', 'open-webui': 'ui', 'milvus': 'vectordb', 'qdrant': 'vectordb', 'opensearch': 'search-engine', 'elasticsearch': 'search-engine', 'mlflow': 'ml-registry', 'kubeflow-model-registry': 'ml-registry', 'kubeflow-pipelines': 'workflow-engine'}[resource.attributes['suse.ai.product']] :
+      ('suse.ai.component.type' in resource.attributes && resource.attributes['suse.ai.component.type'] in {'application': 'application', 'agent': 'agent', 'ui': 'ui', 'inference-engine': 'inference-engine', 'model-proxy': 'model-proxy', 'vectordb': 'vectordb', 'search-engine': 'search-engine', 'mcp-server': 'mcp-server', 'workflow-engine': 'workflow-engine', 'ml-registry': 'ml-registry', 'app': 'application', 'service': 'application', 'frontend': 'ui', 'vector-db': 'vectordb', 'db': 'vectordb', 'inference-engine.vllm': 'inference-engine', 'inference-engine.ollama': 'inference-engine', 'inference-engine.kserve': 'inference-engine', 'model-proxy.litellm': 'model-proxy', 'ui.open-webui': 'ui', 'vectordb.milvus': 'vectordb', 'vectordb.qdrant': 'vectordb', 'search-engine.opensearch': 'search-engine', 'search-engine.elasticsearch': 'search-engine', 'ml-registry.mlflow': 'ml-registry', 'ml-registry.kubeflow': 'ml-registry', 'workflow-engine.kubeflow-pipelines': 'workflow-engine'}) ? {'application': 'application', 'agent': 'agent', 'ui': 'ui', 'inference-engine': 'inference-engine', 'model-proxy': 'model-proxy', 'vectordb': 'vectordb', 'search-engine': 'search-engine', 'mcp-server': 'mcp-server', 'workflow-engine': 'workflow-engine', 'ml-registry': 'ml-registry', 'app': 'application', 'service': 'application', 'frontend': 'ui', 'vector-db': 'vectordb', 'db': 'vectordb', 'inference-engine.vllm': 'inference-engine', 'inference-engine.ollama': 'inference-engine', 'inference-engine.kserve': 'inference-engine', 'model-proxy.litellm': 'model-proxy', 'ui.open-webui': 'ui', 'vectordb.milvus': 'vectordb', 'vectordb.qdrant': 'vectordb', 'search-engine.opensearch': 'search-engine', 'search-engine.elasticsearch': 'search-engine', 'ml-registry.mlflow': 'ml-registry', 'ml-registry.kubeflow': 'ml-registry', 'workflow-engine.kubeflow-pipelines': 'workflow-engine'}[resource.attributes['suse.ai.component.type']] :
+      ('suse.ai.component.name' in resource.attributes && resource.attributes['suse.ai.component.name'] in {'vllm': 'inference-engine', 'ollama': 'inference-engine', 'kserve': 'inference-engine', 'litellm': 'model-proxy', 'open-webui': 'ui', 'milvus': 'vectordb', 'qdrant': 'vectordb', 'opensearch': 'search-engine', 'elasticsearch': 'search-engine', 'mlflow': 'ml-registry', 'kubeflow-model-registry': 'ml-registry', 'kubeflow-pipelines': 'workflow-engine'}) ? {'vllm': 'inference-engine', 'ollama': 'inference-engine', 'kserve': 'inference-engine', 'litellm': 'model-proxy', 'open-webui': 'ui', 'milvus': 'vectordb', 'qdrant': 'vectordb', 'opensearch': 'search-engine', 'elasticsearch': 'search-engine', 'mlflow': 'ml-registry', 'kubeflow-model-registry': 'ml-registry', 'kubeflow-pipelines': 'workflow-engine'}[resource.attributes['suse.ai.component.name']] : ''
+  - name: instance
+    value: resource.attributes['service.instance.id']
+  output:
+    identifier: '''urn:opentelemetry:namespace/'' + vars.namespace + '':service/'' + vars.service + '':serviceInstance/''
+      + vars.instance'
+    name: vars.service + ' - ' + vars.instance
+    typeName: '''otel service instance'''
+    required:
+      tags:
+      - source: '''suse-ai'''
+        target: stackpack
+      - source: vars.namespace
+        target: service.namespace
+      - source: vars.service
+        target: service.name
+      - source: vars.namespace
+        target: suse.ai.metric.service_namespace
+      - source: vars.service
+        target: suse.ai.metric.service_name
+      # Tags compose across signals; unclassified observations add no default role.
+      - source: "vars.role != '' ? {'suse.ai.category': vars.role} : {}"
+        pattern: '^(.*)$'
+        target: '${1}'
+      - source: "vars.product != '' ? {'suse.ai.product': vars.product} : {}"
+        pattern: '^(.*)$'
+        target: '${1}'
+      - source: vars.instance
+        target: service.instance.id
+      - source: vars.instance
+        target: suse.ai.metric.service_instance_id
+    optional:
+      tags:
+      - source: string(resource.attributes['suse.ai.demo'])
+        target: suse.ai.demo
+      - source: resource.attributes['k8s.cluster.name']
+        target: cluster-name
+      - source: resource.attributes['k8s.namespace.name']
+        target: namespace
+      - source: resource.attributes['service.version']
+        target: service.version
+      - source: resource.attributes['deployment.environment.name']
+        target: deployment.environment.name
+  rank:
+    specificity: 150
+  expireAfter: 900000

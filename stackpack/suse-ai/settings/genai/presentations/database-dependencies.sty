@@ -1,0 +1,73 @@
+nodes:
+- _type: ComponentPresentation
+  name: Observed database dependency
+  identifier: urn:stackpack:suse-ai:component-presentation:database-dependencies
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: type = "genai database dependency" and label = "stackpack:suse-ai"
+  rank:
+    specificity: 230
+  presentation:
+    icon: !icon menu/vectordb.svg
+    highlight:
+      title: Observed database dependency
+      fields:
+      - fieldId: suse_ai_discovery
+        title: Discovery
+        order: 100
+        projection:
+          _type: TextProjection
+          value: "'Observed from client calls; server identity and health are unverified'"
+      - fieldId: suse_ai_application
+        title: Calling service
+        order: 95
+        projection:
+          _type: ComponentLinkProjection
+          name: tags.singleValue('service.name')
+          identifier: "'urn:opentelemetry:namespace/' + tags.singleValue('service.namespace') + ':service/' + tags.singleValue('service.name')"
+      - fieldId: suse_ai_observer_cluster
+        title: Observed from cluster
+        order: 90
+        projection:
+          _type: TextProjection
+          value: tags.singleValue('suse.ai.observer.cluster')
+      - fieldId: suse_ai_database_system
+        title: Database system
+        order: 85
+        projection:
+          _type: TextProjection
+          value: tags.singleValue('db.system.name')
+      - fieldId: suse_ai_server_address
+        title: Server address
+        order: 80
+        projection:
+          _type: TextProjection
+          value: tags.singleValue('server.address')
+      - fieldId: suse_ai_server_port
+        title: Server port
+        order: 75
+        projection:
+          _type: TextProjection
+          value: "tags.singleValue('server.port') != '' ? tags.singleValue('server.port') : 'Not reported'"
+      relatedResources:
+      - resourceId: suse_ai_caller
+        title: Calling service
+        order: 90
+        topologyQuery: >-
+          identifier = "urn:opentelemetry:namespace/${tags.singleValue('service.namespace')}:service/${tags.singleValue('service.name')}"
+    tracesPerspective:
+      showTraces: true
+      spanFilter:
+        serviceName:
+        - ${tags.singleValue('service.name')}
+        attributes:
+          service.namespace:
+          - ${tags.singleValue('service.namespace')}
+          db.system.name:
+          - ${tags.singleValue('db.system.name')}
+          server.address:
+          - ${tags.singleValue('server.address')}
+          server.port:
+          - ${tags.singleValue('server.port')}
+          __multi__:
+          - ${selectPrefix(tags, 'suse.ai.trace.')}

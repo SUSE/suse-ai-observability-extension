@@ -1,0 +1,47 @@
+nodes:
+- _type: ComponentPresentation
+  name: ML registries
+  identifier: urn:stackpack:suse-ai:component-presentation:role-ml-registry
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: (label = "stackpack:open-telemetry" and type = "otel service" and label = "stackpack:suse-ai" and label
+      = "suse.ai.category:ml-registry")
+  rank:
+    specificity: 230
+  presentation:
+    icon: !icon ml-registry.png
+    filters:
+    - filterId: otel_namespace
+    - filterId: k8s_cluster
+    - filterId: k8s_namespace
+    - filterId: suse_ai_suse_ai_category
+    - filterId: suse_ai_suse_ai_product
+    overview:
+      name:
+        singular: ML registrie
+        plural: ml registries
+        title: ML registries
+      columns:
+      - columnId: health
+        title: Health
+        projection:
+          _type: HealthProjection
+          value: healthState
+      - columnId: otel_name
+        title: Name
+        projection:
+          _type: ComponentLinkProjection
+          name: name
+          identifier: identifiers[0]
+      - columnId: otel_namespace
+        title: Service namespace
+        projection:
+          _type: TextProjection
+          value: tags.singleValue('service.namespace')
+      - columnId: suse_ai_category
+      - columnId: suse_ai_product
+      - columnId: otel_k8s_cluster
+      - columnId: otel_k8s_namespace
+      sort:
+      - columnId: health
+      - columnId: otel_name

@@ -1,0 +1,56 @@
+# Optional overlay for an existing NVIDIA DCGM exporter DaemonSet.
+# Grant the Collector ServiceAccount get/list/watch on pods in
+# DCGM_EXPORTER_NAMESPACE. No GPU workload or privileged agent is installed.
+receivers:
+  prometheus/dcgm:
+    config:
+      scrape_configs:
+        - job_name: dcgm
+          scrape_interval: 15s
+          kubernetes_sd_configs:
+            - role: pod
+              namespaces:
+                names: ["${env:DCGM_EXPORTER_NAMESPACE}"]
+          relabel_configs:
+            - source_labels: [__meta_kubernetes_pod_label_app]
+              regex: nvidia-dcgm-exporter
+              action: keep
+            - source_labels: [__meta_kubernetes_pod_container_port_number]
+              regex: "9400"
+              action: keep
+            - source_labels: [__meta_kubernetes_pod_phase]
+              regex: Running
+              action: keep
+            - source_labels: [__meta_kubernetes_pod_node_name]
+              target_label: k8s_node_name
+          metric_relabel_configs:
+            - source_labels: [namespace]
+              target_label: pod_namespace
+            - source_labels: [pod]
+              target_label: pod_name
+            - source_labels: [container]
+              target_label: container_name
+
+processors:
+  transform/dcgm_identity:
+    error_mode: propagate
+    metric_statements:
+      - context: datapoint
+        statements:
+          - set(resource.attributes["k8s.node.name"], datapoint.attributes["k8s_node_name"])
+          - delete_key(datapoint.attributes, "k8s_node_name")
+  resource/dcgm:
+    attributes:
+      - key: service.namespace
+        value: ${env:DCGM_EXPORTER_NAMESPACE}
+        action: insert
+      - key: k8s.cluster.name
+        value: ${env:K8S_CLUSTER_NAME}
+        action: insert
+
+service:
+  pipelines:
+    metrics/dcgm:
+      receivers: [prometheus/dcgm]
+      processors: [memory_limiter, transform/dcgm_identity, resource/dcgm, transform/suse_ai_resource, batch]
+      exporters: [otlp_grpc/suse]

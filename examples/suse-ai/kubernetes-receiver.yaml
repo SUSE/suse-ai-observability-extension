@@ -1,0 +1,88 @@
+# Merge with collector.yaml in a Collector running in the observed namespace.
+# Kubernetes discovery and enrichment require the RBAC in kubernetes/collector.yaml.
+receivers:
+  prometheus/vllm:
+    config:
+      scrape_configs:
+        - job_name: vllm
+          scrape_interval: 15s
+          kubernetes_sd_configs:
+            - role: pod
+              namespaces:
+                names: ["${env:OBSERVED_NAMESPACE}"]
+          relabel_configs:
+            - source_labels: [__meta_kubernetes_pod_label_app]
+              regex: vllm
+              action: keep
+            - source_labels: [__meta_kubernetes_pod_container_port_number]
+              regex: "8000"
+              action: keep
+            - source_labels: [__meta_kubernetes_pod_phase]
+              regex: Running
+              action: keep
+            - source_labels: [__meta_kubernetes_pod_uid]
+              target_label: k8s_pod_uid
+
+processors:
+  memory_limiter:
+    limit_mib: 384
+    spike_limit_mib: 96
+  k8s_attributes:
+    auth_type: serviceAccount
+    filter:
+      namespace: ${env:OBSERVED_NAMESPACE}
+    extract:
+      metadata:
+        - k8s.pod.name
+        - k8s.pod.uid
+        - k8s.namespace.name
+        - k8s.node.name
+        - k8s.deployment.name
+    pod_association:
+      - sources:
+          - from: resource_attribute
+            name: k8s.pod.uid
+      - sources:
+          - from: connection
+  transform/kubernetes:
+    error_mode: propagate
+    trace_statements: &kubernetes_identity
+      - context: resource
+        statements:
+          - set(resource.attributes["k8s.cluster.name"], "${env:K8S_CLUSTER_NAME}") where resource.attributes["k8s.cluster.name"] == nil and (resource.attributes["k8s.pod.uid"] != nil or resource.attributes["k8s.node.name"] != nil)
+    metric_statements: *kubernetes_identity
+    log_statements: *kubernetes_identity
+  transform/vllm_identity:
+    error_mode: propagate
+    metric_statements:
+      - context: datapoint
+        statements:
+          - set(resource.attributes["k8s.pod.uid"], datapoint.attributes["k8s_pod_uid"])
+          - set(resource.attributes["service.instance.id"], datapoint.attributes["k8s_pod_uid"])
+          - delete_key(datapoint.attributes, "k8s_pod_uid")
+  resource/vllm:
+    attributes:
+      - key: service.namespace
+        value: ${env:OBSERVED_NAMESPACE}
+        action: insert
+      - key: suse.ai.product
+        value: vllm
+        action: insert
+
+exporters:
+  otlp_grpc/suse:
+    tls:
+      insecure: ${env:SUSE_OBSERVABILITY_OTLP_INSECURE:-false}
+
+service:
+  pipelines:
+    traces:
+      processors: [memory_limiter, k8s_attributes, transform/kubernetes, transform/suse_ai_resource, transform/genai_compat, batch]
+    metrics:
+      processors: [memory_limiter, k8s_attributes, transform/kubernetes, transform/suse_ai_resource, transform/genai_compat, batch]
+    logs:
+      processors: [memory_limiter, k8s_attributes, transform/kubernetes, transform/suse_ai_resource, batch]
+    metrics/vllm:
+      receivers: [prometheus/vllm]
+      processors: [memory_limiter, transform/vllm_identity, k8s_attributes, transform/kubernetes, resource/vllm, transform/suse_ai_resource, batch]
+      exporters: [otlp_grpc/suse]

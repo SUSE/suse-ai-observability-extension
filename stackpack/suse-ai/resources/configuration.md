@@ -1,38 +1,16 @@
-## Installation
+Install the Open Telemetry StackPack and send traces and metrics through OTLP.
+Use stable `service.name`, a nonempty `service.namespace`, and a unique
+`service.instance.id` for each running instance. Include the environment and
+cluster in the service namespace when those deployments must remain separate.
 
-Click **Install** to enable SUSE AI Observability monitoring.
+GenAI spans and metrics identify AI applications automatically. To classify a
+product, set resource attribute `suse.ai.product` to its product key,
+such as `vllm`, `qdrant`, or `kubeflow-pipelines`. Existing SUSE AI role attributes
+are also recognized. Classification must describe the emitting resource, not
+the remote model provider.
 
-### Prerequisites
-
-The StackPack requires OpenTelemetry telemetry with GenAI semantic conventions and SUSE AI resource attributes. Before installing, ensure:
-
-1. **Your applications are instrumented** with OpenTelemetry SDKs that emit GenAI semantic conventions (e.g., `gen_ai.operation.name`, `gen_ai.provider.name`).
-2. **SUSE AI resource attributes are set** on your components:
-   - `suse.ai.component.type` -- functional role (e.g., `inference-engine`, `vectordb`, `agent`).
-   - `suse.ai.component.name` -- logical name (if distinct from `service.name`).
-3. **The OpenTelemetry collector is configured** to forward traces and metrics to SUSE Observability.
-
-See the [SUSE AI Observability documentation](https://documentation.suse.com/suse-ai/1.0/html/AI-monitoring/index.html) for detailed setup instructions.
-
-### Kubeflow
-
-If you want to monitor Kubeflow components (Pipelines, KServe, Model Registry), two configuration steps are required.
-
-1. **Set the Kubeflow namespace** in your OTel collector Helm values:
-
-   ```yaml
-   extraEnvs:
-     - name: KUBEFLOW_NAMESPACE
-       value: "kubeflow"   # change if your install uses a different namespace
-   ```
-
-2. **Enable metric aggregation** on each KServe `InferenceService` so the queue-proxy exposes runtime metrics on the `http-usermetric` port:
-
-   ```yaml
-   metadata:
-     annotations:
-       serving.kserve.io/enable-metric-aggregation: "true"
-       serving.kserve.io/enable-prometheus-scraping: "true"
-   ```
-
-Once these are in place, the OTel collector picks up KServe metrics through Kubernetes pod discovery; no further per-`InferenceService` configuration is required.
+Keep product scrape receivers and resource enrichment. Forward original
+OpenTelemetry records without the legacy topology exporter or synthetic
+provider/model copies once the migration has passed live validation. Collector
+examples are available in `examples/suse-ai/` in the repository. This is a major
+migration from the 2.x extension, so first test it on a separate instance.

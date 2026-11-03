@@ -1,6 +1,6 @@
 # SUSE AI Observability Extension
 
-A StackPack for [SUSE Observability](https://www.suse.com/products/observability/) that transforms OpenTelemetry telemetry from GenAI workloads into high-level topology views, metric dashboards, and health monitors.
+The native schema v2 StackPack (release 3.0.0) for [SUSE Observability](https://www.suse.com/products/observability/) that transforms OpenTelemetry telemetry from GenAI workloads into high-level topology views, metric dashboards, and health monitors.
 
 ## What It Does
 
@@ -21,25 +21,28 @@ tool execution, RAG retrieval quality, and generated scenarios.
 ## Prerequisites
 
 - [SUSE Observability](https://www.suse.com/products/observability/) instance
-- [StackState CLI (`sts`)](https://dl.stackstate.com/stackstate-cli/install.sh) installed
+- [StackState CLI (`sts`)](https://dl.stackstate.com/stackstate-cli/install.sh) 3.9.2 for installation
 - [Task](https://taskfile.dev/) runner installed
-- `podman` or `docker` for building the container image
+- Bash, GNU coreutils/findutils and Info-ZIP for offline packaging
+- `docker` or `podman` and Python test dependencies for validation
+- Bash, `jq`, `unzip`, `sed`, `grep` and GNU `sort` in the setup container
 
 ## Project Structure
 
 ```
 .
 ├── stackpack/suse-ai/          # The StackPack
-│   ├── stackpack.conf          # StackPack metadata and versioning
-│   ├── provisioning/           # Groovy scripts, STY templates, icons
-│   │   ├── SuseAiProvision.groovy
-│   │   └── templates/          # Component types, metrics, monitors, views, sync
+│   ├── stackpack.yaml          # Native schema v2 manifest and release version
+│   ├── settings/               # OTel mappings, presentations and monitors
+│   ├── includes/               # Monitor remediation hints
+│   ├── icons/                  # Native UI icons
 │   └── resources/              # Documentation shown in the SUSE Observability UI
+├── examples/suse-ai/           # Native Collector examples used by the tests
+├── tests/suse-ai/              # Native mapping, query, Collector and live tests
 ├── integrations/
 │   ├── otel-collector/         # OTel Collector Helm values (test environment)
 │   └── oi-filter/              # OTel Collector Python filters
 ├── knowledge/                  # Architecture docs, guides, conventions
-├── Dockerfile                  # Multi-stage build for the setup container
 ├── init.sh                     # Install/uninstall script (runs inside the container)
 └── Taskfile.yaml               # Development task automation
 ```
@@ -54,24 +57,32 @@ Copy the example env file and adjust as needed:
 cp .env.example .env
 ```
 
-Available settings:
+Set `CONTAINER_RUNTIME` to `podman` (default) or `docker`.
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `IMAGE_NAME` | `suse-ai-observability` | Container image name |
-| `IMAGE_VERSION` | `latest` | Container image tag |
-| `CONTAINER_RUNTIME` | `podman` | `podman` or `docker` |
-
-### 2. Build and push the container image
+### 2. Build and validate the release artifact
 
 ```bash
-task build
-task push
+python3 -m venv .resources/native-tests
+.resources/native-tests/bin/pip install -r tests/requirements.txt
+CONTAINER_RUNTIME=docker task stackpack-test PYTHON=.resources/native-tests/bin/python
+CONTAINER_RUNTIME=docker task stackpack-validate
+task stackpack-package
+(cd dist && sha256sum --check SHA256SUMS)
 ```
 
-The container image packages the StackPack archive, the `sts` CLI, and the `init.sh` script.
+The offline packaging task produces `dist/suse-ai-3.0.0.sts` and `SHA256SUMS`.
+A rebuild has the same SHA-256, independent of checkout timestamps and modes.
+See [the release record](knowledge/NATIVE_STACKPACK_RELEASE.md) for the exact
+ZIP command, import provenance, version policy and validation limits.
+
+This repository provides the StackPack archive and `init.sh`. Setup images
+are built separately and must include the archive at `/mnt/suse-ai.sts`,
+the installer, CLI 3.9.2 and the runtime tools above.
 
 ### 3. Run the setup container
+
+Set `SETUP_IMAGE` to the fully qualified setup image reference for your
+deployment, including its version tag or digest.
 
 The container expects the following environment variables:
 
@@ -83,7 +94,11 @@ The container expects the following environment variables:
 | `KUBERNETES_CLUSTERS` | Install only | Comma-separated list of cluster names |
 | `STS_SKIP_SSL` | No | Set to `true` to skip TLS verification |
 | `STS_CA_CERT_PATH` | No | Path to a custom CA certificate |
-| `UNINSTALL` | No | Set to `true` to uninstall the suse-ai StackPack |
+| `UNINSTALL` | No | Set to `true` to uninstall the suse-ai StackPack and wait for removal |
+| `CLEANUP_LEGACY` | No | Explicit pre-2.x menu/autosync cleanup; separate from install |
+| `STS_CONTEXT` | No | Use a configured CLI context instead of the three authentication variables |
+| `SUSE_AI_ARCHIVE` | No | Override `/mnt/suse-ai.sts` for local testing |
+| `STS_WAIT_SECONDS` | No | Operation timeout, default 300 seconds |
 
 **Install:**
 
@@ -93,13 +108,23 @@ podman run --rm \
   -e STACKSTATE_TOKEN=your-token \
   -e STACKSTATE_TOKEN_TYPE=api \
   -e KUBERNETES_CLUSTERS=cluster-a,cluster-b \
-  suse-ai-observability:latest
+  "${SETUP_IMAGE:?Set SETUP_IMAGE to the setup image reference}"
 ```
 
 The init script will:
 1. Install a `kubernetes-v2` StackPack instance for each cluster
 2. Install the `open-telemetry` StackPack
-3. Upload and install (or upgrade) the `suse-ai` StackPack
+3. Upload the bundled `suse-ai` version only if it is absent from the catalog
+4. Install that exact version, or upgrade with `--unlocked-strategy overwrite`
+5. Verify the final installed status and version
+
+Re-running an already successful setup performs reads only. Authentication,
+upload and provisioning errors stop setup. Newer installed versions are not
+downgraded. Companion provisioning accepts `WAITING_FOR_DATA`; SUSE AI must
+reach `INSTALLED`. The 2.2.0 → 3.0.0 upgrade was verified with CLI 3.9.2 on
+Observability 2.11.1 and preserves the instance ID without a reinstall. See the
+[migration evidence and recovery procedure](knowledge/NATIVE_STACKPACK_RELEASE.md)
+before upgrading installations with local customizations.
 
 **Uninstall:**
 
@@ -109,7 +134,7 @@ podman run --rm \
   -e STACKSTATE_TOKEN=your-token \
   -e STACKSTATE_TOKEN_TYPE=api \
   -e UNINSTALL=true \
-  suse-ai-observability:latest
+  "${SETUP_IMAGE:?Set SETUP_IMAGE to the setup image reference}"
 ```
 
 ## Development
@@ -122,19 +147,19 @@ The fastest iteration loop during development is to upload the StackPack directl
 # Increment the patch version
 task version-up
 
-# Validate IDs/Groovy, create a version-specific archive, upload, and upgrade
-# with the unlocked overwrite strategy
-task stackpack-upload
+# Validate, package, and invoke the same installer as the setup container
+KUBERNETES_CLUSTERS=cluster-a task stackpack-upload STS_CONTEXT=my-context
 ```
 
-Every upload requires a new version number. `stackpack-upload` runs
-`stackpack-validate` first and does not reuse a stale `/tmp` archive.
-To advance past versions already consumed by validation builds, use
-`task version-up TARGET_VERSION=<higher-major.minor.patch>`.
+Every new uploaded payload requires an unused version in `stackpack.yaml`.
+`stackpack-upload` validates and packages first; the installer skips an existing
+catalog version and never overwrites it. Use `task version-up` for a patch bump
+or `task version-up TARGET_VERSION=<higher-major.minor.patch>`.
 
-Run `task stackpack-test` before releasing Collector, metric-binding, monitor,
-or synchronization changes. The [regression test guide](knowledge/REGRESSION_TESTS.md)
-lists the local runtime prerequisites and the boundaries covered by the tests.
+`stackpack-test` runs the native mapping, PromQL, Collector and release tests.
+The [regression test guide](knowledge/REGRESSION_TESTS.md) documents the retained
+legacy Collector checks; the [native release record](knowledge/NATIVE_STACKPACK_RELEASE.md)
+describes native test dependencies and live checks.
 
 To uninstall all instances (useful for a clean re-install):
 
@@ -164,7 +189,9 @@ sts topology-sync describe --id <id>
 
 ### Architecture reference
 
-The `knowledge/` directory contains detailed documentation on the project architecture, component types, metric bindings, monitor creation, and design decisions. Start with `knowledge/ARCH.md` for an overview.
+The `knowledge/` directory contains detailed documentation on the project architecture, component types, metric bindings, monitor creation, and design decisions. The earlier guides describe the 2.x architecture; start with
+[the native release record](knowledge/NATIVE_STACKPACK_RELEASE.md) and
+[the native StackPack README](stackpack/suse-ai/README.md) for v3.
 
 The [Open WebUI Ollama integration](integrations/open-webui/README.md) describes
 the in-process provider adapter, native trace correlation and explicitly resolved

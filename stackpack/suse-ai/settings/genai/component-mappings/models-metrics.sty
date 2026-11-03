@@ -1,0 +1,97 @@
+nodes:
+- _type: OtelComponentMapping
+  identifier: urn:stackpack:suse-ai:otel-component-mapping:models-metrics
+  name: Requested GenAI models from metrics
+  description: Consumer-scoped model usage, optionally separated by endpoint. A requested model is not a physical
+    inference engine.
+  input:
+    signal:
+    - METRICS
+    resource:
+      condition: '''service.name'' in resource.attributes && resource.attributes[''service.name''] != '''' && !(''suse.ai.managed''
+        in resource.attributes && string(resource.attributes[''suse.ai.managed'']) == ''false'')'
+      scope:
+        metric:
+          condition: metric.name.startsWith('gen_ai.')
+          datapoint:
+            condition: '''gen_ai.request.model'' in datapoint.attributes && datapoint.attributes[''gen_ai.request.model'']
+              != '''' && (''gen_ai.provider.name'' in datapoint.attributes || ''gen_ai.system'' in datapoint.attributes)'
+            action: '''CREATE'''
+  vars:
+  - name: namespace
+    value: '''service.namespace'' in resource.attributes && resource.attributes[''service.namespace''] != '''' ? resource.attributes[''service.namespace'']
+      : ''default'''
+  - name: service
+    value: resource.attributes['service.name']
+  - name: provider
+    value: '''gen_ai.provider.name'' in datapoint.attributes ? string(datapoint.attributes[''gen_ai.provider.name''])
+      : string(datapoint.attributes[''gen_ai.system''])'
+  - name: model
+    value: datapoint.attributes['gen_ai.request.model']
+  - name: address
+    value: '''server.address'' in datapoint.attributes ? string(datapoint.attributes[''server.address'']) : '''''
+  - name: port
+    value: '''server.port'' in datapoint.attributes ? string(datapoint.attributes[''server.port'']) : '''''
+  expireAfter: 900000
+  rank:
+    specificity: 150
+  output:
+    # Values are unescaped; embedded field separators can collide (see the example README).
+    identifier: >-
+      'urn:suse-ai:namespace/' + vars.namespace + ':service/' + vars.service
+      + ':provider/' + vars.provider + ':address/' + vars.address
+      + ':port/' + vars.port + ':model/' + vars.model
+    name: vars.model
+    typeName: '''genai model usage'''
+    required:
+      tags:
+      - source: '''suse-ai'''
+        target: stackpack
+      - source: vars.namespace
+        target: service.namespace
+      - source: vars.service
+        target: service.name
+      - source: vars.namespace
+        target: suse.ai.metric.service_namespace
+      - source: vars.service
+        target: suse.ai.metric.service_name
+      - source: vars.provider
+        target: gen_ai.provider.name
+      - source: vars.model
+        target: gen_ai.request.model
+      - source: vars.address
+        target: server.address
+      - source: vars.port
+        target: server.port
+      - source: >-
+          'k8s.cluster.name' in resource.attributes && resource.attributes['k8s.cluster.name'] != ''
+          ? {'cluster-name': resource.attributes['k8s.cluster.name']} : {}
+        pattern: '^(.*)$'
+        target: '${1}'
+      # The legacy monitor resolver drops empty tags. Literal RE2 patterns stay
+      # nonempty even for an unknown endpoint, without changing its identity.
+      # Escape first for PromQL, then for the resolver's regex replacement.
+      - source: |-
+          ("\\Q" + vars.address.replace("\\E", "\\E\\\\E\\Q") + "\\E")
+          .replace("\\", "\\\\")
+          .replace("\"", "\\\"")
+          .replace("\n", "\\n")
+          .replace("\r", "\\r")
+          .replace("\t", "\\t")
+          .replace("\\", "\\\\")
+          .replace("$", "\\$")
+        target: suse.ai.monitor.server_address
+      - source: |-
+          ("\\Q" + vars.port.replace("\\E", "\\E\\\\E\\Q") + "\\E")
+          .replace("\\", "\\\\")
+          .replace("\"", "\\\"")
+          .replace("\n", "\\n")
+          .replace("\r", "\\r")
+          .replace("\t", "\\t")
+          .replace("\\", "\\\\")
+          .replace("$", "\\$")
+        target: suse.ai.monitor.server_port
+    optional:
+      tags:
+      - source: string(datapoint.attributes['gen_ai.provider.name'])
+        target: suse.ai.trace.gen_ai.provider.name
