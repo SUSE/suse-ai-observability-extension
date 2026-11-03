@@ -43,7 +43,6 @@ tool execution, RAG retrieval quality, and generated scenarios.
 │   ├── otel-collector/         # OTel Collector Helm values (test environment)
 │   └── oi-filter/              # OTel Collector Python filters
 ├── knowledge/                  # Architecture docs, guides, conventions
-├── Dockerfile                  # Legacy container recipe; v3 release uses IBS
 ├── init.sh                     # Install/uninstall script (runs inside the container)
 └── Taskfile.yaml               # Development task automation
 ```
@@ -58,13 +57,7 @@ Copy the example env file and adjust as needed:
 cp .env.example .env
 ```
 
-Available settings:
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `IMAGE_NAME` | `suse-ai-observability` | Container image name |
-| `IMAGE_VERSION` | `latest` | Container image tag |
-| `CONTAINER_RUNTIME` | `podman` | `podman` or `docker` |
+Set `CONTAINER_RUNTIME` to `podman` (default) or `docker`.
 
 ### 2. Build and validate the release artifact
 
@@ -82,13 +75,14 @@ A rebuild has the same SHA-256, independent of checkout timestamps and modes.
 See [the release record](knowledge/NATIVE_STACKPACK_RELEASE.md) for the exact
 ZIP command, import provenance, version policy and validation limits.
 
-The v3 release flow is tag `v3.0.0` in this public repository → IBS RPM → setup
-container. The RPM must provide this archive as `/mnt/suse-ai.sts` and the
-updated `init.sh`; the container supplies CLI 3.9.2 and the runtime tools above.
-The existing Dockerfile and `build`/`push` tasks describe the old container
-recipe and need a separate recipe update before use with the native layout.
+This repository provides the StackPack archive and `init.sh`. Setup images
+are built separately and must include the archive at `/mnt/suse-ai.sts`,
+the installer, CLI 3.9.2 and the runtime tools above.
 
 ### 3. Run the setup container
+
+Set `SETUP_IMAGE` to the fully qualified setup image reference for your
+deployment, including its version tag or digest.
 
 The container expects the following environment variables:
 
@@ -114,7 +108,7 @@ podman run --rm \
   -e STACKSTATE_TOKEN=your-token \
   -e STACKSTATE_TOKEN_TYPE=api \
   -e KUBERNETES_CLUSTERS=cluster-a,cluster-b \
-  suse-ai-observability:latest
+  "${SETUP_IMAGE:?Set SETUP_IMAGE to the setup image reference}"
 ```
 
 The init script will:
@@ -140,7 +134,7 @@ podman run --rm \
   -e STACKSTATE_TOKEN=your-token \
   -e STACKSTATE_TOKEN_TYPE=api \
   -e UNINSTALL=true \
-  suse-ai-observability:latest
+  "${SETUP_IMAGE:?Set SETUP_IMAGE to the setup image reference}"
 ```
 
 ## Development

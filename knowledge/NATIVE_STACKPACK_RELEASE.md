@@ -35,8 +35,9 @@ Helm update automation, generic version-bump script, and root README in upstream
 That README describes the multi-StackPack image repository, not this release.
 Keep the relevant package/example README content here. Leave local generated
 `.sts`, `target/`, caches and other untracked artifacts behind. The validation
-workflow now runs the native Taskfile validator. IBS files and container
-recipes are unchanged.
+workflow now runs the native Taskfile validator. The obsolete root Dockerfile
+and setup-image `build`/`push` tasks were removed during review. The independent
+Ollama exporter image tasks remain available.
 
 Every imported file differing from the upstream snapshot:
 
@@ -264,8 +265,8 @@ CLI token access through the router port-forward worked throughout.
 - Fetch the intended public release tag, use `scripts/package-stackpack.sh`,
   verify `SHA256SUMS`, and install the archive at `/mnt/suse-ai.sts` with this
   `init.sh`. The old `zip ... stackpack.conf provisioning resources` recipe
-  cannot build native v2. IBS and container recipes still need updates;
-  this task does not modify them.
+  cannot build native v2. The obsolete root Dockerfile has been removed;
+  packaging maintained outside this repository still needs the native layout.
 - Runtime dependencies: CLI 3.9.2, Bash, jq, unzip, sed, grep and GNU coreutils
   (`sort -V`, sleep). `STS_EXPERIMENTAL_STACKPACKS` is not required by setup.
 - Keep `STACKSTATE_API_URL`, `STACKSTATE_TOKEN`, `STACKSTATE_TOKEN_TYPE`,

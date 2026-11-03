@@ -236,3 +236,9 @@ Reproduction setup and validation boundaries are in [REGRESSION_TESTS.md](REGRES
 *   **Fact**: Pull-request and main-branch triggers now cover StackPack files, validation scripts and image pins, the invalid mapping fixture, the Taskfile and the workflow itself. Workflow permissions remain `contents: read`.
 *   **Fact**: `task workflows-lint` passed. The exact validation command used by CI accepted all 93 native settings nodes and rejected the fixture's undeclared `undeclaredValidationControl` reference. Anonymous registry access to the pinned validator image manifest also succeeded.
 *   **Fact**: The read-only topology-sync list and descriptions of all three returned IDs showed `Running`, cumulative `errors: 0` and `errorDetails: []`. This workflow change did not upload or install a StackPack.
+
+## 27. Obsolete Setup Image Build Removal (2026-11-02)
+
+*   **Fact**: The root Dockerfile, `build`/`push` tasks and their unused `IMAGE_NAME`/`IMAGE_VERSION` settings were removed. The README now documents packaging the StackPack and running a separately supplied setup image. The independent Ollama image tasks remain available, and their build dry run still uses `integrations/ollama/Containerfile` with version 3.0.0.
+*   **Fact**: All 15 release tests, workflow lint and `git diff --check` passed after removal. `task stackpack-package` still produces the archive with SHA-256 `81d50d472726dd5c8c3cdab50813d9d5efbb39b1baad1cdc405612d567a238f1`; the StackPack payload and installer were unchanged.
+*   **Fact**: The read-only topology-sync list and descriptions of all three returned IDs showed `Running`, cumulative `errors: 0` and `errorDetails: []`. This cleanup did not upload or install a StackPack.

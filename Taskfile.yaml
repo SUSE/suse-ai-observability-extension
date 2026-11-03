@@ -3,8 +3,6 @@ version: '3'
 dotenv: ['./.env']
 
 vars:
-  IMAGE: '{{.IMAGE_NAME | default "suse-ai-observability"}}'
-  VERSION: '{{.IMAGE_VERSION | default "latest"}}'
   RUNTIME: '{{.CONTAINER_RUNTIME | default "podman"}}'
   PYTHON: '{{.PYTHON | default "python3"}}'
   STS_CONTEXT: '{{.STS_CONTEXT | default ""}}'
@@ -20,16 +18,6 @@ vars:
       printf '%s' "$revision"
 
 tasks:
-  build:
-    desc: Build the setup container image
-    cmds:
-      - '{{.RUNTIME}} build -f Dockerfile -t {{.IMAGE}}:{{.VERSION}} .'
-
-  push:
-    desc: Push the setup container image
-    cmds:
-      - '{{.RUNTIME}} push {{.IMAGE}}:{{.VERSION}}'
-
   version-up:
     desc: Increment the StackPack patch, or set a higher TARGET_VERSION
     env:
