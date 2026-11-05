@@ -112,8 +112,10 @@ class OllamaModelContractTest(unittest.TestCase):
                 self.assertEqual(evaluate(link["identifier"], context), f"urn:opentelemetry:namespace/ai:service/{product}")
                 self.assertEqual(evaluate(columns["suse_ai_product"]["value"], context), product)
                 self.assertEqual(evaluate(columns["suse_ai_cluster"]["value"], context), "cluster-a")
-                unsupported = "suse_ai_request_metrics" if product == "ollama" else "suse_ai_residency_metrics"
-                self.assertEqual(evaluate(columns[unsupported]["value"], context), "not reported")
+                expected = ("Residency; server requests not reported" if product == "ollama"
+                            else "Server requests; residency not reported")
+                self.assertEqual(evaluate(columns["suse_ai_model_metrics"]["value"], context), expected)
+            self.assertEqual(evaluate(columns["suse_ai_model_metrics"]["value"], {"tags": {}}), "not reported")
             self.assertFalse(any(p["_type"] == "MetricProjection" for p in columns.values()))
         ollama = BY_ID[PREFIX + "component-presentation:served-models-ollama"]
         self.assertIn('label = "suse.ai.product:ollama"', ollama["binding"]["query"])

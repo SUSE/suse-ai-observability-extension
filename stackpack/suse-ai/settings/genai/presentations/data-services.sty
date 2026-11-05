@@ -4,7 +4,7 @@ nodes:
   identifier: urn:stackpack:suse-ai:component-presentation:data-services
   binding:
     _type: ComponentPresentationQueryBinding
-    query: label = "stackpack:suse-ai" and type IN ("otel service", "genai database dependency") and label IN ("suse.ai.category:vectordb",
+    query: label = "stackpack:suse-ai" and type = "otel service" and label IN ("suse.ai.category:vectordb",
       "suse.ai.category:search-engine")
   rank:
     specificity: 225
@@ -31,17 +31,17 @@ nodes:
         projection:
           _type: TextProjection
           value: tags.singleValue('service.namespace')
-      - columnId: suse_ai_category
       - columnId: suse_ai_product
-      - columnId: suse_ai_discovery
-        title: Discovery
-        projection:
-          _type: TextProjection
-          value: "'suse.ai.discovery' in tags ? 'Observed from client' : 'Service telemetry'"
       - columnId: otel_k8s_cluster
-      - columnId: suse_ai_observer_service
-      - columnId: suse_ai_observer_cluster
-      - columnId: otel_k8s_namespace
+      - columnId: suse_ai_data_metrics
+        title: Key metrics
+        projection:
+          _type: ComponentLinkProjection
+          name: >-
+            tags.singleValue('suse.ai.product') == 'milvus' ? 'Search latency, request rate' :
+            (tags.singleValue('suse.ai.product') == 'qdrant' ? 'Collections, response rate' :
+            (tags.singleValue('suse.ai.product') == 'opensearch' ? 'Cluster health, pending tasks' : 'Service metrics'))
+          identifier: identifiers[0]
       sort:
       - columnId: health
       - columnId: otel_name

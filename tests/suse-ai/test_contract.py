@@ -553,14 +553,46 @@ class PackageContractTests(unittest.TestCase):
             overview = node.get("presentation", {}).get("overview", {})
             if "mainMenu" in overview:
                 menus[overview["name"]["title"]] = node
-        self.assertEqual(set(menus), {"Overview", "Applications & agents", "Models", "Inference", "Data services", "GPU infrastructure"})
+        self.assertEqual(set(menus), {"Overview", "Applications & agents", "Models", "Inference", "Data services", "Observed dependencies", "GPU infrastructure"})
         query = menus["Overview"]["binding"]["query"]
         self.assertIn('"otel service"', query)
         self.assertIn('"genai served model"', query)
         self.assertNotIn('"otel service instance"', query)
         self.assertNotIn('"genai model usage"', query)
+        self.assertNotIn('"genai database dependency"', query)
         self.assertFalse(menus["Overview"]["presentation"]["topology"]["connectedComponents"])
         self.assertEqual(len({n["presentation"]["overview"]["mainMenu"]["icon"] for n in menus.values()}), 6)
+
+    def test_overview_columns_do_not_leak_observer_or_product_specific_fields(self):
+        prefix = "urn:stackpack:suse-ai:component-presentation:"
+        observer_columns = {"suse_ai_observer_service", "suse_ai_observer_cluster", "suse_ai_discovery"}
+        for suffix in ("common", "all", "inference", "data-services", "applications",
+                       "model-inventory", "models", "agents"):
+            columns = BY_ID[prefix + suffix]["presentation"]["overview"]["columns"]
+            ids = {c["columnId"] for c in columns}
+            self.assertFalse(ids & observer_columns, suffix)
+            self.assertNotIn("otel_k8s_namespace", ids, suffix)
+        for suffix in ("model-inventory", "served-models", "agents"):
+            overview = BY_ID[prefix + suffix]["presentation"]["overview"]
+            self.assertNotIn("health", {c["columnId"] for c in overview["columns"]})
+            self.assertNotIn("health", {c["columnId"] for c in overview["sort"]})
+        data = BY_ID[prefix + "data-services"]
+        self.assertIn('type = "otel service"', data["binding"]["query"])
+        self.assertNotIn('"genai database dependency"', data["binding"]["query"])
+
+    def test_caller_drilldowns_separate_native_and_observed_data_dependencies(self):
+        prefix = "urn:stackpack:suse-ai:component-presentation:"
+        resources = {r["resourceId"]: r for r in
+                     BY_ID[prefix + "services"]["presentation"]["highlight"]["relatedResources"]}
+        native = resources["suse_ai_data_dependencies"]
+        self.assertIn('withNeighborsOf(direction = "down"', native["topologyQuery"])
+        self.assertIn('type = "otel service"', native["topologyQuery"])
+        self.assertEqual(native["presentationIdentifier"], prefix + "data-services")
+        observed = resources["suse_ai_observed_dependencies"]
+        self.assertIn('type = "genai database dependency"', observed["topologyQuery"])
+        for tag in ("service.namespace", "service.name"):
+            self.assertIn("tags.singleValue('" + tag + "')", observed["topologyQuery"])
+        self.assertEqual(observed["presentationIdentifier"], prefix + "database-dependencies")
 
     def test_model_usage_links_identify_the_caller(self):
         node = BY_ID["urn:stackpack:suse-ai:component-presentation:models"]

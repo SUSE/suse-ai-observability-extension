@@ -15,11 +15,6 @@ nodes:
         plural: agents
         title: Agents
       columns:
-      - columnId: health
-        title: Health
-        projection:
-          _type: HealthProjection
-          value: healthState
       - columnId: otel_name
         title: Name
         projection:
@@ -34,10 +29,10 @@ nodes:
       - columnId: suse_ai_service
         title: Service
         projection:
-          _type: TextProjection
-          value: tags.singleValue('service.name')
+          _type: ComponentLinkProjection
+          name: tags.singleValue('service.name')
+          identifier: "'urn:opentelemetry:namespace/' + tags.singleValue('service.namespace') + ':service/' + tags.singleValue('service.name')"
       sort:
-      - columnId: health
       - columnId: otel_name
     highlight:
       title: Agent

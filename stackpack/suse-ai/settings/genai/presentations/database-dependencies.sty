@@ -9,6 +9,46 @@ nodes:
     specificity: 230
   presentation:
     icon: !icon menu/vectordb.svg
+    overview:
+      name:
+        singular: observed dependency
+        plural: observed dependencies
+        title: Observed dependencies
+      columns:
+      - columnId: otel_name
+        title: Name
+        projection:
+          _type: ComponentLinkProjection
+          name: name
+          identifier: identifiers[0]
+      - columnId: suse_ai_discovery
+        title: Discovery
+        projection:
+          _type: TextProjection
+          value: "'Client-observed; unresolved'"
+      - columnId: suse_ai_product
+      - columnId: suse_ai_observer_service
+        title: Calling service
+        projection:
+          _type: ComponentLinkProjection
+          name: tags.singleValue('service.name')
+          identifier: "'urn:opentelemetry:namespace/' + tags.singleValue('service.namespace') + ':service/' + tags.singleValue('service.name')"
+      - columnId: otel_namespace
+        title: Calling service namespace
+        projection:
+          _type: TextProjection
+          value: tags.singleValue('service.namespace')
+      - columnId: suse_ai_observer_cluster
+        title: Observed from cluster
+        projection:
+          _type: TextProjection
+          value: "tags.singleValue('suse.ai.observer.cluster') != '' ? tags.singleValue('suse.ai.observer.cluster') : 'Not reported'"
+      sort:
+      - columnId: otel_name
+      mainMenu:
+        group: SUSE AI
+        icon: !icon menu/vectordb.svg
+        order: 55
     highlight:
       title: Observed database dependency
       fields:
@@ -17,7 +57,7 @@ nodes:
         order: 100
         projection:
           _type: TextProjection
-          value: "'Observed from client calls; server identity and health are unverified'"
+          value: "'Client-observed; server identity and health are unverified. Once resolved, follow Data dependencies on the calling service; this observation expires after 15 minutes without unresolved calls.'"
       - fieldId: suse_ai_application
         title: Calling service
         order: 95

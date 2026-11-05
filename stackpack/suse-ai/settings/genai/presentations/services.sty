@@ -54,6 +54,24 @@ nodes:
           _type: TextProjection
           value: "'suse.ai.product' in tags ? tags['suse.ai.product'].join(', ') : ''"
       relatedResources:
+      # Verified peers are native service-call neighbors. Unresolved endpoints
+      # stay in their own section until the existing 15-minute expiry.
+      - resourceId: suse_ai_data_dependencies
+        title: Data dependencies
+        order: 77
+        topologyQuery: >-
+          withNeighborsOf(direction = "down", components = (identifier = "${identifiers[0]}"), levels = "1")
+          and type = "otel service" and label = "stackpack:suse-ai"
+          and label IN ("suse.ai.category:vectordb", "suse.ai.category:search-engine")
+        presentationIdentifier: urn:stackpack:suse-ai:component-presentation:data-services
+      - resourceId: suse_ai_observed_dependencies
+        title: Observed dependencies
+        order: 76
+        topologyQuery: >-
+          type = "genai database dependency" and label = "stackpack:suse-ai"
+          and label = "service.namespace:${tags.singleValue('service.namespace')}"
+          and label = "service.name:${tags.singleValue('service.name')}"
+        presentationIdentifier: urn:stackpack:suse-ai:component-presentation:database-dependencies
       - resourceId: suse_ai_models
         title: Model usage
         order: 80

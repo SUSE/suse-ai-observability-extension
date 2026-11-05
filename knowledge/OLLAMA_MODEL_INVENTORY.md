@@ -202,3 +202,17 @@ opening a pull request. Implementation commit `422e9c1` is published in
 `main`. The delivery changes only knowledge records; the uploaded 3.0.1 package
 remains unchanged. The read-only delivery check again found both synchronizations
 Running with the same active error details and cumulative counts.
+
+## Table cleanup prepared for the same release
+
+The subsequent [table review](OVERVIEW_TABLES_3.0.1.md) keeps release 3.0.1 and
+combines the shared model table's two availability columns into one, preserving
+explicit `not reported` wording for unsupported metrics. It removes shared model
+health from the table while leaving monitors and chart queries unchanged.
+Ollama inventory and exporter source remain as validated above.
+
+The cleanup was checked on the demo using temporary version
+`3.0.2-dev.20261105.1`, then downgraded to the original installed 3.0.1. The
+temporary catalog entry was removed. The modified release payload was not
+uploaded as 3.0.1. Updated local PR material covers the entire branch and
+targets the existing PR #64; this follow-up stops before pushing or updating it.

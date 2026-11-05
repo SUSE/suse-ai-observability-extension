@@ -1,0 +1,213 @@
+{
+  "overview": {
+    "before": {
+      "rows": 8,
+      "columns": [
+        "Health",
+        "Name",
+        "Category",
+        "Service namespace",
+        "Cluster",
+        "Calling service",
+        "Observed from cluster"
+      ],
+      "url": "https://suse-observability/#/views/urn:stackpack:suse-ai:component-presentation:all",
+      "browserErrors": [],
+      "failedRequests": []
+    },
+    "after": {
+      "rows": 8,
+      "columns": [
+        "Health",
+        "Name",
+        "Category",
+        "Service namespace",
+        "Cluster"
+      ],
+      "url": "https://suse-observability/#/views/urn:stackpack:suse-ai:component-presentation:all",
+      "browserErrors": [],
+      "failedRequests": []
+    },
+    "baselineScreenshotNote": "Recaptured from restored original 3.0.1 after fixing a login redirect race in the capture harness; original pre-upgrade API metadata matched restored metadata."
+  },
+  "inference": {
+    "before": {
+      "rows": 1,
+      "columns": [
+        "Health",
+        "Name",
+        "Service namespace",
+        "Category",
+        "Product",
+        "Cluster"
+      ],
+      "url": "https://suse-observability/#/views/urn:stackpack:suse-ai:component-presentation:inference",
+      "browserErrors": [],
+      "failedRequests": []
+    },
+    "after": {
+      "rows": 1,
+      "columns": [
+        "Health",
+        "Name",
+        "Service namespace",
+        "Category",
+        "Product",
+        "Cluster"
+      ],
+      "url": "https://suse-observability/#/views/urn:stackpack:suse-ai:component-presentation:inference",
+      "browserErrors": [],
+      "failedRequests": []
+    }
+  },
+  "data-services": {
+    "before": {
+      "rows": 1,
+      "columns": [
+        "Health",
+        "Name",
+        "Service namespace",
+        "Category",
+        "Product",
+        "Discovery",
+        "Cluster",
+        "Calling service",
+        "Observed from cluster"
+      ],
+      "url": "https://suse-observability/#/views/urn:stackpack:suse-ai:component-presentation:data-services",
+      "browserErrors": [],
+      "failedRequests": []
+    },
+    "after": {
+      "rows": 1,
+      "columns": [
+        "Health",
+        "Name",
+        "Service namespace",
+        "Product",
+        "Cluster",
+        "Key metrics"
+      ],
+      "url": "https://suse-observability/#/views/urn:stackpack:suse-ai:component-presentation:data-services",
+      "browserErrors": [],
+      "failedRequests": []
+    }
+  },
+  "applications": {
+    "before": {
+      "rows": 5,
+      "columns": [
+        "Health",
+        "Name",
+        "Service namespace",
+        "Category",
+        "Cluster"
+      ],
+      "url": "https://suse-observability/#/views/urn:stackpack:suse-ai:component-presentation:applications",
+      "browserErrors": [],
+      "failedRequests": []
+    },
+    "after": {
+      "rows": 5,
+      "columns": [
+        "Health",
+        "Name",
+        "Service namespace",
+        "Category",
+        "Cluster"
+      ],
+      "url": "https://suse-observability/#/views/urn:stackpack:suse-ai:component-presentation:applications",
+      "browserErrors": [],
+      "failedRequests": []
+    }
+  },
+  "models": {
+    "before": {
+      "rows": 0,
+      "columns": [
+        "Health",
+        "Name",
+        "Service namespace",
+        "Inference service",
+        "Product",
+        "Cluster",
+        "Server request metrics",
+        "Model residency metrics"
+      ],
+      "url": "https://suse-observability/#/views/urn:stackpack:suse-ai:component-presentation:model-inventory",
+      "browserErrors": [],
+      "failedRequests": []
+    },
+    "after": {
+      "rows": 0,
+      "columns": [
+        "Name",
+        "Service namespace",
+        "Inference service",
+        "Product",
+        "Cluster",
+        "Available metrics"
+      ],
+      "url": "https://suse-observability/#/views/urn:stackpack:suse-ai:component-presentation:model-inventory",
+      "browserErrors": [],
+      "failedRequests": []
+    }
+  },
+  "model-usage": {
+    "before": {
+      "rows": 6,
+      "columns": [
+        "Health",
+        "Name",
+        "Service namespace",
+        "Application",
+        "Requests / s",
+        "Duration P95",
+        "Tokens / s"
+      ],
+      "url": "https://suse-observability/#/views/urn:stackpack:suse-ai:component-presentation:models",
+      "browserErrors": [],
+      "failedRequests": []
+    },
+    "after": {
+      "rows": 6,
+      "columns": [
+        "Health",
+        "Name",
+        "Service namespace",
+        "Application",
+        "Requests / s",
+        "Duration P95",
+        "Tokens / s"
+      ],
+      "url": "https://suse-observability/#/views/urn:stackpack:suse-ai:component-presentation:models",
+      "browserErrors": [],
+      "failedRequests": []
+    }
+  },
+  "agents": {
+    "before": {
+      "rows": 1,
+      "columns": [
+        "Health",
+        "Name",
+        "Service namespace",
+        "Service"
+      ],
+      "url": "https://suse-observability/#/views/urn:stackpack:suse-ai:component-presentation:agents",
+      "browserErrors": [],
+      "failedRequests": []
+    },
+    "after": {
+      "rows": 1,
+      "columns": [
+        "Name",
+        "Service namespace",
+        "Service"
+      ],
+      "url": "https://suse-observability/#/views/urn:stackpack:suse-ai:component-presentation:agents",
+      "browserErrors": [],
+      "failedRequests": []
+    }
+  }
+}

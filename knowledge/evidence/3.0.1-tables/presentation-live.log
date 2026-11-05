@@ -1,0 +1,11 @@
+task: [stackpack-presentation-test] .resources/native-tests/bin/python -B -m unittest discover -s tests/suse-ai -p test_presentation_tables.py -v
+test_agent_and_model_service_links_resolve (test_presentation_tables.BackendPresentationTableTest.test_agent_and_model_service_links_resolve) ... ok
+test_all_eight_tables_have_only_their_intended_columns (test_presentation_tables.BackendPresentationTableTest.test_all_eight_tables_have_only_their_intended_columns) ... ok
+test_native_dependency_section_uses_actual_outgoing_neighbors (test_presentation_tables.BackendPresentationTableTest.test_native_dependency_section_uses_actual_outgoing_neighbors) ... ok
+test_agent_host_link_preserves_namespace (test_presentation_tables.PresentationTableContractTest.test_agent_host_link_preserves_namespace) ... ok
+test_native_metrics_links_keep_service_identity (test_presentation_tables.PresentationTableContractTest.test_native_metrics_links_keep_service_identity) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 15.299s
+
+OK

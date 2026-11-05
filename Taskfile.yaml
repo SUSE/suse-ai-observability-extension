@@ -39,6 +39,21 @@ tasks:
     cmds:
       - '{{.PYTHON}} -B -m unittest discover -s tests -p "test_*.py" -v'
 
+  stackpack-presentation-test:
+    desc: Test table contracts and optional read-only live presentation checks
+    cmds:
+      - '{{.PYTHON}} -B -m unittest discover -s tests/suse-ai -p test_presentation_tables.py -v'
+
+  stackpack-review-package:
+    desc: Package a temporary review version without changing the release manifest (REVIEW_VERSION required)
+    requires:
+      vars: [REVIEW_VERSION]
+    env:
+      REVIEW_VERSION: '{{.REVIEW_VERSION}}'
+      REVIEW_OUTPUT: '{{.REVIEW_OUTPUT | default "dist/review"}}'
+    cmds:
+      - '{{.PYTHON}} -B scripts/package-review.py'
+
   stackpack-package:
     aliases: [stackpack-build]
     desc: Build dist/suse-ai-<version>.sts and SHA256SUMS reproducibly, without sts or network

@@ -14,11 +14,6 @@ nodes:
         plural: models
         title: Models
       columns:
-      - columnId: health
-        title: Health
-        projection:
-          _type: HealthProjection
-          value: healthState
       - columnId: otel_name
         title: Name
         projection:
@@ -46,18 +41,16 @@ nodes:
         projection:
           _type: TextProjection
           value: "tags.singleValue('cluster-name') != '' ? tags.singleValue('cluster-name') : 'not reported'"
-      - columnId: suse_ai_request_metrics
-        title: Server request metrics
+      - columnId: suse_ai_model_metrics
+        title: Available metrics
         projection:
           _type: TextProjection
-          value: "tags.singleValue('suse.ai.product') == 'vllm' ? 'See model charts' : 'not reported'"
-      - columnId: suse_ai_residency_metrics
-        title: Model residency metrics
-        projection:
-          _type: TextProjection
-          value: "tags.singleValue('suse.ai.product') == 'ollama' ? 'See model charts' : 'not reported'"
+          value: >-
+            tags.singleValue('suse.ai.product') == 'ollama' ?
+            'Residency; server requests not reported' :
+            (tags.singleValue('suse.ai.product') == 'vllm' ?
+            'Server requests; residency not reported' : 'not reported')
       sort:
-      - columnId: health
       - columnId: otel_name
       mainMenu:
         group: SUSE AI

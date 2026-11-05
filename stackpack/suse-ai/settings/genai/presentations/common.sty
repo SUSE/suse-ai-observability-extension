@@ -82,13 +82,3 @@ nodes:
           _type: TextProjection
           # A canonical OTel service can span multiple Kubernetes clusters.
           value: "'cluster-name' in tags ? tags['cluster-name'].filter(cluster, cluster != '').join(', ') : ''"
-      - columnId: suse_ai_observer_service
-        title: Calling service
-        projection:
-          _type: TextProjection
-          value: "tags.singleValue('suse.ai.discovery') == 'client-observed' ? tags.singleValue('service.name') : ''"
-      - columnId: suse_ai_observer_cluster
-        title: Observed from cluster
-        projection:
-          _type: TextProjection
-          value: tags.singleValue('suse.ai.observer.cluster')

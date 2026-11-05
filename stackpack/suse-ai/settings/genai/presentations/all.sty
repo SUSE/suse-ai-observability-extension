@@ -4,7 +4,7 @@ nodes:
   identifier: urn:stackpack:suse-ai:component-presentation:all
   binding:
     _type: ComponentPresentationQueryBinding
-    query: label = "stackpack:suse-ai" and type IN ("otel service", "genai served model", "genai database dependency")
+    query: label = "stackpack:suse-ai" and type IN ("otel service", "genai served model")
   rank:
     specificity: 205
   presentation:
@@ -32,8 +32,6 @@ nodes:
           _type: TextProjection
           value: tags.singleValue('service.namespace')
       - columnId: otel_k8s_cluster
-      - columnId: suse_ai_observer_service
-      - columnId: suse_ai_observer_cluster
       sort:
       - columnId: health
       - columnId: otel_name
