@@ -1,5 +1,7 @@
 # AI overview table cleanup — release 3.0.0
 
+Evidence retention update (2026-11-05): the `knowledge/evidence/` captures and logs referenced below are retained locally and excluded from Git. These links are for the operator's local checkout; the evidence files are no longer part of the proposed repository contents.
+
 This ships with the Ollama available-model inventory and exporter on
 `feat/ollama-model-inventory-3.0.1` (implementation base `422e9c1`). StackPack and
 exporter release versions are **3.0.0**, as requested after the table review.

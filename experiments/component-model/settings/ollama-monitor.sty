@@ -1,0 +1,24 @@
+nodes:
+- _type: Monitor
+  name: Inference server Ollama runtime API unavailable
+  identifier: urn:stackpack:suse-ai:monitor:spike-ollama-api
+  description: The exporter cannot read the Ollama model inventory or loaded models. This checks runtime visibility,
+    not inference request success.
+  intervalSeconds: 60
+  status: ENABLED
+  function: urn:stackpack:common:monitor-function:threshold
+  tags:
+  - suse-ai
+  arguments:
+    threshold: 1
+    comparator: LT
+    failureState: DEVIATING
+    metric:
+      aliasTemplate: Runtime API read success
+      unit: short
+      query: min by (service_namespace, service_name) (ollama_api_up{service_namespace!="", service_name!=""} and
+        topk by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (1, timestamp(ollama_api_up{service_namespace!="",
+        service_name!=""})))
+    titleTemplate: 'Inference server ${service_name}: model inventory unavailable'
+    urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
+  remediationHint: !include 'spike/ollama-api.md.hbs'

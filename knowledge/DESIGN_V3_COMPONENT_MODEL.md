@@ -4,6 +4,8 @@ Status: proposed (2026-11-05). Target: StackPack 3.0.0, regenerated. Breaking ch
 because the 3.x Helm chart has not been published. Release rule: GitHub tags may be regenerated until
 the Helm chart that references them is published.
 
+Ollama spike results: [S1–S5 report](SPIKE_V3_COMPONENT_MODEL.md). S1 supports D1 with unique highlight IDs; presentations compose field by field, so the single-presentation description below is superseded by the observed merge table. S2 is blocked on the tested native mapping schema. The full redesign remains proposed.
+
 ## Problems in 3.0.x
 
 1. **We take over the OpenTelemetry presentation.** Our mappings write into
