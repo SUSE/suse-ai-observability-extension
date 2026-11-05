@@ -193,3 +193,12 @@ The final sync descriptions still have the same 10 active details and unchanged
 installed as requested; models stop refreshing after the exporter rollback and
 will expire until exporter 3.0.1 is deployed again. No Git push/tag/PR or registry
 push was performed.
+
+## Pull request delivery
+
+After validation and restoration, the user authorized pushing the branch and
+opening a pull request. Implementation commit `422e9c1` is published in
+[PR #64](https://github.com/SUSE/suse-ai-observability-extension/pull/64) against
+`main`. The delivery changes only knowledge records; the uploaded 3.0.1 package
+remains unchanged. The read-only delivery check again found both synchronizations
+Running with the same active error details and cumulative counts.
