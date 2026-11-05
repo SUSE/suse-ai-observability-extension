@@ -1,0 +1,67 @@
+nodes:
+- _type: OtelComponentMapping
+  identifier: urn:stackpack:suse-ai:otel-component-mapping:ollama-models
+  name: Ollama available models
+  input:
+    signal: [METRICS]
+    resource:
+      condition: >-
+        'service.name' in resource.attributes && resource.attributes['service.name'] != ''
+        && !('suse.ai.managed' in resource.attributes && string(resource.attributes['suse.ai.managed']) == 'false')
+      scope:
+        metric:
+          condition: metric.name == 'ollama_model_info'
+          datapoint:
+            condition: "'model' in datapoint.attributes && datapoint.attributes['model'] != ''"
+            action: "'CREATE'"
+  vars:
+  - name: namespace
+    value: >-
+      'service.namespace' in resource.attributes && resource.attributes['service.namespace'] != ''
+      ? resource.attributes['service.namespace'] : 'default'
+  - name: service
+    value: resource.attributes['service.name']
+  - name: model
+    value: datapoint.attributes['model']
+  - name: clusterPrefix
+    value: >-
+      'k8s.cluster.name' in resource.attributes && resource.attributes['k8s.cluster.name'] != ''
+      ? 'cluster/' + resource.attributes['k8s.cluster.name'] + ':' : ''
+  expireAfter: 900000
+  rank:
+    specificity: 150
+  output:
+    # Ordinary colons are valid; embedded field separators can collide (see README).
+    identifier: >-
+      'urn:suse-ai:' + vars.clusterPrefix + 'namespace/' + vars.namespace
+      + ':service/' + vars.service + ':served-model/' + vars.model
+    name: vars.model
+    typeName: "'genai served model'"
+    required:
+      tags:
+      - source: "'suse-ai'"
+        target: stackpack
+      - source: vars.namespace
+        target: service.namespace
+      - source: vars.service
+        target: service.name
+      - source: vars.namespace
+        target: suse.ai.metric.service_namespace
+      - source: vars.service
+        target: suse.ai.metric.service_name
+      - source: vars.model
+        target: ollama.model.name
+      - source: "'ollama'"
+        target: suse.ai.product
+      - source: "'k8s.cluster.name' in resource.attributes ? resource.attributes['k8s.cluster.name'] : ''"
+        target: suse.ai.metric.k8s_cluster_name
+    optional:
+      tags:
+      - source: resource.attributes['k8s.cluster.name']
+        target: cluster-name
+      - source: datapoint.attributes['family']
+        target: ollama.model.family
+      - source: datapoint.attributes['parameter_size']
+        target: ollama.model.parameter_size
+      - source: datapoint.attributes['quantization']
+        target: ollama.model.quantization

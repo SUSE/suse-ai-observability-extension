@@ -1,6 +1,6 @@
 # SUSE AI Observability Extension
 
-The native schema v2 StackPack (release 3.0.0) for [SUSE Observability](https://www.suse.com/products/observability/) that transforms OpenTelemetry telemetry from GenAI workloads into high-level topology views, metric dashboards, and health monitors.
+The native schema v2 StackPack (release 3.0.1) for [SUSE Observability](https://www.suse.com/products/observability/) that transforms OpenTelemetry telemetry from GenAI workloads into high-level topology views, metric dashboards, and health monitors.
 
 ## What It Does
 
@@ -70,7 +70,7 @@ task stackpack-package
 (cd dist && sha256sum --check SHA256SUMS)
 ```
 
-The offline packaging task produces `dist/suse-ai-3.0.0.sts` and `SHA256SUMS`.
+The offline packaging task produces `dist/suse-ai-3.0.1.sts` and `SHA256SUMS`.
 A rebuild has the same SHA-256, independent of checkout timestamps and modes.
 See [the release record](knowledge/NATIVE_STACKPACK_RELEASE.md) for the exact
 ZIP command, import provenance, version policy and validation limits.

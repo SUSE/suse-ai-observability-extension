@@ -1,0 +1,97 @@
+nodes:
+- _type: ComponentPresentation
+  name: Served models Ollama
+  identifier: urn:stackpack:suse-ai:component-presentation:served-models-ollama
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: type = "genai served model" and label = "suse.ai.product:ollama" and label = "stackpack:suse-ai"
+  rank:
+    specificity: 240
+  presentation:
+    highlight:
+      metrics:
+      - sectionId: suse-ai-served-models-ollama
+        title: Ollama model
+        order: 200
+        metrics:
+        - metricId: suse-ai-ollama-served-model-loaded
+          order: 100
+        - metricId: suse-ai-ollama-served-model-vram
+          order: 99
+        - metricId: suse-ai-ollama-served-model-disk-size
+          order: 98
+    metricPerspective:
+      tabs:
+      - tabId: suse-ai-ollama-model
+        title: Ollama model
+        order: 50
+        sections:
+        - sectionId: suse-ai-ollama-model-residency
+          title: Inventory and residency
+          order: 50
+          metrics:
+          - metricId: suse-ai-ollama-served-model-loaded
+            order: 100
+          - metricId: suse-ai-ollama-served-model-vram
+            order: 99
+          - metricId: suse-ai-ollama-served-model-disk-size
+            order: 98
+          - metricId: suse-ai-ollama-served-model-size
+            order: 97
+          - metricId: suse-ai-ollama-served-model-context
+            order: 96
+  metrics:
+  - metricId: suse-ai-ollama-served-model-loaded
+    name: Loaded on Any Observed Replica
+    metricQueries:
+    - expression: |-
+        max(max by (k8s_cluster_name, service_namespace, service_name, service_instance_id, model) (ollama_model_loaded{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", k8s_cluster_name="${tags.singleValue('cluster-name')}", model="${tags.singleValue('ollama.model.name')}"} and (timestamp(ollama_model_loaded{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", k8s_cluster_name="${tags.singleValue('cluster-name')}", model="${tags.singleValue('ollama.model.name')}"}) == on (k8s_cluster_name, service_namespace, service_name, service_instance_id) group_left max by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (timestamp(ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", k8s_cluster_name="${tags.singleValue('cluster-name')}"}) and (ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", k8s_cluster_name="${tags.singleValue('cluster-name')}"} == 1) and topk by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (1, timestamp(ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", k8s_cluster_name="${tags.singleValue('cluster-name')}"}))))))
+      alias: 1 = loaded, 0 = unloaded
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: short
+  - metricId: suse-ai-ollama-served-model-vram
+    name: Model VRAM Residency
+    metricQueries:
+    - expression: |-
+        sum(max by (k8s_cluster_name, service_namespace, service_name, service_instance_id, model) (ollama_model_vram_bytes{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", k8s_cluster_name="${tags.singleValue('cluster-name')}", model="${tags.singleValue('ollama.model.name')}"} and (timestamp(ollama_model_vram_bytes{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", k8s_cluster_name="${tags.singleValue('cluster-name')}", model="${tags.singleValue('ollama.model.name')}"}) == on (k8s_cluster_name, service_namespace, service_name, service_instance_id) group_left max by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (timestamp(ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", k8s_cluster_name="${tags.singleValue('cluster-name')}"}) and (ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", k8s_cluster_name="${tags.singleValue('cluster-name')}"} == 1) and topk by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (1, timestamp(ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", k8s_cluster_name="${tags.singleValue('cluster-name')}"}))))))
+      alias: Across observed replicas
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: bytes
+  - metricId: suse-ai-ollama-served-model-disk-size
+    name: Available Model Size on Disk
+    metricQueries:
+    - expression: |-
+        max(max by (k8s_cluster_name, service_namespace, service_name, service_instance_id, model) (ollama_model_disk_size_bytes{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", k8s_cluster_name="${tags.singleValue('cluster-name')}", model="${tags.singleValue('ollama.model.name')}"} and (timestamp(ollama_model_disk_size_bytes{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", k8s_cluster_name="${tags.singleValue('cluster-name')}", model="${tags.singleValue('ollama.model.name')}"}) == on (k8s_cluster_name, service_namespace, service_name, service_instance_id) group_left max by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (timestamp(ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", k8s_cluster_name="${tags.singleValue('cluster-name')}"}) and (ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", k8s_cluster_name="${tags.singleValue('cluster-name')}"} == 1) and topk by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (1, timestamp(ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", k8s_cluster_name="${tags.singleValue('cluster-name')}"}))))))
+      alias: Largest observed copy
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: bytes
+  - metricId: suse-ai-ollama-served-model-size
+    name: Loaded Model Allocation
+    metricQueries:
+    - expression: |-
+        sum(max by (k8s_cluster_name, service_namespace, service_name, service_instance_id, model) (ollama_model_size_bytes{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", k8s_cluster_name="${tags.singleValue('cluster-name')}", model="${tags.singleValue('ollama.model.name')}"} and (timestamp(ollama_model_size_bytes{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", k8s_cluster_name="${tags.singleValue('cluster-name')}", model="${tags.singleValue('ollama.model.name')}"}) == on (k8s_cluster_name, service_namespace, service_name, service_instance_id) group_left max by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (timestamp(ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", k8s_cluster_name="${tags.singleValue('cluster-name')}"}) and (ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", k8s_cluster_name="${tags.singleValue('cluster-name')}"} == 1) and topk by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (1, timestamp(ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", k8s_cluster_name="${tags.singleValue('cluster-name')}"}))))))
+      alias: Across observed replicas
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: bytes
+  - metricId: suse-ai-ollama-served-model-context
+    name: Loaded Model Context Length
+    metricQueries:
+    - expression: |-
+        max(max by (k8s_cluster_name, service_namespace, service_name, service_instance_id, model) (ollama_model_context_length{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", k8s_cluster_name="${tags.singleValue('cluster-name')}", model="${tags.singleValue('ollama.model.name')}"} and (timestamp(ollama_model_context_length{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", k8s_cluster_name="${tags.singleValue('cluster-name')}", model="${tags.singleValue('ollama.model.name')}"}) == on (k8s_cluster_name, service_namespace, service_name, service_instance_id) group_left max by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (timestamp(ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", k8s_cluster_name="${tags.singleValue('cluster-name')}"}) and (ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", k8s_cluster_name="${tags.singleValue('cluster-name')}"} == 1) and topk by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (1, timestamp(ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}", k8s_cluster_name="${tags.singleValue('cluster-name')}"}))))))
+      alias: Largest observed context
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: short
+  description: Available models come from /api/tags and survive idle unloading. Loaded state and VRAM are zero
+    for a successfully observed unloaded model; context and loaded allocation are not reported. Missing or failed
+    observations remain missing. Residency is reported allocation, not request activity. Request metrics require
+    verified caller-to-runtime attribution and are not inferred from model names.

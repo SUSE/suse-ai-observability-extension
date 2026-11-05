@@ -321,7 +321,7 @@ cases:
     - series: vllm_generation_tokens_total{service_namespace="prod-eu",service_name="assistant",model_name="other"}
       values: 0+600x10
     checks:
-    - presentation: model-inventory
+    - presentation: served-models-vllm
       column: suse_ai_model_output_tokens
       samples:
       - labels: '{service_namespace="prod-eu",service_name="assistant",model_name="llama3"}'

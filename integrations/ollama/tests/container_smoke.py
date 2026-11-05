@@ -14,7 +14,7 @@ import uuid
 
 
 RUNTIME = os.environ.get("CONTAINER_RUNTIME", "podman")
-VERSION = os.environ.get("OLLAMA_VERSION", "3.0.0")
+VERSION = os.environ.get("OLLAMA_VERSION", "3.0.1")
 IMAGE = os.environ.get("OLLAMA_IMAGE", f"registry.suse.com/ai/containers/suse/suse-ai-ollama-exporter:{VERSION}")
 PLATFORM = os.environ.get("OLLAMA_PLATFORM", "linux/amd64")
 API = """
@@ -26,12 +26,12 @@ class API(BaseHTTPRequestHandler):
         self.send_response(204)
         self.end_headers()
     def do_GET(self):
-        if self.path != '/api/ps':
+        if self.path not in ('/api/ps', '/api/tags'):
             self.send_error(404)
             return
         self.send_response(503 if API.state == 'down' else 200)
         self.end_headers()
-        self.wfile.write(b'{"models": []}' if API.state == 'empty' else
+        self.wfile.write(b'{"models": []}' if API.state == 'empty' and self.path == '/api/ps' else
             b'{"models": [{"name": "smoke-model", "size": 1048576, "size_vram": 524288, "context_length": 4096}]}')
     def log_message(self, *args):
         pass
@@ -137,7 +137,10 @@ class ContainerTest(unittest.TestCase):
         self.assertEqual(security["script_sha256"], hashlib.sha256(script.read_bytes()).hexdigest())
         print(f"\n{PLATFORM}: /healthz=200, /metrics=200; security={json.dumps(security, sort_keys=True)}", flush=True)
         self.state("empty")
-        self.assertIn("ollama_loaded_models 0\n", self.fetch(origin + "/metrics"))
+        metrics = self.fetch(origin + "/metrics")
+        self.assertIn("ollama_loaded_models 0\n", metrics)
+        self.assertIn('ollama_model_loaded{model="smoke-model"} 0\n', metrics)
+        self.assertIn('ollama_model_info{model="smoke-model",', metrics)
         self.state("down")
         metrics = self.fetch(origin + "/metrics")
         self.assertIn("ollama_api_up 0\n", metrics)

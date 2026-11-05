@@ -1,4 +1,4 @@
-"""Expose Ollama's local /api/ps residency snapshot as Prometheus gauges."""
+"""Expose read-only Ollama inventory and residency snapshots as Prometheus gauges."""
 
 import argparse
 from http.client import HTTPException
@@ -34,42 +34,77 @@ def label(value):
     return value.replace("\\", "\\\\").replace("\n", "\\n").replace('"', '\\"')
 
 
-def render(payload):
+def model_index(payload):
     models = payload.get("models") if isinstance(payload, dict) else None
     if not isinstance(models, list):
         raise ValueError("Expected a models list")
-    lines = gauge("ollama_loaded_models", "Number of models currently loaded by this Ollama process.")
-    lines.append(f"ollama_loaded_models {len(models)}")
-    seen = set()
-    for field, (metric, description) in FIELDS.items():
-        lines.extend(gauge(metric, description))
+    result = {}
     for model in models:
         if not isinstance(model, dict):
             raise ValueError("Expected a model object")
         name = model.get("name") or model.get("model")
-        if not isinstance(name, str) or not name or name in seen:
+        if not isinstance(name, str) or not name or name in result:
             raise ValueError("Expected a unique nonempty model name")
-        seen.add(name)
+        result[name] = model
+    return result
+
+
+def number(value):
+    if isinstance(value, bool) or not isinstance(value, (float, int)) or not math.isfinite(value) or value < 0:
+        raise ValueError("Expected a nonnegative finite model allocation")
+    return value
+
+
+def render(payload, available_payload):
+    loaded, available = model_index(payload), model_index(available_payload)
+    lines = gauge("ollama_loaded_models", "Number of models currently loaded by this Ollama process.")
+    lines.append(f"ollama_loaded_models {len(loaded)}")
+    for field, (metric, description) in FIELDS.items():
+        lines.extend(gauge(metric, description))
+    for name, model in loaded.items():
         for field, (metric, _) in FIELDS.items():
             if field not in model:
                 continue
-            value = model[field]
-            if isinstance(value, bool) or not isinstance(value, (float, int)) or not math.isfinite(value) or value < 0:
-                raise ValueError("Expected a nonnegative finite model allocation")
+            value = number(model[field])
             lines.append(f'{metric}{{model="{label(name)}"}} {value}')
+    lines.extend(gauge("ollama_model_info", "Available model inventory reported by Ollama /api/tags."))
+    lines.extend(gauge("ollama_model_loaded", "1 if the available model is loaded in this process, otherwise 0."))
+    lines.extend(gauge("ollama_model_disk_size_bytes", "Available model size on disk reported by Ollama /api/tags."))
+    for name, model in available.items():
+        details = model.get("details", {})
+        if not isinstance(details, dict):
+            raise ValueError("Expected model details object")
+        labels = {"model": name}
+        for key, field in (("family", "family"), ("parameter_size", "parameter_size"),
+                           ("quantization", "quantization_level")):
+            value = details.get(field, "")
+            if not isinstance(value, str):
+                raise ValueError("Expected string model metadata")
+            labels[key] = value
+        dimensions = ",".join(f'{key}="{label(value)}"' for key, value in labels.items())
+        lines.append(f"ollama_model_info{{{dimensions}}} 1")
+        lines.append(f'ollama_model_loaded{{model="{label(name)}"}} {int(name in loaded)}')
+        if "size" in model:
+            lines.append(f'ollama_model_disk_size_bytes{{model="{label(name)}"}} {number(model["size"])}')
+        if name not in loaded:
+            lines.append(f'ollama_model_vram_bytes{{model="{label(name)}"}} 0')
     return lines
 
 
 def collect(endpoint, timeout=5):
-    lines = gauge("ollama_api_up", "1 when the local Ollama /api/ps snapshot is valid, otherwise 0.")
-    try:
-        with OPENER.open(endpoint, timeout=timeout) as response:
+    lines = gauge("ollama_api_up", "1 when both local Ollama /api/ps and /api/tags snapshots are valid, otherwise 0.")
+
+    def read(url):
+        with OPENER.open(url, timeout=timeout) as response:
             if response.status != 200:
                 raise ValueError("Unexpected response status")
             body = response.read(MAX_RESPONSE_BYTES + 1)
         if len(body) > MAX_RESPONSE_BYTES:
             raise ValueError("Response too large")
-        snapshot = render(json.loads(body))
+        return json.loads(body)
+
+    try:
+        snapshot = render(read(endpoint), read(endpoint.removesuffix("/api/ps") + "/api/tags"))
     except (HTTPError, URLError, HTTPException, OSError, ValueError, TypeError, OverflowError):
         # No cached model values: an unavailable process must not look idle or healthy.
         lines.append("ollama_api_up 0")

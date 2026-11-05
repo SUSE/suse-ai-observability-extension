@@ -32,42 +32,31 @@ nodes:
           _type: TextProjection
           value: tags.singleValue('service.namespace')
       - columnId: suse_ai_service
-        title: Service
+        title: Inference service
+        projection:
+          _type: ComponentLinkProjection
+          name: tags.singleValue('service.name')
+          identifier: "'urn:opentelemetry:namespace/' + tags.singleValue('service.namespace') + ':service/' + tags.singleValue('service.name')"
+      - columnId: suse_ai_product
+        title: Product
         projection:
           _type: TextProjection
-          value: tags.singleValue('service.name')
-      - columnId: suse_ai_model_latency
-        title: Request latency P95
+          value: tags.singleValue('suse.ai.product')
+      - columnId: suse_ai_cluster
+        title: Cluster
         projection:
-          _type: MetricProjection
-          sparkline: true
-          decimalPlaces: 2
-          unit: s
-          query: histogram_quantile(0.95, sum by(service_namespace, service_name, model_name, le) (rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_bucket",
-            service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}",
-            model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}])))
-          metricId: suse-ai-genai-model-e2e-latency
-      - columnId: suse_ai_model_ttft
-        title: Time to first token P95
+          _type: TextProjection
+          value: "tags.singleValue('cluster-name') != '' ? tags.singleValue('cluster-name') : 'not reported'"
+      - columnId: suse_ai_request_metrics
+        title: Server request metrics
         projection:
-          _type: MetricProjection
-          sparkline: true
-          decimalPlaces: 2
-          unit: s
-          query: histogram_quantile(0.95, sum by(service_namespace, service_name, model_name, le) (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket",
-            service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}",
-            model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}])))
-          metricId: suse-ai-genai-model-ttft-latency
-      - columnId: suse_ai_model_output_tokens
-        title: Output tokens / s
+          _type: TextProjection
+          value: "tags.singleValue('suse.ai.product') == 'vllm' ? 'See model charts' : 'not reported'"
+      - columnId: suse_ai_residency_metrics
+        title: Model residency metrics
         projection:
-          _type: MetricProjection
-          sparkline: true
-          decimalPlaces: 2
-          unit: short
-          query: sum by(service_namespace, service_name, model_name) (rate({__name__=~"vllm(:|_)generation_tokens_total", service_namespace="${tags.singleValue('service.namespace')}",
-            service_name="${tags.singleValue('service.name')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}]))
-          metricId: suse-ai-genai-model-token-throughput-generation
+          _type: TextProjection
+          value: "tags.singleValue('suse.ai.product') == 'ollama' ? 'See model charts' : 'not reported'"
       sort:
       - columnId: health
       - columnId: otel_name

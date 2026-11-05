@@ -15,3 +15,10 @@ The package uses OpenTelemetry GenAI attributes. The Collector example includes
 OpenLIT and OpenLLMetry compatibility transforms. It does not run evaluations,
 store prompt versions, or infer missing token usage or costs. GPU allocation
 costs and provider token charges are separate measurements.
+
+The Models page includes vLLM served models and Ollama's available models when
+the Ollama exporter is version 3.0.1 or newer. Available Ollama models remain
+visible while unloaded; a deleted model expires after 15 minutes without an
+inventory observation. Open a model for product metrics and its hosting service.
+Unsupported metrics are marked "not reported" in the inventory. Client-side
+requests and latency remain on the calling application's model-usage view.

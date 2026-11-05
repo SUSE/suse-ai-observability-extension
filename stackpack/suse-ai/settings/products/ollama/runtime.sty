@@ -48,7 +48,7 @@ nodes:
     metricQueries:
     - expression: |-
         min(ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"} and topk by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (1, timestamp(ollama_api_up{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"})))
-      alias: 1 = successful /api/ps read
+      alias: 1 = successful API snapshot reads
       primary: true
     chart:
       _type: TimeSeriesChart

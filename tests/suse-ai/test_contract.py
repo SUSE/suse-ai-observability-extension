@@ -188,6 +188,7 @@ def render(query, instance=False):
             "namespace": "ai",
             "node-name": "gpu-1",
             "vllm.model.name": "llama3",
+            "ollama.model.name": "gemma:2b",
             "gen_ai.request.model": "llama3",
             "gen_ai.provider.name": "openai",
             "server.address": "vllm.ai.svc",
@@ -584,7 +585,7 @@ class PackageContractTests(unittest.TestCase):
 
     def test_model_inventory_metrics_preserve_deployment_and_caller_scope(self):
         for presentation, required_labels in [
-            ("model-inventory", {"service_namespace", "service_name", "model_name"}),
+            ("served-models-vllm", {"service_namespace", "service_name", "model_name"}),
             ("models", {"service_namespace", "service_name", "gen_ai_request_model",
                                "gen_ai_provider_name", "server_address", "server_port"}),
         ]:
