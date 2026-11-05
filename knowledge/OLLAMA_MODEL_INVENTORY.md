@@ -214,5 +214,6 @@ Ollama inventory and exporter source remain as validated above.
 The cleanup was checked on the demo using temporary version
 `3.0.2-dev.20261105.1`, then downgraded to the original installed 3.0.1. The
 temporary catalog entry was removed. The modified release payload was not
-uploaded as 3.0.1. Updated local PR material covers the entire branch and
-targets the existing PR #64; this follow-up stops before pushing or updating it.
+uploaded as 3.0.1. After the initial local review, the user authorized delivery.
+Table cleanup commit `35c3007` is pushed to the same branch, and PR #64's title
+and description cover the Ollama inventory, exporter and table cleanup together.

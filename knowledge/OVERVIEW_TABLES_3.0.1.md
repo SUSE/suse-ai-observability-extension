@@ -4,7 +4,8 @@ This ships with the Ollama available-model inventory and exporter on
 `feat/ollama-model-inventory-3.0.1` (implementation base `422e9c1`). StackPack and
 exporter release versions remain **3.0.1**. The combined PR is the existing
 [PR #64](https://github.com/SUSE/suse-ai-observability-extension/pull/64).
-This follow-up is prepared locally and has not been pushed or posted to the PR.
+Table cleanup commit `35c3007` has been pushed to that branch, and PR #64 now
+includes the combined description and links to this evidence.
 
 ## Behavior
 
