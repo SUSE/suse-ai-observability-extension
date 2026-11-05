@@ -38,7 +38,7 @@ class PatchTest(unittest.TestCase):
             self.assertEqual(next(c for c in pod["containers"] if c["name"] == "ollama"), ollama)
             sidecar = next(c for c in pod["containers"] if c["name"] == "ollama-runtime-metrics")
             self.assertEqual(sidecar["image"],
-                             "registry.suse.com/ai/containers/suse/suse-ai-ollama-exporter:3.0.1"
+                             "registry.suse.com/ai/containers/suse/suse-ai-ollama-exporter:3.0.0"
                              "@sha256:<PUBLISHED_MULTI_ARCH_INDEX_DIGEST>")
             for field in ("command", "args", "volumeMounts"):
                 self.assertFalse(sidecar.get(field))

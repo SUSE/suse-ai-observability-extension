@@ -274,3 +274,10 @@ Reproduction setup and validation boundaries are in [REGRESSION_TESTS.md](REGRES
 
 *   **Fact**: After the user authorized delivery, commit `35c3007fea4ed6bfa8fb28f8b0c693b80bc28c00` was pushed to `feat/ollama-model-inventory-3.0.1`. The existing [PR #64](https://github.com/SUSE/suse-ai-observability-extension/pull/64) was updated to “Ship Ollama model inventory and focused AI tables in 3.0.1”, with the combined description and links to the committed screenshots and test report. GitHub reported that implementation commit as the PR head.
 *   **Fact**: The delivery-time `task stackpack-sync-status` listed and described both demo synchronizations. Both remained Running, with cumulative errors 79/34 and identical ten active error details each compared with the restored baseline. Delivery did not upload a StackPack or change demo workloads.
+
+
+## Combined Release Target Changed to 3.0.0 (2026-11-05)
+
+*   **Fact**: At the user's request, the StackPack manifest and Ollama exporter build/release defaults, sidecar reference and corresponding test expectations now target 3.0.0 on the existing PR #64 branch. Current documentation reflects that target; historical 3.0.1 and temporary-version evidence retains the versions actually tested.
+*   **Fact**: All 15 release/package/installer tests, 11 exporter HTTP tests and two sidecar patch tests passed after the version change. The rebuilt local `dist/suse-ai-3.0.0.sts` declares version 3.0.0 and has SHA-256 `e28b7545b8425eea956dd4be0d335834fb8bbd34032dd4f279520069af7f939f`. The image-build dry run uses version/tag 3.0.0. Test output is in `knowledge/evidence/3.0.0-version/`.
+*   **Fact**: The read-only topology-sync list and descriptions matched the restored demo baseline: both Running, cumulative errors 79/34 and identical lists of ten active error details each. The version change did not upload a StackPack, deploy to the demo or publish a tag or image.

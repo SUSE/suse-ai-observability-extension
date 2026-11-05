@@ -1,0 +1,20 @@
+[
+  {
+    "nodeId": 267492275047826,
+    "name": "Agent",
+    "status": "Running",
+    "cumulativeErrors": 79,
+    "activeErrorCount": 10,
+    "activeErrorsSha256": "5f8b7098bfb604bd778e7bd49c136f9828943d8b0cc0da49991fe50b0cec75fa",
+    "matchesRestoredBaseline": true
+  },
+  {
+    "nodeId": 47509094577758,
+    "name": "Kubernetes - suse-ai",
+    "status": "Running",
+    "cumulativeErrors": 34,
+    "activeErrorCount": 10,
+    "activeErrorsSha256": "799ba097c82d5f9276f0d20ba937c4b08dae3ce9f1de49c281e5a19ffb4a752e",
+    "matchesRestoredBaseline": true
+  }
+]

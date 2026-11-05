@@ -2,7 +2,7 @@
 FROM registry.suse.com/bci/python:3.13@sha256:c2fdbafcbfdfe9b52dbf1c93e0a672e8a53ec9ec56059c6bbb3eae9b645f3c4e
 
 # Publication supplies the extension release version from its vX.Y.Z tag.
-ARG VERSION=3.0.1
+ARG VERSION=3.0.0
 
 LABEL org.opencontainers.image.title="SUSE AI Ollama runtime exporter" \
       org.opencontainers.image.description="Read-only Ollama model inventory and residency from local /api/tags and /api/ps." \

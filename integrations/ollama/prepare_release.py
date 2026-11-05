@@ -11,7 +11,7 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "integrations/ollama"
-VERSION = os.environ.get("OLLAMA_VERSION", "3.0.1")
+VERSION = os.environ.get("OLLAMA_VERSION", "3.0.0")
 IMAGE = f"registry.suse.com/ai/containers/suse/suse-ai-ollama-exporter:{VERSION}"
 
 

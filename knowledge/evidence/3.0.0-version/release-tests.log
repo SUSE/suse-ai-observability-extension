@@ -1,0 +1,21 @@
+task: [stackpack-release-test] .resources/native-tests/bin/python -B -m unittest discover -s tests -p "test_*.py" -v
+test_init_fresh_rerun_and_upgrade_without_experimental_flags (test_cli_integration.RealCliTest.test_init_fresh_rerun_and_upgrade_without_experimental_flags) ... ok
+test_cli_read_and_upload_failures_do_not_install_ai (test_init.InstallerTest.test_cli_read_and_upload_failures_do_not_install_ai) ... ok
+test_empty_cluster_names_fail_before_mutation (test_init.InstallerTest.test_empty_cluster_names_fail_before_mutation) ... ok
+test_existing_catalog_version_is_never_reuploaded (test_init.InstallerTest.test_existing_catalog_version_is_never_reuploaded) ... ok
+test_explicit_legacy_cleanup_preserves_unrelated_autosync_and_menus (test_init.InstallerTest.test_explicit_legacy_cleanup_preserves_unrelated_autosync_and_menus) ... ok
+test_failed_upgrade_never_uninstalls (test_init.InstallerTest.test_failed_upgrade_never_uninstalls) ... ok
+test_fresh_install_and_rerun_have_no_second_mutation (test_init.InstallerTest.test_fresh_install_and_rerun_have_no_second_mutation) ... ok
+test_old_schema_instance_uses_upgrade_and_preserves_instance_id (test_init.InstallerTest.test_old_schema_instance_uses_upgrade_and_preserves_instance_id) ... ok
+test_rejects_newer_install_unexpected_upgrade_target_and_bad_readback (test_init.InstallerTest.test_rejects_newer_install_unexpected_upgrade_target_and_bad_readback) ... ok
+test_same_version_error_is_not_success (test_init.InstallerTest.test_same_version_error_is_not_success) ... ok
+test_uninstall_is_idempotent (test_init.InstallerTest.test_uninstall_is_idempotent) ... ok
+test_file_contents_equal_sts_package (test_package.PackageTest.test_file_contents_equal_sts_package) ... ok
+test_rebuild_after_modes_timestamps_timezone_and_zip_options_change (test_package.PackageTest.test_rebuild_after_modes_timestamps_timezone_and_zip_options_change) ... ok
+test_increments_and_explicit_higher_version (test_version.VersionRegressions.test_increments_and_explicit_higher_version) ... ok
+test_rejects_reuse_downgrades_and_invalid_versions (test_version.VersionRegressions.test_rejects_reuse_downgrades_and_invalid_versions) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 16.001s
+
+OK

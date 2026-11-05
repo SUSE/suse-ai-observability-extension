@@ -1,8 +1,10 @@
-# AI overview table cleanup — 3.0.1
+# AI overview table cleanup — release 3.0.0
 
 This ships with the Ollama available-model inventory and exporter on
 `feat/ollama-model-inventory-3.0.1` (implementation base `422e9c1`). StackPack and
-exporter release versions remain **3.0.1**. The combined PR is the existing
+exporter release versions are **3.0.0**, as requested after the table review.
+The validation records and evidence filenames below retain their original
+3.0.1 and temporary-version labels. The combined PR is the existing
 [PR #64](https://github.com/SUSE/suse-ai-observability-extension/pull/64).
 Table cleanup commit `35c3007` has been pushed to that branch, and PR #64 now
 includes the combined description and links to this evidence.
@@ -129,7 +131,7 @@ All seven original table schemas matched the restored API results. The demo
 ends on its original layout; the release branch contains the cleanup.
 No modified payload was reuploaded as 3.0.1.
 
-The final local release archive `dist/suse-ai-3.0.1.sts` was rebuilt with
+The review's local release archive `dist/suse-ai-3.0.1.sts` was rebuilt with
 `task stackpack-package` ([output](evidence/3.0.1-tables/release-package.log)).
 SHA-256: `767c1d100f4c25d4a1fe39cbc62704ea5abc5dcf93ca2c848d565f6bc7db3008`.
 It contains the cleanup and has not been uploaded to the demo catalog.
@@ -145,4 +147,27 @@ Raw private API responses, settings backup, browser harness and lifecycle logs
 remain at `/home/thbertoldi/suse/qa/table-cleanup-3.0.1-20261105/`. Only reviewed
 screenshots, test output and metadata are included here. Table-only and
 combined-branch patches and the revised PR description are under `.resources/`
-for local review before pushing.
+for local review.
+
+## Release target changed to 3.0.0
+
+The user subsequently requested 3.0.0 for the combined release. The StackPack
+manifest, exporter build/release defaults, sidecar reference, test expectations
+and current documentation now use 3.0.0. Historical demo records above retain
+their actual version numbers. The earlier residency-only exporter image tagged
+3.0.0 does not provide `/api/tags` inventory; the sidecar reference requires the
+published digest of the inventory-capable build.
+
+After the change, all 15 release/package/installer tests passed
+([output](evidence/3.0.0-version/release-tests.log)), as did 11 exporter HTTP and
+two sidecar patch tests ([output](evidence/3.0.0-version/exporter-tests.log)).
+`task stackpack-package` rebuilt `dist/suse-ai-3.0.0.sts`
+([output](evidence/3.0.0-version/package.log)); its manifest declares 3.0.0 and
+its SHA-256 is
+`e28b7545b8425eea956dd4be0d335834fb8bbd34032dd4f279520069af7f939f`.
+The image build dry run passes `VERSION=3.0.0` and targets the 3.0.0 image tag.
+
+Read-only topology synchronization list/describe checks matched the restored
+baseline: both Running, cumulative errors 79/34 and the same ten active errors
+each ([comparison](evidence/3.0.0-version/sync-summary.json)). This version
+change did not upload a StackPack, deploy to the demo or publish a tag or image.

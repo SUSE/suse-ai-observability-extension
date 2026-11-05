@@ -284,16 +284,20 @@ CLI token access through the router port-forward worked throughout.
 
 No tag, push or PR is performed without the user's confirmation.
 
-## 3.0.1 Ollama model inventory
+## Ollama model inventory and table cleanup for 3.0.0
 
-The next patch adds available Ollama models to the native Models inventory.
-Both StackPack and exporter version are 3.0.1; `init.sh` needs no change and
-continues to upgrade with `--unlocked-strategy overwrite`. Never reupload 3.0.1
-after changing its package bytes. The design, compatibility limits, validation
-record and monitoring-guide handoff are in
+The combined release adds available Ollama models and focused native/observed
+dependency tables. At the user's request, the StackPack and exporter release
+target is 3.0.0. Earlier validation used 3.0.1 and temporary review versions;
+those evidence labels remain unchanged. `init.sh` needs no change and continues
+to upgrade with `--unlocked-strategy overwrite`. Never reupload a version after
+changing its package bytes. The design, compatibility limits, validation record
+and monitoring-guide handoff are in
 [OLLAMA_MODEL_INVENTORY.md](OLLAMA_MODEL_INVENTORY.md).
 
-The earlier import hashes and 3.0.0 release evidence above describe that release
-and remain historical records. This patch adds Ollama mappings/presentation and
-changes the common model table; it does not change ComponentType icons, legacy
-Groovy code or the vLLM component/relation identity contract.
+The earlier import hashes and 3.0.0 release evidence above describe the earlier
+build and remain historical records. This change adds Ollama mappings and
+presentations and revises the overview tables; it does not change ComponentType
+icons, legacy Groovy code or the vLLM component/relation identity contract.
+The current package hash and version-change checks are in
+[the table review report](OVERVIEW_TABLES_3.0.1.md#release-target-changed-to-300).

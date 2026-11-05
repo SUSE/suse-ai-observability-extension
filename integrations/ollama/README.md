@@ -30,9 +30,11 @@ The reference patch adds the packaged SUSE exporter to an existing Deployment.
 It reads `/api/tags` and `/api/ps` at `127.0.0.1:11434` within that pod and exposes `/metrics` on 11435.
 The release image is
 `registry.suse.com/ai/containers/suse/suse-ai-ollama-exporter:<version>`, where
-`<version>` is the extension release version without the leading `v`. The first
-release was `3.0.0`; available-model inventory requires `3.0.1` in both the
-exporter and StackPack. Publish and promote 3.0.1 before using the updated patch.
+`<version>` is the extension release version without the leading `v`. This
+source targets release `3.0.0` for both the exporter and StackPack.
+Available-model inventory requires the `/api/tags` support in this source;
+the earlier residency-only 3.0.0 image does not emit `ollama_model_info`.
+Use the published digest of the inventory-capable build in the updated patch.
 Before applying `sidecar-patch.yaml`, replace
 `<PUBLISHED_MULTI_ARCH_INDEX_DIGEST>` with the published SUSE registry index's
 64-character SHA-256 value. The placeholder is intentionally not a usable
@@ -86,7 +88,7 @@ task workflows-lint
 The standard-library tests exercise the actual HTTP exporter and API failures,
 empty/malformed snapshots, missing optional values, label escaping, replica
 isolation and stale-data prevention. The collection contract is tested against
-Ollama's `/api/ps` and `/api/tags` response shapes. StackPack 3.0.1 maps
+Ollama's `/api/ps` and `/api/tags` response shapes. StackPack 3.0.0 maps
 `ollama_model_info` to available served models and links them to their Ollama
 service. Idle unloading keeps the model visible. Deletion or sustained API
 failure allows the component and relation to expire 15 minutes after their last
@@ -107,7 +109,7 @@ arguments, argument overrides, populated/empty/failed API snapshots and
 `/healthz`. They check the actual process UID/GID, zero capability sets,
 `no_new_privs`, seccomp, read-only root mount and a rejected write to `/tmp`, without
 overriding the image's user or mounting the source. They also check the OCI
-version and reference labels. `OLLAMA_VERSION` defaults to `3.0.1`; set it to
+version and reference labels. `OLLAMA_VERSION` defaults to `3.0.0`; set it to
 the intended extension release version for both build and test tasks. The
 `ollama-runtime.yml` CI workflow runs on native amd64 and arm64 runners and
 only builds and tests locally. `task workflows-lint` requires `actionlint`.
@@ -138,25 +140,25 @@ GitHub publication workflow targeting the nonexistent `trunk` branch was removed
 
 Publication requires these manual steps:
 
-1. Merge the workflow before creating the extension's `v3.0.1` release tag and
+1. Merge the workflow before creating the extension's `v3.0.0` release tag and
    publishing the GitHub release. Creating a tag alone does not trigger this
    workflow. To retry an existing release, use
-   `gh workflow run publish-ollama-exporter.yml --repo SUSE/suse-ai-observability-extension --ref v3.0.1`.
+   `gh workflow run publish-ollama-exporter.yml --repo SUSE/suse-ai-observability-extension --ref v3.0.0`.
 2. After the first publication, a **SUSE organization admin must make the
    `suse-ai-ollama-exporter` GHCR package public**, as for the Collector package.
    [New GHCR packages are private by default](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#pushing-container-images),
    even when the source repository is public. This workflow does not change
    package visibility.
 3. Configure the image-mirror mapping from
-   `ghcr.io/suse/suse-ai-ollama-exporter:3.0.1` to
-   `registry.suse.com/ai/containers/suse/suse-ai-ollama-exporter:3.0.1` in the
+   `ghcr.io/suse/suse-ai-ollama-exporter:3.0.0` to
+   `registry.suse.com/ai/containers/suse/suse-ai-ollama-exporter:3.0.0` in the
    separate mirror configuration and complete its promotion process.
 4. Inspect both registries and verify that the promoted index contains
    `linux/amd64` and `linux/arm64`:
 
    ```bash
-   docker buildx imagetools inspect ghcr.io/suse/suse-ai-ollama-exporter:3.0.1
-   docker buildx imagetools inspect registry.suse.com/ai/containers/suse/suse-ai-ollama-exporter:3.0.1
+   docker buildx imagetools inspect ghcr.io/suse/suse-ai-ollama-exporter:3.0.0
+   docker buildx imagetools inspect registry.suse.com/ai/containers/suse/suse-ai-ollama-exporter:3.0.0
    ```
 
    Record the SUSE registry's top-level index digest and replace the digest
@@ -178,7 +180,7 @@ both architectures when taking base-image fixes. The bundled Apache-2.0
 Prepare a local handoff from the repository root:
 
 ```bash
-task ollama-release-prepare OLLAMA_VERSION=3.0.1
+task ollama-release-prepare OLLAMA_VERSION=3.0.0
 ```
 
 This requires Task, Python, kubectl, Podman and either native execution or
@@ -205,6 +207,6 @@ The source snapshot can be tested independently of this repository's Taskfile:
 ```bash
 python3 -B -m unittest discover -s tests -v
 python3 -B tests/sidecar_patch.py -v
-CONTAINER_RUNTIME=podman OLLAMA_PLATFORM=linux/amd64 OLLAMA_VERSION=3.0.1 \
+CONTAINER_RUNTIME=podman OLLAMA_PLATFORM=linux/amd64 OLLAMA_VERSION=3.0.0 \
   OLLAMA_IMAGE=YOUR_BUILT_IMAGE python3 -B tests/container_smoke.py -v
 ```

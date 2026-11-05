@@ -1,4 +1,7 @@
-# Ollama served-model inventory (3.0.1)
+# Ollama served-model inventory (release 3.0.0)
+
+The release target was changed to 3.0.0 after validation. Historical 3.0.1
+uploads, image references and evidence below describe the builds actually tested.
 
 ## Design decisions, before implementation
 
@@ -63,7 +66,7 @@ unverified, keep requests/latency/tokens on caller model-usage components; do no
 join by model name alone or assign all caller traffic to Ollama. The November 5
 demo's duration counters have no explicit peer-service labels; several callers
 also omit `server_address`/`server_port`, and some use untagged model aliases.
-No request-side served-model attribution is added in 3.0.1. A future integration
+No request-side served-model attribution is added in 3.0.0. A future integration
 must attach verified peer service namespace/name/cluster to each measurement
 and verify any model alias before a scoped aggregation can be implemented.
 
@@ -97,7 +100,7 @@ Concrete downstream guide edits (in `~/suse/doc-suse-ai`, not modified here):
 
 | Topic | Required update |
 | --- | --- |
-| `articles/ai-monitoring.adoc` | Set StackPack/exporter attributes to 3.0.1 when released; align the extension tag |
+| `articles/ai-monitoring.adoc` | Set StackPack/exporter attributes to 3.0.0 when released; align the extension tag |
 | `tasks/AI-monitoring-ollama-runtime.adoc` | Describe both read-only endpoints, add inventory/loaded/disk-size gauges, compare `/api/tags` as well as `/api/ps`, and add Models-page/service-link verification |
 | `references/AI-monitoring-integrations.adoc` | Describe available-model topology and version requirement in the Ollama runtime row |
 | `tasks/AI-monitoring-native-owui.adoc` | Explain caller-side request metrics and the need for verified peer/model attribution before attaching them to a served model |
@@ -205,7 +208,7 @@ Running with the same active error details and cumulative counts.
 
 ## Table cleanup prepared for the same release
 
-The subsequent [table review](OVERVIEW_TABLES_3.0.1.md) keeps release 3.0.1 and
+The subsequent [table review](OVERVIEW_TABLES_3.0.1.md) initially kept release 3.0.1 and
 combines the shared model table's two availability columns into one, preserving
 explicit `not reported` wording for unsupported metrics. It removes shared model
 health from the table while leaving monitors and chart queries unchanged.

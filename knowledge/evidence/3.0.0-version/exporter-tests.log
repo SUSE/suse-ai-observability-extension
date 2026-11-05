@@ -1,0 +1,25 @@
+task: [ollama-test] python3 -B -m unittest discover -s integrations/ollama/tests -v
+test_either_endpoint_failure_discards_the_entire_snapshot (test_metrics.MetricsTest.test_either_endpoint_failure_discards_the_entire_snapshot) ... ok
+test_empty_process_is_healthy_with_zero_loaded_models (test_metrics.MetricsTest.test_empty_process_is_healthy_with_zero_loaded_models) ... ok
+test_failure_after_success_does_not_reuse_snapshot (test_metrics.MetricsTest.test_failure_after_success_does_not_reuse_snapshot) ... ok
+test_http_exporter_and_health_route (test_metrics.MetricsTest.test_http_exporter_and_health_route) ... ok
+test_idle_unloaded_models_remain_available_then_deleted_models_disappear (test_metrics.MetricsTest.test_idle_unloaded_models_remain_available_then_deleted_models_disappear) ... ok
+test_instances_are_isolated (test_metrics.MetricsTest.test_instances_are_isolated) ... ok
+test_invalid_inventory_metadata_fails_without_partial_model_data (test_metrics.MetricsTest.test_invalid_inventory_metadata_fails_without_partial_model_data) ... ok
+test_invalid_snapshots_do_not_turn_into_empty_successes (test_metrics.MetricsTest.test_invalid_snapshots_do_not_turn_into_empty_successes) ... ok
+test_missing_optional_allocations_are_omitted (test_metrics.MetricsTest.test_missing_optional_allocations_are_omitted) ... ok
+test_reported_allocations_and_model_label_escaping (test_metrics.MetricsTest.test_reported_allocations_and_model_label_escaping) ... ok
+test_timeout_is_unavailable (test_metrics.MetricsTest.test_timeout_is_unavailable) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 6.088s
+
+OK
+task: [ollama-patch-test] python3 -B integrations/ollama/tests/sidecar_patch.py -v
+test_new_sidecar (__main__.PatchTest.test_new_sidecar) ... ok
+test_upgrade_from_configmap_sidecar (__main__.PatchTest.test_upgrade_from_configmap_sidecar) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.120s
+
+OK

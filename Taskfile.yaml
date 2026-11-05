@@ -6,7 +6,7 @@ vars:
   RUNTIME: '{{.CONTAINER_RUNTIME | default "podman"}}'
   PYTHON: '{{.PYTHON | default "python3"}}'
   STS_CONTEXT: '{{.STS_CONTEXT | default ""}}'
-  OLLAMA_VERSION: '{{.OLLAMA_VERSION | default "3.0.1"}}'
+  OLLAMA_VERSION: '{{.OLLAMA_VERSION | default "3.0.0"}}'
   OLLAMA_IMAGE: '{{.OLLAMA_IMAGE | default (printf "registry.suse.com/ai/containers/suse/suse-ai-ollama-exporter:%s" .OLLAMA_VERSION)}}'
   OLLAMA_PLATFORM: '{{.OLLAMA_PLATFORM | default "linux/amd64"}}'
   OLLAMA_REVISION:

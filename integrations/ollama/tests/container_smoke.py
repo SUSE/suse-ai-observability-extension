@@ -14,7 +14,7 @@ import uuid
 
 
 RUNTIME = os.environ.get("CONTAINER_RUNTIME", "podman")
-VERSION = os.environ.get("OLLAMA_VERSION", "3.0.1")
+VERSION = os.environ.get("OLLAMA_VERSION", "3.0.0")
 IMAGE = os.environ.get("OLLAMA_IMAGE", f"registry.suse.com/ai/containers/suse/suse-ai-ollama-exporter:{VERSION}")
 PLATFORM = os.environ.get("OLLAMA_PLATFORM", "linux/amd64")
 API = """

@@ -1,0 +1,3 @@
+task: [stackpack-package] bash scripts/package-stackpack.sh
+suse-ai-3.0.0.sts: OK
+suse-ai-3.0.1.sts: OK
