@@ -1,0 +1,9 @@
+<!-- SPDX-License-Identifier: Apache-2.0; original repository artwork, 2026. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" role="img" aria-labelledby="model-title model-description">
+  <title id="model-title">Model</title>
+  <desc id="model-description">A geometric model with connected faces.</desc>
+  <rect width="40" height="40" rx="8" fill="#E4F5EB"/>
+  <g fill="none" stroke="#30BA78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m20 8 11 6.5v12L20 33 9 26.5v-12L20 8Zm0 13v12M9 14.5 20 21l11-6.5M14.5 11.25l11 6.5"/>
+  </g>
+</svg>

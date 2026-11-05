@@ -1,0 +1,9 @@
+<!-- SPDX-License-Identifier: Apache-2.0; original repository artwork, 2026. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" role="img" aria-labelledby="tool-title tool-description">
+  <title id="tool-title">Tool</title>
+  <desc id="tool-description">A wrench represents an AI tool or tool server.</desc>
+  <rect width="40" height="40" rx="8" fill="#E4F5EB"/>
+  <g fill="none" stroke="#30BA78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M25 9a7 7 0 0 0-8 9L9 26a3.5 3.5 0 0 0 5 5l8-8a7 7 0 0 0 9-8l-5 5-6-6 5-5Z"/><path d="m12 28 1-1"/>
+  </g>
+</svg>
