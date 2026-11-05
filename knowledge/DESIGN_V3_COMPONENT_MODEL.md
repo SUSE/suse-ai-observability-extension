@@ -1,8 +1,8 @@
-# Design - SUSE AI StackPack 3.1 component model and visual identity
+# Design - SUSE AI StackPack 3.0 component model and visual identity
 
-Status: proposed (2026-11-05). Target: StackPack 3.1.0. Breaking change, allowed because 3.0 was
-never announced; `v3.0.0` is tagged and its setup image is on Application Collection, so that
-version number cannot be reused.
+Status: proposed (2026-11-05). Target: StackPack 3.0.0, regenerated. Breaking changes are allowed
+because the 3.x Helm chart has not been published. Release rule: GitHub tags may be regenerated until
+the Helm chart that references them is published.
 
 ## Problems in 3.0.x
 
@@ -93,7 +93,7 @@ Monitors target our components (D2) or the merged service (D1).
 
 ## Spike (one product before the full change)
 
-Product: Ollama. Deliverables on a local development version (never reuse an uploaded version):
+Product: Ollama. Deliverables on a pre-release version (`3.0.0-spike.N`; never reuse an uploaded version):
 1. **S1** Overlay merge: an overlay presentation on `otel service` (specificity below Open Telemetry,
    metrics only) plus our own list page. Verify the Open Telemetry Services page and component page are
    byte-for-byte unchanged in layout, icon and columns, and our page lists Ollama with AI columns.
@@ -105,7 +105,12 @@ Exit criteria: S1 proven (else D1b), no topology-sync errors, screenshots of Ope
 and after.
 
 ## Versioning and migration
-- 3.1.0 for the breaking change; development builds use local pre-release versions.
+- Ship as a regenerated 3.0.0 (new GitHub tag, new IBS build). The earlier setup image `3.0.0-8.2` on
+  Application Collection keeps the old content; the `recipes` chart must pin the new build's digest.
+- Development builds use pre-release versions (`3.0.0-spike.N`), which sort below 3.0.0.
+- Servers that already received a 3.0.x upload: `init.sh` skips uploading a version present in the
+  catalog and refuses downgrades, so clean the old `suse-ai` 3.0.x versions and instance from demo and
+  test instances before validating the final 3.0.0.
 - Document identifier and view changes in the release notes and the monitoring guide.
 - Keep the Collector contract unchanged where possible; new attributes (for example GPU device identity)
   are added in a Collector release before the StackPack depends on them.
