@@ -86,6 +86,13 @@ numeric and lexical order, so version numbers can jump (for example `dev.9` to
 not offer for upgrade. The successful dev.90 upgrade used overwrite and retained
 the instance; [evidence and limits](V3_UX_REVIEW_20261106.md#deployment-and-verification).
 
+Authentication defaults to a service token. For a user API token, set
+`DEMO_TOKEN_TYPE=api`; the task uses `sts --api-token` and carries that choice
+into its verification step. For a standalone `task demo-inspect`, set
+`SPIKE_TOKEN_TYPE=api`. Inspection sends the matching `X-API-Token`
+header for HTTP snapshots. Both tasks read credentials from their token-file
+argument; keep that file private and outside the repository.
+
 ## Reproducible artifact and IBS command
 
 Run `task stackpack-package` (alias `stackpack-build`). It calls

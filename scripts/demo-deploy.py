@@ -67,8 +67,11 @@ def check_installed(instances, version):
 
 
 class Client:
-    def __init__(self, url, token_file):
+    def __init__(self, url, token_file, token_type="service"):
         self.url = demo_url(url)
+        if token_type not in ("service", "api"):
+            raise ValueError("Token type must be service or api")
+        self.token_flag = "--service-token" if token_type == "service" else "--api-token"
         self.token = token_file.read_text().strip()
         if not self.token:
             raise ValueError("Demo token file is empty")
@@ -86,7 +89,7 @@ class Client:
 
     def cli(self, *args):
         raw = self.run([os.environ.get("STS_BIN", "sts"), "--url", self.url,
-                        "--service-token", self.token, *args, "-o", "json"])
+                        self.token_flag, self.token, *args, "-o", "json"])
         return json.loads(raw) if raw.strip() else None
 
 
@@ -116,6 +119,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--url", required=True, type=demo_url)
     parser.add_argument("--token-file", required=True, type=Path)
+    parser.add_argument("--token-type", choices=("service", "api"), default="service")
     parser.add_argument("--state-dir", required=True, type=Path)
     parser.add_argument("--cluster", default="suse-ai")
     parser.add_argument("--version", default="")
@@ -126,7 +130,7 @@ def main():
     state.mkdir(parents=True, exist_ok=True)
     with (state / "deploy.lock").open("a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        client = Client(args.url, args.token_file)
+        client = Client(args.url, args.token_file, args.token_type)
         catalog = client.cli("stackpack", "list-versions", "--name", "suse-ai")
         before = client.cli("stackpack", "list-instances", "--name", "suse-ai")
         versions = state / "versions"
@@ -148,7 +152,7 @@ def main():
 
         attempt = versions / version
         attempt.mkdir()  # This reservation is never removed, even when validation/upload fails.
-        record = {"version": version, "url": args.url, "status": "reserved",
+        record = {"version": version, "url": args.url, "status": "reserved", "tokenType": args.token_type,
                   "createdUTC": datetime.now(timezone.utc).isoformat(),
                   "sourceCommit": client.run(["git", "rev-parse", "HEAD"]).strip()}
         save(attempt / "record.json", record)
@@ -178,6 +182,7 @@ def main():
         save(attempt / "record.json", record)
         client.run(["task", "demo-inspect", "SPIKE_URL=" + args.url,
                     "SPIKE_TOKEN_FILE=" + str(args.token_file.resolve()),
+                    "SPIKE_TOKEN_TYPE=" + args.token_type,
                     "SPIKE_EVIDENCE=" + str(attempt / "verification"), "SPIKE_STAGE=deployed"])
         print(f"Installed {version}; synchronization and mapping snapshots: {attempt / 'verification'}", flush=True)
 

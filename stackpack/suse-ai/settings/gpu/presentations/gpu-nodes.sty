@@ -127,6 +127,31 @@ nodes:
         projection:
           _type: TextProjection
           value: tags.singleValue('nvidia.com/gpu.count')
+      - columnId: suse_ai_gpu_family
+        title: GPU family
+        projection:
+          _type: TextProjection
+          value: '''nvidia.com/gpu.family'' in tags ? tags.singleValue(''nvidia.com/gpu.family'') : '''''
+      - columnId: suse_ai_gpu_os
+        title: Node OS
+        projection:
+          _type: TextProjection
+          value: '''feature.node.kubernetes.io/system-os_release.ID'' in tags ? tags.singleValue(''feature.node.kubernetes.io/system-os_release.ID'') : '''''
+      - columnId: suse_ai_gpu_os_version
+        title: OS version
+        projection:
+          _type: TextProjection
+          value: '''feature.node.kubernetes.io/system-os_release.VERSION_ID'' in tags ? tags.singleValue(''feature.node.kubernetes.io/system-os_release.VERSION_ID'') : '''''
+      - columnId: suse_ai_gpu_cuda
+        title: CUDA version
+        projection:
+          _type: TextProjection
+          value: '''nvidia.com/cuda.runtime-version.full'' in tags ? tags.singleValue(''nvidia.com/cuda.runtime-version.full'') : '''''
+      - columnId: suse_ai_gpu_driver
+        title: Driver version
+        projection:
+          _type: TextProjection
+          value: '''nvidia.com/cuda.driver-version.full'' in tags ? tags.singleValue(''nvidia.com/cuda.driver-version.full'') : '''''
       - columnId: suse_ai_gpu_memory
         title: Memory / GPU
         projection:
@@ -145,7 +170,7 @@ nodes:
             k8s_node_name="${name}"})
           metricId: suse_ai_common_node_gpu_utilization
       - columnId: suse_ai_gpu_memory_utilization
-        title: Memory used
+        title: GPU memory utilization
         projection:
           _type: MetricProjection
           sparkline: true
@@ -157,7 +182,7 @@ nodes:
             k8s_node_name="${name}"})
           metricId: suse_ai_common_node_gpu_memory_utilization
       - columnId: suse_ai_gpu_temperature
-        title: Temperature
+        title: GPU temperature average
         projection:
           _type: MetricProjection
           sparkline: true
@@ -167,7 +192,7 @@ nodes:
             k8s_node_name="${name}"})
           metricId: suse_ai_common_node_gpu_avg_temp
       - columnId: suse_ai_gpu_power
-        title: Power
+        title: GPU power total
         projection:
           _type: MetricProjection
           sparkline: true

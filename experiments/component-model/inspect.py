@@ -13,6 +13,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--url', required=True)
     parser.add_argument('--token-file', required=True, type=Path)
+    parser.add_argument('--token-type', choices=('service', 'api'), default='service')
     parser.add_argument('--output', required=True, type=Path)
     parser.add_argument('--stage', required=True)
     parser.add_argument('--sts', default='sts')
@@ -22,6 +23,8 @@ def main():
     os.umask(0o077)
     args.output.mkdir(parents=True, exist_ok=True)
     token = args.token_file.read_text().strip()
+    token_flag = '--service-token' if args.token_type == 'service' else '--api-token'
+    token_header = 'X-API-Key' if args.token_type == 'service' else 'X-API-Token'
 
     def save(name, data):
         path = args.output / f'{name}-{args.stage}.json'
@@ -31,16 +34,16 @@ def main():
         return data
 
     def cli(*parts):
-        result = subprocess.run([args.sts, '--url', args.url, '--service-token', token,
+        result = subprocess.run([args.sts, '--url', args.url, token_flag, token,
                                  *parts, '-o', 'json'], capture_output=True, text=True)
         if result.returncode:
-            return {'exitCode': result.returncode, 'error': result.stderr}
+            return {'exitCode': result.returncode, 'error': result.stderr.replace(token, '<redacted>')}
         return json.loads(result.stdout)
 
     def api(path, body=None):
         req = Request(args.url.rstrip('/') + path,
                       None if body is None else json.dumps(body).encode(),
-                      {'X-API-Key': token, 'Content-Type': 'application/json'})
+                      {token_header: token, 'Content-Type': 'application/json'})
         with urlopen(req, timeout=60) as response:
             return json.load(response)
 

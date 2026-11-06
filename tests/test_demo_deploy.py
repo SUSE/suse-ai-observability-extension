@@ -20,10 +20,12 @@ class FakeClient:
         self.versions = ["2.0.0"]
         self.instances = []
         self.calls = []
+        self.run_calls = []
         self.fail_upload = False
         self.offered = None
 
     def run(self, command, **kwargs):
+        self.run_calls.append(command)
         if command[:3] == ["git", "rev-parse", "HEAD"]:
             return "source-commit\n"
         if command[:2] == ["task", "stackpack-validate"]:
@@ -67,9 +69,9 @@ class DemoDeploymentTest(unittest.TestCase):
         self.state = Path(directory.name)
         self.client = FakeClient()
 
-    def deploy(self, version=""):
+    def deploy(self, version="", token_type="service"):
         args = ["demo-deploy.py", "--url", "http://127.0.0.1:18081", "--token-file", "/unused-token",
-                "--state-dir", str(self.state), "--version", version]
+                "--state-dir", str(self.state), "--version", version, "--token-type", token_type]
         with patch("sys.argv", args), patch.object(DEMO, "Client", return_value=self.client):
             DEMO.main()
 
@@ -96,6 +98,27 @@ class DemoDeploymentTest(unittest.TestCase):
         uploads = [c for c in self.client.calls if c[1] == "upload"]
         self.assertEqual(len(uploads), 2)
         self.assertNotEqual(uploads[0][-1], uploads[1][-1])
+
+    def test_api_authentication_is_carried_into_post_deploy_verification(self):
+        self.deploy(token_type="api")
+        inspection = next(c for c in self.client.run_calls if c[:2] == ["task", "demo-inspect"])
+        self.assertIn("SPIKE_TOKEN_TYPE=api", inspection)
+        record = json.loads((self.state / "versions/3.0.0-dev.1/record.json").read_text())
+        self.assertEqual(record["tokenType"], "api")
+
+    def test_api_and_service_credentials_use_the_matching_cli_authentication(self):
+        token_file = self.state / "test-token"
+        token_file.write_text("fixture-token\n")
+        for mode, expected in (("service", "--service-token"), ("api", "--api-token")):
+            with self.subTest(mode=mode):
+                client = DEMO.Client("http://127.0.0.1:18081", token_file, mode)
+                with patch.object(client, "run", return_value='{"instances": []}') as run:
+                    self.assertEqual(client.cli("stackpack", "list-instances"), {"instances": []})
+                command = run.call_args.args[0]
+                self.assertIn(expected, command)
+                self.assertEqual(command[command.index(expected) + 1], "fixture-token")
+                other = "--api-token" if mode == "service" else "--service-token"
+                self.assertNotIn(other, command)
 
     def test_existing_stable_instance_is_rejected_before_any_mutation(self):
         self.client.instances = [{"id": 123, "status": "INSTALLED", "stackPackVersion": "3.0.1"}]

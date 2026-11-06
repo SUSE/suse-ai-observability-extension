@@ -140,6 +140,7 @@ tasks:
       - >-
         '{{.PYTHON}}' -B scripts/demo-deploy.py
         --url '{{.DEMO_URL}}' --token-file '{{.DEMO_TOKEN_FILE}}'
+        --token-type '{{.DEMO_TOKEN_TYPE | default "service"}}'
         --state-dir '{{.DEMO_STATE_DIR}}' --cluster '{{.DEMO_CLUSTER | default "suse-ai"}}'
         --version '{{.DEMO_VERSION | default ""}}'
         --source '{{.DEMO_SOURCE | default "stackpack/suse-ai"}}'
@@ -225,4 +226,5 @@ tasks:
       - >-
         '{{.PYTHON}}' -B experiments/component-model/inspect.py
         --url '{{.SPIKE_URL}}' --token-file '{{.SPIKE_TOKEN_FILE}}'
+        --token-type '{{.SPIKE_TOKEN_TYPE | default "service"}}'
         --output '{{.SPIKE_EVIDENCE}}' --stage '{{.SPIKE_STAGE}}'
