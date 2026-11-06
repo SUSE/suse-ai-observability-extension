@@ -1,5 +1,8 @@
 # Component and navigation increment: dev.6 → dev.8
 
+Follow-up: [dev.8 → dev.9](V3_HEALTH_TABLES_20261106.md) adds Health to all SUSE
+tables and clarifies model hosting links. This document records the earlier increment.
+
 The previous reviewed demo version was **3.0.0-dev.6**. This increment leaves
 **3.0.0-dev.8** installed. Version 7 introduced the changes; version 8 assigned fresh
 identifiers to the three hosting-dependency mappings after the backend continued

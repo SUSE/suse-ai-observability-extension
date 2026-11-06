@@ -3,12 +3,13 @@
 The demo is upgraded forward through unique `3.0.0-dev.N` packages with overwrite.
 The release source remains version 3.0.0. No SA instance operations are used.
 
-The latest increment leaves **3.0.0-dev.8** installed. It consolidates navigation
-into six groups, restores the detailed GPU table and original SUSE logo, reduces
-navigation icons, and adds hosting-service health and useful agent details.
-The [dev.6 → dev.8 comparison](V3_GROUPING_COMPARISON_20261106.md) lists every menu,
-table and component change. The sections below record the earlier iterations at
-the versions where they were verified.
+The latest increment leaves **3.0.0-dev.9** installed, with Health first on all SUSE
+tables and clearer model hosting links. See the
+[dev.8 → dev.9 comparison](V3_HEALTH_TABLES_20261106.md).
+The preceding [dev.6 → dev.8 comparison](V3_GROUPING_COMPARISON_20261106.md) records
+grouped navigation, the restored GPU table and SUSE logo, smaller navigation icons,
+hosting-service health and agent details. The sections below record earlier
+iterations at the versions where they were verified.
 
 ## Product views and OTel overlays
 

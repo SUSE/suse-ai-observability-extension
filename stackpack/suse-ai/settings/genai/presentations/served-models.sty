@@ -15,6 +15,11 @@ nodes:
         plural: model deployment
         title: Model deployment
       columns:
+      - columnId: suse_ai_health
+        title: Health
+        projection:
+          _type: HealthProjection
+          value: healthState
       - columnId: suse_ai_otel_name
         title: Name
         projection:
@@ -55,9 +60,16 @@ nodes:
         projection:
           _type: HealthProjection
           value: healthState
+      - fieldId: suse_ai_served_model_host
+        title: Served by
+        order: 99
+        projection:
+          _type: ComponentLinkProjection
+          name: tags.singleValue('service.name')
+          identifier: "'urn:opentelemetry:namespace/' + tags.singleValue('service.namespace') + ':service/' + tags.singleValue('service.name')"
       relatedResources:
       - resourceId: suse_ai_service
-        title: Related services
+        title: Hosting inference service
         order: 90
         topologyQuery: withNeighborsOf(direction = "both", components = (identifier = "${identifiers[0]}"), levels
           = "1") and type = "otel service"

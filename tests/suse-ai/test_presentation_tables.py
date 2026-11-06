@@ -1,4 +1,4 @@
-"""Column identity contracts plus optional read-only tests of installed tables.
+"""Health and identity columns plus optional read-only tests of installed tables.
 
 AI_PRESENTATION_URL, AI_PRESENTATION_TOKEN_FILE and AI_PRESENTATION_EVIDENCE
 enable the backend checks. No telemetry, settings or workloads are mutated.
@@ -26,10 +26,11 @@ COLUMNS = {
     "agents": ["suse_ai_otel_name", "suse_ai_otel_namespace", "suse_ai_service"],
     "database-dependencies": ["suse_ai_otel_name", "suse_ai_product", "suse_ai_observer_service", "suse_ai_otel_namespace", "suse_ai_observer_cluster"],
 }
+COLUMNS = {view: ["suse_ai_health", *columns] for view, columns in COLUMNS.items()}
 
 
 class PresentationTableContractTest(unittest.TestCase):
-    def test_shared_tables_only_contain_identity_projections(self):
+    def test_shared_tables_contain_health_and_identity_projections(self):
         for view, expected in COLUMNS.items():
             columns = BY_ID[PREFIX + view]["presentation"]["overview"]["columns"]
             self.assertEqual([c["columnId"] for c in columns], expected)
@@ -82,6 +83,7 @@ class BackendPresentationTableTest(unittest.TestCase):
                 table = self.capture(view, self.api("/api/overview/" + quote(PREFIX + view, safe=""), {}))
                 self.assertEqual([c["columnId"] for c in table["metadata"]["columns"]], expected)
                 for row in table["data"]:
+                    self.assertEqual(row["cells"]["suse_ai_health"]["_type"], "HealthCell")
                     if view in ("all", "data-services"):
                         self.assertFalse(row["componentIdentifier"].startswith("urn:suse-ai:database-dependency:"))
 

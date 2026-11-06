@@ -15,6 +15,11 @@ nodes:
         plural: GPUs
         title: GPUs
       columns:
+      - columnId: suse_ai_health
+        title: Health
+        projection:
+          _type: HealthProjection
+          value: healthState
       - columnId: suse_ai_gpu_uuid
         title: GPU
         projection:

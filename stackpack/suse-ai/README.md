@@ -39,10 +39,23 @@ limitation in the example README.
 
 Open a model for its product charts: Ollama reports loaded state, disk size,
 VRAM, loaded allocation and context; vLLM retains its latency, scheduler, cache
-and token charts. The shared table marks unsupported server-request/residency
-metrics `not reported`, without empty product-specific sparklines. Client-side
+and token charts. Shared tables show component health and identity; product
+metrics stay on the appropriate component. Client-side
 requests and latency stay on caller model-usage views: model names and endpoint
 strings alone do not establish a verified serving-service identity.
+
+### Reading model connections
+
+The arrow **served model → inference service** means **is hosted on**: the model
+depends on that engine to serve requests. For example, `llama3.2:latest → ollama`
+has the same serving association as the earlier preview's `ollama → llama3.2:latest`,
+which expressed **serves model** in the opposite direction. The new dependency
+direction supports inherited engine health for models without direct health checks;
+existing direct model checks take precedence. The arrow describes the hosting
+dependency, while request flow is available in traces.
+
+Model highlights show **Served by** and **Hosting inference service** links. Existing
+model and service identities are retained when upgrading between these previews.
 
 From the public extension repository root, install test dependencies and run:
 

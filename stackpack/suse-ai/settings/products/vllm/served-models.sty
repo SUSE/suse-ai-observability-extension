@@ -14,6 +14,11 @@ nodes:
         plural: vLLM models
         title: vLLM models
       columns:
+      - columnId: suse_ai_health
+        title: Health
+        projection:
+          _type: HealthProjection
+          value: healthState
       - columnId: suse_ai_model_latency
         title: Request latency P95
         projection:

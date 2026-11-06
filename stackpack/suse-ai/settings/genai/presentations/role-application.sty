@@ -58,6 +58,11 @@ nodes:
         plural: applications
         title: Applications
       columns:
+      - columnId: suse_ai_health
+        title: Health
+        projection:
+          _type: HealthProjection
+          value: healthState
       - columnId: suse_ai_otel_name
         title: Name
         projection:

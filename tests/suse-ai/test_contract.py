@@ -573,10 +573,13 @@ class PackageContractTests(unittest.TestCase):
             ids = {c["columnId"] for c in columns}
             self.assertFalse(ids & observer_columns, suffix)
             self.assertNotIn("suse_ai_otel_k8s_namespace", ids, suffix)
-        for suffix in ("model-inventory", "served-models", "agents"):
-            overview = BY_ID[prefix + suffix]["presentation"]["overview"]
-            self.assertNotIn("suse_ai_health", {c["columnId"] for c in overview["columns"]})
-            self.assertNotIn("suse_ai_health", {c["columnId"] for c in overview["sort"]})
+        for node in NODES:
+            overview = node.get("presentation", {}).get("overview")
+            if overview:
+                self.assertEqual(overview["columns"][0], {
+                    "columnId": "suse_ai_health", "title": "Health",
+                    "projection": {"_type": "HealthProjection", "value": "healthState"},
+                }, node["identifier"])
         data = BY_ID[prefix + "data-services"]
         self.assertIn('type = "otel service"', data["binding"]["query"])
         self.assertNotIn('"genai database dependency"', data["binding"]["query"])

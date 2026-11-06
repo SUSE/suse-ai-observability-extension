@@ -119,7 +119,9 @@ class DatabaseDependenciesTest(unittest.TestCase):
         self.assertEqual(presentation["tracesPerspective"]["spanFilter"]["attributes"]["server.port"],
                          ["${tags.singleValue('server.port')}"])
         columns = {c["columnId"]: c for c in presentation["overview"]["columns"]}
-        self.assertNotIn("suse_ai_health", columns)
+        # Display this observation component's state; do not infer server health.
+        self.assertEqual(columns["suse_ai_health"]["projection"],
+                         {"_type": "HealthProjection", "value": "healthState"})
         self.assertNotIn("suse_ai_otel_k8s_cluster", columns)
         self.assertFalse(any(c.get("projection", {}).get("_type") == "MetricProjection" for c in columns.values()))
         self.assertNotIn("mainMenu", presentation["overview"])
