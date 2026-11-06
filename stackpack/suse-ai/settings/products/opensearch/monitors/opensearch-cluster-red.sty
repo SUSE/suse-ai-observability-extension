@@ -1,6 +1,6 @@
 nodes:
 - _type: Monitor
-  name: OpenSearch Cluster Red Status
+  name: 'OpenSearch service: primary shards are unavailable'
   identifier: urn:stackpack:suse-ai:monitor:opensearch-cluster-red
   description: Indicates if the OpenSearch cluster status is red.
   intervalSeconds: 60
@@ -12,10 +12,10 @@ nodes:
     failureState: CRITICAL
     metric:
       aliasTemplate: OpenSearch Cluster Red Status
-      query: max by (service_namespace, service_name) (elasticsearch_cluster_health{suse_ai_product="opensearch", service_namespace!="",
-        service_name!="", status="red"}) or (0 * sum by (service_namespace, service_name) (elasticsearch_cluster_health{suse_ai_product="opensearch",
-        service_namespace!="", service_name!=""}))
+      query: max by (service_namespace, service_name) (elasticsearch_cluster_health{suse_ai_product="opensearch",
+        service_namespace!="", service_name!="", status="red"}) or (0 * sum by (service_namespace, service_name)
+        (elasticsearch_cluster_health{suse_ai_product="opensearch", service_namespace!="", service_name!=""}))
       unit: short
-    titleTemplate: OpenSearch Cluster Red Status
+    titleTemplate: 'OpenSearch ${service_name}: primary shards are unavailable'
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
   remediationHint: !include 'remediation-hints/opensearch/remediation-red.md.hbs'

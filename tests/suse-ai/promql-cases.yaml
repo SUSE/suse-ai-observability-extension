@@ -301,7 +301,7 @@ cases:
     checks:
     - monitor: model-usage-errors
       samples:
-      - labels: '{}'
+      - labels: '{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3"}'
         value: 0.1
     - presentation: model-metrics
       metric: suse_ai_requests
@@ -333,7 +333,7 @@ cases:
     checks:
     - monitor: model-usage-errors
       samples:
-      - labels: '{}'
+      - labels: '{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3"}'
         value: 0
   - name: Idle or absent model calls do not manufacture a successful result
     series:
@@ -543,68 +543,68 @@ cases:
     - monitor: model-usage-errors
       endpoint: &id001 {}
       samples:
-      - labels: '{}'
+      - labels: '{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3"}'
         value: 0.2
     - monitor: model-usage-latency
       endpoint: *id001
       samples:
-      - labels: '{}'
+      - labels: '{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3"}'
         value: 58.5
     - monitor: model-usage-errors
       endpoint: &id002
         server.port: '8000'
       samples:
-      - labels: '{}'
+      - labels: '{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3"}'
         value: 0.0
     - monitor: model-usage-latency
       endpoint: *id002
       samples:
-      - labels: '{}'
+      - labels: '{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3"}'
         value: 9.55
     - monitor: model-usage-errors
       endpoint: &id003
         server.address: vllm.ai.svc
       samples:
-      - labels: '{}'
+      - labels: '{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3"}'
         value: 0.4
     - monitor: model-usage-latency
       endpoint: *id003
       samples:
-      - labels: '{}'
+      - labels: '{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3"}'
         value: 9.55
     - monitor: model-usage-errors
       endpoint: &id004
         server.address: vllm.ai.svc
         server.port: '8000'
       samples:
-      - labels: '{}'
+      - labels: '{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3"}'
         value: 0.0
     - monitor: model-usage-latency
       endpoint: *id004
       samples:
-      - labels: '{}'
+      - labels: '{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3"}'
         value: 58.5
     - monitor: model-usage-errors
       endpoint: &id005
         server.address: model.+[1].example
         server.port: '8000'
       samples:
-      - labels: '{}'
+      - labels: '{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3"}'
         value: 0.6
     - monitor: model-usage-latency
       endpoint: *id005
       samples:
-      - labels: '{}'
+      - labels: '{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3"}'
         value: 9.55
     - monitor: model-usage-errors
       endpoint: &id006
         server.address: modelXX1xexample
         server.port: '8000'
       samples:
-      - labels: '{}'
+      - labels: '{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3"}'
         value: 0.9
     - monitor: model-usage-latency
       endpoint: *id006
       samples:
-      - labels: '{}'
+      - labels: '{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3"}'
         value: 58.5

@@ -1,6 +1,6 @@
 nodes:
 - _type: Monitor
-  name: Qdrant High REST API Latency
+  name: 'Qdrant service: HTTP responses are slow'
   identifier: urn:stackpack:suse-ai:monitor:qdrant-high-rest-latency
   description: Indicates if Qdrant REST API average response duration is too high.
   intervalSeconds: 60
@@ -15,6 +15,6 @@ nodes:
       query: max by (service_namespace, service_name) (rest_responses_avg_duration_seconds{suse_ai_product="qdrant",
         service_namespace!="", service_name!=""})
       unit: s
-    titleTemplate: Qdrant High REST API Latency
+    titleTemplate: 'Qdrant ${service_name}: HTTP responses are slow'
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
   remediationHint: !include 'remediation-hints/qdrant/remediation-rest-latency.md.hbs'

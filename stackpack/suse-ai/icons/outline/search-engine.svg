@@ -1,0 +1,9 @@
+<!-- SPDX-License-Identifier: Apache-2.0; original repository artwork, 2026. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" role="img" aria-labelledby="search-engine-title search-engine-description">
+  <title id="search-engine-title">Search engine</title>
+  <desc id="search-engine-description">A magnifier over an indexed document.</desc>
+  <rect width="40" height="40" rx="8" fill="#E4F5EB"/>
+  <g fill="none" stroke="#30BA78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M19 9H10a2 2 0 0 0-2 2v18a2 2 0 0 0 2 2h15M12 15h5m-5 6h4m-4 5h8"/><circle cx="25" cy="17" r="7"/><path d="m30 22 4 5"/>
+  </g>
+</svg>

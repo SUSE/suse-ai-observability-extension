@@ -1,10 +1,12 @@
 nodes:
 - _type: Monitor
-  name: Kubeflow Workflow Queue Lag
+  name: 'Workflow controller service: queue processing is delayed'
   identifier: urn:stackpack:suse-ai:monitor:kfp-workflow-queue-lag
-  description: |
-    Triggers when an Argo controller queue item remains active for more than
+  description: 'Triggers when an Argo controller queue item remains active for more than
+
     five minutes.
+
+    '
   status: ENABLED
   intervalSeconds: 60
   function: urn:stackpack:common:monitor-function:threshold
@@ -17,6 +19,6 @@ nodes:
         service_namespace!="", service_name!=""})
       aliasTemplate: Kubeflow Workflow Queue Lag
       unit: s
-    titleTemplate: Kubeflow workflow queue lag exceeds five minutes
+    titleTemplate: 'Workflow controller ${service_name}: queue processing is delayed'
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
   remediationHint: !include 'remediation-hints/kubeflow-pipelines/remediation-reconcile-lag.md.hbs'

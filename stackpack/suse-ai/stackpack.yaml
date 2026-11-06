@@ -5,7 +5,7 @@ displayName: SUSE AI Observability
 categories:
 - AI
 - Open Telemetry
-logoUrl: !resource 'logo.png'
+logoUrl: !resource logo.svg
 overviewUrl: !resource 'overview.md'
 detailedOverviewUrl: !resource 'detailed-overview.md'
 configurationUrls:

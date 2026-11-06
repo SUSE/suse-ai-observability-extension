@@ -1,10 +1,12 @@
 nodes:
 - _type: Monitor
-  name: Kubeflow Model Registry API Slow
+  name: 'Model registry service: API probe is slow'
   identifier: urn:stackpack:suse-ai:monitor:kubeflow-model-registry-slow
-  description: |
-    Triggers when the synthetic registered-models API check takes longer
+  description: 'Triggers when the synthetic registered-models API check takes longer
+
     than one second.
+
+    '
   status: ENABLED
   intervalSeconds: 60
   function: urn:stackpack:common:monitor-function:threshold
@@ -14,10 +16,10 @@ nodes:
     threshold: 1000
     metric:
       query: max by (service_namespace, service_name) (httpcheck_duration_milliseconds{suse_ai_product="kubeflow-model-registry",
-        service_namespace!="", service_name!=""} or httpcheck_duration{suse_ai_product="kubeflow-model-registry", service_namespace!="",
-        service_name!=""})
+        service_namespace!="", service_name!=""} or httpcheck_duration{suse_ai_product="kubeflow-model-registry",
+        service_namespace!="", service_name!=""})
       aliasTemplate: Kubeflow Model Registry API Slow
       unit: ms
-    titleTemplate: Kubeflow Model Registry API latency exceeds one second
+    titleTemplate: 'Model registry ${service_name}: API probe is slow'
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
   remediationHint: !include 'remediation-hints/kubeflow-model-registry/remediation-slow.md.hbs'

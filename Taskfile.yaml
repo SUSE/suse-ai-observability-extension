@@ -2,6 +2,9 @@ version: '3'
 
 dotenv: ['./.env']
 
+includes:
+  dashboards: Taskfile.dashboards-icons.yaml
+
 vars:
   RUNTIME: '{{.CONTAINER_RUNTIME | default "podman"}}'
   PYTHON: '{{.PYTHON | default "python3"}}'
@@ -150,6 +153,16 @@ tasks:
         '{{.PYTHON}}' -B scripts/demo-ollama-deploy.py
         --kubeconfig '{{.DEMO_KUBECONFIG}}' --output '{{.DEMO_EVIDENCE}}'
         --runtime '{{.RUNTIME}}' --image '{{.OLLAMA_IMAGE}}'
+
+  demo-monitor-test:
+    desc: Preview every installed monitor with failing, recovery and absent inputs; never persist test states
+    requires:
+      vars: [DEMO_URL, DEMO_TOKEN_FILE, DEMO_EVIDENCE, DEMO_MONITOR_BASELINE]
+    cmds:
+      - >-
+        '{{.PYTHON}}' -B scripts/demo-monitor-check.py
+        --url '{{.DEMO_URL}}' --token-file '{{.DEMO_TOKEN_FILE}}'
+        --output '{{.DEMO_EVIDENCE}}' --baseline '{{.DEMO_MONITOR_BASELINE}}'
 
   stackpack-validate:
     desc: Validate native settings with the pinned server and reject an invalid CEL control

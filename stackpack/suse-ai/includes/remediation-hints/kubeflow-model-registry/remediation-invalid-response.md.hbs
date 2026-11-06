@@ -1,12 +1,11 @@
-# Kubeflow Model Registry Response Invalid
+### Check first
+Open [this component](/#/components/{{componentUrnForUrl}}/highlights) and its [metrics](/#/components/{{componentUrnForUrl}}/metrics). Compare the response body with the configured contains validation. The configured threshold is **{{threshold}}** in the monitor chart's unit.
 
-This monitor detects an invalid Model Registry response from [{{labels.service_name}}](/#/components/{{componentUrnForUrl}}).
+### Likely causes
+A changed API response, an authentication page or a dependency error.
 
-Compare the metric and threshold in this monitor's chart at the time of the alert.
+### Fix
+Correct the endpoint/authentication or update the validation to the intended API contract.
 
-Triage:
-
-1. Fetch `/api/model_registry/v1alpha3/registered_models` with the same Authorization header as the collector.
-2. Confirm the response is JSON and contains the top-level `items` collection expected by this deployed API version.
-3. Check for an ingress login page, proxy error body, or API-version mismatch returned with HTTP 200.
-4. Update the endpoint or validation only after verifying the deployed Model Registry API contract.
+### Verify
+The next validation passes and the failed-response observation is superseded. If samples are absent, investigate the exporter and Collector: this threshold check cannot establish healthy operation without data.

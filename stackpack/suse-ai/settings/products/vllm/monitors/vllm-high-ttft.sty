@@ -1,6 +1,6 @@
 nodes:
 - _type: Monitor
-  name: Model time to first token
+  name: 'Model on service: first token is slow'
   identifier: urn:stackpack:suse-ai:monitor:vllm-high-ttft
   description: P99 latency for each vLLM model deployment, aggregated across its runtime replicas.
   intervalSeconds: 60
@@ -12,13 +12,9 @@ nodes:
     failureState: DEVIATING
     queries:
       topologyQuery: type = "genai served model" and label = "stackpack:suse-ai" and label = "suse.ai.product:vllm"
-      promqlQuery: histogram_quantile(0.99, sum by (le)
-        (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket",
-        service_namespace="${tags.service.namespace}", service_name="${tags.service.name}",
-        model_name="${tags.vllm.model.name}"}[5m])))
+      promqlQuery: histogram_quantile(0.99, sum by (service_namespace, service_name, model_name, le) (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket",
+        service_namespace="${tags.service.namespace}", service_name="${tags.service.name}", model_name="${tags.vllm.model.name}"}[5m])))
       aliasTemplate: Model time to first token
       unit: s
-    titleTemplate: Model time to first token
-  remediationHint: Inspect model time to first token and the inference service queue. Check prompt sizes,
-    concurrent requests and GPU utilization. Set the threshold to the first-token latency budget for this
-    deployment.
+    titleTemplate: 'Model ${model_name} on ${service_name}: first token is slow'
+  remediationHint: !include 'remediation-hints/genai/vllm-high-ttft.md.hbs'

@@ -1,0 +1,9 @@
+<!-- SPDX-License-Identifier: Apache-2.0; original repository artwork, 2026. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" role="img" aria-labelledby="gpu-title gpu-description">
+  <title id="gpu-title">GPU</title>
+  <desc id="gpu-description">A physical accelerator chip.</desc>
+  <rect width="40" height="40" rx="8" fill="#E4F5EB"/>
+  <g fill="none" stroke="#30BA78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="12" y="12" width="16" height="16" rx="2"/><rect x="16" y="16" width="8" height="8" rx="1"/><path d="M16 8v4m8-4v4m-8 16v4m8-4v4M8 16h4m-4 8h4m16-8h4m-4 8h4"/>
+  </g>
+</svg>

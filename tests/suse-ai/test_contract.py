@@ -187,6 +187,7 @@ def render(query, instance=False):
             "cluster-name": "cluster-a",
             "namespace": "ai",
             "node-name": "gpu-1",
+            "gpu.uuid": "GPU-device",
             "vllm.model.name": "llama3",
             "ollama.model.name": "gemma:2b",
             "gen_ai.request.model": "llama3",
@@ -553,7 +554,7 @@ class PackageContractTests(unittest.TestCase):
             overview = node.get("presentation", {}).get("overview", {})
             if "mainMenu" in overview:
                 menus[overview["name"]["title"]] = node
-        self.assertEqual(set(menus), {"Overview", "Applications & agents", "Models", "Inference", "Data services", "GPU infrastructure", "vLLM", "Ollama", "LiteLLM", "Milvus", "Qdrant", "OpenSearch", "MLflow", "mcpo"})
+        self.assertEqual(set(menus), {"Overview", "Applications & agents", "Models", "Inference", "Data services", "GPUs", "vLLM", "Ollama", "LiteLLM", "Milvus", "Qdrant", "OpenSearch", "MLflow", "mcpo"})
         query = menus["Overview"]["binding"]["query"]
         self.assertIn('"otel service"', query)
         self.assertIn('"genai served model"', query)
@@ -671,9 +672,8 @@ class PackageContractTests(unittest.TestCase):
             hint = node.get("remediationHint", "")
             if not hint.startswith("remediation-hints/"):
                 continue
-            self.assertEqual(
-                node["function"], "urn:stackpack:common:monitor-function:threshold"
-            )
+            self.assertIn(node["function"], {"urn:stackpack:common:monitor-function:threshold",
+                                             "urn:stackpack:common:monitor-function:topological-threshold"})
             template = (PACK / "includes" / hint).read_text()
             for expression in re.findall(r"\{\{(.*?)\}\}", template, re.DOTALL):
                 parts = expression.split()
@@ -828,7 +828,9 @@ class PackageContractTests(unittest.TestCase):
                             if isinstance(item, promql.VectorSelector)
                         ]:
                             keys = {m.name: m for m in selector.matchers.matchers}
-                            if "_node_host_" in metric["metricId"]:
+                            if "genai gpu" in node["binding"]["query"]:
+                                self.assertTrue({"UUID", "k8s_cluster_name"} <= keys.keys())
+                            elif "_node_host_" in metric["metricId"]:
                                 self.assertIn("sts_host", keys, metric["metricId"])
                                 self.assertIn("properties.sts_host", query["expression"])
                             elif (

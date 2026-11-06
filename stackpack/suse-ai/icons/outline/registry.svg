@@ -1,0 +1,9 @@
+<!-- SPDX-License-Identifier: Apache-2.0; original repository artwork, 2026. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" role="img" aria-labelledby="registry-title registry-description">
+  <title id="registry-title">Registry</title>
+  <desc id="registry-description">An indexed model record with a check mark.</desc>
+  <rect width="40" height="40" rx="8" fill="#E4F5EB"/>
+  <g fill="none" stroke="#30BA78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="11" y="8" width="20" height="23" rx="2"/><path d="M11 12H8v21h19v-2M16 14h10m-10 5h6m-6 5 3 3 7-7"/>
+  </g>
+</svg>

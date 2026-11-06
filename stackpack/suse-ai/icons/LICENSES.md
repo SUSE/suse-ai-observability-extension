@@ -1,5 +1,11 @@
 # Icon provenance
 
-The component-model spike's three original SVG drafts and their Apache-2.0 provenance are recorded in [experiments/component-model/icons/LICENSES.md](../../../experiments/component-model/icons/LICENSES.md). They are staged into test packages only.
+The release uses the 17 original Apache-2.0 SVGs documented in
+[outline/LICENSES.md](outline/LICENSES.md). The same outline family supplies the
+SUSE AI menu, product inventory entries, owned model/agent/GPU components and
+StackPack logo. Native OTel service and instance icons remain owned by Open Telemetry.
 
-The existing role and product icons have not been replaced or relicensed. Their full source/licence inventory and SUSE brand-library review remain required before the complete D5 redesign. The stock-style PNGs have no verified licence recorded here and are not used by the three new drafts.
+The legacy stock-style PNGs and vendor-logo files were removed during the 2026-11-06
+integration. No licence is inferred or granted for those removed assets. ComponentType
+icon fields were not changed. The historical spike sketches remain documented in
+[experiments/component-model/icons/LICENSES.md](../../../experiments/component-model/icons/LICENSES.md).

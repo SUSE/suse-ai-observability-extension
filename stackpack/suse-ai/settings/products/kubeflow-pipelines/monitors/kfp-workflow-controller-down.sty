@@ -1,9 +1,10 @@
 nodes:
 - _type: Monitor
-  name: Kubeflow Workflow Controller Down
+  name: 'Workflow controller service: metrics endpoint is unreachable'
   identifier: urn:stackpack:suse-ai:monitor:kfp-workflow-controller-down
-  description: |
-    Triggers when the Argo Workflow Controller scrape target is down.
+  description: 'Triggers when the Argo Workflow Controller scrape target is down.
+
+    '
   status: ENABLED
   intervalSeconds: 60
   function: urn:stackpack:common:monitor-function:threshold
@@ -16,6 +17,6 @@ nodes:
         service_name!="", service_name="kubeflow-workflow-controller"})
       aliasTemplate: Kubeflow Workflow Controller Down
       unit: short
-    titleTemplate: Kubeflow workflow controller is down
+    titleTemplate: 'Workflow controller ${service_name}: metrics endpoint is unreachable'
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
   remediationHint: !include 'remediation-hints/kubeflow-pipelines/remediation-controller-down.md.hbs'

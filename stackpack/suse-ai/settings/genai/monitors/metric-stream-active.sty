@@ -1,11 +1,10 @@
 nodes:
 - _type: Monitor
-  name: GenAI Application Metric Stream Active
+  name: 'AI application service: metric stream stopped'
   identifier: urn:stackpack:suse-ai:monitor:genai-metric-stream-active
-  description: >-
-    Detects a GenAI metric stream that has stopped reporting for five minutes.
-    A periodically exported, unchanged operation counter is healthy even when
-    the application is idle. The result expires with the 15-minute lookback.
+  description: Detects a GenAI metric stream that has stopped reporting for five minutes. A periodically exported,
+    unchanged operation counter is healthy even when the application is idle. The result expires with the 15-minute
+    lookback.
   intervalSeconds: 60
   status: ENABLED
   function: urn:stackpack:common:monitor-function:threshold
@@ -15,14 +14,9 @@ nodes:
     failureState: DEVIATING
     metric:
       aliasTemplate: Age of last GenAI metric sample
-      query: >-
-        time() - (max by (service_namespace, service_name)
-        (max_over_time(timestamp(gen_ai_client_operation_duration_seconds_count{service_namespace!="", service_name!="", suse_ai_managed!="false"})[15m:15s])) > time() - 900)
+      query: time() - (max by (service_namespace, service_name) (max_over_time(timestamp(gen_ai_client_operation_duration_seconds_count{service_namespace!="",
+        service_name!="", suse_ai_managed!="false"})[15m:15s])) > time() - 900)
       unit: s
-    titleTemplate: GenAI metric stream freshness
+    titleTemplate: 'AI application ${service_name}: metric stream stopped'
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
-  remediationHint: >-
-    Check the application's metric exporter, Collector receiver and export
-    errors. Idle applications should continue exporting cumulative counters.
-    This monitor requires at least one observed GenAI operation; it cannot
-    discover an application that has never emitted telemetry.
+  remediationHint: !include 'remediation-hints/genai/genai-metric-stream-active.md.hbs'

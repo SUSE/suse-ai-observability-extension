@@ -1,10 +1,12 @@
 nodes:
 - _type: Monitor
-  name: Kubeflow Workflow Pod Image Pull Failures
+  name: 'Workflow controller service: images cannot be pulled'
   identifier: urn:stackpack:suse-ai:monitor:kfp-image-pull-failures
-  description: |
-    Triggers when workflow pods encounter ErrImagePull or ImagePullBackOff
+  description: 'Triggers when workflow pods encounter ErrImagePull or ImagePullBackOff
+
     during the last 15 minutes.
+
+    '
   status: ENABLED
   intervalSeconds: 60
   function: urn:stackpack:common:monitor-function:threshold
@@ -13,11 +15,13 @@ nodes:
     failureState: CRITICAL
     threshold: 0
     metric:
-      query: |-
-        sum by (service_namespace, service_name) (increase(argo_workflows_pod_pending_count_total{suse_ai_product="kubeflow-pipelines", service_namespace!="", service_name!="", reason=~"ErrImagePull|ImagePullBackOff"}[15m]))
-        or (0 * sum by (service_namespace, service_name) (argo_workflows_pods_gauge{suse_ai_product="kubeflow-pipelines", service_namespace!="", service_name!=""}))
+      query: 'sum by (service_namespace, service_name) (increase(argo_workflows_pod_pending_count_total{suse_ai_product="kubeflow-pipelines",
+        service_namespace!="", service_name!="", reason=~"ErrImagePull|ImagePullBackOff"}[15m]))
+
+        or (0 * sum by (service_namespace, service_name) (argo_workflows_pods_gauge{suse_ai_product="kubeflow-pipelines",
+        service_namespace!="", service_name!=""}))'
       aliasTemplate: Kubeflow Workflow Pod Image Pull Failures
       unit: short
-    titleTemplate: Kubeflow workflow pods cannot pull images
+    titleTemplate: 'Workflow controller ${service_name}: images cannot be pulled'
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
   remediationHint: !include 'remediation-hints/kubeflow-pipelines/remediation-image-pull.md.hbs'

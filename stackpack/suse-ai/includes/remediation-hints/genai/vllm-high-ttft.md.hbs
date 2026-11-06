@@ -1,0 +1,11 @@
+### Check first
+Open [this component](/#/components/{{componentUrnForUrl}}/highlights) and its [metrics](/#/components/{{componentUrnForUrl}}/metrics). Compare time to first token, prompt length, prefill work and queue depth. The configured threshold is **{{threshold}}** in the monitor chart's unit.
+
+### Likely causes
+Large prompts, a busy queue or slow prefill.
+
+### Fix
+Reduce unnecessary prompt context, tune batching and address the measured capacity bottleneck.
+
+### Verify
+P99 time to first token returns below the budget under representative traffic. If samples are absent, investigate the exporter and Collector: this threshold check cannot establish healthy operation without data.

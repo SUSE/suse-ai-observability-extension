@@ -1,0 +1,11 @@
+### Check first
+Open [this component](/#/components/{{componentUrnForUrl}}/highlights) and its [metrics](/#/components/{{componentUrnForUrl}}/metrics). Inspect the latest HTTP probe result, configured URL, credentials and pod readiness. The configured threshold is **{{threshold}}** in the monitor chart's unit.
+
+### Likely causes
+An unavailable endpoint, incorrect path, authentication failure or blocked network access.
+
+### Fix
+Correct the observed endpoint failure and verify a real application operation.
+
+### Verify
+The next probe reports a successful 2xx response. Probe duration is not inference latency. If samples are absent, investigate the exporter and Collector: this threshold check cannot establish healthy operation without data.

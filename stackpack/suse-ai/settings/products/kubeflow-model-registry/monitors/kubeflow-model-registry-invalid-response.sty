@@ -1,10 +1,12 @@
 nodes:
 - _type: Monitor
-  name: Kubeflow Model Registry Response Invalid
+  name: 'Model registry service: API response is invalid'
   identifier: urn:stackpack:suse-ai:monitor:kubeflow-model-registry-invalid-response
-  description: |
-    Triggers when the Model Registry API responds but its body does not have
+  description: 'Triggers when the Model Registry API responds but its body does not have
+
     the expected registered-model collection shape.
+
+    '
   status: ENABLED
   intervalSeconds: 60
   function: urn:stackpack:common:monitor-function:threshold
@@ -16,11 +18,11 @@ nodes:
       query: max by (service_namespace, service_name) (httpcheck_validation_failed{suse_ai_product="kubeflow-model-registry",
         service_namespace!="", service_name!="", validation_type="contains"} unless (timestamp(httpcheck_validation_failed{suse_ai_product="kubeflow-model-registry",
         service_namespace!="", service_name!="", validation_type="contains"}) < timestamp(httpcheck_validation_passed{suse_ai_product="kubeflow-model-registry",
-        service_namespace!="", service_name!="", validation_type="contains"}))) or (0 * max by (service_namespace, service_name)
-        (httpcheck_validation_passed{suse_ai_product="kubeflow-model-registry", service_namespace!="", service_name!="",
-        validation_type="contains"}))
+        service_namespace!="", service_name!="", validation_type="contains"}))) or (0 * max by (service_namespace,
+        service_name) (httpcheck_validation_passed{suse_ai_product="kubeflow-model-registry", service_namespace!="",
+        service_name!="", validation_type="contains"}))
       aliasTemplate: Kubeflow Model Registry Response Invalid
       unit: short
-    titleTemplate: Kubeflow Model Registry response validation failed
+    titleTemplate: 'Model registry ${service_name}: API response is invalid'
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
   remediationHint: !include 'remediation-hints/kubeflow-model-registry/remediation-invalid-response.md.hbs'

@@ -1,0 +1,11 @@
+### Check first
+Open [this component](/#/components/{{componentUrnForUrl}}/highlights) and its [metrics](/#/components/{{componentUrnForUrl}}/metrics). Compare end-to-end latency, output length and request queue for this model. The configured threshold is **{{threshold}}** in the monitor chart's unit.
+
+### Likely causes
+Long generations, queueing, retries or insufficient serving capacity.
+
+### Fix
+Match output-token limits and concurrency to the latency budget; increase capacity only after checking GPU memory.
+
+### Verify
+P99 latency returns below the budget while throughput remains acceptable. If samples are absent, investigate the exporter and Collector: this threshold check cannot establish healthy operation without data.

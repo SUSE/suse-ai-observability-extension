@@ -1,9 +1,10 @@
 nodes:
 - _type: Monitor
-  name: Kubeflow Pipelines API Server Down
+  name: 'Pipelines API service: metrics endpoint is unreachable'
   identifier: urn:stackpack:suse-ai:monitor:kfp-api-down
-  description: |
-    Triggers when the ml-pipeline API server scrape target is down.
+  description: 'Triggers when the ml-pipeline API server scrape target is down.
+
+    '
   status: ENABLED
   intervalSeconds: 60
   function: urn:stackpack:common:monitor-function:threshold
@@ -16,6 +17,6 @@ nodes:
         service_name!="", service_name="kubeflow-pipelines"})
       aliasTemplate: Kubeflow Pipelines API Server Down
       unit: short
-    titleTemplate: Kubeflow Pipelines API server is down
+    titleTemplate: 'Pipelines API ${service_name}: metrics endpoint is unreachable'
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
   remediationHint: !include 'remediation-hints/kubeflow-pipelines/remediation-api-down.md.hbs'

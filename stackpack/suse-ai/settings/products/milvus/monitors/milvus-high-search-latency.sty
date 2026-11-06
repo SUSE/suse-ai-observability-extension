@@ -1,6 +1,6 @@
 nodes:
 - _type: Monitor
-  name: Milvus High Search Latency
+  name: 'Milvus service: vector searches are slow'
   identifier: urn:stackpack:suse-ai:monitor:milvus-high-search-latency
   description: Indicates if Milvus search operations are experiencing high latency.
   intervalSeconds: 60
@@ -15,6 +15,6 @@ nodes:
       query: (histogram_quantile(0.99, sum by (service_namespace, service_name, le) (rate(milvus_proxy_sq_latency_bucket{suse_ai_product="milvus",
         service_namespace!="", service_name!=""}[5m])))) / 1000
       unit: s
-    titleTemplate: Milvus High Search Latency
+    titleTemplate: 'Milvus ${service_name}: vector searches are slow'
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
   remediationHint: !include 'remediation-hints/milvus/remediation-search-latency.md.hbs'

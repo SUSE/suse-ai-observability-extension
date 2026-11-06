@@ -1,0 +1,11 @@
+### Check first
+Open [this component](/#/components/{{componentUrnForUrl}}/highlights) and its [metrics](/#/components/{{componentUrnForUrl}}/metrics). Inspect failed model-call traces, error.type and the exact provider endpoint. The configured threshold is **{{threshold}}** in the monitor chart's unit.
+
+### Likely causes
+Authentication, rate limits, timeouts, unavailable models or endpoint errors.
+
+### Fix
+Correct the observed error cause and retry the same caller/provider/model endpoint.
+
+### Verify
+The error ratio falls below the threshold with actual request traffic; no traffic is not a successful request. If samples are absent, investigate the exporter and Collector: this threshold check cannot establish healthy operation without data.

@@ -1,10 +1,12 @@
 nodes:
 - _type: Monitor
-  name: KServe Controller Reconcile Lag
+  name: 'KServe controller service: reconciliation is stuck'
   identifier: urn:stackpack:suse-ai:monitor:kserve-reconcile-lag
-  description: |
-    Triggers when a KServe controller work item has been processing for more
+  description: 'Triggers when a KServe controller work item has been processing for more
+
     than 60 seconds, indicating reconciliation may be stuck.
+
+    '
   status: ENABLED
   intervalSeconds: 60
   function: urn:stackpack:common:monitor-function:threshold
@@ -17,6 +19,6 @@ nodes:
         service_namespace!="", service_name!=""})
       aliasTemplate: KServe Controller Reconcile Lag
       unit: s
-    titleTemplate: KServe controller reconcile lag above 60s
+    titleTemplate: 'KServe controller ${service_name}: reconciliation is stuck'
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
   remediationHint: !include 'remediation-hints/kserve/remediation-reconcile-lag.md.hbs'

@@ -1,6 +1,6 @@
 nodes:
 - _type: Monitor
-  name: AI HTTP Probe Unsuccessful
+  name: 'Service service: endpoint probe fails'
   identifier: urn:stackpack:suse-ai:monitor:http-probe-unavailable
   description: An explicitly configured endpoint check does not return HTTP 2xx. This is probe health, not application
     request error rate.
@@ -18,8 +18,6 @@ nodes:
         service_name!="", http_status_class="2xx"} and topk by (k8s_cluster_name, service_namespace, service_name,
         service_instance_id, http_url) (1, timestamp(httpcheck_status{suse_ai_observation_kind="http-probe", service_namespace!="",
         service_name!="", http_status_class="2xx"})))
-    titleTemplate: An observed HTTP endpoint check failed
+    titleTemplate: 'Service ${service_name}: endpoint probe fails'
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
-  remediationHint: Check the configured endpoint, authentication and pod readiness. Probe duration is not model
-    inference latency. This monitor requires observed probe telemetry; a never-observed service cannot produce a
-    result.
+  remediationHint: !include 'remediation-hints/genai/http-probe-unavailable.md.hbs'
