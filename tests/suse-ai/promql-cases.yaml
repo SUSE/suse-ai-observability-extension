@@ -70,7 +70,7 @@ cases:
         values: 0+600x10
     checks:
       - presentation: product-vllm
-        metric: suse-ai-vllm-request-rate
+        metric: suse_ai_vllm_request_rate
         samples:
           - labels: '{model_name="llama3"}'
             value: 3
@@ -78,7 +78,7 @@ cases:
     series: []
     checks:
       - presentation: product-vllm
-        metric: suse-ai-vllm-request-rate
+        metric: suse_ai_vllm_request_rate
         samples: []
   - name: GPU host charts use existing host identity and convert memory from MiB
     series:
@@ -92,12 +92,12 @@ cases:
         values: 32768+0x10
     checks:
       - presentation: gpu-nodes
-        metric: suse-ai-common-node-host-cpu
+        metric: suse_ai_common_node_host_cpu
         samples:
           - labels: '{sts_host="gpu-1-cluster-a"}'
             value: 15
       - presentation: gpu-nodes
-        metric: suse-ai-common-node-host-memory
+        metric: suse_ai_common_node_host_memory
         samples:
           - labels: '{sts_host="gpu-1-cluster-a"}'
             value: 2147483648
@@ -121,22 +121,22 @@ cases:
         values: 0+120x10
     checks:
       - presentation: product-vllm
-        metric: suse-ai-vllm-token-throughput-prompt
+        metric: suse_ai_vllm_token_throughput_prompt
         samples:
           - labels: '{model_name="llama3"}'
             value: 3
       - presentation: product-vllm
-        metric: suse-ai-vllm-req-waiting
+        metric: suse_ai_vllm_req_waiting
         samples:
           - labels: '{model_name="llama3"}'
             value: 3
       - presentation: served-models-vllm
-        metric: suse-ai-genai-model-token-throughput-prompt
+        metric: suse_ai_genai_model_token_throughput_prompt
         samples:
           - labels: '{}'
             value: 3
       - presentation: served-models-vllm
-        metric: suse-ai-genai-model-e2e-latency
+        metric: suse_ai_genai_model_e2e_latency
         query_alias: Average
         samples:
           - labels: '{}'
@@ -150,12 +150,12 @@ cases:
         values: 9990+0x10
     checks:
       - presentation: gpu-nodes
-        metric: suse-ai-common-node-gpu-framebuffer-mem-used
+        metric: suse_ai_common_node_gpu_framebuffer_mem_used
         samples:
           - labels: '{k8s_cluster_name="cluster-a",k8s_node_name="component-name",gpu="0"}'
             value: 10475274240
       - presentation: gpu-pods
-        metric: suse-ai-common-pod-gpu-framebuffer-mem-used
+        metric: suse_ai_common_pod_gpu_framebuffer_mem_used
         samples:
           - labels: '{k8s_cluster_name="cluster-a",k8s_node_name="gpu-1",pod_namespace="ai",pod_name="component-name",gpu="0"}'
             value: 10475274240
@@ -194,7 +194,7 @@ cases:
         values: 0+10x10
     checks:
       - presentation: product-milvus
-        metric: suse-ai-milvus-vectordb-system-average-request-latency
+        metric: suse_ai_milvus_vectordb_system_average_request_latency
         samples:
           - labels: '{function_name="Search"}'
             value: 0.05
@@ -219,12 +219,12 @@ cases:
         values: 0+90000x10
     checks:
       - presentation: genai-metrics
-        metric: suse-ai-tokens-per-request
+        metric: suse_ai_tokens_per_request
         samples:
           - labels: '{gen_ai_request_model="llama3"}'
             value: 15
       - presentation: genai-metrics
-        metric: suse-ai-cost-per-request
+        metric: suse_ai_cost_per_request
         samples:
           - labels: '{gen_ai_request_model="llama3"}'
             value: 0.02
@@ -303,10 +303,10 @@ cases:
       samples:
       - labels: '{}'
         value: 0.1
-    - presentation: models
-      column: suse_ai_usage_requests
+    - presentation: model-metrics
+      metric: suse_ai_requests
       samples:
-      - labels: '{service_namespace="prod-eu",service_name="assistant",gen_ai_request_model="llama3",gen_ai_provider_name="openai",server_address="vllm.ai.svc",server_port="8000"}'
+      - labels: '{gen_ai_request_model="llama3"}'
         value: 2
   - name: Model inventory throughput keeps runtime identity and aggregates only its replicas
     series:
@@ -361,7 +361,7 @@ cases:
         values: 0+6000x10
     checks:
       - presentation: product-litellm
-        metric: suse-ai-litellm-request-rate
+        metric: suse_ai_litellm_request_rate
         samples:
           - labels: '{requested_model="qwen"}'
             value: 10
@@ -378,7 +378,7 @@ cases:
         values: 0+10x10
     checks:
       - presentation: product-litellm
-        metric: suse-ai-litellm-guardrail-requests
+        metric: suse_ai_litellm_guardrail_requests
         samples:
           - labels: '{guardrail_name="prompt-policy",status="error"}'
             value: 28.75
@@ -407,7 +407,7 @@ cases:
         values: 0+20x10
     checks:
       - presentation: product-litellm
-        metric: suse-ai-litellm-latency-p95
+        metric: suse_ai_litellm_latency_p95
         samples:
           - labels: '{requested_model="qwen"}'
             value: 1.85
@@ -416,16 +416,16 @@ cases:
     series: []
     checks:
       - presentation: product-litellm
-        metric: suse-ai-litellm-request-rate
+        metric: suse_ai_litellm_request_rate
         samples: []
       - presentation: product-litellm
-        metric: suse-ai-litellm-backend-state
+        metric: suse_ai_litellm_backend_state
         samples: []
       - presentation: product-litellm
-        metric: suse-ai-litellm-guardrail-requests
+        metric: suse_ai_litellm_guardrail_requests
         samples: []
       - presentation: product-litellm
-        metric: suse-ai-litellm-in-flight
+        metric: suse_ai_litellm_in_flight
         samples: []
 
   - name: LiteLLM gauges deduplicate scrapers and backend placeholder IDs
@@ -448,12 +448,12 @@ cases:
         values: 2+0x10
     checks:
       - presentation: product-litellm
-        metric: suse-ai-litellm-in-flight
+        metric: suse_ai_litellm_in_flight
         samples:
           - labels: '{}'
             value: 7
       - presentation: product-litellm
-        metric: suse-ai-litellm-backend-state
+        metric: suse_ai_litellm_backend_state
         samples:
           - labels: '{litellm_model_name="qwen",api_base="http://inference:8000"}'
             value: 2

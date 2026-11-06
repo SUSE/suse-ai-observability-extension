@@ -8,32 +8,32 @@ nodes:
   rank:
     specificity: 230
   presentation:
-    icon: !icon menu/vectordb.svg
+    icon: !icon 'menu/vectordb.svg'
     overview:
       name:
-        singular: observed dependency
-        plural: observed dependencies
-        title: Observed dependencies
+        singular: Unresolved call
+        plural: Unresolved calls
+        title: Unresolved calls
       columns:
-      - columnId: otel_name
+      - columnId: suse_ai_otel_name
         title: Name
         projection:
           _type: ComponentLinkProjection
           name: name
           identifier: identifiers[0]
-      - columnId: suse_ai_discovery
-        title: Discovery
+      - columnId: suse_ai_product
+        title: Product
         projection:
           _type: TextProjection
-          value: "'Client-observed; unresolved'"
-      - columnId: suse_ai_product
+          value: '''suse.ai.product'' in tags ? tags[''suse.ai.product''].join('', '') : '''''
       - columnId: suse_ai_observer_service
         title: Calling service
         projection:
           _type: ComponentLinkProjection
           name: tags.singleValue('service.name')
-          identifier: "'urn:opentelemetry:namespace/' + tags.singleValue('service.namespace') + ':service/' + tags.singleValue('service.name')"
-      - columnId: otel_namespace
+          identifier: '''urn:opentelemetry:namespace/'' + tags.singleValue(''service.namespace'') + '':service/''
+            + tags.singleValue(''service.name'')'
+      - columnId: suse_ai_otel_namespace
         title: Calling service namespace
         projection:
           _type: TextProjection
@@ -42,13 +42,9 @@ nodes:
         title: Observed from cluster
         projection:
           _type: TextProjection
-          value: "tags.singleValue('suse.ai.observer.cluster') != '' ? tags.singleValue('suse.ai.observer.cluster') : 'Not reported'"
+          value: '''suse.ai.observer.cluster'' in tags ? tags[''suse.ai.observer.cluster''].join('', '') : '''''
       sort:
-      - columnId: otel_name
-      mainMenu:
-        group: SUSE AI
-        icon: !icon menu/vectordb.svg
-        order: 55
+      - columnId: suse_ai_otel_name
     highlight:
       title: Observed database dependency
       fields:
@@ -57,14 +53,16 @@ nodes:
         order: 100
         projection:
           _type: TextProjection
-          value: "'Client-observed; server identity and health are unverified. Once resolved, follow Data dependencies on the calling service; this observation expires after 15 minutes without unresolved calls.'"
+          value: '''Client-observed; server identity and health are unverified. Once resolved, follow Data dependencies
+            on the calling service; this observation expires after 15 minutes without unresolved calls.'''
       - fieldId: suse_ai_application
         title: Calling service
         order: 95
         projection:
           _type: ComponentLinkProjection
           name: tags.singleValue('service.name')
-          identifier: "'urn:opentelemetry:namespace/' + tags.singleValue('service.namespace') + ':service/' + tags.singleValue('service.name')"
+          identifier: '''urn:opentelemetry:namespace/'' + tags.singleValue(''service.namespace'') + '':service/''
+            + tags.singleValue(''service.name'')'
       - fieldId: suse_ai_observer_cluster
         title: Observed from cluster
         order: 90
@@ -88,13 +86,12 @@ nodes:
         order: 75
         projection:
           _type: TextProjection
-          value: "tags.singleValue('server.port') != '' ? tags.singleValue('server.port') : 'Not reported'"
+          value: 'tags.singleValue(''server.port'') != '''' ? tags.singleValue(''server.port'') : ''Not reported'''
       relatedResources:
       - resourceId: suse_ai_caller
         title: Calling service
         order: 90
-        topologyQuery: >-
-          identifier = "urn:opentelemetry:namespace/${tags.singleValue('service.namespace')}:service/${tags.singleValue('service.name')}"
+        topologyQuery: identifier = "urn:opentelemetry:namespace/${tags.singleValue('service.namespace')}:service/${tags.singleValue('service.name')}"
     tracesPerspective:
       showTraces: true
       spanFilter:

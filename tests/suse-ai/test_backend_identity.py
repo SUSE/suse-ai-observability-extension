@@ -333,7 +333,7 @@ class BackendIdentityTest(BackendTestCase):
             for tab in perspective["tabs"]
             for section in tab["sections"]
             for metric in section["metrics"]
-            if metric["boundMetricId"].get("metricId") == "suse-ai-vllm-req-waiting"
+            if metric["boundMetricId"].get("metricId") == "suse_ai_vllm_req_waiting"
         )
         expression = queue["boundQueries"][0]["expression"]
         self.assertIn('service_namespace="suse-ai-v2-demo"', expression)
@@ -535,7 +535,7 @@ class BackendIdentityTest(BackendTestCase):
             )
             self.assertIn(service["id"], self.inventory_ids("applications"))
             self.assertIn(
-                "suse-ai-requests",
+                "suse_ai_requests",
                 {
                     metric["boundMetricId"].get("metricId")
                     for section in detail["highlightMetrics"]

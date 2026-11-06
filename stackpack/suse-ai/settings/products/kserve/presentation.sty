@@ -4,144 +4,117 @@ nodes:
   identifier: urn:stackpack:suse-ai:component-presentation:product-kserve
   binding:
     _type: ComponentPresentationQueryBinding
-    query: (label = "stackpack:open-telemetry" and type in ("otel service", "otel service instance") and label = "stackpack:suse-ai")
-      and label = "suse.ai.product:kserve"
+    query: (label = "stackpack:open-telemetry" and type in ("otel service", "otel service instance") and label =
+      "stackpack:suse-ai") and label = "suse.ai.product:kserve"
   rank:
-    specificity: 240
+    specificity: 1
   presentation:
     highlight:
       metrics:
-      - sectionId: suse-ai-product-kserve
+      - sectionId: suse_ai_product_kserve
         title: Kserve
         order: 200
         metrics:
-        - metricId: suse-ai-kserve-request-rate
+        - metricId: suse_ai_kserve_request_rate
           order: 100
-        - metricId: suse-ai-kserve-latency-p95
+        - metricId: suse_ai_kserve_latency_p95
           order: 99
-        - metricId: suse-ai-kserve-reconcile-error-ratio
+        - metricId: suse_ai_kserve_reconcile_error_ratio
           order: 98
-    icon: !icon products/kserve.svg
     metricPerspective:
       tabs:
-      - tabId: suse-ai-kserve
+      - tabId: suse_ai_kserve
         title: KServe
         order: 50
         sections:
-        - sectionId: suse-ai-kserve-performance
+        - sectionId: suse_ai_kserve_performance
           title: Performance
           order: 50
           metrics:
-          - metricId: suse-ai-kserve-request-rate
+          - metricId: suse_ai_kserve_request_rate
             order: 100
-          - metricId: suse-ai-kserve-latency-p95
+          - metricId: suse_ai_kserve_latency_p95
             order: 99
-        - sectionId: suse-ai-kserve-runtime
+        - sectionId: suse_ai_kserve_runtime
           title: Runtime
           order: 49
           metrics:
-          - metricId: suse-ai-kserve-step-latency
+          - metricId: suse_ai_kserve_step_latency
             order: 98
-        - sectionId: suse-ai-kserve-control-plane
+        - sectionId: suse_ai_kserve_control_plane
           title: Control Plane
           order: 48
           metrics:
-          - metricId: suse-ai-kserve-reconcile-rate
+          - metricId: suse_ai_kserve_reconcile_rate
             order: 97
-          - metricId: suse-ai-kserve-reconcile-error-ratio
+          - metricId: suse_ai_kserve_reconcile_error_ratio
             order: 96
-          - metricId: suse-ai-kserve-workqueue-depth
+          - metricId: suse_ai_kserve_workqueue_depth
             order: 95
-    summary:
-      metrics:
-      - summaryMetricId: suse-ai-kserve-request-rate-summary
-        name: Request Rate
-        metricId: suse-ai-kserve-request-rate
-        order: 100
-        unit: reqps
-        decimalPlaces: 2
-        query: |-
-          sum by (model_name) (rate(request_predict_seconds_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
-      - summaryMetricId: suse-ai-kserve-latency-p95-summary
-        name: Predict Latency
-        metricId: suse-ai-kserve-latency-p95
-        order: 99
-        unit: s
-        decimalPlaces: 2
-        query: |-
-          histogram_quantile(0.99, sum by (le) (rate(request_predict_seconds_bucket{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))
-      - summaryMetricId: suse-ai-kserve-reconcile-error-ratio-summary
-        name: Reconcile Error Ratio
-        metricId: suse-ai-kserve-reconcile-error-ratio
-        order: 96
-        unit: percentunit
-        decimalPlaces: 2
-        query: |-
-          (sum(rate(controller_runtime_reconcile_total{result="error", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])) or (0 * sum(rate(controller_runtime_reconcile_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))) / clamp_min(sum(rate(controller_runtime_reconcile_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])), 1e-9)
   metrics:
-  - metricId: suse-ai-kserve-request-rate
+  - metricId: suse_ai_kserve_request_rate
     name: Request Rate
     metricQueries:
-    - expression: |-
-        sum by (model_name) (rate(request_predict_seconds_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
+    - expression: sum by (model_name) (rate(request_predict_seconds_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
       alias: ${model_name}
       primary: true
     chart:
       _type: TimeSeriesChart
       unit: reqps
-  - metricId: suse-ai-kserve-latency-p95
+  - metricId: suse_ai_kserve_latency_p95
     name: Predict Latency
     metricQueries:
-    - expression: |-
-        histogram_quantile(0.99, sum by (le) (rate(request_predict_seconds_bucket{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))
+    - expression: histogram_quantile(0.99, sum by (le) (rate(request_predict_seconds_bucket{__multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"}[${__rate_interval}])))
       alias: P99
-    - expression: |-
-        histogram_quantile(0.95, sum by (le) (rate(request_predict_seconds_bucket{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))
+    - expression: histogram_quantile(0.95, sum by (le) (rate(request_predict_seconds_bucket{__multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"}[${__rate_interval}])))
       alias: P95
       primary: true
-    - expression: |-
-        histogram_quantile(0.50, sum by (le) (rate(request_predict_seconds_bucket{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))
+    - expression: histogram_quantile(0.50, sum by (le) (rate(request_predict_seconds_bucket{__multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"}[${__rate_interval}])))
       alias: P50
     chart:
       _type: TimeSeriesChart
       unit: s
-  - metricId: suse-ai-kserve-step-latency
+  - metricId: suse_ai_kserve_step_latency
     name: Per-Step Latency P95
     metricQueries:
-    - expression: |-
-        histogram_quantile(0.95, sum by (le) (rate(request_preprocess_seconds_bucket{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))
+    - expression: histogram_quantile(0.95, sum by (le) (rate(request_preprocess_seconds_bucket{__multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"}[${__rate_interval}])))
       alias: preprocess P95
-    - expression: |-
-        histogram_quantile(0.95, sum by (le) (rate(request_predict_seconds_bucket{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))
+    - expression: histogram_quantile(0.95, sum by (le) (rate(request_predict_seconds_bucket{__multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"}[${__rate_interval}])))
       alias: predict P95
       primary: true
-    - expression: |-
-        histogram_quantile(0.95, sum by (le) (rate(request_postprocess_seconds_bucket{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))
+    - expression: histogram_quantile(0.95, sum by (le) (rate(request_postprocess_seconds_bucket{__multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"}[${__rate_interval}])))
       alias: postprocess P95
     chart:
       _type: TimeSeriesChart
       unit: s
-  - metricId: suse-ai-kserve-reconcile-rate
+  - metricId: suse_ai_kserve_reconcile_rate
     name: Reconcile Rate
     metricQueries:
-    - expression: |-
-        sum by (controller) (rate(controller_runtime_reconcile_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
+    - expression: sum by (controller) (rate(controller_runtime_reconcile_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
       alias: ${controller}
       primary: true
     chart:
       _type: TimeSeriesChart
       unit: short
-  - metricId: suse-ai-kserve-reconcile-error-ratio
+  - metricId: suse_ai_kserve_reconcile_error_ratio
     name: Reconcile Error Ratio
     metricQueries:
-    - expression: |-
-        (sum(rate(controller_runtime_reconcile_total{result="error", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])) or (0 * sum(rate(controller_runtime_reconcile_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))) / clamp_min(sum(rate(controller_runtime_reconcile_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])), 1e-9)
+    - expression: (sum(rate(controller_runtime_reconcile_total{result="error", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
+        or (0 * sum(rate(controller_runtime_reconcile_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))))
+        / clamp_min(sum(rate(controller_runtime_reconcile_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])),
+        1e-9)
       alias: error ratio
       primary: true
     chart:
       _type: TimeSeriesChart
       unit: percentunit
-  - metricId: suse-ai-kserve-workqueue-depth
+  - metricId: suse_ai_kserve_workqueue_depth
     name: Workqueue Depth
     metricQueries:
     - expression: max by (name) (workqueue_depth{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"})

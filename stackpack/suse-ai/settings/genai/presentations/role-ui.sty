@@ -7,41 +7,90 @@ nodes:
     query: (label = "stackpack:open-telemetry" and type = "otel service" and label = "stackpack:suse-ai" and label
       = "suse.ai.category:ui")
   rank:
-    specificity: 230
+    specificity: 1
   presentation:
-    icon: !icon ui.svg
     filters:
-    - filterId: otel_namespace
-    - filterId: k8s_cluster
-    - filterId: k8s_namespace
+    - filterId: suse_ai_otel_namespace
+      displayName:
+        singular: Service namespace
+        plural: Service namespaces
+      filter:
+        _type: TagFilter
+        tagKey: service.namespace
+      menuSection: SUSE AI
+    - filterId: suse_ai_k8s_cluster
+      displayName:
+        singular: K8s cluster
+        plural: K8s clusters
+      filter:
+        _type: TagFilter
+        tagKey: cluster-name
+      menuSection: K8s
+    - filterId: suse_ai_k8s_namespace
+      displayName:
+        singular: Kubernetes namespace
+        plural: Kubernetes namespaces
+      filter:
+        _type: TagFilter
+        tagKey: k8s.namespace.name
+      menuSection: SUSE AI
     - filterId: suse_ai_suse_ai_category
+      displayName:
+        singular: Category
+        plural: Categories
+      filter:
+        _type: TagFilter
+        tagKey: suse.ai.category
+      menuSection: SUSE AI
     - filterId: suse_ai_suse_ai_product
+      displayName:
+        singular: Product
+        plural: Products
+      filter:
+        _type: TagFilter
+        tagKey: suse.ai.product
+      menuSection: SUSE AI
     overview:
       name:
         singular: AI interface
         plural: ai interfaces
         title: AI interfaces
       columns:
-      - columnId: health
-        title: Health
-        projection:
-          _type: HealthProjection
-          value: healthState
-      - columnId: otel_name
+      - columnId: suse_ai_otel_name
         title: Name
         projection:
           _type: ComponentLinkProjection
           name: name
           identifier: identifiers[0]
-      - columnId: otel_namespace
+      - columnId: suse_ai_otel_namespace
         title: Service namespace
         projection:
           _type: TextProjection
           value: tags.singleValue('service.namespace')
       - columnId: suse_ai_category
+        title: Category
+        projection:
+          _type: TextProjection
+          value: '''suse.ai.category'' in tags && size(tags[''suse.ai.category'']) > 0 ? tags[''suse.ai.category''].map(category,
+            category in {''application'': ''Application'', ''agent'': ''Agent service'', ''ui'': ''AI interface'',
+            ''inference-engine'': ''Inference'', ''model-proxy'': ''Model gateway'', ''vectordb'': ''Vector database'',
+            ''search-engine'': ''Search'', ''mcp-server'': ''MCP server'', ''workflow-engine'': ''Workflow'', ''ml-registry'':
+            ''Model registry''} ? {''application'': ''Application'', ''agent'': ''Agent service'', ''ui'': ''AI
+            interface'', ''inference-engine'': ''Inference'', ''model-proxy'': ''Model gateway'', ''vectordb'':
+            ''Vector database'', ''search-engine'': ''Search'', ''mcp-server'': ''MCP server'', ''workflow-engine'':
+            ''Workflow'', ''ml-registry'': ''Model registry''}[category] : category).join('', '') : (''vllm.model.name''
+            in tags ? ''Model deployment'' : (''gen_ai.agent.name'' in tags ? ''Agent'' : (''gen_ai.request.model''
+            in tags ? ''Model usage'' : ''Application'')))'
       - columnId: suse_ai_product
-      - columnId: otel_k8s_cluster
-      - columnId: otel_k8s_namespace
+        title: Product
+        projection:
+          _type: TextProjection
+          value: '''suse.ai.product'' in tags ? tags[''suse.ai.product''].join('', '') : '''''
+      - columnId: suse_ai_otel_k8s_cluster
+        title: Cluster
+        projection:
+          _type: TextProjection
+          value: '''cluster-name'' in tags ? tags[''cluster-name''].filter(cluster, cluster != '''').join('', '')
+            : '''''
       sort:
-      - columnId: health
-      - columnId: otel_name
+      - columnId: suse_ai_otel_name

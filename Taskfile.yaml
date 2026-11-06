@@ -139,6 +139,7 @@ tasks:
         --url '{{.DEMO_URL}}' --token-file '{{.DEMO_TOKEN_FILE}}'
         --state-dir '{{.DEMO_STATE_DIR}}' --cluster '{{.DEMO_CLUSTER | default "suse-ai"}}'
         --version '{{.DEMO_VERSION | default ""}}'
+        --source '{{.DEMO_SOURCE | default "stackpack/suse-ai"}}'
 
   demo-ollama-deploy:
     desc: Import a tested branch-built exporter into every RKE2 demo node and roll out Ollama

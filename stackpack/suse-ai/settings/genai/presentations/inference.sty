@@ -7,7 +7,7 @@ nodes:
     query: label = "stackpack:suse-ai" and type = "otel service" and label IN ("suse.ai.category:inference-engine",
       "suse.ai.category:model-proxy")
   rank:
-    specificity: 225
+    specificity: 1
   presentation:
     overview:
       name:
@@ -15,29 +15,45 @@ nodes:
         plural: inference services
         title: Inference
       columns:
-      - columnId: health
-        title: Health
-        projection:
-          _type: HealthProjection
-          value: healthState
-      - columnId: otel_name
+      - columnId: suse_ai_otel_name
         title: Name
         projection:
           _type: ComponentLinkProjection
           name: name
           identifier: identifiers[0]
-      - columnId: otel_namespace
+      - columnId: suse_ai_otel_namespace
         title: Service namespace
         projection:
           _type: TextProjection
           value: tags.singleValue('service.namespace')
       - columnId: suse_ai_category
+        title: Category
+        projection:
+          _type: TextProjection
+          value: '''suse.ai.category'' in tags && size(tags[''suse.ai.category'']) > 0 ? tags[''suse.ai.category''].map(category,
+            category in {''application'': ''Application'', ''agent'': ''Agent service'', ''ui'': ''AI interface'',
+            ''inference-engine'': ''Inference'', ''model-proxy'': ''Model gateway'', ''vectordb'': ''Vector database'',
+            ''search-engine'': ''Search'', ''mcp-server'': ''MCP server'', ''workflow-engine'': ''Workflow'', ''ml-registry'':
+            ''Model registry''} ? {''application'': ''Application'', ''agent'': ''Agent service'', ''ui'': ''AI
+            interface'', ''inference-engine'': ''Inference'', ''model-proxy'': ''Model gateway'', ''vectordb'':
+            ''Vector database'', ''search-engine'': ''Search'', ''mcp-server'': ''MCP server'', ''workflow-engine'':
+            ''Workflow'', ''ml-registry'': ''Model registry''}[category] : category).join('', '') : (''vllm.model.name''
+            in tags ? ''Model deployment'' : (''gen_ai.agent.name'' in tags ? ''Agent'' : (''gen_ai.request.model''
+            in tags ? ''Model usage'' : ''Application'')))'
       - columnId: suse_ai_product
-      - columnId: otel_k8s_cluster
+        title: Product
+        projection:
+          _type: TextProjection
+          value: '''suse.ai.product'' in tags ? tags[''suse.ai.product''].join('', '') : '''''
+      - columnId: suse_ai_otel_k8s_cluster
+        title: Cluster
+        projection:
+          _type: TextProjection
+          value: '''cluster-name'' in tags ? tags[''cluster-name''].filter(cluster, cluster != '''').join('', '')
+            : '''''
       sort:
-      - columnId: health
-      - columnId: otel_name
+      - columnId: suse_ai_otel_name
       mainMenu:
         group: SUSE AI
-        icon: !icon menu/inference-engine.svg
+        icon: !icon 'menu/inference-engine.svg'
         order: 70

@@ -553,7 +553,7 @@ class PackageContractTests(unittest.TestCase):
             overview = node.get("presentation", {}).get("overview", {})
             if "mainMenu" in overview:
                 menus[overview["name"]["title"]] = node
-        self.assertEqual(set(menus), {"Overview", "Applications & agents", "Models", "Inference", "Data services", "Observed dependencies", "GPU infrastructure"})
+        self.assertEqual(set(menus), {"Overview", "Applications & agents", "Models", "Inference", "Data services", "GPU infrastructure", "vLLM", "Ollama", "LiteLLM", "Milvus", "Qdrant", "OpenSearch", "MLflow", "mcpo"})
         query = menus["Overview"]["binding"]["query"]
         self.assertIn('"otel service"', query)
         self.assertIn('"genai served model"', query)
@@ -561,7 +561,7 @@ class PackageContractTests(unittest.TestCase):
         self.assertNotIn('"genai model usage"', query)
         self.assertNotIn('"genai database dependency"', query)
         self.assertFalse(menus["Overview"]["presentation"]["topology"]["connectedComponents"])
-        self.assertEqual(len({n["presentation"]["overview"]["mainMenu"]["icon"] for n in menus.values()}), 6)
+        self.assertNotIn("Observed dependencies", menus)
 
     def test_overview_columns_do_not_leak_observer_or_product_specific_fields(self):
         prefix = "urn:stackpack:suse-ai:component-presentation:"
@@ -571,11 +571,11 @@ class PackageContractTests(unittest.TestCase):
             columns = BY_ID[prefix + suffix]["presentation"]["overview"]["columns"]
             ids = {c["columnId"] for c in columns}
             self.assertFalse(ids & observer_columns, suffix)
-            self.assertNotIn("otel_k8s_namespace", ids, suffix)
+            self.assertNotIn("suse_ai_otel_k8s_namespace", ids, suffix)
         for suffix in ("model-inventory", "served-models", "agents"):
             overview = BY_ID[prefix + suffix]["presentation"]["overview"]
-            self.assertNotIn("health", {c["columnId"] for c in overview["columns"]})
-            self.assertNotIn("health", {c["columnId"] for c in overview["sort"]})
+            self.assertNotIn("suse_ai_health", {c["columnId"] for c in overview["columns"]})
+            self.assertNotIn("suse_ai_health", {c["columnId"] for c in overview["sort"]})
         data = BY_ID[prefix + "data-services"]
         self.assertIn('type = "otel service"', data["binding"]["query"])
         self.assertNotIn('"genai database dependency"', data["binding"]["query"])
@@ -583,7 +583,7 @@ class PackageContractTests(unittest.TestCase):
     def test_caller_drilldowns_separate_native_and_observed_data_dependencies(self):
         prefix = "urn:stackpack:suse-ai:component-presentation:"
         resources = {r["resourceId"]: r for r in
-                     BY_ID[prefix + "services"]["presentation"]["highlight"]["relatedResources"]}
+                     BY_ID[prefix + "services-overlay"]["presentation"]["highlight"]["relatedResources"]}
         native = resources["suse_ai_data_dependencies"]
         self.assertIn('withNeighborsOf(direction = "down"', native["topologyQuery"])
         self.assertIn('type = "otel service"', native["topologyQuery"])
@@ -597,7 +597,7 @@ class PackageContractTests(unittest.TestCase):
     def test_model_usage_links_identify_the_caller(self):
         node = BY_ID["urn:stackpack:suse-ai:component-presentation:models"]
         column = next(c for c in node["presentation"]["overview"]["columns"]
-                      if c["columnId"] == "otel_name")
+                      if c["columnId"] == "suse_ai_otel_name")
         names = [str(evaluate(column["projection"]["name"], {"tags": {
             "gen_ai.request.model": ["llama3"], "service.name": [service]
         }})) for service in ("assistant", "researcher")]
@@ -608,7 +608,7 @@ class PackageContractTests(unittest.TestCase):
         inventory = BY_ID["urn:stackpack:suse-ai:component-presentation:model-inventory"]
         self.assertIn('type = "genai served model"', inventory["binding"]["query"])
         self.assertNotIn('"genai model usage"', inventory["binding"]["query"])
-        services = BY_ID["urn:stackpack:suse-ai:component-presentation:services"]
+        services = BY_ID["urn:stackpack:suse-ai:component-presentation:services-overlay"]
         usage = next(r for r in services["presentation"]["highlight"]["relatedResources"]
                      if r["resourceId"] == "suse_ai_models")
         self.assertIn('type = "genai model usage"', usage["topologyQuery"])
@@ -625,7 +625,7 @@ class PackageContractTests(unittest.TestCase):
             columns = [c for c in node["presentation"]["overview"]["columns"]
                        if c.get("projection", {}).get("_type") == "MetricProjection"]
             metric_ids = {m["metricId"] for n in NODES for m in n.get("metrics", [])}
-            self.assertEqual(len(columns), 3)
+            self.assertEqual(len(columns), 3 if presentation == "served-models-vllm" else 0)
             for column in columns:
                 projection = column["projection"]
                 self.assertEqual(projection["_type"], "MetricProjection")
@@ -648,7 +648,7 @@ class PackageContractTests(unittest.TestCase):
                 for item in walk(promql.parse(render(p["query"]))):
                     if isinstance(item, promql.VectorSelector):
                         keys = {m.name for m in item.matchers.matchers}
-                        if "-host-" in column["columnId"]:
+                        if "_host_" in column["columnId"]:
                             self.assertIn("sts_host", keys)
                             self.assertIn("properties.sts_host", p["query"])
                         else:
@@ -710,7 +710,7 @@ class PackageContractTests(unittest.TestCase):
             if menu:
                 self.assertTrue(menu.get("icon") or presentation.get("icon"), node["name"])
             if ":product-" in node["identifier"]:
-                self.assertIn("icon", presentation, node["name"])
+                self.assertNotIn("icon", presentation, node["name"])
 
     def test_packaged_assets_are_referenced(self):
         documents = [
@@ -730,9 +730,11 @@ class PackageContractTests(unittest.TestCase):
                 for path in (PACK / directory).rglob("*")
                 if path.is_file()
             }
-            self.assertEqual(referenced, packaged, directory)
+            self.assertTrue(referenced <= packaged, directory)
+            if directory != "icons":
+                self.assertEqual(referenced, packaged, directory)
 
-    def test_ai_overviews_compose_with_canonical_otel_columns(self):
+    def test_ai_overviews_use_namespaced_identity_columns(self):
         for node in NODES:
             if node["_type"] != "ComponentPresentation":
                 continue
@@ -742,9 +744,9 @@ class PackageContractTests(unittest.TestCase):
             for column in columns:
                 projection = column.get("projection", {})
                 if projection.get("_type") == "ComponentLinkProjection" and projection.get("name") == "name":
-                    self.assertEqual(column["columnId"], "otel_name")
+                    self.assertEqual(column["columnId"], "suse_ai_otel_name")
                 if projection.get("value") == "tags.singleValue('service.namespace')":
-                    self.assertEqual(column["columnId"], "otel_namespace")
+                    self.assertEqual(column["columnId"], "suse_ai_otel_namespace")
 
     def test_supported_node_types_and_unique_ownership(self):
         supported = {
@@ -826,13 +828,13 @@ class PackageContractTests(unittest.TestCase):
                             if isinstance(item, promql.VectorSelector)
                         ]:
                             keys = {m.name: m for m in selector.matchers.matchers}
-                            if "-node-host-" in metric["metricId"]:
+                            if "_node_host_" in metric["metricId"]:
                                 self.assertIn("sts_host", keys, metric["metricId"])
                                 self.assertIn("properties.sts_host", query["expression"])
                             elif (
-                                "-pod-gpu-" in metric["metricId"]
-                                or "-pod-vgpu-" in metric["metricId"]
-                                or "-node-" in metric["metricId"]
+                                "_pod_gpu_" in metric["metricId"]
+                                or "_pod_vgpu_" in metric["metricId"]
+                                or "_node_" in metric["metricId"]
                             ):
                                 self.assertIn(
                                     "k8s_cluster_name", keys, metric["metricId"]

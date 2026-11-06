@@ -8,20 +8,20 @@ nodes:
   rank:
     specificity: 220
   presentation:
-    icon: !icon model.svg
+    icon: !icon 'model.svg'
     overview:
       name:
         singular: model deployment
         plural: model deployment
         title: Model deployment
       columns:
-      - columnId: otel_name
+      - columnId: suse_ai_otel_name
         title: Name
         projection:
           _type: ComponentLinkProjection
           name: name
           identifier: identifiers[0]
-      - columnId: otel_namespace
+      - columnId: suse_ai_otel_namespace
         title: Service namespace
         projection:
           _type: TextProjection
@@ -31,7 +31,8 @@ nodes:
         projection:
           _type: ComponentLinkProjection
           name: tags.singleValue('service.name')
-          identifier: "'urn:opentelemetry:namespace/' + tags.singleValue('service.namespace') + ':service/' + tags.singleValue('service.name')"
+          identifier: '''urn:opentelemetry:namespace/'' + tags.singleValue(''service.namespace'') + '':service/''
+            + tags.singleValue(''service.name'')'
       - columnId: suse_ai_product
         title: Product
         projection:
@@ -41,27 +42,18 @@ nodes:
         title: Cluster
         projection:
           _type: TextProjection
-          value: "tags.singleValue('cluster-name') != '' ? tags.singleValue('cluster-name') : 'not reported'"
-      - columnId: suse_ai_model_metrics
-        title: Available metrics
-        projection:
-          _type: TextProjection
-          value: >-
-            tags.singleValue('suse.ai.product') == 'ollama' ?
-            'Residency; server requests not reported' :
-            (tags.singleValue('suse.ai.product') == 'vllm' ?
-            'Server requests; residency not reported' : 'not reported')
+          value: '''cluster-name'' in tags ? tags[''cluster-name''].filter(cluster, cluster != '''').join('', '')
+            : '''''
       sort:
-      - columnId: otel_name
+      - columnId: suse_ai_otel_name
     highlight:
       title: Model deployment
       relatedResources:
       - resourceId: suse_ai_service
         title: Related services
         order: 90
-        topologyQuery: >-
-          withNeighborsOf(direction = "both", components = (identifier = "${identifiers[0]}"), levels = "1") and type
-          = "otel service"
+        topologyQuery: withNeighborsOf(direction = "both", components = (identifier = "${identifiers[0]}"), levels
+          = "1") and type = "otel service"
         presentationIdentifier: urn:stackpack:suse-ai:component-presentation:services
       links:
       - linkId: suse_ai_model_inventory

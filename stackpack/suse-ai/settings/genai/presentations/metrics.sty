@@ -4,154 +4,131 @@ nodes:
   identifier: urn:stackpack:suse-ai:component-presentation:genai-metrics
   binding:
     _type: ComponentPresentationQueryBinding
-    query: >-
-      label = "stackpack:open-telemetry" and label = "stackpack:suse-ai" and type in ("otel service", "otel service instance")
-      and (label IN ("suse.ai.category:application", "suse.ai.category:agent", "suse.ai.category:ui", "suse.ai.category:model-proxy")
-      or label = "suse.ai.product:ollama"
-      or not label IN ("suse.ai.category:application", "suse.ai.category:agent", "suse.ai.category:ui", "suse.ai.category:inference-engine", "suse.ai.category:model-proxy", "suse.ai.category:vectordb", "suse.ai.category:search-engine", "suse.ai.category:mcp-server", "suse.ai.category:workflow-engine", "suse.ai.category:ml-registry"))
-      and not label = "suse.ai.product:litellm"
+    query: label = "stackpack:open-telemetry" and label = "stackpack:suse-ai" and type in ("otel service", "otel
+      service instance") and (label IN ("suse.ai.category:application", "suse.ai.category:agent", "suse.ai.category:ui",
+      "suse.ai.category:model-proxy") or label = "suse.ai.product:ollama" or not label IN ("suse.ai.category:application",
+      "suse.ai.category:agent", "suse.ai.category:ui", "suse.ai.category:inference-engine", "suse.ai.category:model-proxy",
+      "suse.ai.category:vectordb", "suse.ai.category:search-engine", "suse.ai.category:mcp-server", "suse.ai.category:workflow-engine",
+      "suse.ai.category:ml-registry")) and not label = "suse.ai.product:litellm"
   rank:
-    specificity: 220
+    specificity: 1
   presentation:
     metricPerspective:
       tabs:
-      - tabId: suse-ai-llm
+      - tabId: suse_ai_llm
         title: LLM
         order: 50
         sections:
-        - sectionId: suse-ai-llm-usage
+        - sectionId: suse_ai_llm_usage
           title: Usage
           order: 50
           metrics:
-          - metricId: suse-ai-requests
+          - metricId: suse_ai_requests
             order: 100
-          - metricId: suse-ai-latency
+          - metricId: suse_ai_latency
             order: 99
-          - metricId: suse-ai-tokens
+          - metricId: suse_ai_tokens
             order: 98
-          - metricId: suse-ai-tokens-per-request
+          - metricId: suse_ai_tokens_per_request
             order: 97
-          - metricId: suse-ai-top-models
+          - metricId: suse_ai_top_models
             order: 93
-          - metricId: suse-ai-first-chunk
+          - metricId: suse_ai_first_chunk
             order: 92
-        - sectionId: suse-ai-llm-cost
+        - sectionId: suse_ai_llm_cost
           title: Cost
           order: 49
           metrics:
-          - metricId: suse-ai-reported-cost
+          - metricId: suse_ai_reported_cost
             order: 96
-          - metricId: suse-ai-cost-per-request
+          - metricId: suse_ai_cost_per_request
             order: 95
-          - metricId: suse-ai-cost-per-1k-tokens
+          - metricId: suse_ai_cost_per_1k_tokens
             order: 94
-    summary:
-      metrics:
-      - summaryMetricId: suse-ai-requests-summary
-        name: LLM request rate
-        metricId: suse-ai-requests
-        order: 100
-        unit: reqps
-        decimalPlaces: 2
-        query: |-
-          sum by (gen_ai_request_model) (rate(gen_ai_client_operation_duration_seconds_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
-      - summaryMetricId: suse-ai-latency-summary
-        name: Operation duration P95
-        metricId: suse-ai-latency
-        order: 99
-        unit: s
-        decimalPlaces: 2
-        query: |-
-          histogram_quantile(0.95, sum by (gen_ai_request_model, le) (rate(gen_ai_client_operation_duration_seconds_bucket{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))
-      - summaryMetricId: suse-ai-tokens-summary
-        name: Token throughput
-        metricId: suse-ai-tokens
-        order: 98
-        unit: short
-        decimalPlaces: 2
-        query: |-
-          sum by (gen_ai_request_model, gen_ai_token_type) (rate({__name__=~"gen_ai_client_token_usage(_tokens)?_sum", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
   metrics:
-  - metricId: suse-ai-requests
+  - metricId: suse_ai_requests
     name: LLM request rate
     metricQueries:
-    - expression: |-
-        sum by (gen_ai_request_model) (rate(gen_ai_client_operation_duration_seconds_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
+    - expression: sum by (gen_ai_request_model) (rate(gen_ai_client_operation_duration_seconds_count{__multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"}[${__rate_interval}]))
       alias: ${gen_ai_request_model}
     chart:
       _type: TimeSeriesChart
       unit: reqps
-  - metricId: suse-ai-latency
+  - metricId: suse_ai_latency
     name: Operation duration P95
     metricQueries:
-    - expression: |-
-        histogram_quantile(0.95, sum by (gen_ai_request_model, le) (rate(gen_ai_client_operation_duration_seconds_bucket{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))
+    - expression: histogram_quantile(0.95, sum by (gen_ai_request_model, le) (rate(gen_ai_client_operation_duration_seconds_bucket{__multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"}[${__rate_interval}])))
       alias: ${gen_ai_request_model}
     chart:
       _type: TimeSeriesChart
       unit: s
-  - metricId: suse-ai-tokens
+  - metricId: suse_ai_tokens
     name: Token throughput
     metricQueries:
-    - expression: |-
-        sum by (gen_ai_request_model, gen_ai_token_type) (rate({__name__=~"gen_ai_client_token_usage(_tokens)?_sum", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
+    - expression: sum by (gen_ai_request_model, gen_ai_token_type) (rate({__name__=~"gen_ai_client_token_usage(_tokens)?_sum",
+        __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
       alias: ${gen_ai_request_model} ${gen_ai_token_type}
     chart:
       _type: TimeSeriesChart
       unit: short
     description: Tokens per second; requires reported usage.
-  - metricId: suse-ai-tokens-per-request
+  - metricId: suse_ai_tokens_per_request
     name: Average tokens per request
     metricQueries:
-    - expression: |-
-        sum by (gen_ai_request_model) (rate({__name__=~"gen_ai_client_token_usage(_tokens)?_sum", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[5m])) / sum by (gen_ai_request_model) (rate(gen_ai_client_operation_duration_seconds_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[5m]))
+    - expression: sum by (gen_ai_request_model) (rate({__name__=~"gen_ai_client_token_usage(_tokens)?_sum", __multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"}[5m])) / sum by (gen_ai_request_model) (rate(gen_ai_client_operation_duration_seconds_count{__multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"}[5m]))
       alias: ${gen_ai_request_model}
     chart:
       _type: TimeSeriesChart
       unit: short
-  - metricId: suse-ai-reported-cost
+  - metricId: suse_ai_reported_cost
     name: Reported model cost per hour
     metricQueries:
-    - expression: |-
-        sum by (gen_ai_request_model) (rate({__name__=~"gen_ai_client_operation_cost_USD_sum|gen_ai_usage_cost_USD_sum", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[5m])) * 3600
+    - expression: sum by (gen_ai_request_model) (rate({__name__=~"gen_ai_client_operation_cost_USD_sum|gen_ai_usage_cost_USD_sum",
+        __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[5m])) * 3600
       alias: ${gen_ai_request_model}
     chart:
       _type: TimeSeriesChart
       unit: currencyUSD
     description: Estimate from optional SDK cost histograms; excludes infrastructure allocation and is not a billing
       total.
-  - metricId: suse-ai-cost-per-request
+  - metricId: suse_ai_cost_per_request
     name: Reported model cost per request
     metricQueries:
-    - expression: |-
-        sum by (gen_ai_request_model) (rate({__name__=~"gen_ai_client_operation_cost_USD_sum|gen_ai_usage_cost_USD_sum", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[5m])) / sum by (gen_ai_request_model) (rate(gen_ai_client_operation_duration_seconds_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[5m]))
+    - expression: sum by (gen_ai_request_model) (rate({__name__=~"gen_ai_client_operation_cost_USD_sum|gen_ai_usage_cost_USD_sum",
+        __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[5m])) / sum by (gen_ai_request_model) (rate(gen_ai_client_operation_duration_seconds_count{__multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"}[5m]))
       alias: ${gen_ai_request_model}
     chart:
       _type: TimeSeriesChart
       unit: currencyUSD
-  - metricId: suse-ai-cost-per-1k-tokens
+  - metricId: suse_ai_cost_per_1k_tokens
     name: Reported cost per 1,000 tokens
     metricQueries:
-    - expression: |-
-        1000 * sum by (gen_ai_request_model) (rate({__name__=~"gen_ai_client_operation_cost_USD_sum|gen_ai_usage_cost_USD_sum", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[5m])) / sum by (gen_ai_request_model) (rate({__name__=~"gen_ai_client_token_usage(_tokens)?_sum", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[5m]))
+    - expression: 1000 * sum by (gen_ai_request_model) (rate({__name__=~"gen_ai_client_operation_cost_USD_sum|gen_ai_usage_cost_USD_sum",
+        __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[5m])) / sum by (gen_ai_request_model) (rate({__name__=~"gen_ai_client_token_usage(_tokens)?_sum",
+        __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[5m]))
       alias: ${gen_ai_request_model}
     chart:
       _type: TimeSeriesChart
       unit: currencyUSD
-  - metricId: suse-ai-top-models
+  - metricId: suse_ai_top_models
     name: Top models by request rate
     metricQueries:
-    - expression: |-
-        topk(5, sum by (gen_ai_request_model) (rate(gen_ai_client_operation_duration_seconds_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[5m])))
+    - expression: topk(5, sum by (gen_ai_request_model) (rate(gen_ai_client_operation_duration_seconds_count{__multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"}[5m])))
       alias: ${gen_ai_request_model}
     chart:
       _type: TimeSeriesChart
       unit: reqps
-  - metricId: suse-ai-first-chunk
+  - metricId: suse_ai_first_chunk
     name: Client time to first chunk P95
     metricQueries:
-    - expression: |-
-        histogram_quantile(0.95, sum by (gen_ai_request_model, le) (rate(gen_ai_client_operation_time_to_first_chunk_seconds_bucket{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[5m])))
+    - expression: histogram_quantile(0.95, sum by (gen_ai_request_model, le) (rate(gen_ai_client_operation_time_to_first_chunk_seconds_bucket{__multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"}[5m])))
       alias: ${gen_ai_request_model}
     chart:
       _type: TimeSeriesChart

@@ -6,7 +6,7 @@ nodes:
     _type: ComponentPresentationQueryBinding
     query: label = "stackpack:suse-ai" and type IN ("otel service", "genai served model")
   rank:
-    specificity: 205
+    specificity: 1
   presentation:
     overview:
       name:
@@ -14,30 +14,42 @@ nodes:
         plural: AI components
         title: Overview
       columns:
-      - columnId: health
-        title: Health
-        projection:
-          _type: HealthProjection
-          value: healthState
-      - columnId: otel_name
+      - columnId: suse_ai_otel_name
         title: Name
         projection:
           _type: ComponentLinkProjection
           name: name
           identifier: identifiers[0]
       - columnId: suse_ai_category
-      - columnId: otel_namespace
+        title: Category
+        projection:
+          _type: TextProjection
+          value: '''suse.ai.category'' in tags && size(tags[''suse.ai.category'']) > 0 ? tags[''suse.ai.category''].map(category,
+            category in {''application'': ''Application'', ''agent'': ''Agent service'', ''ui'': ''AI interface'',
+            ''inference-engine'': ''Inference'', ''model-proxy'': ''Model gateway'', ''vectordb'': ''Vector database'',
+            ''search-engine'': ''Search'', ''mcp-server'': ''MCP server'', ''workflow-engine'': ''Workflow'', ''ml-registry'':
+            ''Model registry''} ? {''application'': ''Application'', ''agent'': ''Agent service'', ''ui'': ''AI
+            interface'', ''inference-engine'': ''Inference'', ''model-proxy'': ''Model gateway'', ''vectordb'':
+            ''Vector database'', ''search-engine'': ''Search'', ''mcp-server'': ''MCP server'', ''workflow-engine'':
+            ''Workflow'', ''ml-registry'': ''Model registry''}[category] : category).join('', '') : (''vllm.model.name''
+            in tags ? ''Model deployment'' : (''gen_ai.agent.name'' in tags ? ''Agent'' : (''gen_ai.request.model''
+            in tags ? ''Model usage'' : ''Application'')))'
+      - columnId: suse_ai_otel_namespace
         title: Service namespace
         projection:
           _type: TextProjection
           value: tags.singleValue('service.namespace')
-      - columnId: otel_k8s_cluster
+      - columnId: suse_ai_otel_k8s_cluster
+        title: Cluster
+        projection:
+          _type: TextProjection
+          value: '''cluster-name'' in tags ? tags[''cluster-name''].filter(cluster, cluster != '''').join('', '')
+            : '''''
       sort:
-      - columnId: health
-      - columnId: otel_name
+      - columnId: suse_ai_otel_name
       mainMenu:
         group: SUSE AI
-        icon: !icon menu/all.svg
+        icon: !icon 'menu/all.svg'
         order: 100
     topology:
       groupingEnabled: true

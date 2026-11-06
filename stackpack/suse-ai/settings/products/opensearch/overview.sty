@@ -1,0 +1,85 @@
+nodes:
+- _type: ComponentPresentation
+  name: OpenSearch inventory
+  identifier: urn:stackpack:suse-ai:component-presentation:product-opensearch-overview
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: label = "stackpack:suse-ai" and type = "otel service" and label = "suse.ai.product:opensearch"
+  rank:
+    specificity: 1
+  presentation:
+    overview:
+      name:
+        singular: OpenSearch service
+        plural: OpenSearch services
+        title: OpenSearch
+      columns:
+      - columnId: suse_ai_otel_name
+        title: Name
+        projection:
+          _type: ComponentLinkProjection
+          name: name
+          identifier: identifiers[0]
+      - columnId: suse_ai_otel_namespace
+        title: Service namespace
+        projection:
+          _type: TextProjection
+          value: tags.singleValue('service.namespace')
+      - columnId: suse_ai_otel_k8s_cluster
+        title: Cluster
+        projection:
+          _type: TextProjection
+          value: '''cluster-name'' in tags ? tags[''cluster-name''].filter(cluster, cluster != '''').join('', '')
+            : '''''
+      - columnId: suse_ai_opensearch_vectordb_green_column
+        title: Cluster Status (Green)
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_opensearch_vectordb_green
+          query: sum by (service_namespace, service_name) (elasticsearch_cluster_health{status="green", service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}"})
+          unit: short
+          decimalPlaces: 2
+      - columnId: suse_ai_opensearch_vectordb_yellow_column
+        title: Cluster Status (Yellow)
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_opensearch_vectordb_yellow
+          query: sum by (service_namespace, service_name) (elasticsearch_cluster_health{status="yellow", service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}"})
+          unit: short
+          decimalPlaces: 2
+      - columnId: suse_ai_opensearch_vectordb_red_column
+        title: Cluster Status (Red)
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_opensearch_vectordb_red
+          query: sum by (service_namespace, service_name) (elasticsearch_cluster_health{status="red", service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}"})
+          unit: short
+          decimalPlaces: 2
+      - columnId: suse_ai_opensearch_vectordb_pending_tasks_count_column
+        title: Pending Tasks
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_opensearch_vectordb_pending_tasks_count
+          query: sum by (service_namespace, service_name) (sum by (service_namespace, service_name) (elasticsearch_cluster_pending_tasks{service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}"}))
+          unit: short
+          decimalPlaces: 2
+      - columnId: suse_ai_opensearch_vectordb_free_space_column
+        title: Minimum free disk (%)
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_opensearch_vectordb_free_space
+          query: min by (service_namespace, service_name) ((elasticsearch_node_fs_disk_free_bytes{service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}"} / elasticsearch_node_fs_disk_total_bytes{service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}"}) * 100)
+          unit: percent
+          decimalPlaces: 2
+      sort:
+      - columnId: suse_ai_otel_name
+      mainMenu:
+        group: SUSE AI
+        icon: !icon 'products/opensearch.svg'
+        order: 55

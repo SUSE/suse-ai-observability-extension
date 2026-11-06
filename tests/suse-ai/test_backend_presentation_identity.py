@@ -49,9 +49,9 @@ class BackendPresentationIdentityTest(BackendTestCase):
             self.capture(f"ollama-model-charts-{loaded}", charts)
             metrics_by_id = {m["boundMetricId"]["metricId"]: m for t in charts["tabs"]
                              for s in t["sections"] for m in s["metrics"]}
-            self.assertIn("suse-ai-ollama-served-model-loaded", metrics_by_id)
-            self.assertNotIn("suse-ai-genai-model-e2e-latency", metrics_by_id)
-            query = metrics_by_id["suse-ai-ollama-served-model-loaded"]["boundQueries"][0]["expression"]
+            self.assertIn("suse_ai_ollama_served_model_loaded", metrics_by_id)
+            self.assertNotIn("suse_ai_genai_model_e2e_latency", metrics_by_id)
+            query = metrics_by_id["suse_ai_ollama_served_model_loaded"]["boundQueries"][0]["expression"]
 
             def observed_state():
                 response = self.api("/api/metrics/query_batch", {"queries": [{"id": "loaded", "query": query,
@@ -106,7 +106,7 @@ class BackendPresentationIdentityTest(BackendTestCase):
             end = int(time.time() * 1000)
             charts = self.api(f'/api/components/{service["id"]}/metricPerspectiveData?startTime={end-600000}&endTime={end}')
             metric = next(m for t in charts["tabs"] for s in t["sections"] for m in s["metrics"]
-                          if m["boundMetricId"].get("metricId") == "suse-ai-http-probe-success")
+                          if m["boundMetricId"].get("metricId") == "suse_ai_http_probe_success")
             query = metric["boundQueries"][0]["expression"]
 
             def observed_value():

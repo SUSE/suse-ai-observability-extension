@@ -1,0 +1,107 @@
+nodes:
+- _type: ComponentPresentation
+  name: LiteLLM inventory
+  identifier: urn:stackpack:suse-ai:component-presentation:product-litellm-overview
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: label = "stackpack:suse-ai" and type = "otel service" and label = "suse.ai.product:litellm"
+  rank:
+    specificity: 1
+  presentation:
+    overview:
+      name:
+        singular: LiteLLM service
+        plural: LiteLLM services
+        title: LiteLLM
+      columns:
+      - columnId: suse_ai_otel_name
+        title: Name
+        projection:
+          _type: ComponentLinkProjection
+          name: name
+          identifier: identifiers[0]
+      - columnId: suse_ai_otel_namespace
+        title: Service namespace
+        projection:
+          _type: TextProjection
+          value: tags.singleValue('service.namespace')
+      - columnId: suse_ai_otel_k8s_cluster
+        title: Cluster
+        projection:
+          _type: TextProjection
+          value: '''cluster-name'' in tags ? tags[''cluster-name''].filter(cluster, cluster != '''').join('', '')
+            : '''''
+      - columnId: suse_ai_litellm_request_rate_column
+        title: Proxy request rate
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_litellm_request_rate
+          query: sum by (service_namespace, service_name) (sum by (requested_model, service_namespace, service_name)
+            (max by (service_namespace, service_name, service_instance_id, end_user, hashed_api_key, api_key_alias,
+            team, team_alias, user, org_id, org_alias, requested_model, status_code, user_email, route, client_ip,
+            user_agent, model_id, api_provider, stream) (rate({__name__=~"litellm_proxy_(total_)?requests_metric(_total)?",
+            service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}",
+            api_key_alias=~".*", api_provider=~".*", client_ip=~".*", end_user=~".*", hashed_api_key=~".*", model_id=~".*",
+            org_alias=~".*", org_id=~".*", requested_model=~".*", route=~".*", service_instance_id=~".*", status_code=~".*",
+            stream=~".*", team=~".*", team_alias=~".*", user=~".*", user_agent=~".*", user_email=~".*"}[${__rate_interval}]))))
+          unit: reqps
+          decimalPlaces: 2
+      - columnId: suse_ai_litellm_latency_p95_column
+        title: Request latency P95
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_litellm_latency_p95
+          query: max by (service_namespace, service_name) (histogram_quantile(0.95, sum by (requested_model, le,
+            service_namespace, service_name) (max by (service_namespace, service_name, service_instance_id, end_user,
+            hashed_api_key, api_key_alias, team, team_alias, user, org_id, org_alias, requested_model, model, model_id,
+            api_provider, service_tier, le) (rate({__name__=~"litellm_request_total_latency_metric_bucket", service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}", api_key_alias=~".*", api_provider=~".*", end_user=~".*",
+            hashed_api_key=~".*", model=~".*", model_id=~".*", org_alias=~".*", org_id=~".*", requested_model=~".*",
+            service_instance_id=~".*", service_tier=~".*", team=~".*", team_alias=~".*", user=~".*"}[${__rate_interval}])))))
+          unit: s
+          decimalPlaces: 2
+      - columnId: suse_ai_litellm_input_tokens_column
+        title: Input token rate
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_litellm_input_tokens
+          query: sum by (service_namespace, service_name) (sum by (requested_model, service_namespace, service_name)
+            (max by (service_namespace, service_name, service_instance_id, end_user, hashed_api_key, api_key_alias,
+            team, team_alias, user, org_id, org_alias, user_email, requested_model, model, model_id, api_provider)
+            (rate({__name__=~"litellm_input_tokens_metric(_total)?", service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}", api_key_alias=~".*", api_provider=~".*", end_user=~".*",
+            hashed_api_key=~".*", model=~".*", model_id=~".*", org_alias=~".*", org_id=~".*", requested_model=~".*",
+            service_instance_id=~".*", team=~".*", team_alias=~".*", user=~".*", user_email=~".*"}[${__rate_interval}]))))
+          unit: short
+          decimalPlaces: 2
+      - columnId: suse_ai_litellm_output_tokens_column
+        title: Output token rate
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_litellm_output_tokens
+          query: sum by (service_namespace, service_name) (sum by (requested_model, service_namespace, service_name)
+            (max by (service_namespace, service_name, service_instance_id, end_user, hashed_api_key, api_key_alias,
+            team, team_alias, user, org_id, org_alias, user_email, requested_model, model, model_id, api_provider)
+            (rate({__name__=~"litellm_output_tokens_metric(_total)?", service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}", api_key_alias=~".*", api_provider=~".*", end_user=~".*",
+            hashed_api_key=~".*", model=~".*", model_id=~".*", org_alias=~".*", org_id=~".*", requested_model=~".*",
+            service_instance_id=~".*", team=~".*", team_alias=~".*", user=~".*", user_email=~".*"}[${__rate_interval}]))))
+          unit: short
+          decimalPlaces: 2
+      - columnId: suse_ai_litellm_in_flight_column
+        title: In-flight requests
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_litellm_in_flight
+          query: sum by (service_namespace, service_name) (sum by (model, service_namespace, service_name) (max
+            by (service_namespace, service_name, service_instance_id, model) ({__name__=~"litellm_in_flight_requests",
+            service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}",
+            model=~".*", service_instance_id=~".*"})))
+          unit: short
+          decimalPlaces: 2
+      sort:
+      - columnId: suse_ai_otel_name
+      mainMenu:
+        group: SUSE AI
+        icon: !icon 'products/litellm.svg'
+        order: 58

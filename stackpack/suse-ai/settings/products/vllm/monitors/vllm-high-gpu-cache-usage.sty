@@ -13,7 +13,7 @@ nodes:
     metric:
       aliasTemplate: vLLM High GPU Cache Usage
       query: max by (service_namespace, service_name) (vllm_gpu_cache_usage_perc{suse_ai_product="vllm", service_namespace!="",
-        service_name!=""} or vllm:gpu_cache_usage_perc{suse_ai_product="vllm", service_namespace!="", service_name!=""})
+        service_name!=""} or {__name__=~"vllm(:|_)(gpu|kv)_cache_usage_perc", suse_ai_product="vllm", service_namespace!="", service_name!=""})
       unit: percentunit
     titleTemplate: vLLM High GPU Cache Usage
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}

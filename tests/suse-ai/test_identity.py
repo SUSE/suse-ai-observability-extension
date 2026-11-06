@@ -317,7 +317,7 @@ class IdentityTests(unittest.TestCase):
         columns = BY_ID["urn:stackpack:suse-ai:component-presentation:common"][
             "presentation"
         ]["overview"]["columns"]
-        expressions = {c["columnId"]: c["projection"]["value"] for c in columns}
+        expressions = {c["columnId"]: c["projection"]["value"] for c in columns if "value" in c["projection"]}
         category = expressions["suse_ai_category"]
         product = expressions["suse_ai_product"]
         tags = {
@@ -340,7 +340,7 @@ class IdentityTests(unittest.TestCase):
             with self.subTest(clusters=clusters):
                 tags = {} if clusters is None else {"cluster-name": clusters}
                 self.assertEqual(
-                    evaluate(expressions["otel_k8s_cluster"], {"tags": tags}),
+                    evaluate(expressions["suse_ai_otel_k8s_cluster"], {"tags": tags}),
                     expected,
                 )
 

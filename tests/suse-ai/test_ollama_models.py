@@ -100,7 +100,7 @@ class OllamaModelContractTest(unittest.TestCase):
         self.assertFalse(any(line.startswith("ollama_model_info{") for line in
                              exporter.render({"models": []}, {"models": []})))
 
-    def test_neutral_presentations_link_real_service_and_explain_missing_metrics(self):
+    def test_neutral_presentations_link_real_service_with_identity_only(self):
         for suffix in ("model-inventory", "served-models"):
             node = BY_ID[PREFIX + "component-presentation:" + suffix]
             columns = {c["columnId"]: c["projection"] for c in node["presentation"]["overview"]["columns"]}
@@ -112,10 +112,7 @@ class OllamaModelContractTest(unittest.TestCase):
                 self.assertEqual(evaluate(link["identifier"], context), f"urn:opentelemetry:namespace/ai:service/{product}")
                 self.assertEqual(evaluate(columns["suse_ai_product"]["value"], context), product)
                 self.assertEqual(evaluate(columns["suse_ai_cluster"]["value"], context), "cluster-a")
-                expected = ("Residency; server requests not reported" if product == "ollama"
-                            else "Server requests; residency not reported")
-                self.assertEqual(evaluate(columns["suse_ai_model_metrics"]["value"], context), expected)
-            self.assertEqual(evaluate(columns["suse_ai_model_metrics"]["value"], {"tags": {}}), "not reported")
+            self.assertNotIn("suse_ai_model_metrics", columns)
             self.assertFalse(any(p["_type"] == "MetricProjection" for p in columns.values()))
         ollama = BY_ID[PREFIX + "component-presentation:served-models-ollama"]
         self.assertIn('label = "suse.ai.product:ollama"', ollama["binding"]["query"])
@@ -124,7 +121,7 @@ class OllamaModelContractTest(unittest.TestCase):
 
 
 def model_chart(key, value, time="5m"):
-    return {"presentation": "served-models-ollama", "metric": "suse-ai-ollama-served-model-" + key,
+    return {"presentation": "served-models-ollama", "metric": "suse_ai_ollama_served_model_" + key.replace("-", "_"),
             "samples": [] if value is None else samples(value), "eval_time": time}
 
 

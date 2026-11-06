@@ -1,0 +1,82 @@
+nodes:
+- _type: ComponentPresentation
+  name: Ollama inventory
+  identifier: urn:stackpack:suse-ai:component-presentation:product-ollama-overview
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: label = "stackpack:suse-ai" and type = "otel service" and label = "suse.ai.product:ollama"
+  rank:
+    specificity: 1
+  presentation:
+    overview:
+      name:
+        singular: Ollama service
+        plural: Ollama services
+        title: Ollama
+      columns:
+      - columnId: suse_ai_otel_name
+        title: Name
+        projection:
+          _type: ComponentLinkProjection
+          name: name
+          identifier: identifiers[0]
+      - columnId: suse_ai_otel_namespace
+        title: Service namespace
+        projection:
+          _type: TextProjection
+          value: tags.singleValue('service.namespace')
+      - columnId: suse_ai_otel_k8s_cluster
+        title: Cluster
+        projection:
+          _type: TextProjection
+          value: '''cluster-name'' in tags ? tags[''cluster-name''].filter(cluster, cluster != '''').join('', '')
+            : '''''
+      - columnId: suse_ai_ollama_available_models_column
+        title: Available models
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_ollama_available_models
+          query: sum by (service_namespace, service_name) (count by (service_namespace, service_name) (count by
+            (model, service_namespace, service_name) (ollama_model_info{service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}", model=~".*"} == 1 and on (k8s_cluster_name, service_namespace,
+            service_name, service_instance_id) (ollama_api_up{service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}", model=~".*"} == 1))))
+          unit: short
+          decimalPlaces: 2
+      - columnId: suse_ai_ollama_loaded_models_column
+        title: Loaded Model Copies
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_ollama_loaded_models
+          query: "sum by (service_namespace, service_name) (sum by (service_namespace, service_name) (max by (k8s_cluster_name,\
+            \ service_namespace, service_name, service_instance_id) (\n  ollama_loaded_models{service_namespace=\"\
+            ${tags.singleValue('service.namespace')}\", service_name=\"${tags.singleValue('service.name')}\", k8s_cluster_name=~\"\
+            .*\", service_instance_id=~\".*\"}\n  and (timestamp(ollama_loaded_models{service_namespace=\"${tags.singleValue('service.namespace')}\"\
+            , service_name=\"${tags.singleValue('service.name')}\", k8s_cluster_name=~\".*\", service_instance_id=~\"\
+            .*\"}) == on (k8s_cluster_name, service_namespace, service_name, service_instance_id) group_left\n \
+            \   max by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (timestamp(ollama_api_up{service_namespace=\"\
+            ${tags.singleValue('service.namespace')}\", service_name=\"${tags.singleValue('service.name')}\", k8s_cluster_name=~\"\
+            .*\", service_instance_id=~\".*\"}) and (ollama_api_up{service_namespace=\"${tags.singleValue('service.namespace')}\"\
+            , service_name=\"${tags.singleValue('service.name')}\", k8s_cluster_name=~\".*\", service_instance_id=~\"\
+            .*\"} == 1) and topk by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (1,\
+            \ timestamp(ollama_api_up{service_namespace=\"${tags.singleValue('service.namespace')}\", service_name=\"\
+            ${tags.singleValue('service.name')}\", k8s_cluster_name=~\".*\", service_instance_id=~\".*\"})))))))"
+          unit: short
+          decimalPlaces: 2
+      - columnId: suse_ai_ollama_api_up_column
+        title: Runtime API Read Success
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_ollama_api_up
+          query: sum by (service_namespace, service_name) (min by (service_namespace, service_name) (ollama_api_up{service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}", k8s_cluster_name=~".*", service_instance_id=~".*"}
+            and topk by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (1, timestamp(ollama_api_up{service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}", k8s_cluster_name=~".*", service_instance_id=~".*"}))))
+          unit: short
+          decimalPlaces: 2
+      sort:
+      - columnId: suse_ai_otel_name
+      mainMenu:
+        group: SUSE AI
+        icon: !icon 'products/ollama.svg'
+        order: 59

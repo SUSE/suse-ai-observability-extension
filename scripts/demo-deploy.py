@@ -108,6 +108,7 @@ def main():
     parser.add_argument("--state-dir", required=True, type=Path)
     parser.add_argument("--cluster", default="suse-ai")
     parser.add_argument("--version", default="")
+    parser.add_argument("--source", type=Path, default=ROOT / "stackpack/suse-ai")
     args = parser.parse_args()
     os.umask(0o077)
     state = args.state_dir.resolve()
@@ -143,7 +144,7 @@ def main():
         save(attempt / "instances-before.json", before)
         save(attempt / "catalog-before.json", catalog)
         pack = attempt / "source" / "stackpack" / "suse-ai"
-        shutil.copytree(ROOT / "stackpack/suse-ai", pack)
+        shutil.copytree(args.source.resolve(), pack)
         manifest = pack / "stackpack.yaml"
         text, count = re.subn(r"^version:.*$", "version: " + version, manifest.read_text(), flags=re.MULTILINE)
         if count != 1:

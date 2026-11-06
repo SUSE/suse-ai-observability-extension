@@ -4,12 +4,11 @@ nodes:
   identifier: urn:stackpack:suse-ai:component-presentation:product-open-webui
   binding:
     _type: ComponentPresentationQueryBinding
-    query: (label = "stackpack:open-telemetry" and type in ("otel service", "otel service instance") and label = "stackpack:suse-ai")
-      and label = "suse.ai.product:open-webui"
+    query: (label = "stackpack:open-telemetry" and type in ("otel service", "otel service instance") and label =
+      "stackpack:suse-ai") and label = "suse.ai.product:open-webui"
   rank:
-    specificity: 240
+    specificity: 1
   presentation:
-    icon: !icon products/open-webui.svg
     highlight:
       fields:
       - fieldId: suse_ai_product
