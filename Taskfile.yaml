@@ -155,7 +155,7 @@ tasks:
         --runtime '{{.RUNTIME}}' --image '{{.OLLAMA_IMAGE}}'
 
   demo-monitor-test:
-    desc: Preview every installed monitor with failing, recovery and absent inputs; never persist test states
+    desc: Preview threshold monitors in three states and capture derived-health dry runs; never persist test states
     requires:
       vars: [DEMO_URL, DEMO_TOKEN_FILE, DEMO_EVIDENCE, DEMO_MONITOR_BASELINE]
     cmds:

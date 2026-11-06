@@ -3,6 +3,13 @@
 The demo is upgraded forward through unique `3.0.0-dev.N` packages with overwrite.
 The release source remains version 3.0.0. No SA instance operations are used.
 
+The latest increment leaves **3.0.0-dev.8** installed. It consolidates navigation
+into six groups, restores the detailed GPU table and original SUSE logo, reduces
+navigation icons, and adds hosting-service health and useful agent details.
+The [dev.6 → dev.8 comparison](V3_GROUPING_COMPARISON_20261106.md) lists every menu,
+table and component change. The sections below record the earlier iterations at
+the versions where they were verified.
+
 ## Product views and OTel overlays
 
 Iteration 1 was verified on demo Observability 2.11.1, Open Telemetry 0.1.4 and

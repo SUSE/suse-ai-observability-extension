@@ -100,7 +100,11 @@ nodes:
       name:
         singular: GPU node
         plural: GPU nodes
-        title: GPU infrastructure
+        title: GPUs
+      mainMenu:
+        group: SUSE AI
+        icon: !icon outline/gpu.svg
+        order: 10
       columns:
       - columnId: suse_ai_name
         title: Node
@@ -200,6 +204,12 @@ nodes:
       - columnId: suse_ai_name
       fixedColumns: 2
     highlight:
+      relatedResources:
+      - resourceId: suse_ai_gpu_devices
+        title: Physical GPUs
+        order: 100
+        topologyQuery: withNeighborsOf(direction = "up", components = (identifier = "${identifiers[0]}"), levels = "1") and type = "genai gpu" and label = "stackpack:suse-ai"
+        presentationIdentifier: urn:stackpack:suse-ai:component-presentation:gpus
       fields:
       - fieldId: suse_ai_gpu_model
         title: GPU model

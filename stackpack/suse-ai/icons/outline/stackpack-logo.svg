@@ -1,5 +1,5 @@
 <!-- SPDX-License-Identifier: Apache-2.0; original repository artwork, 2026. -->
-<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" role="img" aria-labelledby="stackpack-logo-title stackpack-logo-description">
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 40 40" role="img" aria-labelledby="stackpack-logo-title stackpack-logo-description">
   <title id="stackpack-logo-title">SUSE AI StackPack</title>
   <desc id="stackpack-logo-description">An original network emblem for the SUSE AI StackPack.</desc>
   <rect width="40" height="40" rx="8" fill="#E4F5EB"/>

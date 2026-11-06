@@ -1,5 +1,5 @@
 <!-- SPDX-License-Identifier: Apache-2.0; original repository artwork, 2026. -->
-<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" role="img" aria-labelledby="data-services-title data-services-description">
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 40 40" role="img" aria-labelledby="data-services-title data-services-description">
   <title id="data-services-title">Data services</title>
   <desc id="data-services-description">A database and a connected search lens.</desc>
   <rect width="40" height="40" rx="8" fill="#E4F5EB"/>

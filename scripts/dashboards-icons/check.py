@@ -85,7 +85,7 @@ def main():
     for path in files:
         root = ET.fromstring(path.read_bytes())
         assert root.attrib["viewBox"] == "0 0 40 40"
-        assert root.attrib["width"] == root.attrib["height"] == "40"
+        assert root.attrib["width"] == root.attrib["height"] == "16"
         assert root.find("s:title", ns).text and root.find("s:desc", ns).text
         assert root.find("s:rect", ns).attrib["fill"] == "#E4F5EB"
         group = root.find("s:g", ns)

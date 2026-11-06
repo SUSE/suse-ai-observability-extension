@@ -1,0 +1,11 @@
+nodes:
+- _type: Monitor
+  name: 'AI component: hosting service health'
+  identifier: urn:stackpack:suse-ai:monitor:hosted-component-health
+  description: Derives health for served models and agents without an observed health state from their hosting service and its dependencies. Existing direct model checks retain precedence.
+  function: urn:stackpack:common:monitor-function:derived-state-monitor
+  arguments:
+    componentTypes: genai served model, genai agent
+  intervalSeconds: 30
+  status: ENABLED
+  remediationHint: !include remediation-hints/genai/hosted-component-health.md.hbs

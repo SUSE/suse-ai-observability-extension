@@ -38,12 +38,37 @@ nodes:
     highlight:
       title: Agent
       fields:
+      - fieldId: suse_ai_agent_health
+        title: Health
+        order: 100
+        projection:
+          _type: HealthProjection
+          value: healthState
       - fieldId: suse_ai_gen_ai_agent_name
         title: Agent
         order: 90
         projection:
           _type: TextProjection
           value: tags.singleValue('gen_ai.agent.name')
+      - fieldId: suse_ai_agent_service
+        title: Hosting service
+        order: 89
+        projection:
+          _type: ComponentLinkProjection
+          name: tags.singleValue('service.name')
+          identifier: "'urn:opentelemetry:namespace/' + tags.singleValue('service.namespace') + ':service/' + tags.singleValue('service.name')"
+      - fieldId: suse_ai_agent_namespace
+        title: Service namespace
+        order: 88
+        projection:
+          _type: TextProjection
+          value: tags.singleValue('service.namespace')
+      - fieldId: suse_ai_agent_cluster
+        title: Cluster
+        order: 87
+        projection:
+          _type: TextProjection
+          value: "'cluster-name' in tags ? tags['cluster-name'].join(', ') : ''"
       relatedResources:
       - resourceId: suse_ai_service
         title: Hosting service

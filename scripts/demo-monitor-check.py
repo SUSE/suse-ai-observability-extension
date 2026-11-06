@@ -70,7 +70,7 @@ def main():
     installed = save("monitors-before", client.cli("monitor", "list"))["monitors"]
     baseline = json.loads(args.baseline.read_text())["monitors"]
     ids = lambda nodes: {n["identifier"]: n["id"] for n in nodes}
-    assert ids(installed) == ids(baseline), "Monitor identity changed from the supplied baseline"
+    assert ids(baseline).items() <= ids(installed).items(), "Monitor identity changed from the supplied baseline"
     monitors = [m for m in installed if m["identifier"] in source]
     assert len(monitors) == len(source)
     components = snapshot('label = "stackpack:suse-ai" or type = "node"')
@@ -91,6 +91,11 @@ def main():
         key = monitor["identifier"].rsplit(":", 1)[-1]
         definition = source[monitor["identifier"]]
         settings = definition["arguments"]
+        if definition["function"].endswith(":derived-state-monitor"):
+            save(key + "-live-run", client.cli("monitor", "run", "--identifier", monitor["identifier"]))
+            print(key + ": live derived-health dry run captured", flush=True)
+            return {"identifier": monitor["identifier"], "id": monitor["id"],
+                    "previews": [], "verification": "live-derived-health-dry-run"}
         threshold = settings["threshold"]
         margin = max(1, abs(threshold) * 0.1)
         failing, recovering = {
@@ -139,9 +144,11 @@ def main():
         results = list(pool.map(check, monitors))
     after = save("monitors-after", client.cli("monitor", "list"))["monitors"]
     assert ids(after) == ids(installed)
-    save("summary", {"monitors": results, "preservedMonitorIds": len(installed),
+    save("summary", {"monitors": results, "preservedMonitorIds": len(baseline),
                      "persistedTestHealthStates": False, "ingestedTestTelemetry": False})
-    print(f"Verified {len(results)} installed monitors with 3 preview states each; no test states persisted")
+    previewed = sum(bool(item["previews"]) for item in results)
+    print(f"Verified {previewed} threshold monitors with 3 preview states each; "
+          f"captured {len(results) - previewed} derived-health runs; no test states persisted")
 
 
 if __name__ == "__main__":

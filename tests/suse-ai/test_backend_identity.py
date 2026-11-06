@@ -504,7 +504,7 @@ class BackendIdentityTest(BackendTestCase):
             relations = [
                 r
                 for r in snapshot["relations"]
-                if r["typeIdentifier"].endswith(":contains-agent")
+                if r["typeIdentifier"].endswith(":is-hosted-on")
             ]
             return snapshot if len(agents) == 9 and len(relations) == 9 else False
 
@@ -543,11 +543,11 @@ class BackendIdentityTest(BackendTestCase):
                 },
             )
         for relation in snapshot["relations"]:
-            if not relation["typeIdentifier"].endswith(":contains-agent"):
+            if not relation["typeIdentifier"].endswith(":is-hosted-on"):
                 continue
             service, agent = (
-                components[relation["source"]],
                 components[relation["target"]],
+                components[relation["source"]],
             )
             self.assertIn(agent["name"], {"canonical", "legacy-absent", "legacy-empty"})
             namespace = next(iter(self.tag_values(service, "service.namespace")))

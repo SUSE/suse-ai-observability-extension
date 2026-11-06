@@ -1,0 +1,80 @@
+nodes:
+- _type: ComponentPresentation
+  name: Demo agent hosting service activity
+  identifier: urn:stackpack:suse-ai:component-presentation:agent-host-activity
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: type = "genai agent" and label = "stackpack:suse-ai" and label = "suse.ai.demo:true"
+  rank:
+    specificity: 211
+  presentation:
+    highlight:
+      fields:
+      - fieldId: suse_ai_agent_metric_scope
+        title: Metric scope
+        order: 60
+        projection:
+          _type: TextProjection
+          value: '''Hosting service; includes all agents in that service'''
+      metrics:
+      - &id001
+        sectionId: suse_ai_agent_host_activity
+        title: Hosting service activity (all agents)
+        order: 100
+        metrics:
+        - metricId: suse_ai_agent_host_tool_call_rate
+          order: 100
+        - metricId: suse_ai_agent_host_tool_duration_p95
+          order: 99
+        - metricId: suse_ai_agent_host_iterations
+          order: 98
+        - metricId: suse_ai_agent_host_run_rate
+          order: 97
+    metricPerspective:
+      tabs:
+      - tabId: suse_ai_agent_host_activity
+        title: Hosting service
+        order: 100
+        sections:
+        - *id001
+  metrics:
+  - metricId: suse_ai_agent_host_tool_call_rate
+    name: Service tool calls
+    metricQueries:
+    - expression: sum by (tool_name, outcome) (rate(suse_ai_agent_tool_calls_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
+      alias: ${tool_name} ${outcome}
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: cps
+  - metricId: suse_ai_agent_host_tool_duration_p95
+    name: Service tool duration P95
+    metricQueries:
+    - expression: histogram_quantile(0.95, sum by (le, tool_name) (rate(suse_ai_agent_tool_duration_seconds_bucket{__multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"}[${__rate_interval}])))
+      alias: ${tool_name}
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: s
+      decimals: 2
+  - metricId: suse_ai_agent_host_iterations
+    name: Service iterations per run
+    metricQueries:
+    - expression: sum(rate(suse_ai_agent_iterations_sum{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
+        / clamp_min(sum(rate(suse_ai_agent_iterations_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])),
+        0.001)
+      alias: iterations
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: short
+  - metricId: suse_ai_agent_host_run_rate
+    name: Service agent runs
+    metricQueries:
+    - expression: sum by (outcome, truncated) (rate(suse_ai_agent_runs_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
+      alias: ${outcome} truncated=${truncated}
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: reqps

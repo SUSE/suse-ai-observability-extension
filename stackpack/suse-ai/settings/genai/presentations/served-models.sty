@@ -48,6 +48,13 @@ nodes:
       - columnId: suse_ai_otel_name
     highlight:
       title: Model deployment
+      fields:
+      - fieldId: suse_ai_served_model_health
+        title: Health
+        order: 100
+        projection:
+          _type: HealthProjection
+          value: healthState
       relatedResources:
       - resourceId: suse_ai_service
         title: Related services

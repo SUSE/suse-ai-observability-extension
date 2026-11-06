@@ -443,7 +443,7 @@ class MappingTests(unittest.TestCase):
         service = component(named, "otel service")["identifier"]
         self.assertTrue(
             any(
-                item["sourceId"] == service and item["targetId"] == agent
+                item["sourceId"] == agent and item["targetId"] == service
                 for item in relations
             )
         )
@@ -554,7 +554,7 @@ class PackageContractTests(unittest.TestCase):
             overview = node.get("presentation", {}).get("overview", {})
             if "mainMenu" in overview:
                 menus[overview["name"]["title"]] = node
-        self.assertEqual(set(menus), {"Overview", "Applications & agents", "Models", "Inference", "Data services", "GPUs", "vLLM", "Ollama", "LiteLLM", "Milvus", "Qdrant", "OpenSearch", "MLflow", "mcpo"})
+        self.assertEqual(set(menus), {"Overview", "Applications & agents", "Models", "Inference", "Data services", "GPUs"})
         query = menus["Overview"]["binding"]["query"]
         self.assertIn('"otel service"', query)
         self.assertIn('"genai served model"', query)
@@ -673,14 +673,18 @@ class PackageContractTests(unittest.TestCase):
             if not hint.startswith("remediation-hints/"):
                 continue
             self.assertIn(node["function"], {"urn:stackpack:common:monitor-function:threshold",
-                                             "urn:stackpack:common:monitor-function:topological-threshold"})
+                                             "urn:stackpack:common:monitor-function:topological-threshold",
+                                             "urn:stackpack:common:monitor-function:derived-state-monitor"})
+            template_context = ({"componentName": "model", "causeComponentName": "inference",
+                                 "causeComponentUrnForUrl": context["componentUrnForUrl"]}
+                                if node["function"].endswith(":derived-state-monitor") else context)
             template = (PACK / "includes" / hint).read_text()
             for expression in re.findall(r"\{\{(.*?)\}\}", template, re.DOTALL):
                 parts = expression.split()
                 # The server's multiply helper truncates fractional thresholds
                 # (0.9 * 100 rendered as 0). Keep the original numeric scale.
                 self.assertEqual(len(parts), 1, hint)
-                value = context
+                value = template_context
                 for key in parts[0].split("."):
                     self.assertIn(key, value, f"{hint}: {expression}")
                     value = value[key]
@@ -862,6 +866,9 @@ class PackageContractTests(unittest.TestCase):
     def test_monitors_preserve_identity_and_never_attach_to_global_products(self):
         for node in NODES:
             if node["_type"] != "Monitor":
+                continue
+            if node["function"].endswith(":derived-state-monitor"):
+                self.assertEqual(node["arguments"], {"componentTypes": "genai served model, genai agent"})
                 continue
             if node["function"].endswith(":topological-threshold"):
                 queries = node["arguments"]["queries"]

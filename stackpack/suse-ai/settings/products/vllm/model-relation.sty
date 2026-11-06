@@ -1,7 +1,7 @@
 nodes:
 - _type: OtelRelationMapping
-  identifier: urn:stackpack:suse-ai:otel-relation-mapping:vllm-models
-  name: vLLM service serves model
+  identifier: urn:stackpack:suse-ai:otel-relation-mapping:vllm-model-host
+  name: vLLM model depends on inference service
   input:
     signal:
     - METRICS
@@ -24,9 +24,9 @@ nodes:
     value: datapoint.attributes['model_name']
   expireAfter: 900000
   output:
-    sourceId: '''urn:opentelemetry:namespace/'' + vars.namespace + '':service/'' + vars.service'
-    targetId: >-
+    sourceId: >-
       'urn:suse-ai:namespace/' + vars.namespace + ':service/' + vars.service
       + ':served-model/' + vars.model
-    typeName: '''serves-model'''
-    dependencyType: '''CONNECTION'''
+    targetId: '''urn:opentelemetry:namespace/'' + vars.namespace + '':service/'' + vars.service'
+    typeName: "'is-hosted-on'"
+    dependencyType: "'HIERARCHICAL'"

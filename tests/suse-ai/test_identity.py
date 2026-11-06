@@ -174,7 +174,7 @@ class IdentityTests(unittest.TestCase):
             relations = [
                 r
                 for r in mapped(data, "OtelRelationMapping")
-                if r["typeName"] == "contains-agent"
+                if r["typeName"] == "is-hosted-on"
             ]
             with self.subTest(canonical=canonical, legacy=legacy, kind=kind):
                 self.assertEqual(len(agents), int(bool(expected)))
@@ -182,9 +182,9 @@ class IdentityTests(unittest.TestCase):
                 if expected:
                     self.assertEqual(agents[0]["name"], expected)
                     self.assertEqual(agents[0]["tags"]["gen_ai.agent.name"], expected)
-                    self.assertEqual(relations[0]["targetId"], agents[0]["identifier"])
+                    self.assertEqual(relations[0]["sourceId"], agents[0]["identifier"])
                     self.assertEqual(
-                        relations[0]["sourceId"],
+                        relations[0]["targetId"],
                         component(data, "otel service")["identifier"],
                     )
 
@@ -274,9 +274,9 @@ class IdentityTests(unittest.TestCase):
                 if kind in ("genai agent", "genai served model"):
                     relations = mapped(data, "OtelRelationMapping")
                     self.assertEqual(len(relations), 1)
-                    self.assertEqual(relations[0]["targetId"], identifier)
+                    self.assertEqual(relations[0]["sourceId"], identifier)
                     self.assertEqual(
-                        relations[0]["sourceId"],
+                        relations[0]["targetId"],
                         component(data, "otel service")["identifier"],
                     )
             self.assertEqual(len(set(identifiers)), len(identifiers))

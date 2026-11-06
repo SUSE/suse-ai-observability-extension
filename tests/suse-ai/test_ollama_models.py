@@ -13,7 +13,7 @@ from test_runtime_observations import runtime_series
 
 PREFIX = "urn:stackpack:suse-ai:"
 MAPPING = BY_ID[PREFIX + "otel-component-mapping:ollama-models"]
-RELATION = BY_ID[PREFIX + "otel-relation-mapping:ollama-models"]
+RELATION = BY_ID[PREFIX + "otel-relation-mapping:ollama-model-host"]
 
 
 def observation(model="gemma:2b", **resource):
@@ -41,9 +41,10 @@ class OllamaModelContractTest(unittest.TestCase):
             })
             edge = mapped(data, "OtelRelationMapping")
             self.assertEqual(len(edge), 1)
-            self.assertEqual(edge[0]["sourceId"], component(data, "otel service")["identifier"])
-            self.assertEqual(edge[0]["targetId"], model["identifier"])
-            self.assertEqual(edge[0]["typeName"], "serves-model")
+            self.assertEqual(edge[0]["sourceId"], model["identifier"])
+            self.assertEqual(edge[0]["targetId"], component(data, "otel service")["identifier"])
+            self.assertEqual(edge[0]["typeName"], "is-hosted-on")
+            self.assertEqual(edge[0]["dependencyType"], "HIERARCHICAL")
             data["resource"]["attributes"]["service.instance.id"] = "pod-replacement"
             data["datapoint"]["attributes"].update(family="changed", quantization="Q8_0")
             self.assertEqual(component(data, "genai served model")["identifier"], model["identifier"])
@@ -93,7 +94,7 @@ class OllamaModelContractTest(unittest.TestCase):
             self.assertIn('model="gemma:2b"', info[0])
             data = observation()
             identities.add(component(data, "genai served model")["identifier"])
-            self.assertEqual(mapped(data, "OtelRelationMapping")[0]["targetId"], next(iter(identities)))
+            self.assertEqual(mapped(data, "OtelRelationMapping")[0]["sourceId"], next(iter(identities)))
             if elapsed >= 300000:
                 self.assertIn('ollama_model_loaded{model="gemma:2b"} 0', lines)
         self.assertEqual(len(identities), 1)
