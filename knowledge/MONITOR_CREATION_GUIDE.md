@@ -575,32 +575,43 @@ Help operators understand and resolve issues:
 
 ### 1. Aggregated Health States
 
-Roll up health from child to parent components:
+Map the worst health of selected components to a target identifier. The installed
+common function's required parameters, verified on the demo on 2026-11-06, are
+`title`, `query` and `urnTemplate`. In this illustrative example, each selected
+component must have a `group` tag and the corresponding target must exist:
 
 ```yaml
 - _type: Monitor
   arguments:
-    aggregatedHealthStateMetric: ...
-    aggregationFunction: "worst"
-    excludeSelfHealthState: true
-  function: {{ get "urn:stackpack:common:monitor-function:topology-health-aggregator-monitor-v2" }}
+    title: Group health
+    query: 'type = "example child"'
+    urnTemplate: 'urn:example:group/${group}'
+  function: urn:stackpack:common:monitor-function:topology-health-aggregator-monitor-v2
 ```
+
+This function maps source-component tags to one target identifier; it does not
+take a relation-direction parameter or automatically fan one engine's health out
+to all its served models. The previous `aggregatedHealthStateMetric`,
+`aggregationFunction` and `excludeSelfHealthState` example was not the installed
+function's parameter contract.
 
 ### 2. Derived Health States
 
-Derive health based on related component states:
+Derive health from outgoing dependencies for components without a direct observed
+state. The installed function accepts only the comma-separated `componentTypes`
+parameter. Direct observed checks retain precedence:
 
 ```yaml
 - _type: Monitor
   arguments:
-    componentPattern: "type = 'deployment'"
-    relationDirection: "children"
-    healthStateMapping:
-      CRITICAL: CRITICAL
-      DEVIATING: DEVIATING
-      CLEAR: CLEAR
-  function: {{ get "urn:stackpack:common:monitor-function:derived-state-monitor" }}
+    componentTypes: genai served model, genai agent
+  function: urn:stackpack:common:monitor-function:derived-state-monitor
 ```
+
+There is no `relationDirection` argument. Reversing a model's hosting edge also
+changes which dependencies this function can follow. See the
+[verified UX/layout findings](V3_UX_REVIEW_20261106.md) and the official
+[derived-state monitor documentation](https://documentation.suse.com/external-tree/en-us/cloudnative/suse-observability/latest/en/setup/custom-integrations/monitors/derived-state-monitors.html).
 
 ### 3. Anomaly Detection
 

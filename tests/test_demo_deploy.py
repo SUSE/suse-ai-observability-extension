@@ -55,7 +55,7 @@ class FakeClient:
                 raise RuntimeError("Upload connection lost; server outcome unknown")
             self.versions.append(self.uploaded)
         if args[:2] == ("stackpack", "list"):
-            return {"stackpacks": [{"name": "suse-ai", "nextVersion": {"version": self.offered or self.uploaded}}]}
+            return {"stackpacks": [{"name": "suse-ai", "nextVersion": {"version": self.offered or max(self.versions)}}]}
         if args[:2] in (("stackpack", "install"), ("stackpack", "upgrade")):
             self.instances = [{"id": 123, "status": "INSTALLED", "stackPackVersion": self.uploaded}]
 
@@ -111,12 +111,26 @@ class DemoDeploymentTest(unittest.TestCase):
         self.assertEqual(self.client.instances[0]["stackPackVersion"], "3.0.0-dev.1")
         self.assertFalse(any(c[1] in ("upgrade", "downgrade", "uninstall") for c in self.client.calls))
 
-    def test_version_sequence_uses_numeric_order_and_rejects_invalid_or_consumed_versions(self):
+    def test_version_sequence_obeys_numeric_and_demo_catalog_order(self):
         used = {"3.0.0-dev.2", "3.0.0-dev.10", "2.0.0"}
-        self.assertEqual(DEMO.choose_version(used), "3.0.0-dev.11")
-        for version in ("3.0.0-dev.0", "3.0.0-dev.01", "3.0.0-dev.9", "3.0.0-dev.10", "3.0.0", "3.0.1-dev.1"):
+        self.assertEqual(DEMO.choose_version(used), "3.0.0-dev.20")
+        self.assertEqual(DEMO.choose_version({"3.0.0-dev.8"}), "3.0.0-dev.9")
+        self.assertEqual(DEMO.choose_version({"3.0.0-dev.90"}), "3.0.0-dev.91")
+        self.assertEqual(DEMO.choose_version({"3.0.0-dev.99", "3.0.0-dev.100"}), "3.0.0-dev.990")
+        self.assertEqual(DEMO.choose_version({"3.0.0-dev.9", "3.0.0-dev.10000"}), "3.0.0-dev.90000")
+        for version in ("3.0.0-dev.0", "3.0.0-dev.01", "3.0.0-dev.9", "3.0.0-dev.10", "3.0.0-dev.11", "3.0.0", "3.0.1-dev.1"):
             with self.subTest(version=version), self.assertRaises(ValueError):
                 DEMO.choose_version(used, version)
+
+    def test_digit_boundary_upgrades_without_deleting_or_reusing_versions(self):
+        self.client.versions += ["3.0.0-dev.9", "3.0.0-dev.10"]
+        self.client.instances = [{"id": 123, "status": "INSTALLED", "stackPackVersion": "3.0.0-dev.9"}]
+        self.deploy()
+        self.assertEqual(self.client.instances[0]["stackPackVersion"], "3.0.0-dev.90")
+        self.assertEqual(self.client.instances[0]["id"], 123)
+        mutations = [c for c in self.client.calls if c[1] in ("upload", "upgrade", "downgrade", "uninstall", "delete")]
+        self.assertEqual([c[1] for c in mutations], ["upload", "upgrade"])
+        self.assertIn("overwrite", mutations[-1])
 
     def test_demo_connection_rejects_nonlocal_targets_and_embedded_credentials(self):
         for url in ("https://example.org", "http://127.0.0.1.example.org", "http://user:secret@localhost",

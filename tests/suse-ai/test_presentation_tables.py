@@ -12,7 +12,7 @@ import unittest
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
-from test_contract import BY_ID, evaluate
+from test_contract import BY_ID, NODES, evaluate
 
 
 PREFIX = "urn:stackpack:suse-ai:component-presentation:"
@@ -30,6 +30,24 @@ COLUMNS = {view: ["suse_ai_health", *columns] for view, columns in COLUMNS.items
 
 
 class PresentationTableContractTest(unittest.TestCase):
+    def test_runtime_inventory_is_classified_as_model_deployment(self):
+        cases = [
+            ({"ollama.model.name": ["llama3.2:latest"]}, "Model deployment"),
+            ({"vllm.model.name": ["qwen-small"]}, "Model deployment"),
+            ({"gen_ai.request.model": ["qwen-small"]}, "Model usage"),
+            ({"gen_ai.agent.name": ["demo-agent"]}, "Agent"),
+            ({"suse.ai.category": ["mcp-server"]}, "MCP server"),
+            ({"suse.ai.category": ["ml-registry"]}, "Model registry"),
+            ({}, "Application"),
+        ]
+        for node in NODES:
+            columns = node.get("presentation", {}).get("overview", {}).get("columns", [])
+            for column in columns:
+                if column["columnId"] == "suse_ai_category":
+                    for tags, expected in cases:
+                        with self.subTest(view=node["identifier"], tags=tags):
+                            self.assertEqual(evaluate(column["projection"]["value"], {"tags": tags}), expected)
+
     def test_shared_tables_contain_health_and_identity_projections(self):
         for view, expected in COLUMNS.items():
             columns = BY_ID[PREFIX + view]["presentation"]["overview"]["columns"]
@@ -68,6 +86,11 @@ class BackendPresentationTableTest(unittest.TestCase):
         cls.evidence.mkdir(parents=True, exist_ok=True)
 
     def api(self, path, body=None):
+        if path.startswith("/api/overview/") and body == {}:
+            # Use the browser's explicit request shape so implicit defaults do
+            # not differ between this check and the visible grouped tables.
+            body = {"filters": {"tagFilters": [], "columnFilters": {}},
+                    "sorting": [], "pagination": {"limit": 100}}
         request = Request(self.url + path, None if body is None else json.dumps(body).encode(),
                           {"X-API-Key": self.token, "Content-Type": "application/json"})
         with urlopen(request, timeout=30) as response:
@@ -95,6 +118,16 @@ class BackendPresentationTableTest(unittest.TestCase):
                 self.assertTrue(link["componentId"].startswith("urn:opentelemetry:namespace/"))
                 detail = self.api("/api/components/" + quote(link["componentId"], safe=""))
                 self.assertEqual(detail["typeName"], "otel service")
+
+    def test_live_application_roles_are_reachable_in_the_grouped_menu(self):
+        applications = self.capture("application-group", self.api(
+            "/api/overview/" + quote(PREFIX + "applications", safe=""), {}))
+        grouped = {row["componentIdentifier"] for row in applications["data"]}
+        for role in ("application", "agent", "ui", "mcp-server", "workflow-engine", "ml-registry"):
+            with self.subTest(role=role):
+                table = self.capture("application-role-" + role, self.api(
+                    "/api/overview/" + quote(PREFIX + "role-" + role, safe=""), {}))
+                self.assertLessEqual({row["componentIdentifier"] for row in table["data"]}, grouped)
 
     def test_product_table_queries_resolve_to_live_service_metrics(self):
         for product in ("vllm", "ollama", "litellm", "milvus", "qdrant", "opensearch", "mlflow", "mcpo"):

@@ -32,12 +32,23 @@ def demo_url(value):
 
 def choose_version(used, requested=""):
     numbers = [int(m[1]) for v in used if (m := DEV.fullmatch(v))]
-    version = requested or f"3.0.0-dev.{max(numbers, default=0) + 1}"
+    next_number = max(numbers, default=0) + 1
+    greatest_suffix = max((str(n) for n in numbers), default="")
+    # The demo catalog orders prerelease strings lexicographically: dev.10 is
+    # below dev.9. Stay above both that order and numeric SemVer order without
+    # deleting catalog entries or reusing an upload (9 -> 90, 99 -> 990).
+    if str(next_number) <= greatest_suffix:
+        next_number = int(greatest_suffix + "0")
+        while next_number <= max(numbers):
+            next_number *= 10
+    version = requested or f"3.0.0-dev.{next_number}"
     match = DEV.fullmatch(version)
     if not match:
         raise ValueError("DEMO_VERSION must be 3.0.0-dev.N with a positive integer N")
     if version in used or int(match[1]) <= max(numbers, default=0):
         raise ValueError(f"Version {version} was used or is below the recorded development sequence")
+    if match[1] <= greatest_suffix:
+        raise ValueError(f"Version {version} sorts below an existing demo prerelease; use 3.0.0-dev.{next_number}")
     return version
 
 

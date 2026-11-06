@@ -85,8 +85,8 @@ nodes:
             ''Model registry''} ? {''application'': ''Application'', ''agent'': ''Agent service'', ''ui'': ''AI
             interface'', ''inference-engine'': ''Inference'', ''model-proxy'': ''Model gateway'', ''vectordb'':
             ''Vector database'', ''search-engine'': ''Search'', ''mcp-server'': ''MCP server'', ''workflow-engine'':
-            ''Workflow'', ''ml-registry'': ''Model registry''}[category] : category).join('', '') : (''vllm.model.name''
-            in tags ? ''Model deployment'' : (''gen_ai.agent.name'' in tags ? ''Agent'' : (''gen_ai.request.model''
+            ''Workflow'', ''ml-registry'': ''Model registry''}[category] : category).join('', '') : ((''vllm.model.name'' in tags || ''ollama.model.name''
+            in tags) ? ''Model deployment'' : (''gen_ai.agent.name'' in tags ? ''Agent'' : (''gen_ai.request.model''
             in tags ? ''Model usage'' : ''Application'')))'
       - columnId: suse_ai_product
         title: Product

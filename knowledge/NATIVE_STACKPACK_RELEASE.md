@@ -78,6 +78,14 @@ again. An existing version is treated as immutable; this is not a server-side
 byte/hash attestation. Any payload change after upload requires a new version.
 Do not publish different archives under the same release version.
 
+For demo prereleases, use `task demo-deploy` with its explicit localhost URL,
+token file and version ledger. On 2026-11-06 the demo catalog ordered `dev.10`
+below `dev.9` and offered no upgrade. The task now chooses a suffix above both
+numeric and lexical order, so version numbers can jump (for example `dev.9` to
+`dev.90`). Uploaded versions stay consumed, including a version the server did
+not offer for upgrade. The successful dev.90 upgrade used overwrite and retained
+the instance; [evidence and limits](V3_UX_REVIEW_20261106.md#deployment-and-verification).
+
 ## Reproducible artifact and IBS command
 
 Run `task stackpack-package` (alias `stackpack-build`). It calls
