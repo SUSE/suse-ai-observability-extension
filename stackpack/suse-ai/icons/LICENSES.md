@@ -6,10 +6,14 @@ model/agent/GPU components. Their drawing grid is 40×40; intrinsic dimensions a
 16×16 to fit the native navigation header. Native OTel service and instance icons
 remain owned by Open Telemetry.
 
-The StackPack logo is the original SUSE PNG restored byte-for-byte from the previous
-release asset (`b0d5867:stackpack/suse-ai/resources/logo.png`). `suse-logo.svg`
-embeds those same bytes at navigation size for the SUSE AI menu group. SUSE branding
-remains subject to SUSE's trademark rights; no Apache licence is asserted for it.
+The StackPack catalog logo is the original SUSE PNG restored byte-for-byte from the
+previous release asset (`b0d5867:stackpack/suse-ai/resources/logo.png`).
+The SUSE AI menu group uses the chameleon-only `menu.png` supplied by the user on
+2026-11-06. `suse-logo.svg` embeds that 128×128 PNG unchanged, with 16×16 intrinsic
+navigation dimensions. The embedded PNG's SHA-256 is
+`eea9aaa58e65a96cf724853011e1aeee6835f602a9c5d17541b16dcbfc439b5b`.
+SUSE branding remains subject to SUSE's trademark rights; no Apache licence is
+asserted for either asset.
 
 The legacy stock-style PNGs and vendor-logo files were removed during the 2026-11-06
 integration. No licence is inferred or granted for those removed assets. ComponentType
