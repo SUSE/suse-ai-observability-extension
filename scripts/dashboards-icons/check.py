@@ -60,8 +60,12 @@ def main():
             panel = value["spec"]
             queries = [q["spec"]["plugin"]["spec"]["query"] for q in panel["queries"]]
             if panel["plugin"]["kind"] == "TimeSeriesChart":
-                assert len(queries) == 2 and "offset 1h" in queries[1], f"No comparison: {path}:{key}"
-                assert queries[1].replace(" offset 1h", "") == queries[0], f"Mismatched comparison: {path}:{key}"
+                assert len(queries) in (1, 2), f"Unexpected series arrangement: {path}:{key}"
+                if len(queries) == 2:
+                    assert "offset 1h" in queries[0], f"History must render first: {path}:{key}"
+                    assert queries[0].replace(" offset 1h", "") == queries[1], f"Mismatched comparison: {path}:{key}"
+                else:
+                    assert "offset 1h" not in queries[0], f"Entity trend must show current data: {path}:{key}"
                 assert panel["plugin"]["spec"]["visual"]["connectNulls"] is False
             for query in queries:
                 query_count += 1

@@ -12,8 +12,8 @@ nodes:
     overview:
       name:
         singular: model deployment
-        plural: model deployment
-        title: Model deployment
+        plural: model deployments
+        title: Model deployments
       columns:
       - columnId: suse_ai_health
         title: Health
@@ -69,13 +69,13 @@ nodes:
           identifier: "'urn:opentelemetry:namespace/' + tags.singleValue('service.namespace') + ':service/' + tags.singleValue('service.name')"
       relatedResources:
       - resourceId: suse_ai_service
-        title: Hosting inference service
+        title: Hosting inference engine
         order: 90
         topologyQuery: withNeighborsOf(direction = "both", components = (identifier = "${identifiers[0]}"), levels
           = "1") and type = "otel service"
         presentationIdentifier: urn:stackpack:suse-ai:component-presentation:services
       links:
       - linkId: suse_ai_model_inventory
-        title: All models
+        title: All model deployments
         target: /#/views/urn:stackpack:suse-ai:component-presentation:model-inventory
         order: 50

@@ -145,7 +145,7 @@ nodes:
             display:
               name: Client calls / min — now vs 1 hour ago
               description: Client observations across instrumented callers; a user request may create several model calls.
-                The previous hour is shifted forward for comparison; gaps remain gaps.
+                Dark blue is Now when both periods have data. The previous hour is shifted forward; gaps remain gaps.
             plugin:
               kind: TimeSeriesChart
               spec:
@@ -163,13 +163,6 @@ nodes:
                 visual:
                   connectNulls: false
             queries:
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: 60 * sum(rate(gen_ai_client_operation_duration_seconds_count{k8s_cluster_name=~"${cluster}"}[5m]))
-                    alias: Now
             - kind: TimeSeriesQuery
               spec:
                 plugin:
@@ -177,14 +170,21 @@ nodes:
                   spec:
                     query: 60 * sum(rate(gen_ai_client_operation_duration_seconds_count{k8s_cluster_name=~"${cluster}"}[5m]
                       offset 1h))
-                    alias: 1 hour ago
+                    alias: 1h ago
+            - kind: TimeSeriesQuery
+              spec:
+                plugin:
+                  kind: PrometheusTimeSeriesQuery
+                  spec:
+                    query: 60 * sum(rate(gen_ai_client_operation_duration_seconds_count{k8s_cluster_name=~"${cluster}"}[5m]))
+                    alias: Now
             links: []
         vllm-tokens-compare:
           spec:
             display:
               name: vLLM generated tokens / s — now vs 1 hour ago
-              description: Server-side output throughput, separate from caller token observations. The previous hour is shifted
-                forward for comparison; gaps remain gaps.
+              description: Server-side output throughput, separate from caller token observations. Dark blue is Now when both
+                periods have data. The previous hour is shifted forward; gaps remain gaps.
             plugin:
               kind: TimeSeriesChart
               spec:
@@ -202,14 +202,6 @@ nodes:
                 visual:
                   connectNulls: false
             queries:
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: sum (max by (k8s_cluster_name, service_namespace, service_name, service_instance_id, model_name,
-                      engine, finished_reason, le) (rate(vllm:generation_tokens_total{k8s_cluster_name=~"${cluster}"}[5m])))
-                    alias: Now
             - kind: TimeSeriesQuery
               spec:
                 plugin:
@@ -218,14 +210,22 @@ nodes:
                     query: sum (max by (k8s_cluster_name, service_namespace, service_name, service_instance_id, model_name,
                       engine, finished_reason, le) (rate(vllm:generation_tokens_total{k8s_cluster_name=~"${cluster}"}[5m]
                       offset 1h)))
-                    alias: 1 hour ago
+                    alias: 1h ago
+            - kind: TimeSeriesQuery
+              spec:
+                plugin:
+                  kind: PrometheusTimeSeriesQuery
+                  spec:
+                    query: sum (max by (k8s_cluster_name, service_namespace, service_name, service_instance_id, model_name,
+                      engine, finished_reason, le) (rate(vllm:generation_tokens_total{k8s_cluster_name=~"${cluster}"}[5m])))
+                    alias: Now
             links: []
         models-compare:
           spec:
             display:
               name: Ollama loaded model replicas — now vs 1 hour ago
-              description: Loaded models summed across serving replicas; the same model on two replicas counts twice. The
-                previous hour is shifted forward for comparison; gaps remain gaps.
+              description: Loaded models summed across serving replicas; the same model on two replicas counts twice. Dark
+                blue is Now when both periods have data. The previous hour is shifted forward; gaps remain gaps.
             plugin:
               kind: TimeSeriesChart
               spec:
@@ -248,23 +248,23 @@ nodes:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
-                    query: sum(max by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (ollama_loaded_models{k8s_cluster_name=~"${cluster}"}))
-                    alias: Now
+                    query: sum(max by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (ollama_loaded_models{k8s_cluster_name=~"${cluster}"}
+                      offset 1h))
+                    alias: 1h ago
             - kind: TimeSeriesQuery
               spec:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
-                    query: sum(max by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (ollama_loaded_models{k8s_cluster_name=~"${cluster}"}
-                      offset 1h))
-                    alias: 1 hour ago
+                    query: sum(max by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (ollama_loaded_models{k8s_cluster_name=~"${cluster}"}))
+                    alias: Now
             links: []
         gpu-compare:
           spec:
             display:
               name: Mean GPU utilization — now vs 1 hour ago
-              description: Compare utilization with calls and latency before deciding to add capacity. The previous hour is
-                shifted forward for comparison; gaps remain gaps.
+              description: Compare utilization with calls and latency before deciding to add capacity. Dark blue is Now when
+                both periods have data. The previous hour is shifted forward; gaps remain gaps.
             plugin:
               kind: TimeSeriesChart
               spec:
@@ -288,16 +288,16 @@ nodes:
                   kind: PrometheusTimeSeriesQuery
                   spec:
                     query: avg(max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_GPU_UTIL{k8s_cluster_name=~"${cluster}",
-                      UUID!="", GPU_I_ID=""}))
-                    alias: Now
+                      UUID!="", GPU_I_ID=""} offset 1h))
+                    alias: 1h ago
             - kind: TimeSeriesQuery
               spec:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
                     query: avg(max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_GPU_UTIL{k8s_cluster_name=~"${cluster}",
-                      UUID!="", GPU_I_ID=""} offset 1h))
-                    alias: 1 hour ago
+                      UUID!="", GPU_I_ID=""}))
+                    alias: Now
             links: []
         coverage:
           spec:

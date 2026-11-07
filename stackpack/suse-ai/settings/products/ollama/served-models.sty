@@ -9,17 +9,103 @@ nodes:
     specificity: 240
   presentation:
     highlight:
+      fields:
+      - fieldId: suse_ai_ollama_family
+        title: Model family
+        order: 90
+        projection:
+          _type: TextProjection
+          value: tags.singleValue('ollama.model.family')
+      - fieldId: suse_ai_ollama_parameters
+        title: Parameters
+        order: 89
+        projection:
+          _type: TextProjection
+          value: tags.singleValue('ollama.model.parameter_size')
+      - fieldId: suse_ai_ollama_quantization
+        title: Quantization
+        order: 88
+        projection:
+          _type: TextProjection
+          value: tags.singleValue('ollama.model.quantization')
+      - fieldId: suse_ai_ollama_current_loaded
+        title: Loaded replicas
+        order: 87
+        projection:
+          _type: MetricProjection
+          query: sum(max by (k8s_cluster_name, service_namespace, service_name, service_instance_id, model) (ollama_model_loaded{service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}", service_instance_id=~".*", k8s_cluster_name="${tags.singleValue('cluster-name')}",
+            model="${tags.singleValue('ollama.model.name')}"} and (timestamp(ollama_model_loaded{service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}", service_instance_id=~".*", k8s_cluster_name="${tags.singleValue('cluster-name')}",
+            model="${tags.singleValue('ollama.model.name')}"}) == on (k8s_cluster_name, service_namespace, service_name,
+            service_instance_id) group_left max by (k8s_cluster_name, service_namespace, service_name, service_instance_id)
+            (timestamp(ollama_api_up{service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}",
+            service_instance_id=~".*", k8s_cluster_name="${tags.singleValue('cluster-name')}"}) and (ollama_api_up{service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}", service_instance_id=~".*", k8s_cluster_name="${tags.singleValue('cluster-name')}"}
+            == 1) and topk by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (1, timestamp(ollama_api_up{service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}", service_instance_id=~".*", k8s_cluster_name="${tags.singleValue('cluster-name')}"}))))))
+          unit: short
+          decimalPlaces: 0
+          sparkline: false
+      - fieldId: suse_ai_ollama_current_vram
+        title: VRAM (GiB)
+        order: 86
+        projection:
+          _type: MetricProjection
+          query: round((sum(max by (k8s_cluster_name, service_namespace, service_name, service_instance_id, model)
+            (ollama_model_vram_bytes{service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}",
+            service_instance_id=~".*", k8s_cluster_name="${tags.singleValue('cluster-name')}", model="${tags.singleValue('ollama.model.name')}"}
+            and (timestamp(ollama_model_vram_bytes{service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}", service_instance_id=~".*", k8s_cluster_name="${tags.singleValue('cluster-name')}",
+            model="${tags.singleValue('ollama.model.name')}"}) == on (k8s_cluster_name, service_namespace, service_name,
+            service_instance_id) group_left max by (k8s_cluster_name, service_namespace, service_name, service_instance_id)
+            (timestamp(ollama_api_up{service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}",
+            service_instance_id=~".*", k8s_cluster_name="${tags.singleValue('cluster-name')}"}) and (ollama_api_up{service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}", service_instance_id=~".*", k8s_cluster_name="${tags.singleValue('cluster-name')}"}
+            == 1) and topk by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (1, timestamp(ollama_api_up{service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}", service_instance_id=~".*", k8s_cluster_name="${tags.singleValue('cluster-name')}"})))))))
+            / 1073741824, 0.01)
+          unit: short
+          decimalPlaces: 2
+          sparkline: false
+          metricId: suse_ai_ollama_served_model_vram
+      - fieldId: suse_ai_ollama_current_disk_size
+        title: Disk size (GiB)
+        order: 85
+        projection:
+          _type: MetricProjection
+          query: round((max(max by (k8s_cluster_name, service_namespace, service_name, service_instance_id, model)
+            (ollama_model_disk_size_bytes{service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}",
+            service_instance_id=~".*", k8s_cluster_name="${tags.singleValue('cluster-name')}", model="${tags.singleValue('ollama.model.name')}"}
+            and (timestamp(ollama_model_disk_size_bytes{service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}", service_instance_id=~".*", k8s_cluster_name="${tags.singleValue('cluster-name')}",
+            model="${tags.singleValue('ollama.model.name')}"}) == on (k8s_cluster_name, service_namespace, service_name,
+            service_instance_id) group_left max by (k8s_cluster_name, service_namespace, service_name, service_instance_id)
+            (timestamp(ollama_api_up{service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}",
+            service_instance_id=~".*", k8s_cluster_name="${tags.singleValue('cluster-name')}"}) and (ollama_api_up{service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}", service_instance_id=~".*", k8s_cluster_name="${tags.singleValue('cluster-name')}"}
+            == 1) and topk by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (1, timestamp(ollama_api_up{service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}", service_instance_id=~".*", k8s_cluster_name="${tags.singleValue('cluster-name')}"})))))))
+            / 1073741824, 0.01)
+          unit: short
+          decimalPlaces: 2
+          sparkline: false
+          metricId: suse_ai_ollama_served_model_disk_size
+      - fieldId: suse_ai_ollama_inventory_help
+        title: Inventory
+        order: 80
+        projection:
+          _type: TextProjection
+          value: '''Unloaded models stay available'''
       metrics:
       - sectionId: suse_ai_served_models_ollama
-        title: Ollama model
+        title: Model residency history
         order: 200
         metrics:
         - metricId: suse_ai_ollama_served_model_loaded
           order: 100
         - metricId: suse_ai_ollama_served_model_vram
           order: 99
-        - metricId: suse_ai_ollama_served_model_disk_size
-          order: 98
     metricPerspective:
       tabs:
       - tabId: suse_ai_ollama_model

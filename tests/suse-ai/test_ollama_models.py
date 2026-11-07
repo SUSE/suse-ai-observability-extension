@@ -185,5 +185,29 @@ class OllamaModelPromQLTest(unittest.TestCase):
         checks += [model_chart(k, None, t) for k in metrics for t in ("2m", "3m", "9m")]
         cases.append({"name": "Unload failure deletion and expiry never revive old model metrics", "series": rows, "checks": checks})
         cases.append({"name": "Absent telemetry stays missing", "series": [], "checks": [model_chart(k, None) for k in metrics]})
+        # Current-value fields must retain the same unload, failure and scope
+        # semantics as their history charts. Loaded replicas counts both hosts.
+        for case in cases:
+            for check in list(case["checks"]):
+                key = check["metric"].removeprefix("suse_ai_ollama_served_model_")
+                if key not in ("loaded", "vram", "disk_size"):
+                    continue
+                field_check = {k: v for k, v in check.items() if k != "metric"}
+                field_check["field"] = "suse_ai_ollama_current_" + key
+                if key == "loaded" and case["name"].startswith("Exact model"):
+                    field_check["samples"] = samples(2)
+                elif key != "loaded" and check["samples"]:
+                    field_check["samples"] = samples(round(check["samples"][0]["value"] / 1073741824, 2))
+                case["checks"].append(field_check)
+        cases.append({"name": "Current memory fields expose GiB rather than raw bytes", "series": [
+            runtime_series("api_up", service_instance_id="a"),
+            runtime_series("api_up", service_instance_id="b"),
+            runtime_series("model_vram_bytes", "2147483648+0x20", model="gemma:2b", service_instance_id="a"),
+            runtime_series("model_vram_bytes", "3221225472+0x20", model="gemma:2b", service_instance_id="b"),
+            runtime_series("model_disk_size_bytes", "4294967296+0x20", model="gemma:2b", service_instance_id="a"),
+        ], "checks": [
+            {"presentation": "served-models-ollama", "field": "suse_ai_ollama_current_vram", "samples": samples(5)},
+            {"presentation": "served-models-ollama", "field": "suse_ai_ollama_current_disk_size", "samples": samples(4)},
+        ]})
         result = run_promql_cases(cases)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)

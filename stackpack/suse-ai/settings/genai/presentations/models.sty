@@ -74,15 +74,25 @@ nodes:
         projection:
           _type: TextProjection
           value: tags.singleValue('server.port')
+      - fieldId: suse_ai_model_usage_scope
+        title: Metric scope
+        order: 70
+        projection:
+          _type: TextProjection
+          value: "'This exact model call'"
       relatedResources:
       - resourceId: suse_ai_service
-        title: Related services
+        title: Calling application
         order: 90
         topologyQuery: identifier = "urn:opentelemetry:namespace/${tags.singleValue('service.namespace')}:service/${tags.singleValue('service.name')}"
         presentationIdentifier: urn:stackpack:suse-ai:component-presentation:services
       links:
+      - linkId: suse_ai_model_usage_traces
+        title: Inspect model calls in Traces
+        target: /#/components/${string(id)}/traces
+        order: 100
       - linkId: suse_ai_model_inventory
-        title: All models
+        title: All model deployments
         target: /#/views/urn:stackpack:suse-ai:component-presentation:model-inventory
         order: 50
     tracesPerspective:

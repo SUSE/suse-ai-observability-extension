@@ -155,6 +155,40 @@ tasks:
         --kubeconfig '{{.DEMO_KUBECONFIG}}' --output '{{.DEMO_EVIDENCE}}'
         --runtime '{{.RUNTIME}}' --image '{{.OLLAMA_IMAGE}}'
 
+  demo-kubeflow-install:
+    desc: Install the reviewed Kubeflow demo values into an explicitly selected cluster
+    requires:
+      vars: [DEMO_KUBECONFIG, KUBEFLOW_CHART, KUBEFLOW_VALUES]
+    cmds:
+      - >-
+        helm upgrade --install kubeflow '{{.KUBEFLOW_CHART}}'
+        --kubeconfig '{{.DEMO_KUBECONFIG}}' --namespace kubeflow
+        --values '{{.KUBEFLOW_VALUES}}' --wait --timeout 15m
+
+  demo-kubeflow-pin-driver:
+    desc: Pin the demo KFP driver to the API server version when the chart omits V2_DRIVER_IMAGE
+    requires:
+      vars: [DEMO_KUBECONFIG, KUBEFLOW_DRIVER_IMAGE]
+    cmds:
+      - >-
+        kubectl --kubeconfig '{{.DEMO_KUBECONFIG}}' --namespace kubeflow
+        set env deployment/ml-pipeline V2_DRIVER_IMAGE='{{.KUBEFLOW_DRIVER_IMAGE}}'
+      - >-
+        kubectl --kubeconfig '{{.DEMO_KUBECONFIG}}' --namespace kubeflow
+        rollout status deployment/ml-pipeline --timeout=5m
+
+  demo-kubeflow-traffic-enable:
+    desc: Enable existing demo prediction and registry scenarios after the Iris lifecycle succeeds
+    requires:
+      vars: [DEMO_KUBECONFIG]
+    cmds:
+      - >-
+        kubectl --kubeconfig '{{.DEMO_KUBECONFIG}}' --namespace suse-ai-demo
+        set env deployment/traffic-gen ENABLE_KUBEFLOW_SCENARIOS=true
+      - >-
+        kubectl --kubeconfig '{{.DEMO_KUBECONFIG}}' --namespace suse-ai-demo
+        rollout status deployment/traffic-gen --timeout=5m
+
   demo-monitor-test:
     desc: Preview threshold monitors in three states and capture derived-health dry runs; never persist test states
     requires:

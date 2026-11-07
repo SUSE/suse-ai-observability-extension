@@ -56,7 +56,8 @@ nodes:
           spec:
             display:
               name: vLLM first token p95
-              description: Server time to first token over five minutes. Idle histograms have no meaningful percentile.
+              description: Histogram estimate over five minutes. Bucket boundaries can keep p95 flat even when individual
+                requests vary; idle histograms have no percentile.
             plugin:
               kind: StatChart
               spec:
@@ -131,9 +132,9 @@ nodes:
         vllm-ttft-compare:
           spec:
             display:
-              name: vLLM first token p95 — now vs 1 hour ago
-              description: Compare per-model server latency with caller latency below. The previous hour is shifted forward
-                for comparison; gaps remain gaps.
+              name: vLLM first token p95 by model
+              description: 'Histogram estimate: a flat percentile can reflect bucket resolution, not identical request durations.
+                Current selected time window; no shifted historical series.'
             plugin:
               kind: TimeSeriesChart
               spec:
@@ -142,7 +143,7 @@ nodes:
                   min: 0
                   format:
                     unit: s
-                    decimalPlaces: 2
+                    decimalPlaces: 3
                 legend:
                   show: true
                   position: bottom
@@ -158,23 +159,14 @@ nodes:
                   spec:
                     query: histogram_quantile(0.95, sum by (service_namespace, service_name, model_name, le) (max by (k8s_cluster_name,
                       service_namespace, service_name, service_instance_id, model_name, engine, finished_reason, le) (rate(vllm:time_to_first_token_seconds_bucket{k8s_cluster_name=~"${cluster}"}[5m]))))
-                    alias: Now · ${service_namespace}/${service_name} · ${model_name}
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: histogram_quantile(0.95, sum by (service_namespace, service_name, model_name, le) (max by (k8s_cluster_name,
-                      service_namespace, service_name, service_instance_id, model_name, engine, finished_reason, le) (rate(vllm:time_to_first_token_seconds_bucket{k8s_cluster_name=~"${cluster}"}[5m]
-                      offset 1h))))
-                    alias: 1 hour ago · ${service_namespace}/${service_name} · ${model_name}
+                    alias: ${service_namespace}/${service_name} · ${model_name}
             links: []
         vllm-tokens:
           spec:
             display:
-              name: vLLM generated tokens / s — now vs 1 hour ago
-              description: Aggregate real serving replicas after deduplicating scrape copies. The previous hour is shifted
-                forward for comparison; gaps remain gaps.
+              name: vLLM generated tokens / s
+              description: Aggregate real serving replicas after deduplicating scrape copies. Current selected time window;
+                no shifted historical series.
             plugin:
               kind: TimeSeriesChart
               spec:
@@ -199,23 +191,14 @@ nodes:
                   spec:
                     query: sum by (service_namespace, service_name, model_name) (max by (k8s_cluster_name, service_namespace,
                       service_name, service_instance_id, model_name, engine, finished_reason, le) (rate(vllm:generation_tokens_total{k8s_cluster_name=~"${cluster}"}[5m])))
-                    alias: Now · ${service_namespace}/${service_name} · ${model_name}
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: sum by (service_namespace, service_name, model_name) (max by (k8s_cluster_name, service_namespace,
-                      service_name, service_instance_id, model_name, engine, finished_reason, le) (rate(vllm:generation_tokens_total{k8s_cluster_name=~"${cluster}"}[5m]
-                      offset 1h)))
-                    alias: 1 hour ago · ${service_namespace}/${service_name} · ${model_name}
+                    alias: ${service_namespace}/${service_name} · ${model_name}
             links: []
         caller-latency:
           spec:
             display:
-              name: Client p95 by caller and model — now vs 1 hour ago
-              description: Use caller and requested-model labels to locate slow observations. The previous hour is shifted
-                forward for comparison; gaps remain gaps.
+              name: Client p95 by caller and model
+              description: Use caller and requested-model labels to locate slow observations. Current selected time window;
+                no shifted historical series.
             plugin:
               kind: TimeSeriesChart
               spec:
@@ -240,23 +223,14 @@ nodes:
                   spec:
                     query: histogram_quantile(0.95, sum by (service_namespace, service_name, gen_ai_provider_name, gen_ai_request_model,
                       le) (rate(gen_ai_client_operation_duration_seconds_bucket{k8s_cluster_name=~"${cluster}"}[5m])))
-                    alias: Now · ${service_namespace}/${service_name} · ${gen_ai_provider_name}/${gen_ai_request_model}
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: histogram_quantile(0.95, sum by (service_namespace, service_name, gen_ai_provider_name, gen_ai_request_model,
-                      le) (rate(gen_ai_client_operation_duration_seconds_bucket{k8s_cluster_name=~"${cluster}"}[5m] offset
-                      1h)))
-                    alias: 1 hour ago · ${service_namespace}/${service_name} · ${gen_ai_provider_name}/${gen_ai_request_model}
+                    alias: ${service_namespace}/${service_name} · ${gen_ai_provider_name}/${gen_ai_request_model}
             links: []
         client-tokens:
           spec:
             display:
-              name: Client input / output tokens per second — now vs 1 hour ago
-              description: Rates use the token histogram sum, not its observation count. The previous hour is shifted forward
-                for comparison; gaps remain gaps.
+              name: Client input / output tokens per second
+              description: Rates use the token histogram sum, not its observation count. Current selected time window; no
+                shifted historical series.
             plugin:
               kind: TimeSeriesChart
               spec:
@@ -281,24 +255,14 @@ nodes:
                   spec:
                     query: sum by (service_namespace, service_name, gen_ai_provider_name, gen_ai_request_model, gen_ai_token_type)
                       (rate(gen_ai_client_token_usage_sum{k8s_cluster_name=~"${cluster}"}[5m]))
-                    alias: Now · ${service_namespace}/${service_name} · ${gen_ai_provider_name}/${gen_ai_request_model} ·
-                      ${gen_ai_token_type}
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: sum by (service_namespace, service_name, gen_ai_provider_name, gen_ai_request_model, gen_ai_token_type)
-                      (rate(gen_ai_client_token_usage_sum{k8s_cluster_name=~"${cluster}"}[5m] offset 1h))
-                    alias: 1 hour ago · ${service_namespace}/${service_name} · ${gen_ai_provider_name}/${gen_ai_request_model}
-                      · ${gen_ai_token_type}
+                    alias: ${service_namespace}/${service_name} · ${gen_ai_provider_name}/${gen_ai_request_model} · ${gen_ai_token_type}
             links: []
         ollama-vram:
           spec:
             display:
-              name: Ollama model VRAM — now vs 1 hour ago
+              name: Ollama model VRAM
               description: Per loaded model and serving replica. Missing model series does not establish deletion or zero
-                memory. The previous hour is shifted forward for comparison; gaps remain gaps.
+                memory. Current selected time window; no shifted historical series.
             plugin:
               kind: TimeSeriesChart
               spec:
@@ -321,16 +285,51 @@ nodes:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
-                    query: max by (k8s_cluster_name, service_namespace, service_name, service_instance_id, model) (ollama_model_vram_bytes{k8s_cluster_name=~"${cluster}"})
-                    alias: Now · ${service_namespace}/${service_name} · ${service_instance_id} · ${model}
+                    query: label_replace(max by (k8s_cluster_name, service_namespace, service_name, service_instance_id, model)
+                      (ollama_model_vram_bytes{k8s_cluster_name=~"${cluster}"}), "suse_ai_replica", "$1", "service_instance_id",
+                      "(.{8}).*")
+                    alias: ${model} · ${service_namespace}/${service_name} · ${suse_ai_replica}
+            links: []
+        vllm-ttft-total-compare:
+          spec:
+            display:
+              name: vLLM first token p95 — now vs 1 hour ago
+              description: All observed vLLM models. Histogram interpolation can produce a flat p95 within a broad bucket.
+                Dark blue is Now when both periods have data. The previous hour is shifted forward; gaps remain gaps.
+            plugin:
+              kind: TimeSeriesChart
+              spec:
+                yAxis:
+                  show: true
+                  min: 0
+                  format:
+                    unit: s
+                    decimalPlaces: 3
+                legend:
+                  show: true
+                  position: bottom
+                  mode: list
+                  values: []
+                visual:
+                  connectNulls: false
+            queries:
             - kind: TimeSeriesQuery
               spec:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
-                    query: max by (k8s_cluster_name, service_namespace, service_name, service_instance_id, model) (ollama_model_vram_bytes{k8s_cluster_name=~"${cluster}"}
-                      offset 1h)
-                    alias: 1 hour ago · ${service_namespace}/${service_name} · ${service_instance_id} · ${model}
+                    query: histogram_quantile(0.95, sum by (le) (max by (k8s_cluster_name, service_namespace, service_name,
+                      service_instance_id, model_name, engine, finished_reason, le) (rate(vllm:time_to_first_token_seconds_bucket{k8s_cluster_name=~"${cluster}"}[5m]
+                      offset 1h))))
+                    alias: 1h ago
+            - kind: TimeSeriesQuery
+              spec:
+                plugin:
+                  kind: PrometheusTimeSeriesQuery
+                  spec:
+                    query: histogram_quantile(0.95, sum by (le) (max by (k8s_cluster_name, service_namespace, service_name,
+                      service_instance_id, model_name, engine, finished_reason, le) (rate(vllm:time_to_first_token_seconds_bucket{k8s_cluster_name=~"${cluster}"}[5m]))))
+                    alias: Now
             links: []
         coverage:
           spec:
@@ -341,8 +340,10 @@ nodes:
               kind: Markdown
               spec:
                 text: '**Investigate:** compare first-token latency and output throughput on vLLM, then caller latency by
-                  model. For Ollama, check loaded-model count and VRAM before investigating model residency. The verified
-                  vLLM inventory did not expose queue or KV-cache gauges, so these panels do not infer them.
+                  model. For Ollama, check loaded-model count and VRAM before investigating model residency. **Histogram resolution:**
+                  if all requests land in the 40–60 ms bucket, p95 is estimated at 59 ms. That does not mean every request
+                  took 59 ms. Replica labels show the first eight identity characters. The verified vLLM inventory did not
+                  expose queue or KV-cache gauges, so these panels do not infer them.
 
 
                   **Source coverage:** LiteLLM reports gateway traffic and cost; vLLM reports server request and token metrics;
@@ -415,6 +416,12 @@ nodes:
             height: 3
             content:
               $ref: '#/spec/panels/ollama-vram'
+          - x: 12
+            y: 9
+            width: 12
+            height: 3
+            content:
+              $ref: '#/spec/panels/vllm-ttft-total-compare'
           - x: 0
             y: 12
             width: 24

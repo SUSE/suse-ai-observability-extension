@@ -11,9 +11,12 @@ import yaml
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def expression(dashboard, panel, index=0):
+def expression(dashboard, panel, index=None):
     data = yaml.safe_load((ROOT / "stackpack/suse-ai/settings/dashboards" / (dashboard + ".sty")).read_text())
-    return data["nodes"][0]["dashboard"]["spec"]["panels"][panel]["spec"]["queries"][index]["spec"]["plugin"]["spec"]["query"].replace("${cluster}", "fixture")
+    queries = data["nodes"][0]["dashboard"]["spec"]["panels"][panel]["spec"]["queries"]
+    if index is None:
+        index = next(i for i, q in enumerate(queries) if "offset 1h" not in q["spec"]["plugin"]["spec"]["query"])
+    return queries[index]["spec"]["plugin"]["spec"]["query"].replace("${cluster}", "fixture")
 
 
 def check(query, value=None, time="70m"):
@@ -60,7 +63,18 @@ def main():
             series("vllm:generation_tokens_total", 'k8s_cluster_name="fixture",service_instance_id="a",model_name="chat",engine="0"',
                    "0+60x60 3720+120x9"),
         ], "promql_expr_test": [check(expression("overview", "vllm-tokens-compare"), 2),
-                               check(expression("overview", "vllm-tokens-compare", 1), 1)]},
+                               check(expression("overview", "vllm-tokens-compare", 0), 1)]},
+        {"name": "Compact legends preserve replica and physical-device identity", "interval": "1m", "input_series": [
+            series("ollama_model_vram_bytes", 'k8s_cluster_name="fixture",service_instance_id="aaaaaaaa-1",model="chat",job="one"', "100+0x70"),
+            series("ollama_model_vram_bytes", 'k8s_cluster_name="fixture",service_instance_id="aaaaaaaa-1",model="chat",job="two"', "100+0x70"),
+            series("ollama_model_vram_bytes", 'k8s_cluster_name="fixture",service_instance_id="aaaaaaaa-2",model="chat",job="one"', "200+0x70"),
+            series("DCGM_FI_DEV_GPU_UTIL", 'k8s_cluster_name="fixture",UUID="GPU-aaaaaaaa-1",k8s_node_name="node",pod_name="one"', "20+0x70"),
+            series("DCGM_FI_DEV_GPU_UTIL", 'k8s_cluster_name="fixture",UUID="GPU-aaaaaaaa-1",k8s_node_name="node",pod_name="two"', "20+0x70"),
+            series("DCGM_FI_DEV_GPU_UTIL", 'k8s_cluster_name="fixture",UUID="GPU-aaaaaaaa-2",k8s_node_name="node"', "60+0x70"),
+        ], "promql_expr_test": [check("sum(" + expression("model-serving", "ollama-vram") + ")", 300),
+                               check("count(" + expression("model-serving", "ollama-vram") + ")", 2),
+                               check("count(" + expression("gpu-fleet", "util-by-gpu") + ")", 2),
+                               check("sum(" + expression("gpu-fleet", "util-by-gpu") + ")", 80)]},
     ]
     with tempfile.TemporaryDirectory(prefix="suse-ai-dashboard-promql-") as directory:
         path = Path(directory)

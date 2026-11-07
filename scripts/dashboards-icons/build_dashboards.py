@@ -118,14 +118,31 @@ def stat(title, expression, unit="short", decimals=1, description="", thresholds
     }, [query(expression, "Now")], description)
 
 
-def comparison(title, expression, unit="short", alias="", description="", decimals=1):
-    suffix = " · " + alias if alias else ""
+def comparison(title, expression, unit="short", description="", decimals=1):
     return panel(title + " — now vs 1 hour ago", "TimeSeriesChart", {
         "yAxis": {"show": True, "min": 0, "format": {"unit": unit, "decimalPlaces": decimals}},
         "legend": {"show": True, "position": "bottom", "mode": "list", "values": []},
         "visual": {"connectNulls": False},
-    }, [query(expression(False), "Now" + suffix), query(expression(True), "1 hour ago" + suffix)],
-        description + " The previous hour is shifted forward for comparison; gaps remain gaps.")
+    # The installed renderer uses a fixed palette and ignores per-query styling.
+    # Aggregate comparisons have one series per query: history gets pale blue,
+    # Now gets dark blue and is drawn last. Missing history stays missing.
+    }, [query(expression(True), "1h ago"), query(expression(False), "Now")],
+        description + " Dark blue is Now when both periods have data. The previous hour is shifted forward; gaps remain gaps.")
+
+
+def trend(title, expression, unit="short", alias="", description="", decimals=1):
+    """Keep entity comparisons readable without unsupported per-query colors."""
+    return panel(title, "TimeSeriesChart", {
+        "yAxis": {"show": True, "min": 0, "format": {"unit": unit, "decimalPlaces": decimals}},
+        "legend": {"show": True, "position": "bottom", "mode": "list", "values": []},
+        "visual": {"connectNulls": False},
+    }, [query(expression(False), alias)], description + " Current selected time window; no shifted historical series.")
+
+
+def short_identity(expression, source, target, pattern="(.{8}).*"):
+    # Add a compact display label without dropping the full identity used for
+    # deduplication or merging distinct replicas/devices.
+    return 'label_replace(' + expression + ', "' + target + '", "$1", "' + source + '", "' + pattern + '")'
 
 
 def dashboard(slug, about, how, stats, charts, note, matchers):
@@ -194,7 +211,7 @@ def build():
 
     callers = "service_namespace, service_name, gen_ai_provider_name, gen_ai_request_model"
     caller_alias = "${service_namespace}/${service_name} · ${gen_ai_provider_name}/${gen_ai_request_model}"
-    server_alias = "${service_namespace}/${service_name} · ${service_instance_id} · ${model}"
+    server_alias = "${model} · ${service_namespace}/${service_name} · ${suse_ai_replica}"
     vllm_group = "service_namespace, service_name, model_name"
     vllm_alias = "${service_namespace}/${service_name} · ${model_name}"
     serving = dashboard("model-serving",
@@ -205,34 +222,41 @@ def build():
             ("vllm-finished", stat("vLLM finished requests / min", "60 * " + product_rate("vllm:request_success_total", VLLM_ID),
                 description="All observed finish reasons, including abort/error; the metric name alone does not imply success.")),
             ("vllm-ttft", stat("vLLM first token p95", vllm_p95(), "s", 2,
-                "Server time to first token over five minutes. Idle histograms have no meaningful percentile.")),
+                "Histogram estimate over five minutes. Bucket boundaries can keep p95 flat even when individual requests vary; idle histograms have no percentile.")),
             ("loaded-models", stat("Ollama loaded model replicas", "sum(" + ollama("ollama_loaded_models") + ")", decimals=0,
                 description="Loaded-model count across live serving replicas, not available disk inventory.")),
             ("client-latency", stat("Client duration p95", client_p95(), "s", 2,
                 "Caller-to-provider duration including failed calls; separate from server first-token latency.")),
         ], [
-            ("vllm-ttft-compare", comparison("vLLM first token p95", lambda past: vllm_p95(past, vllm_group), "s", vllm_alias,
-                "Compare per-model server latency with caller latency below.", 2)),
-            ("vllm-tokens", comparison("vLLM generated tokens / s",
+            ("vllm-ttft-compare", trend("vLLM first token p95 by model", lambda past: vllm_p95(past, vllm_group), "s", vllm_alias,
+                "Histogram estimate: a flat percentile can reflect bucket resolution, not identical request durations.", 3)),
+            ("vllm-tokens", trend("vLLM generated tokens / s",
                 lambda past: product_rate("vllm:generation_tokens_total", VLLM_ID, past, vllm_group), "short", vllm_alias,
                 "Aggregate real serving replicas after deduplicating scrape copies.")),
-            ("caller-latency", comparison("Client p95 by caller and model", lambda past: client_p95(past, callers), "s", caller_alias,
+            ("caller-latency", trend("Client p95 by caller and model", lambda past: client_p95(past, callers), "s", caller_alias,
                 "Use caller and requested-model labels to locate slow observations.", 2)),
-            ("client-tokens", comparison("Client input / output tokens per second",
+            ("client-tokens", trend("Client input / output tokens per second",
                 lambda past: "sum by (" + callers + ", gen_ai_token_type) (" + rate(CLIENT_TOKENS, offset=past) + ")",
                 "short", caller_alias + " · ${gen_ai_token_type}", "Rates use the token histogram sum, not its observation count.")),
-            ("ollama-vram", comparison("Ollama model VRAM", lambda past: ollama("ollama_model_vram_bytes", past, True), "bytes", server_alias,
+            ("ollama-vram", trend("Ollama model VRAM", lambda past: short_identity(ollama("ollama_model_vram_bytes", past, True),
+                "service_instance_id", "suse_ai_replica"), "bytes", server_alias,
                 "Per loaded model and serving replica. Missing model series does not establish deletion or zero memory.", 2)),
+            ("vllm-ttft-total-compare", comparison("vLLM first token p95", vllm_p95, "s", description=
+                "All observed vLLM models. Histogram interpolation can produce a flat p95 within a broad bucket.", decimals=3)),
         ], "**Investigate:** compare first-token latency and output throughput on vLLM, then caller latency by model. "
            "For Ollama, check loaded-model count and VRAM before investigating model residency. "
+           "**Histogram resolution:** if all requests land in the 40–60 ms bucket, p95 is estimated at 59 ms. "
+           "That does not mean every request took 59 ms. Replica labels show the first eight identity characters. "
            "The verified vLLM inventory did not expose queue or KV-cache gauges, so these panels do not infer them.\n\n" + coverage,
         [CLIENT_COUNT, "ollama_api_up", "vllm:generation_tokens_total"])
 
-    gpu_alias = "${k8s_node_name} · ${UUID}"
+    gpu_alias = "${k8s_node_name} · ${suse_ai_device}"
+    gpu_trend = lambda expression: short_identity(expression, "UUID", "suse_ai_device", "GPU-(.{8}).*")
     gpus = dashboard("gpu-fleet",
         "Locate busy, memory-constrained or hot physical GPUs using DCGM telemetry.",
         "Each device is identified by cluster and UUID; repeated pod/scrape copies are deduplicated. "
-        "MIG slices and missing UUIDs are excluded. Compare current gauges with the same devices one hour ago. "
+        "MIG slices and missing UUIDs are excluded. Legends show node and the first eight GPU UUID characters. "
+        "Use Overview for the fleet's hour-ago utilization comparison. "
         "Utilization is a capacity signal, not a health verdict.",
         [
             ("gpu-count", stat("Reported physical GPUs", "count(" + device("DCGM_FI_DEV_GPU_UTIL") + ")", decimals=0,
@@ -244,13 +268,13 @@ def build():
             ("gpu-power", stat("Fleet power", "sum(" + device("DCGM_FI_DEV_POWER_USAGE") + ")", "watt", 1,
                 "Sum after physical-device deduplication, in watts; this is not an electricity bill.")),
         ], [
-            ("util-by-gpu", comparison("GPU utilization", lambda past: device("DCGM_FI_DEV_GPU_UTIL", past), "percent", gpu_alias,
+            ("util-by-gpu", trend("GPU utilization", lambda past: gpu_trend(device("DCGM_FI_DEV_GPU_UTIL", past)), "percent", gpu_alias,
                 "Per-device utilization. Pod attribution does not provide hardware isolation.")),
-            ("memory-by-gpu", comparison("Framebuffer used", memory_percent, "percent", gpu_alias,
+            ("memory-by-gpu", trend("Framebuffer used", lambda past: gpu_trend(memory_percent(past)), "percent", gpu_alias,
                 "100 × used / (used + free), using DCGM MiB gauges. Reserved memory is outside this denominator.")),
-            ("temp-by-gpu", comparison("GPU temperature", lambda past: device("DCGM_FI_DEV_GPU_TEMP", past), "celsius", gpu_alias,
+            ("temp-by-gpu", trend("GPU temperature", lambda past: gpu_trend(device("DCGM_FI_DEV_GPU_TEMP", past)), "celsius", gpu_alias,
                 "Check cooling and vendor limits when temperature rises with load.")),
-            ("power-by-gpu", comparison("GPU power", lambda past: device("DCGM_FI_DEV_POWER_USAGE", past), "watt", gpu_alias,
+            ("power-by-gpu", trend("GPU power", lambda past: gpu_trend(device("DCGM_FI_DEV_POWER_USAGE", past)), "watt", gpu_alias,
                 "Compare power with utilization before investigating idle allocation.")),
         ], "**Readout:** compare rising memory usage with loaded models, then temperature with power. "
            "Open the GPU inventory to inspect workload allocation.\n\n**Coverage:** these panels use verified DCGM device gauges. "
@@ -274,13 +298,13 @@ def build():
             ("gateway-spend", stat("Reported spend / h (USD)", spend_rate(), "currencyUSD", 4,
                 "3600 × the five-minute rate of LiteLLM reported spend. Counter resets are handled before aggregation.")),
         ], [
-            ("requests-compare", comparison("Requests / min by outcome", lambda past: gateway_rate(past, gateway_group + ", status_code"),
+            ("requests-compare", trend("Requests / min by outcome", lambda past: gateway_rate(past, gateway_group + ", status_code"),
                 "short", gateway_alias + " · HTTP ${status_code}", "Compare model routes and status codes before examining the backend.")),
-            ("latency-compare", comparison("Gateway duration p95", lambda past: gateway_p95(past, gateway_group), "s", gateway_alias,
+            ("latency-compare", trend("Gateway duration p95", lambda past: gateway_p95(past, gateway_group), "s", gateway_alias,
                 "Measured total request latency by requested model.", 2)),
-            ("spend-compare", comparison("Reported spend / h (USD)", lambda past: spend_rate(past, gateway_group), "currencyUSD", gateway_alias,
+            ("spend-compare", trend("Reported spend / h (USD)", lambda past: spend_rate(past, gateway_group), "currencyUSD", gateway_alias,
                 "Configured model prices determine reported spend; this does not include GPU infrastructure costs.", 4)),
-            ("tokens-compare", comparison("Gateway tokens / s",
+            ("tokens-compare", trend("Gateway tokens / s",
                 lambda past: product_rate("litellm_tokens_metric_total", LITELLM_ID, past, gateway_group), "short", gateway_alias,
                 "LiteLLM token observations, separate from client and inference-server counters.")),
         ], "**Investigate:** high failure rates → inspect status codes and the routed model; high latency → compare with "

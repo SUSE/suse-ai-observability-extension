@@ -23,8 +23,8 @@ nodes:
 
                   Locate busy, memory-constrained or hot physical GPUs using DCGM telemetry. **How to read:** Each device
                   is identified by cluster and UUID; repeated pod/scrape copies are deduplicated. MIG slices and missing UUIDs
-                  are excluded. Compare current gauges with the same devices one hour ago. Utilization is a capacity signal,
-                  not a health verdict.'
+                  are excluded. Legends show node and the first eight GPU UUID characters. Use Overview for the fleet''s hour-ago
+                  utilization comparison. Utilization is a capacity signal, not a health verdict.'
             queries: []
             links: []
         gpu-count:
@@ -135,9 +135,9 @@ nodes:
         util-by-gpu:
           spec:
             display:
-              name: GPU utilization — now vs 1 hour ago
-              description: Per-device utilization. Pod attribution does not provide hardware isolation. The previous hour
-                is shifted forward for comparison; gaps remain gaps.
+              name: GPU utilization
+              description: Per-device utilization. Pod attribution does not provide hardware isolation. Current selected time
+                window; no shifted historical series.
             plugin:
               kind: TimeSeriesChart
               spec:
@@ -160,24 +160,16 @@ nodes:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
-                    query: max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_GPU_UTIL{k8s_cluster_name=~"${cluster}",
-                      UUID!="", GPU_I_ID=""})
-                    alias: Now · ${k8s_node_name} · ${UUID}
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_GPU_UTIL{k8s_cluster_name=~"${cluster}",
-                      UUID!="", GPU_I_ID=""} offset 1h)
-                    alias: 1 hour ago · ${k8s_node_name} · ${UUID}
+                    query: label_replace(max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_GPU_UTIL{k8s_cluster_name=~"${cluster}",
+                      UUID!="", GPU_I_ID=""}), "suse_ai_device", "$1", "UUID", "GPU-(.{8}).*")
+                    alias: ${k8s_node_name} · ${suse_ai_device}
             links: []
         memory-by-gpu:
           spec:
             display:
-              name: Framebuffer used — now vs 1 hour ago
+              name: Framebuffer used
               description: 100 × used / (used + free), using DCGM MiB gauges. Reserved memory is outside this denominator.
-                The previous hour is shifted forward for comparison; gaps remain gaps.
+                Current selected time window; no shifted historical series.
             plugin:
               kind: TimeSeriesChart
               spec:
@@ -200,28 +192,18 @@ nodes:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
-                    query: 100 * max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_FB_USED{k8s_cluster_name=~"${cluster}",
+                    query: label_replace(100 * max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_FB_USED{k8s_cluster_name=~"${cluster}",
                       UUID!="", GPU_I_ID=""}) / ((max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_FB_USED{k8s_cluster_name=~"${cluster}",
                       UUID!="", GPU_I_ID=""}) + max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_FB_FREE{k8s_cluster_name=~"${cluster}",
-                      UUID!="", GPU_I_ID=""})) > 0)
-                    alias: Now · ${k8s_node_name} · ${UUID}
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: 100 * max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_FB_USED{k8s_cluster_name=~"${cluster}",
-                      UUID!="", GPU_I_ID=""} offset 1h) / ((max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_FB_USED{k8s_cluster_name=~"${cluster}",
-                      UUID!="", GPU_I_ID=""} offset 1h) + max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_FB_FREE{k8s_cluster_name=~"${cluster}",
-                      UUID!="", GPU_I_ID=""} offset 1h)) > 0)
-                    alias: 1 hour ago · ${k8s_node_name} · ${UUID}
+                      UUID!="", GPU_I_ID=""})) > 0), "suse_ai_device", "$1", "UUID", "GPU-(.{8}).*")
+                    alias: ${k8s_node_name} · ${suse_ai_device}
             links: []
         temp-by-gpu:
           spec:
             display:
-              name: GPU temperature — now vs 1 hour ago
-              description: Check cooling and vendor limits when temperature rises with load. The previous hour is shifted
-                forward for comparison; gaps remain gaps.
+              name: GPU temperature
+              description: Check cooling and vendor limits when temperature rises with load. Current selected time window;
+                no shifted historical series.
             plugin:
               kind: TimeSeriesChart
               spec:
@@ -244,24 +226,16 @@ nodes:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
-                    query: max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_GPU_TEMP{k8s_cluster_name=~"${cluster}",
-                      UUID!="", GPU_I_ID=""})
-                    alias: Now · ${k8s_node_name} · ${UUID}
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_GPU_TEMP{k8s_cluster_name=~"${cluster}",
-                      UUID!="", GPU_I_ID=""} offset 1h)
-                    alias: 1 hour ago · ${k8s_node_name} · ${UUID}
+                    query: label_replace(max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_GPU_TEMP{k8s_cluster_name=~"${cluster}",
+                      UUID!="", GPU_I_ID=""}), "suse_ai_device", "$1", "UUID", "GPU-(.{8}).*")
+                    alias: ${k8s_node_name} · ${suse_ai_device}
             links: []
         power-by-gpu:
           spec:
             display:
-              name: GPU power — now vs 1 hour ago
-              description: Compare power with utilization before investigating idle allocation. The previous hour is shifted
-                forward for comparison; gaps remain gaps.
+              name: GPU power
+              description: Compare power with utilization before investigating idle allocation. Current selected time window;
+                no shifted historical series.
             plugin:
               kind: TimeSeriesChart
               spec:
@@ -284,17 +258,9 @@ nodes:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
-                    query: max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_POWER_USAGE{k8s_cluster_name=~"${cluster}",
-                      UUID!="", GPU_I_ID=""})
-                    alias: Now · ${k8s_node_name} · ${UUID}
-            - kind: TimeSeriesQuery
-              spec:
-                plugin:
-                  kind: PrometheusTimeSeriesQuery
-                  spec:
-                    query: max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_POWER_USAGE{k8s_cluster_name=~"${cluster}",
-                      UUID!="", GPU_I_ID=""} offset 1h)
-                    alias: 1 hour ago · ${k8s_node_name} · ${UUID}
+                    query: label_replace(max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_POWER_USAGE{k8s_cluster_name=~"${cluster}",
+                      UUID!="", GPU_I_ID=""}), "suse_ai_device", "$1", "UUID", "GPU-(.{8}).*")
+                    alias: ${k8s_node_name} · ${suse_ai_device}
             links: []
         coverage:
           spec:
