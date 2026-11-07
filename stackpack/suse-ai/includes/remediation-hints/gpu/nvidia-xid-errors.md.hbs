@@ -1,0 +1,11 @@
+### Check first
+Open [this component](/#/components/{{componentUrnForUrl}}/highlights) and its [metrics](/#/components/{{componentUrnForUrl}}/metrics). Correlate the reported XID code with driver logs, affected GPUs and workload failures. The configured threshold is **{{threshold}}** in the monitor chart's unit.
+
+### Likely causes
+Driver faults, GPU hardware errors or workload-specific device faults.
+
+### Fix
+Use the XID code to select the documented driver/hardware remedy; preserve logs before any node maintenance.
+
+### Verify
+The XID metric reports zero after the documented recovery, this check clears and the affected workload succeeds. A continuing nonzero gauge keeps this check failing. If samples are absent, investigate the exporter and Collector: this threshold check cannot establish healthy operation without data.

@@ -78,6 +78,28 @@ again. An existing version is treated as immutable; this is not a server-side
 byte/hash attestation. Any payload change after upload requires a new version.
 Do not publish different archives under the same release version.
 
+For demo prereleases, use `task demo-deploy` with its explicit localhost URL,
+token file and version ledger. On 2026-11-06 the demo catalog ordered `dev.10`
+below `dev.9` and offered no upgrade. The task now chooses a suffix above both
+numeric and lexical order, so version numbers can jump (for example `dev.9` to
+`dev.90`). Uploaded versions stay consumed, including a version the server did
+not offer for upgrade. The successful dev.90 upgrade used overwrite and retained
+the instance; [evidence and limits](V3_UX_REVIEW_20261106.md#deployment-and-verification).
+
+Authentication defaults to a service token. For a user API token, set
+`DEMO_TOKEN_TYPE=api`; the task uses `sts --api-token` and carries that choice
+into its verification step. For a standalone `task demo-inspect`, set
+`SPIKE_TOKEN_TYPE=api`. Inspection sends the matching `X-API-Token`
+header for HTTP snapshots. Both tasks read credentials from their token-file
+argument; keep that file private and outside the repository.
+
+`task demo-monitor-test` also accepts `DEMO_TOKEN_TYPE=api`. To preview only
+selected monitors, set `DEMO_MONITORS` to comma-separated identifier suffixes,
+for example `ollama-model-unavailable,vllm-high-e2e-latency,vllm-high-ttft`.
+It validates failing, recovering and no-data inputs without persisting test health
+states, then captures the installed queries' live dry runs. Omitting the selection
+keeps the complete monitor check.
+
 ## Reproducible artifact and IBS command
 
 Run `task stackpack-package` (alias `stackpack-build`). It calls
@@ -283,3 +305,21 @@ CLI token access through the router port-forward worked throughout.
   examples or the separately released compatible Collector profiles.
 
 No tag, push or PR is performed without the user's confirmation.
+
+## Ollama model inventory and table cleanup for 3.0.0
+
+The combined release adds available Ollama models and focused native/observed
+dependency tables. At the user's request, the StackPack and exporter release
+target is 3.0.0. Earlier validation used 3.0.1 and temporary review versions;
+those evidence labels remain unchanged. `init.sh` needs no change and continues
+to upgrade with `--unlocked-strategy overwrite`. Never reupload a version after
+changing its package bytes. The design, compatibility limits, validation record
+and monitoring-guide handoff are in
+[OLLAMA_MODEL_INVENTORY.md](OLLAMA_MODEL_INVENTORY.md).
+
+The earlier import hashes and 3.0.0 release evidence above describe the earlier
+build and remain historical records. This change adds Ollama mappings and
+presentations and revises the overview tables; it does not change ComponentType
+icons, legacy Groovy code or the vLLM component/relation identity contract.
+The current package hash and version-change checks are in
+[the table review report](OVERVIEW_TABLES_3.0.1.md#release-target-changed-to-300).

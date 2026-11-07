@@ -1,13 +1,11 @@
-# Kubeflow Model Registry API Unavailable
+### Check first
+Open [this component](/#/components/{{componentUrnForUrl}}/highlights) and its [metrics](/#/components/{{componentUrnForUrl}}/metrics). Inspect the latest HTTP probe result, readiness and authentication configuration. The configured threshold is **{{threshold}}** in the monitor chart's unit.
 
-This monitor detects an unsuccessful Model Registry API check for [{{labels.service_name}}](/#/components/{{componentUrnForUrl}}).
+### Likely causes
+Registry restart, wrong URL, authentication failure or unavailable storage.
 
-Compare the metric and threshold in this monitor's chart at the time of the alert.
+### Fix
+Restore endpoint access and registry readiness; use the configured credentials.
 
-Triage:
-
-1. Check the deployment and endpoints: `kubectl get deploy,pod,svc,endpoints -n <kubeflow-namespace> | grep model-registry`.
-2. Inspect application logs: `kubectl logs -n <kubeflow-namespace> deploy/model-registry-deployment --tail=200`.
-3. Test the API from inside the collector namespace with the configured Authorization header.
-4. Verify `MODEL_REGISTRY_BEARER_TOKEN`, network policies, and Kubeflow AuthorizationPolicy behavior.
-5. Check the registry database before restarting the deployment.
+### Verify
+The next observed probe reports a successful 2xx response. If samples are absent, investigate the exporter and Collector: this threshold check cannot establish healthy operation without data.

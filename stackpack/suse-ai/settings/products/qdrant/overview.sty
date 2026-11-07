@@ -1,0 +1,76 @@
+nodes:
+- _type: ComponentPresentation
+  name: Qdrant inventory
+  identifier: urn:stackpack:suse-ai:component-presentation:product-qdrant-overview
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: label = "stackpack:suse-ai" and type = "otel service" and label = "suse.ai.product:qdrant"
+  rank:
+    specificity: 1
+  presentation:
+    overview:
+      name:
+        singular: Qdrant service
+        plural: Qdrant services
+        title: Qdrant
+      columns:
+      - columnId: suse_ai_health
+        title: Health
+        projection:
+          _type: HealthProjection
+          value: healthState
+      - columnId: suse_ai_otel_name
+        title: Name
+        projection:
+          _type: ComponentLinkProjection
+          name: name
+          identifier: identifiers[0]
+      - columnId: suse_ai_otel_namespace
+        title: Service namespace
+        projection:
+          _type: TextProjection
+          value: tags.singleValue('service.namespace')
+      - columnId: suse_ai_otel_k8s_cluster
+        title: Cluster
+        projection:
+          _type: TextProjection
+          value: '''cluster-name'' in tags ? tags[''cluster-name''].filter(cluster, cluster != '''').join('', '')
+            : '''''
+      - columnId: suse_ai_qdrant_vectordb_collections_total_column
+        title: Collections Total
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_qdrant_vectordb_collections_total
+          query: sum by (service_namespace, service_name) (collections_total{service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}"})
+          unit: short
+          decimalPlaces: 2
+      - columnId: suse_ai_qdrant_vectordb_vectors_total_column
+        title: Vectors Total
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_qdrant_vectordb_vectors_total
+          query: sum by (service_namespace, service_name) (collections_vector_total{service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}"})
+          unit: short
+          decimalPlaces: 2
+      - columnId: suse_ai_qdrant_vectordb_rest_responses_total_column
+        title: REST Responses Rate
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_qdrant_vectordb_rest_responses_total
+          query: sum by (service_namespace, service_name) (sum by (service_namespace, service_name) (rate(rest_responses_total{service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}"}[${__rate_interval}])))
+          unit: reqps
+          decimalPlaces: 2
+      - columnId: suse_ai_qdrant_vectordb_memory_active_column
+        title: Memory Active
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_qdrant_vectordb_memory_active
+          query: sum by (service_namespace, service_name) (memory_active_bytes{service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}"})
+          unit: bytes
+          decimalPlaces: 2
+      sort:
+      - columnId: suse_ai_otel_name

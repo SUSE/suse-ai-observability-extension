@@ -10,7 +10,7 @@ from test_promql import run_promql_cases
 def chart(presentation, metric, expected, **options):
     return {
         "presentation": presentation,
-        "metric": "suse-ai-" + metric,
+        "metric": "suse_ai_" + metric.replace("-", "_"),
         "samples": expected,
         **options,
     }

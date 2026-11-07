@@ -1,17 +1,14 @@
-# Deduplicate scrape copies within each native LiteLLM series and real replica,
-# then aggregate replicas. Native user/model labels must survive the inner max.
 nodes:
 - _type: ComponentPresentation
   name: LiteLLM product
   identifier: urn:stackpack:suse-ai:component-presentation:product-litellm
   binding:
     _type: ComponentPresentationQueryBinding
-    query: label = "stackpack:open-telemetry" and type in ("otel service", "otel service instance") and label = "stackpack:suse-ai"
-      and label = "suse.ai.product:litellm"
+    query: label = "stackpack:open-telemetry" and type in ("otel service", "otel service instance") and label =
+      "stackpack:suse-ai" and label = "suse.ai.product:litellm"
   rank:
-    specificity: 240
+    specificity: 1
   presentation:
-    icon: !icon products/litellm.svg
     highlight:
       fields:
       - fieldId: suse_ai_product
@@ -21,124 +18,104 @@ nodes:
           _type: TextProjection
           value: '''litellm'''
       metrics:
-      - sectionId: suse-ai-product-litellm
+      - sectionId: suse_ai_product_litellm
         title: LiteLLM
         order: 200
         metrics:
-        - metricId: suse-ai-litellm-request-rate
+        - metricId: suse_ai_litellm_request_rate
           order: 100
-        - metricId: suse-ai-litellm-latency-p95
+        - metricId: suse_ai_litellm_latency_p95
           order: 99
-        - metricId: suse-ai-litellm-in-flight
+        - metricId: suse_ai_litellm_in_flight
           order: 98
-    summary:
-      metrics:
-      - summaryMetricId: suse-ai-litellm-request-rate-summary
-        metricId: suse-ai-litellm-request-rate
-        name: Proxy request rate
-        order: 100
-        unit: reqps
-        decimalPlaces: 2
-        query: sum by (requested_model) (max by (service_namespace, service_name, service_instance_id, end_user, hashed_api_key,
-          api_key_alias, team, team_alias, user, org_id, org_alias, requested_model, status_code, user_email, route, client_ip,
-          user_agent, model_id, api_provider, stream) (rate({__name__=~"litellm_proxy_(total_)?requests_metric(_total)?",
-          __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))
-      - summaryMetricId: suse-ai-litellm-latency-p95-summary
-        metricId: suse-ai-litellm-latency-p95
-        name: Request latency P95
-        order: 99
-        unit: s
-        decimalPlaces: 2
-        query: histogram_quantile(0.95, sum by (requested_model, le) (max by (service_namespace, service_name, service_instance_id,
-          end_user, hashed_api_key, api_key_alias, team, team_alias, user, org_id, org_alias, requested_model, model, model_id,
-          api_provider, service_tier, le) (rate({__name__=~"litellm_request_total_latency_metric_bucket", __multi__="${selectPrefix(tags,
-          'suse.ai.metric.')}"}[${__rate_interval}]))))
     metricPerspective:
       tabs:
-      - tabId: suse-ai-litellm
+      - tabId: suse_ai_litellm
         title: LiteLLM
         order: 50
         sections:
-        - sectionId: suse-ai-litellm-traffic
+        - sectionId: suse_ai_litellm_traffic
           title: Traffic and latency
           order: 100
           metrics:
-          - metricId: suse-ai-litellm-request-rate
+          - metricId: suse_ai_litellm_request_rate
             order: 100
-          - metricId: suse-ai-litellm-latency-p95
+          - metricId: suse_ai_litellm_latency_p95
             order: 99
-          - metricId: suse-ai-litellm-in-flight
+          - metricId: suse_ai_litellm_in_flight
             order: 98
-          - metricId: suse-ai-litellm-failures
+          - metricId: suse_ai_litellm_failures
             order: 97
-        - sectionId: suse-ai-litellm-models
+        - sectionId: suse_ai_litellm_models
           title: Models
           order: 90
           metrics:
-          - metricId: suse-ai-litellm-input-tokens
+          - metricId: suse_ai_litellm_input_tokens
             order: 100
-          - metricId: suse-ai-litellm-output-tokens
+          - metricId: suse_ai_litellm_output_tokens
             order: 99
-          - metricId: suse-ai-litellm-backend-state
+          - metricId: suse_ai_litellm_backend_state
             order: 98
-        - sectionId: suse-ai-litellm-guardrails
+        - sectionId: suse_ai_litellm_guardrails
           title: Guardrails
           order: 80
           metrics:
-          - metricId: suse-ai-litellm-guardrail-requests
+          - metricId: suse_ai_litellm_guardrail_requests
             order: 100
-          - metricId: suse-ai-litellm-guardrail-errors
+          - metricId: suse_ai_litellm_guardrail_errors
             order: 99
-          - metricId: suse-ai-litellm-guardrail-latency
+          - metricId: suse_ai_litellm_guardrail_latency
             order: 98
   metrics:
-  - metricId: suse-ai-litellm-request-rate
+  - metricId: suse_ai_litellm_request_rate
     name: Proxy request rate
     metricQueries:
-    - expression: sum by (requested_model) (max by (service_namespace, service_name, service_instance_id, end_user, hashed_api_key,
-        api_key_alias, team, team_alias, user, org_id, org_alias, requested_model, status_code, user_email, route, client_ip,
-        user_agent, model_id, api_provider, stream) (rate({__name__=~"litellm_proxy_(total_)?requests_metric(_total)?", __multi__="${selectPrefix(tags,
-        'suse.ai.metric.')}"}[${__rate_interval}])))
+    - expression: sum by (requested_model) (max by (service_namespace, service_name, service_instance_id, end_user,
+        hashed_api_key, api_key_alias, team, team_alias, user, org_id, org_alias, requested_model, status_code,
+        user_email, route, client_ip, user_agent, model_id, api_provider, stream) (rate({__name__=~"litellm_proxy_(total_)?requests_metric(_total)?",
+        __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))
       alias: ${requested_model}
       primary: true
     chart:
       _type: TimeSeriesChart
       unit: reqps
-  - metricId: suse-ai-litellm-latency-p95
+  - metricId: suse_ai_litellm_latency_p95
     name: Request latency P95
     metricQueries:
-    - expression: histogram_quantile(0.95, sum by (requested_model, le) (max by (service_namespace, service_name, service_instance_id,
-        end_user, hashed_api_key, api_key_alias, team, team_alias, user, org_id, org_alias, requested_model, model, model_id,
-        api_provider, service_tier, le) (rate({__name__=~"litellm_request_total_latency_metric_bucket", __multi__="${selectPrefix(tags,
-        'suse.ai.metric.')}"}[${__rate_interval}]))))
+    - expression: histogram_quantile(0.95, sum by (requested_model, le) (max by (service_namespace, service_name,
+        service_instance_id, end_user, hashed_api_key, api_key_alias, team, team_alias, user, org_id, org_alias,
+        requested_model, model, model_id, api_provider, service_tier, le) (rate({__name__=~"litellm_request_total_latency_metric_bucket",
+        __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))))
       alias: ${requested_model}
       primary: true
     chart:
       _type: TimeSeriesChart
       unit: s
-  - metricId: suse-ai-litellm-input-tokens
+  - metricId: suse_ai_litellm_input_tokens
     name: Input token rate
     metricQueries:
-    - expression: sum by (requested_model) (max by (service_namespace, service_name, service_instance_id, end_user, hashed_api_key,
-        api_key_alias, team, team_alias, user, org_id, org_alias, user_email, requested_model, model, model_id, api_provider)
-        (rate({__name__=~"litellm_input_tokens_metric(_total)?", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))
+    - expression: sum by (requested_model) (max by (service_namespace, service_name, service_instance_id, end_user,
+        hashed_api_key, api_key_alias, team, team_alias, user, org_id, org_alias, user_email, requested_model, model,
+        model_id, api_provider) (rate({__name__=~"litellm_input_tokens_metric(_total)?", __multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"}[${__rate_interval}])))
       alias: ${requested_model}
       primary: true
     chart:
       _type: TimeSeriesChart
       unit: short
-  - metricId: suse-ai-litellm-output-tokens
+  - metricId: suse_ai_litellm_output_tokens
     name: Output token rate
     metricQueries:
-    - expression: sum by (requested_model) (max by (service_namespace, service_name, service_instance_id, end_user, hashed_api_key,
-        api_key_alias, team, team_alias, user, org_id, org_alias, user_email, requested_model, model, model_id, api_provider)
-        (rate({__name__=~"litellm_output_tokens_metric(_total)?", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))
+    - expression: sum by (requested_model) (max by (service_namespace, service_name, service_instance_id, end_user,
+        hashed_api_key, api_key_alias, team, team_alias, user, org_id, org_alias, user_email, requested_model, model,
+        model_id, api_provider) (rate({__name__=~"litellm_output_tokens_metric(_total)?", __multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"}[${__rate_interval}])))
       alias: ${requested_model}
       primary: true
     chart:
       _type: TimeSeriesChart
       unit: short
-  - metricId: suse-ai-litellm-in-flight
+  - metricId: suse_ai_litellm_in_flight
     name: In-flight requests
     metricQueries:
     - expression: sum by (model) (max by (service_namespace, service_name, service_instance_id, model) ({__name__=~"litellm_in_flight_requests",
@@ -148,7 +125,7 @@ nodes:
     chart:
       _type: TimeSeriesChart
       unit: short
-  - metricId: suse-ai-litellm-failures
+  - metricId: suse_ai_litellm_failures
     name: LLM failures, including guardrail blocks (5m)
     metricQueries:
     - expression: sum by (model) (max by (service_namespace, service_name, service_instance_id, end_user, hashed_api_key,
@@ -159,42 +136,45 @@ nodes:
     chart:
       _type: TimeSeriesChart
       unit: short
-  - metricId: suse-ai-litellm-backend-state
+  - metricId: suse_ai_litellm_backend_state
     name: 'Backend state: 0 healthy, 1 partial outage, 2 outage'
     metricQueries:
-    - expression: max by (litellm_model_name, api_base) (max by (service_namespace, service_name, service_instance_id, litellm_model_name,
-        model_id, api_base, api_provider) ({__name__=~"litellm_deployment_state", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}))
+    - expression: max by (litellm_model_name, api_base) (max by (service_namespace, service_name, service_instance_id,
+        litellm_model_name, model_id, api_base, api_provider) ({__name__=~"litellm_deployment_state", __multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"}))
       alias: ${litellm_model_name} / ${api_base}
       primary: true
     chart:
       _type: TimeSeriesChart
       unit: short
-  - metricId: suse-ai-litellm-guardrail-requests
+  - metricId: suse_ai_litellm_guardrail_requests
     name: Guardrail invocations (5m)
     metricQueries:
-    - expression: sum by (guardrail_name, status) (max by (service_namespace, service_name, service_instance_id, guardrail_name,
-        status, hook_type) (increase({__name__=~"litellm_guardrail_requests(_total)?", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[5m])))
+    - expression: sum by (guardrail_name, status) (max by (service_namespace, service_name, service_instance_id,
+        guardrail_name, status, hook_type) (increase({__name__=~"litellm_guardrail_requests(_total)?", __multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"}[5m])))
       alias: '${guardrail_name}: ${status}'
       primary: true
     chart:
       _type: TimeSeriesChart
       unit: short
-  - metricId: suse-ai-litellm-guardrail-errors
+  - metricId: suse_ai_litellm_guardrail_errors
     name: Guardrail errors (5m)
     metricQueries:
-    - expression: sum by (guardrail_name, error_type) (max by (service_namespace, service_name, service_instance_id, guardrail_name,
-        error_type, hook_type) (increase({__name__=~"litellm_guardrail_errors(_total)?", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[5m])))
+    - expression: sum by (guardrail_name, error_type) (max by (service_namespace, service_name, service_instance_id,
+        guardrail_name, error_type, hook_type) (increase({__name__=~"litellm_guardrail_errors(_total)?", __multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"}[5m])))
       alias: '${guardrail_name}: ${error_type}'
       primary: true
     chart:
       _type: TimeSeriesChart
       unit: short
-  - metricId: suse-ai-litellm-guardrail-latency
+  - metricId: suse_ai_litellm_guardrail_latency
     name: Guardrail latency P95
     metricQueries:
-    - expression: histogram_quantile(0.95, sum by (guardrail_name, le) (max by (service_namespace, service_name, service_instance_id,
-        guardrail_name, status, hook_type, error_type, le) (rate({__name__=~"litellm_guardrail_latency_seconds_bucket", __multi__="${selectPrefix(tags,
-        'suse.ai.metric.')}"}[${__rate_interval}]))))
+    - expression: histogram_quantile(0.95, sum by (guardrail_name, le) (max by (service_namespace, service_name,
+        service_instance_id, guardrail_name, status, hook_type, error_type, le) (rate({__name__=~"litellm_guardrail_latency_seconds_bucket",
+        __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))))
       alias: ${guardrail_name}
       primary: true
     chart:

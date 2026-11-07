@@ -14,18 +14,18 @@ nodes:
         plural: models
         title: Models
       columns:
-      - columnId: health
+      - columnId: suse_ai_health
         title: Health
         projection:
           _type: HealthProjection
           value: healthState
-      - columnId: otel_name
+      - columnId: suse_ai_otel_name
         title: Name
         projection:
           _type: ComponentLinkProjection
           name: name
           identifier: identifiers[0]
-      - columnId: otel_namespace
+      - columnId: suse_ai_otel_namespace
         title: Service namespace
         projection:
           _type: TextProjection
@@ -35,43 +35,22 @@ nodes:
         projection:
           _type: ComponentLinkProjection
           name: tags.singleValue('service.name')
-          identifier: "'urn:opentelemetry:namespace/' + tags.singleValue('service.namespace') + ':service/' + tags.singleValue('service.name')"
-      - columnId: suse_ai_model_latency
-        title: Request latency P95
+          identifier: '''urn:opentelemetry:namespace/'' + tags.singleValue(''service.namespace'') + '':service/''
+            + tags.singleValue(''service.name'')'
+      - columnId: suse_ai_product
+        title: Product
         projection:
-          _type: MetricProjection
-          sparkline: true
-          decimalPlaces: 2
-          unit: s
-          query: histogram_quantile(0.95, sum by(service_namespace, service_name, model_name, le) (rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_bucket",
-            service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}",
-            model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}])))
-          metricId: suse-ai-genai-model-e2e-latency
-      - columnId: suse_ai_model_ttft
-        title: Time to first token P95
+          _type: TextProjection
+          value: tags.singleValue('suse.ai.product')
+      - columnId: suse_ai_cluster
+        title: Cluster
         projection:
-          _type: MetricProjection
-          sparkline: true
-          decimalPlaces: 2
-          unit: s
-          query: histogram_quantile(0.95, sum by(service_namespace, service_name, model_name, le) (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket",
-            service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}",
-            model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}])))
-          metricId: suse-ai-genai-model-ttft-latency
-      - columnId: suse_ai_model_output_tokens
-        title: Output tokens / s
-        projection:
-          _type: MetricProjection
-          sparkline: true
-          decimalPlaces: 2
-          unit: short
-          query: sum by(service_namespace, service_name, model_name) (rate({__name__=~"vllm(:|_)generation_tokens_total", service_namespace="${tags.singleValue('service.namespace')}",
-            service_name="${tags.singleValue('service.name')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}]))
-          metricId: suse-ai-genai-model-token-throughput-generation
+          _type: TextProjection
+          value: '''cluster-name'' in tags ? tags[''cluster-name''].filter(cluster, cluster != '''').join('', '')
+            : '''''
       sort:
-      - columnId: health
-      - columnId: otel_name
+      - columnId: suse_ai_otel_name
       mainMenu:
         group: SUSE AI
-        icon: !icon model.svg
+        icon: !icon outline/model.svg
         order: 80

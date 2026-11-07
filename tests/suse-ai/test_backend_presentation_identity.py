@@ -15,6 +15,53 @@ from test_backend_identity import BackendTestCase, STS
 
 
 class BackendPresentationIdentityTest(BackendTestCase):
+    def test_ollama_available_model_keeps_identity_and_own_charts_after_unload(self):
+        name = self.prefix + "-ollama"
+        model_name = "gemma:2b"
+        resource = {**self.k8s, "service.name": name, "service.namespace": self.prefix,
+                    "suse.ai.product": "ollama", "service.instance.id": self.k8s["k8s.pod.uid"]}
+        identity = (f"urn:suse-ai:cluster/{self.k8s['k8s.cluster.name']}:namespace/{self.prefix}"
+                    f":service/{name}:served-model/{model_name}")
+        ids = set()
+        for loaded in (1, 0):
+            now = str(time.time_ns())
+            metrics = []
+            for metric, value, labels in (
+                ("ollama_api_up", 1, {}),
+                ("ollama_model_info", 1, {"model": model_name, "family": "gemma"}),
+                ("ollama_model_loaded", loaded, {"model": model_name}),
+                ("ollama_model_vram_bytes", loaded * 1024, {"model": model_name}),
+                ("ollama_model_disk_size_bytes", 2048, {"model": model_name}),
+            ):
+                metrics.append({"name": metric, "gauge": {"dataPoints": [{
+                    "timeUnixNano": now, "asInt": str(value), "attributes": attrs(labels),
+                }]}})
+            self.send_payload("metrics", {"resourceMetrics": [{"resource": {"attributes": attrs(resource)},
+                                         "scopeMetrics": [{"metrics": metrics}]}]})
+            models = self.wait_for(lambda: self.snapshot(f'identifier = "{identity}"')["components"], "available Ollama model")
+            self.assertEqual(len(models), 1)
+            model = models[0]
+            ids.add(model["id"])
+            self.assertEqual(self.tag_values(model, "ollama.model.name"), {model_name})
+            self.assertEqual(self.tag_values(model, "suse.ai.product"), {"ollama"})
+            end = int(time.time() * 1000)
+            charts = self.api(f'/api/components/{model["id"]}/metricPerspectiveData?startTime={end-600000}&endTime={end}')
+            self.capture(f"ollama-model-charts-{loaded}", charts)
+            metrics_by_id = {m["boundMetricId"]["metricId"]: m for t in charts["tabs"]
+                             for s in t["sections"] for m in s["metrics"]}
+            self.assertIn("suse_ai_ollama_served_model_loaded", metrics_by_id)
+            self.assertNotIn("suse_ai_genai_model_e2e_latency", metrics_by_id)
+            query = metrics_by_id["suse_ai_ollama_served_model_loaded"]["boundQueries"][0]["expression"]
+
+            def observed_state():
+                response = self.api("/api/metrics/query_batch", {"queries": [{"id": "loaded", "query": query,
+                                    "_type": "instant", "time": str(int(time.time()))}]})
+                samples = response["results"][0]["data"]["data"]["result"]
+                return response if len(samples) == 1 and float(samples[0]["value"][1]) == loaded else False
+
+            self.capture(f"ollama-model-loaded-{loaded}", self.wait_for(observed_state, "current loaded state"))
+        self.assertEqual(len(ids), 1)
+
     def test_probe_binding_and_native_monitor_failure_recovery(self):
         name = self.prefix + "-probe"
         resource = {
@@ -59,7 +106,7 @@ class BackendPresentationIdentityTest(BackendTestCase):
             end = int(time.time() * 1000)
             charts = self.api(f'/api/components/{service["id"]}/metricPerspectiveData?startTime={end-600000}&endTime={end}')
             metric = next(m for t in charts["tabs"] for s in t["sections"] for m in s["metrics"]
-                          if m["boundMetricId"].get("metricId") == "suse-ai-http-probe-success")
+                          if m["boundMetricId"].get("metricId") == "suse_ai_http_probe_success")
             query = metric["boundQueries"][0]["expression"]
 
             def observed_value():

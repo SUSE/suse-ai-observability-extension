@@ -161,6 +161,52 @@ The [regression test guide](knowledge/REGRESSION_TESTS.md) documents the retaine
 legacy Collector checks; the [native release record](knowledge/NATIVE_STACKPACK_RELEASE.md)
 describes native test dependencies and live checks.
 
+For the interactive demo, keep a persistent private state directory and use an
+explicit router port-forward and demo token file:
+
+```bash
+task demo-deploy \
+  DEMO_URL=http://127.0.0.1:18081 \
+  DEMO_TOKEN_FILE=/absolute/path/to/demo/api-token \
+  DEMO_STATE_DIR=/absolute/path/to/demo-deploy-state
+```
+
+This reserves the next `3.0.0-dev.N`, writes that version into the staged
+`source/stackpack/suse-ai/stackpack.yaml`, validates the exact staged package,
+uploads once, and installs or upgrades with `--unlocked-strategy overwrite`.
+The release checkout keeps its release version. `DEMO_VERSION` can select a
+higher unused development number. Keep the state directory across iterations:
+reserved and failed versions remain consumed even if deleted from the catalog.
+The task requires ready Open Telemetry and Kubernetes companions, rejects stable
+3.0.x installations/catalog entries, and never uninstalls, downgrades or restores.
+Existing stable installations must first be backed up and removed with explicit
+operator authorization. Each deployment saves synchronization list/descriptions
+and SUSE AI mapping statuses for review; existing errors need comparison with
+the baseline and are not automatically cleared.
+
+To deploy the branch's inventory-capable exporter without a registry push:
+
+```bash
+task ollama-test
+task ollama-image-build ollama-image-test RUNTIME=docker \
+  OLLAMA_VERSION=3.0.0-dev.1 \
+  OLLAMA_IMAGE=local.invalid/suse-ai-ollama-exporter:3.0.0-dev.1
+task demo-ollama-deploy RUNTIME=docker \
+  OLLAMA_IMAGE=local.invalid/suse-ai-ollama-exporter:3.0.0-dev.1 \
+  DEMO_KUBECONFIG=/absolute/path/to/demo/kubeconfig-suse-ai \
+  DEMO_EVIDENCE=/absolute/path/to/new-exporter-evidence
+```
+
+Build and test the image before deploying it. The deployment task targets the
+RKE2 demo's `suse-private-ai/ollama` Deployment. It imports the tested image into
+containerd on every downstream node, removes its temporary import pods, and
+changes only the exporter image and its pull
+policy to `Never`. A new evidence directory is required for each attempt.
+It verifies rollout and retains the deployed image; it does not restore an
+earlier Deployment. The unchanged Ollama postStart hook still runs on rollout.
+Use **SUSE AI → Models** to verify available models and open a model to inspect
+its serving-service link and residency charts.
+
 To uninstall all instances (useful for a clean re-install):
 
 ```bash

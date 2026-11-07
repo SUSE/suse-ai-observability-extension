@@ -1,59 +1,11 @@
-# vLLM Request Queue Buildup
+### Check first
+Open [this component](/#/components/{{componentUrnForUrl}}/highlights) and its [metrics](/#/components/{{componentUrnForUrl}}/metrics). Compare waiting/running requests, token throughput and GPU utilization. The configured threshold is **{{threshold}}** in the monitor chart's unit.
 
-This monitor detects a request queue above **{{threshold}} requests** for [{{labels.service_name}}](/#/components/{{componentUrnForUrl}}).
+### Likely causes
+Arrival rate exceeds serving capacity, long generations or a stalled replica.
 
-Compare the metric and threshold in this monitor's chart at the time of the alert.
+### Fix
+Check replica readiness, constrain excessive request sizes and tune capacity against measured demand.
 
-## Potential Impacts
-- Increased wait times for new requests
-- Potential request timeouts
-- Poor user experience
-- System overload
-
-## Diagnosis Steps
-1. **Check Queue vs Running Requests**:
-   ```
-   vllm_num_requests_waiting: Current waiting requests
-   vllm_num_requests_running: Currently processing requests
-   ```
-2. **Analyze Request Patterns**:
-   - Check request arrival rate
-   - Review request sequence lengths
-   - Identify traffic spikes or patterns
-3. **Check System Resources**:
-   ```bash
-   kubectl top pods -l app=vllm
-   kubectl exec -it <vllm-pod> -- nvidia-smi
-   ```
-4. **Review Processing Rate**:
-   - Check throughput metrics (tokens/second)
-   - Compare with historical baselines
-
-## Remediation Actions
-1. **Scale Horizontally**:
-   ```bash
-   kubectl scale deployment/vllm --replicas=5
-   ```
-   - Add more vLLM instances to handle load
-   - Use load balancer to distribute requests
-2. **Increase Concurrent Requests**:
-   - Adjust `--max-num-seqs` to allow more parallel processing
-   - Note: This may increase latency per request
-3. **Optimize Batch Processing**:
-   - Tune `--max-num-batched-tokens` for better throughput
-   - Balance between throughput and latency
-4. **Implement Request Prioritization**:
-   - Add application-level queue with priority
-   - Route urgent requests to dedicated instances
-5. **Add Rate Limiting**:
-   - Implement rate limiting at the application/API gateway level
-   - Prevent queue overflow with 429 responses
-6. **Use Shorter Context Windows**:
-   - Reduce `--max-model-len` if long contexts aren't needed
-   - Enables more concurrent requests
-7. **Enable Request Cancellation**:
-   - Implement timeout and cancellation in client
-   - Free up resources from abandoned requests
-8. **Review and Reject Invalid Requests**:
-   - Validate request parameters before queuing
-   - Reject requests that exceed reasonable limits
+### Verify
+Waiting requests fall below the threshold and latency recovers. If samples are absent, investigate the exporter and Collector: this threshold check cannot establish healthy operation without data.

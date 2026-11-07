@@ -23,7 +23,7 @@ def run_promql_cases(cases):
                 ]["arguments"]
                 expression = (
                     render_topological_monitor(
-                        arguments["queries"]["promqlQuery"], check.get("endpoint")
+                        arguments["queries"]["promqlQuery"], check.get("endpoint"), check.get("monitor_tags")
                     )
                     if "queries" in arguments
                     else arguments["metric"]["query"]
@@ -35,6 +35,13 @@ def run_promql_cases(cases):
                 column = next(c for c in presentation["presentation"]["overview"]["columns"]
                               if c["columnId"] == check["column"])
                 expression = render(column["projection"]["query"], instance=check.get("instance", False))
+            elif "field" in check:
+                presentation = BY_ID[
+                    "urn:stackpack:suse-ai:component-presentation:" + check["presentation"]
+                ]
+                field = next(f for f in presentation["presentation"]["highlight"]["fields"]
+                             if f["fieldId"] == check["field"])
+                expression = render(field["projection"]["query"], instance=check.get("instance", False))
             elif "summary" in check:
                 presentation = BY_ID[
                     "urn:stackpack:suse-ai:component-presentation:" + check["presentation"]

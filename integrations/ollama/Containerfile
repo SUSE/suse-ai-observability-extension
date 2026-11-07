@@ -5,7 +5,7 @@ FROM registry.suse.com/bci/python:3.13@sha256:c2fdbafcbfdfe9b52dbf1c93e0a672e8a5
 ARG VERSION=3.0.0
 
 LABEL org.opencontainers.image.title="SUSE AI Ollama runtime exporter" \
-      org.opencontainers.image.description="Read-only Ollama process residency metrics from the local /api/ps endpoint." \
+      org.opencontainers.image.description="Read-only Ollama model inventory and residency from local /api/tags and /api/ps." \
       org.opencontainers.image.version="${VERSION}" \
       org.opencontainers.image.licenses="Apache-2.0" \
       org.opencontainers.image.source="https://github.com/SUSE/suse-ai-observability-extension" \

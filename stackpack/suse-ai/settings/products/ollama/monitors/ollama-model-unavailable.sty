@@ -1,0 +1,41 @@
+nodes:
+- _type: Monitor
+  name: "Ollama model availability"
+  identifier: urn:stackpack:suse-ai:monitor:ollama-model-unavailable
+  description: "Checks whether an observed Ollama replica reports this model in a fresh, successful API inventory. Available unloaded models are healthy because they can load on demand. This measures inventory availability, not inference correctness; missing telemetry produces no check."
+  intervalSeconds: 30
+  status: ENABLED
+  function: urn:stackpack:common:monitor-function:topological-threshold
+  arguments:
+    threshold: 1.0
+    comparator: LT
+    failureState: DEVIATING
+    queries:
+      topologyQuery: type = "genai served model" and label = "stackpack:suse-ai" and label = "suse.ai.product:ollama"
+      promqlQuery: >-
+        label_replace(
+          max by (k8s_cluster_name, service_namespace, service_name) (
+            (ollama_model_loaded{k8s_cluster_name=~"${tags.suse.ai.monitor.k8s_cluster_name}", service_namespace="${tags.service.namespace}", service_name="${tags.service.name}", model="${tags.ollama.model.name}"} >= bool 0)
+            and
+            (timestamp(ollama_model_loaded{k8s_cluster_name=~"${tags.suse.ai.monitor.k8s_cluster_name}", service_namespace="${tags.service.namespace}", service_name="${tags.service.name}", model="${tags.ollama.model.name}"})
+              == on (k8s_cluster_name, service_namespace, service_name, service_instance_id) group_left
+              max by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (
+                timestamp(ollama_api_up{k8s_cluster_name=~"${tags.suse.ai.monitor.k8s_cluster_name}", service_namespace="${tags.service.namespace}", service_name="${tags.service.name}"})
+                and (ollama_api_up{k8s_cluster_name=~"${tags.suse.ai.monitor.k8s_cluster_name}", service_namespace="${tags.service.namespace}", service_name="${tags.service.name}"} == 1)
+                and topk by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (1,
+                  timestamp(ollama_api_up{k8s_cluster_name=~"${tags.suse.ai.monitor.k8s_cluster_name}", service_namespace="${tags.service.namespace}", service_name="${tags.service.name}"}))
+                and (timestamp(ollama_api_up{k8s_cluster_name=~"${tags.suse.ai.monitor.k8s_cluster_name}", service_namespace="${tags.service.namespace}", service_name="${tags.service.name}"}) > time() - 120)
+              )
+            )
+          )
+          or
+          (0 * max by (k8s_cluster_name, service_namespace, service_name) (
+            ollama_api_up{k8s_cluster_name=~"${tags.suse.ai.monitor.k8s_cluster_name}", service_namespace="${tags.service.namespace}", service_name="${tags.service.name}"}
+            and (timestamp(ollama_api_up{k8s_cluster_name=~"${tags.suse.ai.monitor.k8s_cluster_name}", service_namespace="${tags.service.namespace}", service_name="${tags.service.name}"}) > time() - 120)
+          )),
+          "model", "${tags.ollama.model.name}", "", ""
+        )
+      aliasTemplate: "Model inventory availability"
+      unit: short
+    titleTemplate: "Model availability: ${model} on ${service_name}"
+  remediationHint: !include remediation-hints/ollama/model-unavailable.md.hbs

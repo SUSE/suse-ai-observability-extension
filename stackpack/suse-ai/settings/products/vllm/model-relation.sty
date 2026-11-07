@@ -1,7 +1,7 @@
 nodes:
 - _type: OtelRelationMapping
-  identifier: urn:stackpack:suse-ai:otel-relation-mapping:vllm-models
-  name: vLLM service serves model
+  identifier: urn:stackpack:suse-ai:otel-relation-mapping:vllm-model-host
+  name: vLLM inference service serves model
   input:
     signal:
     - METRICS
@@ -28,5 +28,5 @@ nodes:
     targetId: >-
       'urn:suse-ai:namespace/' + vars.namespace + ':service/' + vars.service
       + ':served-model/' + vars.model
-    typeName: '''serves-model'''
-    dependencyType: '''CONNECTION'''
+    typeName: "'serves-model'"
+    dependencyType: "'HIERARCHICAL'"

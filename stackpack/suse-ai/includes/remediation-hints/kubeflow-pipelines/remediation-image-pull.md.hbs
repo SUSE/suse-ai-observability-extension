@@ -1,13 +1,11 @@
-# Kubeflow Workflow Pod Image Pull Failures
+### Check first
+Open [this component](/#/components/{{componentUrnForUrl}}/highlights) and its [metrics](/#/components/{{componentUrnForUrl}}/metrics). Inspect pending pod events for ErrImagePull and ImagePullBackOff. The configured threshold is **{{threshold}}** in the monitor chart's unit.
 
-This monitor detects recent workflow pod image-pull failures for [{{labels.service_name}}](/#/components/{{componentUrnForUrl}}).
+### Likely causes
+Wrong image reference, missing pull credentials or registry/network failure.
 
-Compare the metric and threshold in this monitor's chart at the time of the alert.
+### Fix
+Correct image references and pull credentials for the affected workflow template.
 
-Triage:
-
-1. Find affected pods: `kubectl get pods -A | grep -E 'ErrImagePull|ImagePullBackOff'`.
-2. Inspect the event message: `kubectl describe pod -n <profile-namespace> <pod-name>`.
-3. Verify the referenced repository and immutable tag exist and match the node architecture.
-4. Check `imagePullSecrets` on the pipeline service account and confirm registry credentials are valid.
-5. Publish the missing image or correct the pipeline image, then submit a new pipeline version and run.
+### Verify
+No new image-pull failures occur throughout the 15-minute window and pods start. If samples are absent, investigate the exporter and Collector: this threshold check cannot establish healthy operation without data.

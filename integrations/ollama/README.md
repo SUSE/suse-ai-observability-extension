@@ -1,21 +1,25 @@
 # Ollama runtime observations
 
 `ollama_metrics.py` exposes a read-only snapshot from the local Ollama
-[`GET /api/ps`](https://docs.ollama.com/api/ps) endpoint. Run one exporter beside
+[`GET /api/tags`](https://docs.ollama.com/api/tags) and
+[`GET /api/ps`](https://docs.ollama.com/api/ps) endpoints. Run one exporter beside
 each Ollama process. It never generates inference requests or substitutes
 client measurements for server telemetry.
 
 | Gauge | Meaning |
 | --- | --- |
 | `ollama_api_up` | 1 for a valid local API snapshot; 0 for HTTP, timeout, JSON or schema failures |
+| `ollama_model_info{model,family,parameter_size,quantization}` | Available model inventory from `/api/tags`; value 1, whether loaded or idle |
+| `ollama_model_loaded{model}` | 1 when an available model is loaded in this process, otherwise 0 |
+| `ollama_model_disk_size_bytes{model}` | Available model size on disk from `/api/tags`, when reported |
 | `ollama_loaded_models` | Number of models loaded by this process, including a real zero for an empty process |
 | `ollama_model_size_bytes{model}` | Model allocation/residency reported as `size` by Ollama |
-| `ollama_model_vram_bytes{model}` | GPU allocation/residency reported as `size_vram` by Ollama |
+| `ollama_model_vram_bytes{model}` | GPU allocation/residency reported as `size_vram`; zero for an available unloaded model |
 | `ollama_model_context_length{model}` | Reported context window of the loaded model |
 
 Memory gauges are allocations reported by Ollama, not utilization, per-request
 memory, token counts, cost, or inference latency. Optional missing API fields
-produce no corresponding gauge. An unsuccessful snapshot emits only
+produce no corresponding gauge. If either API request or validation fails, the scrape emits only
 `ollama_api_up 0`; no model data is cached. Gate residency charts on the current
 `ollama_api_up == 1` per instance so a backend's lookback cannot display a previous
 snapshot as current. `/healthz` tests the exporter process only.
@@ -23,11 +27,14 @@ snapshot as current. `/healthz` tests the exporter process only.
 ## Existing Kubernetes deployment
 
 The reference patch adds the packaged SUSE exporter to an existing Deployment.
-It reads `127.0.0.1:11434/api/ps` within that pod and exposes `/metrics` on 11435.
+It reads `/api/tags` and `/api/ps` at `127.0.0.1:11434` within that pod and exposes `/metrics` on 11435.
 The release image is
 `registry.suse.com/ai/containers/suse/suse-ai-ollama-exporter:<version>`, where
-`<version>` is the extension release version without the leading `v`. The first
-release is `3.0.0`. Publication and image-mirror promotion are still pending.
+`<version>` is the extension release version without the leading `v`. This
+source targets release `3.0.0` for both the exporter and StackPack.
+Available-model inventory requires the `/api/tags` support in this source;
+the earlier residency-only 3.0.0 image does not emit `ollama_model_info`.
+Use the published digest of the inventory-capable build in the updated patch.
 Before applying `sidecar-patch.yaml`, replace
 `<PUBLISHED_MULTI_ARCH_INDEX_DIGEST>` with the published SUSE registry index's
 64-character SHA-256 value. The placeholder is intentionally not a usable
@@ -61,7 +68,8 @@ metadata. Use the same logical service name/namespace as any existing Ollama
 telemetry. Scrape each pod directly through one Collector owner; a load-balanced
 Service address cannot provide reliable process identity.
 
-Configure the scrape interval above the exporter's five-second API timeout.
+Allow for two API reads, each with a five-second timeout; keep the scrape timeout
+and interval above the total request budget or lower `--timeout` as needed.
 Restrict metrics access with your normal cluster network policy. The exporter
 does not require API credentials for the local Ollama process. For a different
 local origin or port, use `--ollama-url`, `--port` or `--timeout`; keep one exporter
@@ -80,8 +88,16 @@ task workflows-lint
 The standard-library tests exercise the actual HTTP exporter and API failures,
 empty/malformed snapshots, missing optional values, label escaping, replica
 isolation and stale-data prevention. The collection contract is tested against
-Ollama 0.21.2's `/api/ps` response. Models are metric labels only; this integration
-does not create served-model topology or request/token charts.
+Ollama's `/api/ps` and `/api/tags` response shapes. StackPack 3.0.0 maps
+`ollama_model_info` to available served models and links them to their Ollama
+service. Idle unloading keeps the model visible. Deletion or sustained API
+failure allows the component and relation to expire 15 minutes after their last
+inventory observation. Model charts show loaded state, disk size, VRAM,
+loaded allocation and context; unreported values stay missing. Request/token
+metrics remain on caller model-usage views unless the serving peer is verified.
+The shared Models table explicitly marks unsupported metrics `not reported`;
+open a model for its numeric product charts. See the
+[identity, expiry and attribution decisions](../../knowledge/OLLAMA_MODEL_INVENTORY.md).
 
 The patch checks require `kubectl` and run locally, without contacting a cluster.
 The image tasks use Podman by default. Pass `RUNTIME=docker` to both

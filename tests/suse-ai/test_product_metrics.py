@@ -33,7 +33,7 @@ def samples(value, **dimensions):
 def chart(product, metric, expected, **options):
     return {
         "presentation": "product-" + product,
-        "metric": "suse-ai-" + product + "-" + metric,
+        "metric": "suse_ai_" + (product + "_" + metric).replace("-", "_"),
         "samples": expected,
         **options,
     }
@@ -57,7 +57,7 @@ def product_cases():
         if protocol == "rest":
             healthy_checks.append({
                 "presentation": "product-qdrant",
-                "summary": "suse-ai-qdrant-vectordb-rest-responses-fail-summary",
+                "metric": "suse_ai_qdrant_vectordb_rest_responses_fail",
                 "samples": samples(0),
             })
         cases.append({
@@ -164,7 +164,6 @@ def product_cases():
             "series": data,
             "checks": [
                 chart(product, "run-success-rate", expected),
-                {"presentation": "product-" + product, "summary": "suse-ai-kubeflow-pipelines-run-success-rate-summary", "samples": expected},
                 chart(product, "run-outcomes", samples(success or 0) if data else [], query_alias="succeeded"),
                 chart(product, "run-outcomes", samples(failed or 0) if data else [], query_alias="failed"),
             ],
@@ -264,9 +263,9 @@ class ProductPresentationTest(unittest.TestCase):
             presentation = BY_ID[prefix + f"kubeflow-pipelines-{role}-highlights"]
             self.assertIn('label = "service.name:' + service + '"', presentation["binding"]["query"])
             refs = presentation["presentation"]["highlight"]["metrics"][0]["metrics"]
-            self.assertIn("suse-ai-kubeflow-pipelines-" + metric, [m["metricId"] for m in refs])
+            self.assertIn("suse_ai_kubeflow_pipelines_" + metric.replace("-", "_"), [m["metricId"] for m in refs])
         milvus = BY_ID[prefix + "product-milvus"]["presentation"]["highlight"]["metrics"][0]["metrics"]
-        self.assertEqual(milvus[0]["metricId"], "suse-ai-milvus-vectordb-system-search-latency")
+        self.assertEqual(milvus[0]["metricId"], "suse_ai_milvus_vectordb_system_search_latency")
 
 
 @unittest.skipUnless(os.environ.get("AI_PROMETHEUS_IMAGE"), "Set AI_PROMETHEUS_IMAGE to run query evaluation")

@@ -1,13 +1,11 @@
-# Recent Kubeflow Pipeline Run Failures
+### Check first
+Open [this component](/#/components/{{componentUrnForUrl}}/highlights) and its [metrics](/#/components/{{componentUrnForUrl}}/metrics). Open the failed workflow and inspect the first failed task and its logs. The configured threshold is **{{threshold}}** in the monitor chart's unit.
 
-This monitor detects recent pipeline workflow failures for [{{labels.service_name}}](/#/components/{{componentUrnForUrl}}).
+### Likely causes
+Task errors, missing inputs, dependency failures or resource exhaustion.
 
-Compare the metric and threshold in this monitor's chart at the time of the alert.
+### Fix
+Correct the failing task or resource requirement, then rerun the affected workflow.
 
-Triage:
-
-1. List recent workflows: `kubectl get workflows -A --sort-by=.metadata.creationTimestamp`.
-2. Inspect the failed workflow: `kubectl describe workflow -n <profile-namespace> <workflow-name>`.
-3. Find the failing task pod and read all container logs: `kubectl logs -n <profile-namespace> <pod-name> --all-containers`.
-4. Check artifact credentials, image pull secrets, resource quotas, and service-account RBAC in the profile namespace.
-5. Correct the cause and create a new run; do not retry a run whose inputs or image tag are no longer reproducible.
+### Verify
+No new failed workflows occur throughout the 15-minute window and a rerun succeeds. If samples are absent, investigate the exporter and Collector: this threshold check cannot establish healthy operation without data.

@@ -336,15 +336,15 @@ class BackendMetricsTest(BackendTestCase):
             charts = self.charts(c)
             self.assertTrue(
                 {
-                    "suse-ai-requests",
-                    "suse-ai-latency",
-                    "suse-ai-tokens",
-                    "suse-ai-reported-cost",
+                    "suse_ai_requests",
+                    "suse_ai_latency",
+                    "suse_ai_tokens",
+                    "suse_ai_reported_cost",
                 }
                 <= set(charts)
             )
-            self.assertNotIn("suse-ai-demo-agent-tool-call-rate", charts)
-            query = charts["suse-ai-requests"]["boundQueries"][0]["expression"]
+            self.assertNotIn("suse_ai_demo_agent_tool_call_rate", charts)
+            query = charts["suse_ai_requests"]["boundQueries"][0]["expression"]
             values = self.wait_for(
                 lambda query=query: self.query(query), "Ollama request chart"
             )
@@ -353,9 +353,9 @@ class BackendMetricsTest(BackendTestCase):
                 float(values[0]["value"][1])
             )
             for metric, expected_value in (
-                ("suse-ai-latency", 9.55),
-                ("suse-ai-tokens-per-request", 30),
-                ("suse-ai-cost-per-request", 0.002),
+                ("suse_ai_latency", 9.55),
+                ("suse_ai_tokens_per_request", 30),
+                ("suse_ai_cost_per_request", 0.002),
             ):
                 expression = charts[metric]["boundQueries"][0]["expression"]
                 values = self.capture(f"{c['id']}-{metric}", self.query(expression))
@@ -364,8 +364,8 @@ class BackendMetricsTest(BackendTestCase):
                     float(values[0]["value"][1]), expected_value, places=5
                 )
             for metric, multiplier in (
-                ("suse-ai-tokens", 30),
-                ("suse-ai-reported-cost", 0.002 * 3600),
+                ("suse_ai_tokens", 30),
+                ("suse_ai_reported_cost", 0.002 * 3600),
             ):
                 values = self.capture(
                     f"{c['id']}-{metric}",
@@ -403,10 +403,10 @@ class BackendMetricsTest(BackendTestCase):
                 service_name,
             )[0]
             charts = self.charts(service)
-            self.assertIn("suse-ai-requests", charts)
+            self.assertIn("suse_ai_requests", charts)
             self.assertEqual(
-                "suse-ai-demo-agent-tool-call-rate" in charts, demo == "true"
+                "suse_ai_demo_agent_tool_call_rate" in charts, demo == "true"
             )
             self.assertNotIn("ollama", self.tag_values(service, "suse.ai.product"))
             # Cost is optional, and these SDK clients did not emit any.
-            self.assertNotIn("suse-ai-reported-cost", charts)
+            self.assertNotIn("suse_ai_reported_cost", charts)

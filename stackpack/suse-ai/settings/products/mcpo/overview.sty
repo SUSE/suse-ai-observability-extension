@@ -1,0 +1,70 @@
+nodes:
+- _type: ComponentPresentation
+  name: mcpo inventory
+  identifier: urn:stackpack:suse-ai:component-presentation:product-mcpo-overview
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: label = "stackpack:suse-ai" and type = "otel service" and label = "suse.ai.product:mcpo"
+  rank:
+    specificity: 1
+  presentation:
+    overview:
+      name:
+        singular: mcpo service
+        plural: mcpo services
+        title: mcpo
+      columns:
+      - columnId: suse_ai_health
+        title: Health
+        projection:
+          _type: HealthProjection
+          value: healthState
+      - columnId: suse_ai_otel_name
+        title: Name
+        projection:
+          _type: ComponentLinkProjection
+          name: name
+          identifier: identifiers[0]
+      - columnId: suse_ai_otel_namespace
+        title: Service namespace
+        projection:
+          _type: TextProjection
+          value: tags.singleValue('service.namespace')
+      - columnId: suse_ai_otel_k8s_cluster
+        title: Cluster
+        projection:
+          _type: TextProjection
+          value: '''cluster-name'' in tags ? tags[''cluster-name''].filter(cluster, cluster != '''').join('', '')
+            : '''''
+      - columnId: suse_ai_mcpo_http_requests_column
+        title: HTTP request rate
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_mcpo_http_requests
+          query: sum by (service_namespace, service_name) (sum by (service_namespace, service_name) (rate(http_server_duration_milliseconds_count{service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}"}[5m])))
+          unit: reqps
+          decimalPlaces: 2
+      - columnId: suse_ai_mcpo_http_latency_p95_column
+        title: HTTP request latency P95
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_mcpo_http_latency_p95
+          query: max by (service_namespace, service_name) (histogram_quantile(0.95, sum by (le, service_namespace,
+            service_name) (rate(http_server_duration_milliseconds_bucket{service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}"}[5m]))))
+          unit: ms
+          decimalPlaces: 2
+      - columnId: suse_ai_mcpo_http_errors_column
+        title: HTTP server error rate
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_mcpo_http_errors
+          query: sum by (service_namespace, service_name) ((sum by (service_namespace, service_name) (rate(http_server_duration_milliseconds_count{service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}",http_status_code=~"5.."}[5m]))) or (0 * sum by (service_namespace,
+            service_name) (rate(http_server_duration_milliseconds_count{service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}"}[5m]))))
+          unit: reqps
+          decimalPlaces: 2
+      sort:
+      - columnId: suse_ai_otel_name

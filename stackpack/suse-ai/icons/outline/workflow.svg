@@ -1,0 +1,9 @@
+<!-- SPDX-License-Identifier: Apache-2.0; original repository artwork, 2026. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 40 40" role="img" aria-labelledby="workflow-title workflow-description">
+  <title id="workflow-title">Workflow</title>
+  <desc id="workflow-description">A workflow branches into two stages.</desc>
+  <rect width="40" height="40" rx="8" fill="#E4F5EB"/>
+  <g fill="none" stroke="#30BA78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="8" y="16" width="8" height="8" rx="2"/><rect x="25" y="8" width="8" height="8" rx="2"/><rect x="25" y="24" width="8" height="8" rx="2"/><path d="M16 20h4m5-8h-5v16h5"/>
+  </g>
+</svg>

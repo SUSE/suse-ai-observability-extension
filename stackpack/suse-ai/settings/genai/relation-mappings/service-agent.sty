@@ -1,7 +1,7 @@
 nodes:
 - _type: OtelRelationMapping
-  identifier: urn:stackpack:suse-ai:otel-relation-mapping:service-agent
-  name: AI service contains named agent
+  identifier: urn:stackpack:suse-ai:otel-relation-mapping:agent-host
+  name: Agent depends on hosting service
   input:
     signal:
     - TRACES
@@ -26,9 +26,9 @@ nodes:
       ? string(span.attributes['gen_ai.agent.name']) : string(span.attributes['traceloop.entity.name'])
   expireAfter: 900000
   output:
-    sourceId: '''urn:opentelemetry:namespace/'' + vars.namespace + '':service/'' + vars.service'
-    targetId: >-
+    sourceId: >-
       'urn:suse-ai:namespace/' + vars.namespace + ':service/' + vars.service
       + ':agent/' + vars.agent
-    typeName: '''contains-agent'''
-    dependencyType: '''HIERARCHICAL'''
+    targetId: '''urn:opentelemetry:namespace/'' + vars.namespace + '':service/'' + vars.service'
+    typeName: "'is-hosted-on'"
+    dependencyType: "'HIERARCHICAL'"

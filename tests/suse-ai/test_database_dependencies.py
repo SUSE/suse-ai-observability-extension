@@ -118,11 +118,21 @@ class DatabaseDependenciesTest(unittest.TestCase):
                     self.assertTrue(evaluate(projection[key], {"tags": tags}))
         self.assertEqual(presentation["tracesPerspective"]["spanFilter"]["attributes"]["server.port"],
                          ["${tags.singleValue('server.port')}"])
-        columns = BY_ID["urn:stackpack:suse-ai:component-presentation:common"]["presentation"]["overview"]["columns"]
-        for column_id, expected in (("suse_ai_observer_service", "rag"), ("suse_ai_observer_cluster", "east")):
-            column = next(c for c in columns if c["columnId"] == column_id)
-            self.assertEqual(evaluate(column["projection"]["value"], {"tags": tags}), expected)
-            self.assertEqual(evaluate(column["projection"]["value"], {"tags": {"service.name": ["native"]}}), "")
+        columns = {c["columnId"]: c for c in presentation["overview"]["columns"]}
+        # Display this observation component's state; do not infer server health.
+        self.assertEqual(columns["suse_ai_health"]["projection"],
+                         {"_type": "HealthProjection", "value": "healthState"})
+        self.assertNotIn("suse_ai_otel_k8s_cluster", columns)
+        self.assertFalse(any(c.get("projection", {}).get("_type") == "MetricProjection" for c in columns.values()))
+        self.assertNotIn("mainMenu", presentation["overview"])
+        self.assertEqual(presentation["overview"]["name"]["title"], "Unresolved calls")
+        caller = columns["suse_ai_observer_service"]["projection"]
+        self.assertEqual(evaluate(caller["name"], {"tags": tags}), "rag")
+        self.assertEqual(evaluate(caller["identifier"], {"tags": tags}),
+                         "urn:opentelemetry:namespace/apps:service/rag")
+        cluster = columns["suse_ai_observer_cluster"]["projection"]["value"]
+        self.assertEqual(evaluate(cluster, {"tags": tags}), "east")
+        self.assertEqual(evaluate(cluster, {"tags": {}}), "")
 
 
 if __name__ == "__main__":

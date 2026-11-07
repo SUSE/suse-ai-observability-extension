@@ -1,0 +1,11 @@
+### Check first
+Open [this model](/#/components/{{componentUrnForUrl}}/highlights) and follow **Served by** to its Ollama service. Compare the model's loaded-state chart with `ollama_api_up`, and inspect `/api/tags` and `/api/ps` on the same runtime replica. A model listed in inventory can be healthy with loaded state **0**: Ollama loads available models on demand.
+
+### Likely causes
+The exporter received a failed or invalid API response, or the model is absent from the latest successful inventory on every observed replica. Old model samples cannot establish availability after a newer snapshot. This check measures inventory availability, not inference response correctness or latency.
+
+### Fix
+Restore access to the local Ollama API. If the model should still be served, verify its name and provisioning on the intended replicas. Do not force idle models into GPU memory just to make the loaded-state gauge equal 1. If removal was intentional, the inventory component will expire after its discovery retention period.
+
+### Verify
+At least one replica reports the model and a successful API observation in the same fresh snapshot; inventory availability returns to **1** and this check becomes CLEAR. Observations older than two minutes are excluded. If telemetry is absent, investigate the exporter and Collector: this monitor emits no check and does not manufacture a healthy state. A failed API returns availability **0** while it continues to be observed.

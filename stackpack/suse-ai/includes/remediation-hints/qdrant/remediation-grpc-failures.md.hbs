@@ -1,39 +1,11 @@
-# Qdrant gRPC API Failures Detected
+### Check first
+Open [this component](/#/components/{{componentUrnForUrl}}/highlights) and its [metrics](/#/components/{{componentUrnForUrl}}/metrics). Inspect nonzero gRPC status codes and corresponding client errors. The configured threshold is **{{threshold}}** in the monitor chart's unit.
 
-This monitor detects failed gRPC API responses from [{{labels.service_name}}](/#/components/{{componentUrnForUrl}}).
+### Likely causes
+Invalid requests, authentication failures, deadlines or unavailable shards.
 
-Compare the metric and threshold in this monitor's chart at the time of the alert.
+### Fix
+Correct the specific status cause, then retry a representative read with the application credentials.
 
-## Potential Impacts
-- Failed vector operations from gRPC clients
-- Broken inter-node communication in distributed deployments
-- Application errors for services using the gRPC interface
-
-## Diagnosis Steps
-1. **Check Qdrant Logs**:
-   ```bash
-   kubectl logs -l app=qdrant --tail=100
-   ```
-2. **Verify gRPC Port Availability**:
-   ```bash
-   kubectl get svc -l app=qdrant
-   ```
-   Ensure port 6334 is exposed and reachable.
-3. **Check Cluster State** (distributed mode):
-   ```bash
-   curl http://<qdrant-host>:6333/cluster
-   ```
-4. **Review Resource Utilization**:
-   ```bash
-   kubectl top pods -l app=qdrant
-   ```
-
-## Remediation Actions
-1. **Check Inter-node Connectivity**: In distributed mode, gRPC is used for node-to-node communication. Verify all nodes can reach each other on port 6335.
-2. **Review TLS Configuration**: If TLS is enabled on gRPC, verify certificates are valid and not expired.
-3. **Check Memory Pressure**: gRPC failures can occur under heavy memory pressure. Review memory limits and active memory usage.
-4. **Restart Qdrant**:
-   ```bash
-   kubectl rollout restart statefulset/qdrant
-   ```
-5. **Scale Cluster**: If the cluster is overloaded, add more nodes to distribute the load.
+### Verify
+The gRPC failure rate returns to zero with successful requests still observed. If samples are absent, investigate the exporter and Collector: this threshold check cannot establish healthy operation without data.

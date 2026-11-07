@@ -1,9 +1,8 @@
 nodes:
 - _type: Monitor
-  name: Kubeflow Pipelines API Server Down
+  name: "Pipeline API metrics availability"
   identifier: urn:stackpack:suse-ai:monitor:kfp-api-down
-  description: |
-    Triggers when the ml-pipeline API server scrape target is down.
+  description: "Detects loss of access to the pipeline API's metrics endpoint so operators can restore monitoring coverage. This check measures metrics collection, not whether pipeline API requests succeed."
   status: ENABLED
   intervalSeconds: 60
   function: urn:stackpack:common:monitor-function:threshold
@@ -14,8 +13,8 @@ nodes:
     metric:
       query: min by (service_namespace, service_name) (up{suse_ai_product="kubeflow-pipelines", service_namespace!="",
         service_name!="", service_name="kubeflow-pipelines"})
-      aliasTemplate: Kubeflow Pipelines API Server Down
+      aliasTemplate: "Pipeline API metrics scrape success"
       unit: short
-    titleTemplate: Kubeflow Pipelines API server is down
+    titleTemplate: "Pipeline API metrics availability: ${service_name}"
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
   remediationHint: !include 'remediation-hints/kubeflow-pipelines/remediation-api-down.md.hbs'

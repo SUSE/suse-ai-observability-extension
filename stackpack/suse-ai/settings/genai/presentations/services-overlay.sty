@@ -1,0 +1,50 @@
+nodes:
+- _type: ComponentPresentation
+  name: AI services overlay
+  identifier: urn:stackpack:suse-ai:component-presentation:services-overlay
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: (label = "stackpack:open-telemetry" and type = "otel service" and label = "stackpack:suse-ai")
+  rank:
+    specificity: 1
+  presentation:
+    highlight:
+      fields:
+      - fieldId: suse_ai_product
+        title: Product
+        order: 45
+        projection:
+          _type: TextProjection
+          value: '''suse.ai.product'' in tags ? tags[''suse.ai.product''].join('', '') : '''''
+      relatedResources:
+      - resourceId: suse_ai_data_dependencies
+        title: Data dependencies
+        order: 77
+        topologyQuery: withNeighborsOf(direction = "down", components = (identifier = "${identifiers[0]}"), levels
+          = "1") and type = "otel service" and label = "stackpack:suse-ai" and label IN ("suse.ai.category:vectordb",
+          "suse.ai.category:search-engine")
+        presentationIdentifier: urn:stackpack:suse-ai:component-presentation:data-services
+      - resourceId: suse_ai_observed_dependencies
+        title: Unresolved calls
+        order: 76
+        topologyQuery: type = "genai database dependency" and label = "stackpack:suse-ai" and label = "service.namespace:${tags.singleValue('service.namespace')}"
+          and label = "service.name:${tags.singleValue('service.name')}"
+        presentationIdentifier: urn:stackpack:suse-ai:component-presentation:database-dependencies
+      - resourceId: suse_ai_models
+        title: Model usage
+        order: 80
+        topologyQuery: type = "genai model usage" and label = "service.namespace:${tags.singleValue('service.namespace')}"
+          and label = "service.name:${tags.singleValue('service.name')}"
+        presentationIdentifier: urn:stackpack:suse-ai:component-presentation:models
+      - resourceId: suse_ai_agents
+        title: Agents
+        order: 79
+        topologyQuery: withNeighborsOf(direction = "both", components = (identifier = "${identifiers[0]}"), levels
+          = "1") and type = "genai agent"
+        presentationIdentifier: urn:stackpack:suse-ai:component-presentation:agents
+      - resourceId: suse_ai_served_models
+        title: Model deployments
+        order: 78
+        topologyQuery: withNeighborsOf(direction = "both", components = (identifier = "${identifiers[0]}"), levels
+          = "1") and type = "genai served model"
+        presentationIdentifier: urn:stackpack:suse-ai:component-presentation:served-models
