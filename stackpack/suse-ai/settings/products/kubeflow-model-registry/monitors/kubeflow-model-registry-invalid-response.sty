@@ -1,12 +1,8 @@
 nodes:
 - _type: Monitor
-  name: 'Model registry service: API response is invalid'
+  name: "Model Registry response validation"
   identifier: urn:stackpack:suse-ai:monitor:kubeflow-model-registry-invalid-response
-  description: 'Triggers when the Model Registry API responds but its body does not have
-
-    the expected registered-model collection shape.
-
-    '
+  description: "Checks that the Model Registry API response contains the expected registered-model collection. A failed validation can reveal a changed response format or an unexpected endpoint that prevents clients from reading model metadata."
   status: ENABLED
   intervalSeconds: 60
   function: urn:stackpack:common:monitor-function:threshold
@@ -21,8 +17,8 @@ nodes:
         service_namespace!="", service_name!="", validation_type="contains"}))) or (0 * max by (service_namespace,
         service_name) (httpcheck_validation_passed{suse_ai_product="kubeflow-model-registry", service_namespace!="",
         service_name!="", validation_type="contains"}))
-      aliasTemplate: Kubeflow Model Registry Response Invalid
+      aliasTemplate: "Response validation failure"
       unit: short
-    titleTemplate: 'Model registry ${service_name}: API response is invalid'
+    titleTemplate: "Model Registry response validation: ${service_name}"
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
   remediationHint: !include 'remediation-hints/kubeflow-model-registry/remediation-invalid-response.md.hbs'

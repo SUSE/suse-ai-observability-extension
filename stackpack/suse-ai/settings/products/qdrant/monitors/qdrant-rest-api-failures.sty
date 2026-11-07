@@ -1,8 +1,8 @@
 nodes:
 - _type: Monitor
-  name: 'Qdrant service: HTTP requests are failing'
+  name: "Qdrant HTTP request reliability"
   identifier: urn:stackpack:suse-ai:monitor:qdrant-rest-api-failures
-  description: Indicates if Qdrant is returning failed REST API responses.
+  description: "Detects Qdrant HTTP responses with client or server errors. These can interrupt vector storage or retrieval; inspect status codes to distinguish invalid requests from server problems."
   intervalSeconds: 60
   status: ENABLED
   function: urn:stackpack:common:monitor-function:threshold
@@ -11,13 +11,13 @@ nodes:
     comparator: GT
     failureState: CRITICAL
     metric:
-      aliasTemplate: Qdrant REST API Failures
+      aliasTemplate: "Failed HTTP requests per second"
       query: 'sum by (service_namespace, service_name) (rate(rest_responses_total{suse_ai_product="qdrant", service_namespace!="",
         service_name!="", status=~"[45][0-9][0-9]"}[5m]))
 
         or (0 * sum by (service_namespace, service_name) (rate(rest_responses_total{suse_ai_product="qdrant", service_namespace!="",
         service_name!="", status=~"[1-5][0-9][0-9]"}[5m])))'
       unit: reqps
-    titleTemplate: 'Qdrant ${service_name}: HTTP requests are failing'
+    titleTemplate: "Qdrant HTTP request reliability: ${service_name}"
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
   remediationHint: !include 'remediation-hints/qdrant/remediation-rest-failures.md.hbs'

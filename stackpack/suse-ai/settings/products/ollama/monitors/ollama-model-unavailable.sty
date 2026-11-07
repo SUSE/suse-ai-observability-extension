@@ -1,8 +1,8 @@
 nodes:
 - _type: Monitor
-  name: 'Ollama model: unavailable in runtime inventory'
+  name: "Ollama model availability"
   identifier: urn:stackpack:suse-ai:monitor:ollama-model-unavailable
-  description: Checks each model against fresh Ollama inventory and API observations. An available unloaded model is healthy. At least one observed replica must report the model in its latest successful snapshot; missing telemetry produces no check.
+  description: "Checks whether an observed Ollama replica reports this model in a fresh, successful API inventory. Available unloaded models are healthy because they can load on demand. This measures inventory availability, not inference correctness; missing telemetry produces no check."
   intervalSeconds: 30
   status: ENABLED
   function: urn:stackpack:common:monitor-function:topological-threshold
@@ -35,7 +35,7 @@ nodes:
           )),
           "model", "${tags.ollama.model.name}", "", ""
         )
-      aliasTemplate: Model inventory availability
+      aliasTemplate: "Model inventory availability"
       unit: short
-    titleTemplate: 'Model ${model} on ${service_name}: unavailable in runtime inventory'
+    titleTemplate: "Model availability: ${model} on ${service_name}"
   remediationHint: !include remediation-hints/ollama/model-unavailable.md.hbs

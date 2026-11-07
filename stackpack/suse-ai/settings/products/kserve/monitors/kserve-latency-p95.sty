@@ -1,12 +1,8 @@
 nodes:
 - _type: Monitor
-  name: 'KServe service: predictions are slow'
+  name: "KServe prediction response time"
   identifier: urn:stackpack:suse-ai:monitor:kserve-latency-p95
-  description: 'Triggers when the P95 model predict latency exceeds 2 seconds
-
-    over 5 minutes.
-
-    '
+  description: "Tracks how long KServe prediction requests take to complete. An elevated 95th percentile indicates slow responses that may affect applications using the model."
   status: ENABLED
   intervalSeconds: 60
   function: urn:stackpack:common:monitor-function:threshold
@@ -17,8 +13,8 @@ nodes:
     metric:
       query: histogram_quantile(0.95, sum by (service_namespace, service_name, le) (rate(request_predict_seconds_bucket{suse_ai_product="kserve",
         service_namespace!="", service_name!=""}[5m])))
-      aliasTemplate: KServe Predict Latency P95 High
+      aliasTemplate: "P95 prediction response time"
       unit: s
-    titleTemplate: 'KServe ${service_name}: predictions are slow'
+    titleTemplate: "Prediction response time: ${service_name}"
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
   remediationHint: !include 'remediation-hints/kserve/remediation-latency.md.hbs'

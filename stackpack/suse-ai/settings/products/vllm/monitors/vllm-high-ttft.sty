@@ -1,8 +1,8 @@
 nodes:
 - _type: Monitor
-  name: 'Model on service: first token is slow'
+  name: "vLLM time to first token"
   identifier: urn:stackpack:suse-ai:monitor:vllm-high-ttft
-  description: P99 latency for each vLLM model deployment, aggregated across its runtime replicas.
+  description: "Tracks how long users wait before a vLLM model starts responding. An elevated 99th-percentile time to first token can indicate queueing or prompt-processing delays across runtime replicas."
   intervalSeconds: 60
   status: ENABLED
   function: urn:stackpack:common:monitor-function:topological-threshold
@@ -14,7 +14,7 @@ nodes:
       topologyQuery: type = "genai served model" and label = "stackpack:suse-ai" and label = "suse.ai.product:vllm"
       promqlQuery: histogram_quantile(0.99, sum by (service_namespace, service_name, model_name, le) (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket",
         service_namespace="${tags.service.namespace}", service_name="${tags.service.name}", model_name="${tags.vllm.model.name}"}[5m])))
-      aliasTemplate: Model time to first token
+      aliasTemplate: "P99 time to first token"
       unit: s
-    titleTemplate: 'Model ${model_name} on ${service_name}: first token is slow'
+    titleTemplate: "Time to first token: ${model_name} on ${service_name}"
   remediationHint: !include 'remediation-hints/genai/vllm-high-ttft.md.hbs'

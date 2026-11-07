@@ -1,8 +1,8 @@
 nodes:
 - _type: Monitor
-  name: 'Milvus service: vector searches are slow'
+  name: "Milvus vector search response time"
   identifier: urn:stackpack:suse-ai:monitor:milvus-high-search-latency
-  description: Indicates if Milvus search operations are experiencing high latency.
+  description: "Tracks the 99th-percentile duration of Milvus vector searches. Slow searches can increase retrieval time in AI applications and delay the context supplied to a model."
   intervalSeconds: 60
   status: ENABLED
   function: urn:stackpack:common:monitor-function:threshold
@@ -11,10 +11,10 @@ nodes:
     comparator: GT
     failureState: DEVIATING
     metric:
-      aliasTemplate: Milvus High Search Latency
+      aliasTemplate: "P99 vector search response time"
       query: (histogram_quantile(0.99, sum by (service_namespace, service_name, le) (rate(milvus_proxy_sq_latency_bucket{suse_ai_product="milvus",
         service_namespace!="", service_name!=""}[5m])))) / 1000
       unit: s
-    titleTemplate: 'Milvus ${service_name}: vector searches are slow'
+    titleTemplate: "Vector search response time: ${service_name}"
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
   remediationHint: !include 'remediation-hints/milvus/remediation-search-latency.md.hbs'

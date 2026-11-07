@@ -1,12 +1,8 @@
 nodes:
 - _type: Monitor
-  name: 'Workflow controller service: images cannot be pulled'
+  name: "Pipeline container image availability"
   identifier: urn:stackpack:suse-ai:monitor:kfp-image-pull-failures
-  description: 'Triggers when workflow pods encounter ErrImagePull or ImagePullBackOff
-
-    during the last 15 minutes.
-
-    '
+  description: "Detects workflow pods that cannot download their container image, preventing affected pipeline steps from starting. Includes image pull failures observed in the last 15 minutes."
   status: ENABLED
   intervalSeconds: 60
   function: urn:stackpack:common:monitor-function:threshold
@@ -20,8 +16,8 @@ nodes:
 
         or (0 * sum by (service_namespace, service_name) (argo_workflows_pods_gauge{suse_ai_product="kubeflow-pipelines",
         service_namespace!="", service_name!=""}))'
-      aliasTemplate: Kubeflow Workflow Pod Image Pull Failures
+      aliasTemplate: "Recent workflow image pull failures"
       unit: short
-    titleTemplate: 'Workflow controller ${service_name}: images cannot be pulled'
+    titleTemplate: "Pipeline image availability: ${service_name}"
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
   remediationHint: !include 'remediation-hints/kubeflow-pipelines/remediation-image-pull.md.hbs'

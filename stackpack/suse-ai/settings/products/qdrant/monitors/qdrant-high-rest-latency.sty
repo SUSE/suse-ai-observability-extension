@@ -1,8 +1,8 @@
 nodes:
 - _type: Monitor
-  name: 'Qdrant service: HTTP responses are slow'
+  name: "Qdrant HTTP response time"
   identifier: urn:stackpack:suse-ai:monitor:qdrant-high-rest-latency
-  description: Indicates if Qdrant REST API average response duration is too high.
+  description: "Tracks the highest reported average duration of Qdrant HTTP responses. Slow requests can delay vector retrieval and other application operations."
   intervalSeconds: 60
   status: ENABLED
   function: urn:stackpack:common:monitor-function:threshold
@@ -11,10 +11,10 @@ nodes:
     comparator: GT
     failureState: DEVIATING
     metric:
-      aliasTemplate: Qdrant High REST API Latency
+      aliasTemplate: "Average HTTP response time"
       query: max by (service_namespace, service_name) (rest_responses_avg_duration_seconds{suse_ai_product="qdrant",
         service_namespace!="", service_name!=""})
       unit: s
-    titleTemplate: 'Qdrant ${service_name}: HTTP responses are slow'
+    titleTemplate: "Qdrant HTTP response time: ${service_name}"
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
   remediationHint: !include 'remediation-hints/qdrant/remediation-rest-latency.md.hbs'

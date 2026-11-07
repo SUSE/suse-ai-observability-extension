@@ -1,8 +1,8 @@
 nodes:
 - _type: Monitor
-  name: 'Inference server service: requests are queueing'
+  name: "vLLM request backlog"
   identifier: urn:stackpack:suse-ai:monitor:vllm-request-queue-buildup
-  description: Indicates if vLLM has excessive requests waiting in the queue.
+  description: "Tracks requests waiting for vLLM inference capacity. A growing backlog can increase response times; compare demand with available model capacity."
   intervalSeconds: 60
   status: ENABLED
   function: urn:stackpack:common:monitor-function:threshold
@@ -11,10 +11,10 @@ nodes:
     comparator: GT
     failureState: DEVIATING
     metric:
-      aliasTemplate: vLLM Request Queue Buildup
+      aliasTemplate: "Requests waiting for inference"
       query: max by (service_namespace, service_name) (vllm_num_requests_waiting{suse_ai_product="vllm", service_namespace!="",
         service_name!=""} or vllm:num_requests_waiting{suse_ai_product="vllm", service_namespace!="", service_name!=""})
       unit: short
-    titleTemplate: 'Inference server ${service_name}: requests are queueing'
+    titleTemplate: "Request backlog: ${service_name}"
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
   remediationHint: !include 'remediation-hints/vllm/remediation-queue.md.hbs'

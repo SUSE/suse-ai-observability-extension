@@ -1,9 +1,8 @@
 nodes:
 - _type: Monitor
-  name: 'Service service: endpoint probe fails'
+  name: "AI endpoint availability"
   identifier: urn:stackpack:suse-ai:monitor:http-probe-unavailable
-  description: An explicitly configured endpoint check does not return HTTP 2xx. This is probe health, not application
-    request error rate.
+  description: "Checks whether the configured AI endpoint returns a successful HTTP response. Failed checks can reveal routing, authentication or service problems; inspect the response to identify the cause."
   intervalSeconds: 60
   status: ENABLED
   function: urn:stackpack:common:monitor-function:threshold
@@ -12,12 +11,12 @@ nodes:
     comparator: LT
     failureState: DEVIATING
     metric:
-      aliasTemplate: HTTP probe success
+      aliasTemplate: "Endpoint check success"
       unit: short
       query: min by (service_namespace, service_name) (httpcheck_status{suse_ai_observation_kind="http-probe", service_namespace!="",
         service_name!="", http_status_class="2xx"} and topk by (k8s_cluster_name, service_namespace, service_name,
         service_instance_id, http_url) (1, timestamp(httpcheck_status{suse_ai_observation_kind="http-probe", service_namespace!="",
         service_name!="", http_status_class="2xx"})))
-    titleTemplate: 'Service ${service_name}: endpoint probe fails'
+    titleTemplate: "Endpoint availability: ${service_name}"
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
   remediationHint: !include 'remediation-hints/genai/http-probe-unavailable.md.hbs'

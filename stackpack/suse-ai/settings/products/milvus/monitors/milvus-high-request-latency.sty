@@ -1,8 +1,8 @@
 nodes:
 - _type: Monitor
-  name: 'Milvus service: requests are slow'
+  name: "Milvus request response time"
   identifier: urn:stackpack:suse-ai:monitor:milvus-high-request-latency
-  description: Indicates if Milvus request latency exceeds acceptable thresholds.
+  description: "Tracks the slowest 99th-percentile request duration across Milvus operation types. High latency can slow applications that store or retrieve data through Milvus."
   intervalSeconds: 60
   status: ENABLED
   function: urn:stackpack:common:monitor-function:threshold
@@ -11,11 +11,11 @@ nodes:
     comparator: GT
     failureState: DEVIATING
     metric:
-      aliasTemplate: Milvus High Request Latency
+      aliasTemplate: "P99 request response time"
       query: (max by (service_namespace, service_name) (histogram_quantile(0.99, sum by (service_namespace, service_name,
         le, function_name) (rate(milvus_proxy_req_latency_bucket{suse_ai_product="milvus", service_namespace!="",
         service_name!=""}[5m]))))) / 1000
       unit: s
-    titleTemplate: 'Milvus ${service_name}: requests are slow'
+    titleTemplate: "Milvus request response time: ${service_name}"
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
   remediationHint: !include 'remediation-hints/milvus/remediation-latency.md.hbs'
