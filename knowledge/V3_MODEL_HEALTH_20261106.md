@@ -56,6 +56,9 @@ their own traffic-dependent coverage.
 The live final run returned CLEAR for `gemma:2b`, `llama3.2:latest` and
 `nomic-embed-text:latest`. `gemma:2b` was unloaded. Both vLLM checks returned CLEAR
 for `qwen-small`; the derived-health run returned only `demo-agent`.
+The model's one-hour monitor timeline still shows the earlier derived check as
+history; its line ends before the current direct check. It does not indicate
+that model inheritance is still running.
 
 ## Upgrade observations and validation
 
@@ -104,7 +107,8 @@ the two direct vLLM latency checks.
 - Open Telemetry topology: [before](/home/thbertoldi/suse/qa/demo-model-health-ask5vpnl/topology-before/opentelemetry.png)
   / [after](/home/thbertoldi/suse/qa/demo-model-health-ask5vpnl/ui-refreshed/opentelemetry.png).
 - [Models table](/home/thbertoldi/suse/qa/demo-model-health-ask5vpnl/ui-refreshed/models.png)
-  and [gemma highlights](/home/thbertoldi/suse/qa/demo-model-health-ask5vpnl/ui-refreshed/gemma.png).
+  and [gemma highlights with loaded state 0](/home/thbertoldi/suse/qa/demo-model-health-ask5vpnl/model-detail/gemma-loaded.png).
+- [Direct Ollama model check](/home/thbertoldi/suse/qa/demo-model-health-ask5vpnl/model-detail/gemma-check.png).
 
 Evidence root: `/home/thbertoldi/suse/qa/demo-model-health-ask5vpnl/`.
 `inspection-final/` contains topology-sync list/descriptions and mapping statuses;
