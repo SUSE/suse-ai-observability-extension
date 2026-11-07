@@ -1,7 +1,7 @@
 nodes:
 - _type: OtelRelationMapping
   identifier: urn:stackpack:suse-ai:otel-relation-mapping:ollama-model-host
-  name: Ollama model depends on inference service
+  name: Ollama inference service serves model
   input:
     signal: [METRICS]
     resource:
@@ -29,9 +29,9 @@ nodes:
       ? 'cluster/' + resource.attributes['k8s.cluster.name'] + ':' : ''
   expireAfter: 900000
   output:
-    sourceId: >-
+    sourceId: "'urn:opentelemetry:namespace/' + vars.namespace + ':service/' + vars.service"
+    targetId: >-
       'urn:suse-ai:' + vars.clusterPrefix + 'namespace/' + vars.namespace
       + ':service/' + vars.service + ':served-model/' + vars.model
-    targetId: "'urn:opentelemetry:namespace/' + vars.namespace + ':service/' + vars.service"
-    typeName: "'is-hosted-on'"
+    typeName: "'serves-model'"
     dependencyType: "'HIERARCHICAL'"

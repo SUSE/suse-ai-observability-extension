@@ -1,11 +1,14 @@
 """Available-model mapping, presentation identity and real Prometheus regressions."""
 
 import importlib.util
+import json
+import promql_parser as promql
+import re2
 import os
 import re
 import unittest
 
-from test_contract import BY_ID, ROOT, component, evaluate, mapped, record
+from test_contract import BY_ID, ROOT, component, evaluate, mapped, record, render_topological_monitor, walk
 from test_product_metrics import samples
 from test_promql import run_promql_cases
 from test_runtime_observations import runtime_series
@@ -33,6 +36,7 @@ class OllamaModelContractTest(unittest.TestCase):
             self.assertEqual(model["identifier"],
                              "urn:suse-ai:cluster/cluster-a:namespace/ai:service/ollama:served-model/" + name)
             self.assertEqual(model["name"], name)
+            self.assertTrue(model["tags"].pop("suse.ai.monitor.k8s_cluster_name"))
             self.assertEqual(model["tags"], {
                 "stackpack": "suse-ai", "service.name": "ollama", "service.namespace": "ai",
                 "suse.ai.metric.service_name": "ollama", "suse.ai.metric.service_namespace": "ai",
@@ -41,9 +45,9 @@ class OllamaModelContractTest(unittest.TestCase):
             })
             edge = mapped(data, "OtelRelationMapping")
             self.assertEqual(len(edge), 1)
-            self.assertEqual(edge[0]["sourceId"], model["identifier"])
-            self.assertEqual(edge[0]["targetId"], component(data, "otel service")["identifier"])
-            self.assertEqual(edge[0]["typeName"], "is-hosted-on")
+            self.assertEqual(edge[0]["sourceId"], component(data, "otel service")["identifier"])
+            self.assertEqual(edge[0]["targetId"], model["identifier"])
+            self.assertEqual(edge[0]["typeName"], "serves-model")
             self.assertEqual(edge[0]["dependencyType"], "HIERARCHICAL")
             data["resource"]["attributes"]["service.instance.id"] = "pod-replacement"
             data["datapoint"]["attributes"].update(family="changed", quantization="Q8_0")
@@ -61,6 +65,27 @@ class OllamaModelContractTest(unittest.TestCase):
         self.assertEqual(model["tags"]["suse.ai.metric.k8s_cluster_name"], "")
         data["resource"]["attributes"]["k8s.cluster.name"] = ""
         self.assertEqual(component(data, "genai served model")["identifier"], model["identifier"])
+
+    def test_monitor_cluster_scope_matches_literal_and_absent_clusters(self):
+        query = BY_ID[PREFIX + "monitor:ollama-model-unavailable"]["arguments"]["queries"]["promqlQuery"]
+        for cluster in (None, "", "cluster-a", "cluster.+[1]", 'a"$\\E.b'):
+            data = observation()
+            if cluster is None:
+                del data["resource"]["attributes"]["k8s.cluster.name"]
+            else:
+                data["resource"]["attributes"]["k8s.cluster.name"] = cluster
+            tags = component(data, "genai served model")["tags"]
+            self.assertTrue(tags["suse.ai.monitor.k8s_cluster_name"])
+            tree = promql.parse(render_topological_monitor(query, monitor_tags=tags))
+            for selector in walk(tree):
+                if not isinstance(selector, promql.VectorSelector):
+                    continue
+                matcher = next(m for m in selector.matchers.matchers if m.name == "k8s_cluster_name")
+                pattern = json.loads('"' + matcher.value + '"')
+                self.assertIsNotNone(re2.fullmatch(pattern, cluster or ""))
+                for other in ("", "clusterX+[1]", "other", (cluster or "") + "x"):
+                    if other != (cluster or ""):
+                        self.assertIsNone(re2.fullmatch(pattern, other))
 
     def test_only_available_inventory_creates_models_and_managed_optout_applies(self):
         for metric in ("ollama_model_loaded", "ollama_model_size_bytes", "ollama_model_vram_bytes",
@@ -94,7 +119,7 @@ class OllamaModelContractTest(unittest.TestCase):
             self.assertIn('model="gemma:2b"', info[0])
             data = observation()
             identities.add(component(data, "genai served model")["identifier"])
-            self.assertEqual(mapped(data, "OtelRelationMapping")[0]["sourceId"], next(iter(identities)))
+            self.assertEqual(mapped(data, "OtelRelationMapping")[0]["targetId"], next(iter(identities)))
             if elapsed >= 300000:
                 self.assertIn('ollama_model_loaded{model="gemma:2b"} 0', lines)
         self.assertEqual(len(identities), 1)

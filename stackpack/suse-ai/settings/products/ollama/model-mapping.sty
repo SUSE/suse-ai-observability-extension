@@ -23,6 +23,8 @@ nodes:
     value: resource.attributes['service.name']
   - name: model
     value: datapoint.attributes['model']
+  - name: cluster
+    value: "'k8s.cluster.name' in resource.attributes ? resource.attributes['k8s.cluster.name'] : ''"
   - name: clusterPrefix
     value: >-
       'k8s.cluster.name' in resource.attributes && resource.attributes['k8s.cluster.name'] != ''
@@ -55,6 +57,17 @@ nodes:
         target: suse.ai.product
       - source: "'k8s.cluster.name' in resource.attributes ? resource.attributes['k8s.cluster.name'] : ''"
         target: suse.ai.metric.k8s_cluster_name
+      # Nonempty literal pattern also matches an absent cluster label exactly.
+      - source: |-
+          ("\\Q" + vars.cluster.replace("\\E", "\\E\\\\E\\Q") + "\\E")
+          .replace("\\", "\\\\")
+          .replace("\"", "\\\"")
+          .replace("\n", "\\n")
+          .replace("\r", "\\r")
+          .replace("\t", "\\t")
+          .replace("\\", "\\\\")
+          .replace("$", "\\$")
+        target: suse.ai.monitor.k8s_cluster_name
     optional:
       tags:
       - source: resource.attributes['k8s.cluster.name']

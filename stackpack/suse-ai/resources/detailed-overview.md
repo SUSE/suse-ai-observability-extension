@@ -23,8 +23,9 @@ inventory observation. Inventory tables show component health and identity. Open
 a model for the metrics its product reports and the **Served by** link to its engine.
 Client-side requests and latency remain on the calling application's model-usage view.
 
-Model-to-engine arrows express a hosting dependency: **model → inference engine**
-means the model depends on that engine to serve requests. Earlier previews drew
-the inverse **engine → model** serving relationship. The current direction supports
-inherited engine health when the model has no direct health checks. The model and
-engine still represent the same components; the arrow does not describe request flow.
+Serving arrows point **inference engine → model**, placing models below their
+engines. Model health comes from product telemetry: Ollama checks fresh model
+inventory and API observations, and vLLM checks model latency. Available unloaded
+Ollama models remain healthy; missing telemetry produces no health assertion.
+The serving relation and health checks are independent. Agents retain their
+hosting-service health inheritance.

@@ -87,6 +87,9 @@ The model-to-engine relation and health propagation were not changed. Models
 still appear above their serving engines; this iteration fixes collapsed groups,
 not that separate layout limitation.
 
+The subsequent [direct model-health change](V3_MODEL_HEALTH_20261106.md) reverses
+the serving edges and addresses that layout limitation in dev.94.
+
 ## Other presentation and component differences
 
 | Area | Change in this iteration |

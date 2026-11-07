@@ -23,7 +23,7 @@ def run_promql_cases(cases):
                 ]["arguments"]
                 expression = (
                     render_topological_monitor(
-                        arguments["queries"]["promqlQuery"], check.get("endpoint")
+                        arguments["queries"]["promqlQuery"], check.get("endpoint"), check.get("monitor_tags")
                     )
                     if "queries" in arguments
                     else arguments["metric"]["query"]

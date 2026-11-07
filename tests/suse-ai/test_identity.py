@@ -274,11 +274,9 @@ class IdentityTests(unittest.TestCase):
                 if kind in ("genai agent", "genai served model"):
                     relations = mapped(data, "OtelRelationMapping")
                     self.assertEqual(len(relations), 1)
-                    self.assertEqual(relations[0]["sourceId"], identifier)
-                    self.assertEqual(
-                        relations[0]["targetId"],
-                        component(data, "otel service")["identifier"],
-                    )
+                    host = component(data, "otel service")["identifier"]
+                    expected = (identifier, host) if kind == "genai agent" else (host, identifier)
+                    self.assertEqual((relations[0]["sourceId"], relations[0]["targetId"]), expected)
             self.assertEqual(len(set(identifiers)), len(identifiers))
 
         # Model mappings read different fields; both must preserve the same

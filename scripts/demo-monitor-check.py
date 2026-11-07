@@ -35,12 +35,15 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--url", type=deployment.demo_url, required=True)
     parser.add_argument("--token-file", type=Path, required=True)
+    parser.add_argument("--token-type", choices=("service", "api"), default="service")
+    parser.add_argument("--monitors", default="", help="Comma-separated monitor identifier suffixes; default is all")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--baseline", type=Path, required=True)
     args = parser.parse_args()
     os.umask(0o077)
     args.output.mkdir(parents=True)
-    client = deployment.Client(args.url, args.token_file)
+    client = deployment.Client(args.url, args.token_file, args.token_type)
+    token_header = "X-API-Key" if args.token_type == "service" else "X-API-Token"
 
     def save(name, data):
         (args.output / (name + ".json")).write_text(json.dumps(data, indent=2) + "\n")
@@ -48,7 +51,7 @@ def main():
 
     def api(path, body=None):
         request = Request(args.url + path, None if body is None else json.dumps(body).encode(),
-                          {"X-API-Key": client.token, "Content-Type": "application/json"})
+                          {token_header: client.token, "Content-Type": "application/json"})
         with urlopen(request, timeout=90) as response:
             return json.load(response)
 
@@ -73,13 +76,18 @@ def main():
     assert ids(baseline).items() <= ids(installed).items(), "Monitor identity changed from the supplied baseline"
     monitors = [m for m in installed if m["identifier"] in source]
     assert len(monitors) == len(source)
+    if args.monitors:
+        requested = set(args.monitors.split(","))
+        monitors = [m for m in monitors if m["identifier"].rsplit(":", 1)[-1] in requested]
+        assert {m["identifier"].rsplit(":", 1)[-1] for m in monitors} == requested, "Unknown requested monitor"
     components = snapshot('label = "stackpack:suse-ai" or type = "node"')
     service = next(c for c in components if c["identifiers"][0] ==
                    "urn:opentelemetry:namespace/suse-private-ai:service/ollama")
     node = next(c for c in components if c["typeIdentifier"].endswith(":node")
                 and tags(c).get("cluster-name") == "suse-ai")
     topological = {}
-    for item in source.values():
+    for monitor in monitors:
+        item = source[monitor["identifier"]]
         if "queries" in item["arguments"]:
             query = item["arguments"]["queries"]["topologyQuery"]
             if query not in topological:
@@ -110,6 +118,7 @@ def main():
         dimensions = {"service_namespace": component_tags.get("service.namespace", "suse-private-ai"),
                       "service_name": component_tags.get("service.name", "ollama"),
                       "model_name": component_tags.get("vllm.model.name", "preview-model"),
+                      "model": component_tags.get("ollama.model.name", "preview-model"),
                       "gen_ai_request_model": component_tags.get("gen_ai.request.model", "preview-model"),
                       "k8s_cluster_name": "suse-ai", "k8s_node_name": component["name"]}
         results = []

@@ -46,13 +46,18 @@ strings alone do not establish a verified serving-service identity.
 
 ### Reading model connections
 
-The arrow **served model → inference service** means **is hosted on**: the model
-depends on that engine to serve requests. For example, `llama3.2:latest → ollama`
-has the same serving association as the earlier preview's `ollama → llama3.2:latest`,
-which expressed **serves model** in the opposite direction. The new dependency
-direction supports inherited engine health for models without direct health checks;
-existing direct model checks take precedence. The arrow describes the hosting
-dependency, while request flow is available in traces.
+The arrow **inference service → served model** means **serves model**. For example,
+`ollama → llama3.2:latest` places the model below its serving engine in topology.
+Earlier previews reversed this edge to inherit engine health; models now receive
+health from their own product checks instead.
+
+Ollama model availability combines `ollama_model_loaded` with `ollama_api_up` from
+the same fresh runtime snapshot. Both loaded and available-but-unloaded models
+are healthy. A failed API or a model missing from every observed replica's latest
+inventory is unhealthy. Samples older than two minutes produce no check, so
+missing telemetry cannot assert health. This measures inventory availability,
+not inference correctness or latency. vLLM models keep their direct latency
+checks. Agents retain their separate hosting-service health inheritance.
 
 Model highlights show **Served by** and **Hosting inference service** links. Existing
 model and service identities are retained when upgrading between these previews.

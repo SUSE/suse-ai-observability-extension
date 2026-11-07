@@ -93,6 +93,13 @@ into its verification step. For a standalone `task demo-inspect`, set
 header for HTTP snapshots. Both tasks read credentials from their token-file
 argument; keep that file private and outside the repository.
 
+`task demo-monitor-test` also accepts `DEMO_TOKEN_TYPE=api`. To preview only
+selected monitors, set `DEMO_MONITORS` to comma-separated identifier suffixes,
+for example `ollama-model-unavailable,vllm-high-e2e-latency,vllm-high-ttft`.
+It validates failing, recovering and no-data inputs without persisting test health
+states, then captures the installed queries' live dry runs. Omitting the selection
+keeps the complete monitor check.
+
 ## Reproducible artifact and IBS command
 
 Run `task stackpack-package` (alias `stackpack-build`). It calls

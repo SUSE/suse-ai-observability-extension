@@ -226,7 +226,7 @@ def render(query, instance=False):
     return re.sub(r"\$\{([^}]+)\}", scalar, query)
 
 
-def render_topological_monitor(query, endpoint=None):
+def render_topological_monitor(query, endpoint=None, monitor_tags=None):
     # Offline PromQL fixtures use the legacy resolver's nonempty tag contract,
     # never CEL presentation interpolation. test_backend_metrics exercises the
     # real native runner, including its resolved query and numeric health input.
@@ -237,6 +237,13 @@ def render_topological_monitor(query, endpoint=None):
     })
     tags = component(data, "genai model usage")["tags"]
     tags["vllm.model.name"] = "llama3"
+    tags["ollama.model.name"] = "llama3"
+    tags["suse.ai.metric.k8s_cluster_name"] = "cluster-a"
+    inventory = record("METRICS", resource={"service.name": "assistant", "service.namespace": "prod-eu",
+                       "k8s.cluster.name": "cluster-a"}, metric="ollama_model_info", attributes={"model": "llama3"})
+    tags["suse.ai.monitor.k8s_cluster_name"] = component(inventory, "genai served model")["tags"]["suse.ai.monitor.k8s_cluster_name"]
+    if monitor_tags is not None:
+        tags.update(monitor_tags)
     parameters = {"tags." + k: v for k, v in tags.items() if v}
 
     def bind(match):
@@ -871,7 +878,7 @@ class PackageContractTests(unittest.TestCase):
             if node["_type"] != "Monitor":
                 continue
             if node["function"].endswith(":derived-state-monitor"):
-                self.assertEqual(node["arguments"], {"componentTypes": "genai served model, genai agent"})
+                self.assertEqual(node["arguments"], {"componentTypes": "genai agent"})
                 continue
             if node["function"].endswith(":topological-threshold"):
                 queries = node["arguments"]["queries"]
@@ -883,7 +890,12 @@ class PackageContractTests(unittest.TestCase):
                         keys = {m.name for m in item.matchers.matchers}
                         self.assertTrue({"service_namespace", "service_name"} <= keys)
                         if '"genai served model"' in queries["topologyQuery"]:
-                            self.assertIn("model_name", keys)
+                            if '"suse.ai.product:ollama"' in queries["topologyQuery"]:
+                                self.assertIn("k8s_cluster_name", keys)
+                                if item.name == "ollama_model_loaded":
+                                    self.assertIn("model", keys)
+                            else:
+                                self.assertIn("model_name", keys)
                         else:
                             self.assertTrue({"gen_ai_request_model", "gen_ai_provider_name", "server_address", "server_port"} <= keys)
                 continue

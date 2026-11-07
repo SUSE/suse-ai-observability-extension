@@ -3,16 +3,16 @@
 import os
 import unittest
 
-from monitor_cases import PREFIX, matrix_cases, recipes
+from monitor_cases import IDENTITY, PREFIX, labels, matrix_cases, point, recipes
 from test_contract import BY_ID, NODES, PACK, component, mapped, record
 from test_promql import run_promql_cases
 
 
 class MonitorContractTest(unittest.TestCase):
-    def test_hosted_components_depend_on_their_own_service_for_derived_health(self):
+    def test_agents_inherit_health_while_engines_serve_directly_monitored_models(self):
         monitor = BY_ID[PREFIX + "hosted-component-health"]
         self.assertTrue(monitor["function"].endswith(":derived-state-monitor"))
-        self.assertEqual(monitor["arguments"], {"componentTypes": "genai served model, genai agent"})
+        self.assertEqual(monitor["arguments"], {"componentTypes": "genai agent"})
         for namespace in ("team-one", "team-two"):
             resource = {"service.name": "runtime", "service.namespace": namespace}
             observations = [
@@ -26,8 +26,10 @@ class MonitorContractTest(unittest.TestCase):
                 logical = component(data, kind)["identifier"]
                 host = component(data, "otel service")["identifier"]
                 relations = mapped(data, "OtelRelationMapping")
-                self.assertEqual([(r["sourceId"], r["targetId"], r["dependencyType"]) for r in relations],
-                                 [(logical, host, "HIERARCHICAL")])
+                source, target, relation = ((logical, host, "is-hosted-on") if kind == "genai agent"
+                                             else (host, logical, "serves-model"))
+                self.assertEqual([(r["sourceId"], r["targetId"], r["typeName"], r["dependencyType"]) for r in relations],
+                                 [(source, target, relation, "HIERARCHICAL")])
 
     def test_every_monitor_has_three_state_fixtures_and_operator_guidance(self):
         nodes = {n["identifier"].removeprefix(PREFIX): n for n in NODES
@@ -52,4 +54,65 @@ class MonitorContractTest(unittest.TestCase):
     @unittest.skipUnless(os.environ.get("AI_PROMETHEUS_IMAGE"), "Set AI_PROMETHEUS_IMAGE for query evaluation")
     def test_all_monitor_queries_in_failing_recovering_and_no_data_states(self):
         result = run_promql_cases(matrix_cases())
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    @unittest.skipUnless(os.environ.get("AI_PROMETHEUS_IMAGE"), "Set AI_PROMETHEUS_IMAGE for query evaluation")
+    def test_ollama_health_requires_fresh_model_evidence_and_preserves_idle_availability(self):
+        identity = {**IDENTITY, "k8s_cluster_name": "cluster-a", "service_instance_id": "pod-a"}
+
+        def row(metric, values="1+0x20", **dimensions):
+            result = point(metric, 1, identity={**identity, **dimensions})
+            result["values"] = values
+            return result
+
+        def check(value, when="5m"):
+            return {"monitor": "ollama-model-unavailable", "eval_time": when,
+                    "samples": [] if value is None else [{"labels": labels({
+                        **IDENTITY, "k8s_cluster_name": "cluster-a", "model": "llama3"}), "value": value}]}
+
+        cases = [
+            {"name": "Loaded and unloaded models remain available; API failure, deletion and recovery are distinct",
+             "series": [row("ollama_api_up", "1 1 0 1 1"),
+                        row("ollama_model_loaded", "1 0 _ _ 0", model="llama3")],
+             "checks": [check(value, f"{minute}m") for minute, value in enumerate([1, 1, 0, 0, 1])]},
+            {"name": "Stale model samples cannot override a newer successful inventory without that model",
+             "series": [row("ollama_api_up"), row("ollama_model_loaded", "1 _x20", model="llama3")],
+             "checks": [check(0)]},
+            {"name": "Model telemetry without an API observation cannot assert health",
+             "series": [row("ollama_model_loaded", model="llama3")], "checks": [check(None)]},
+            {"name": "No telemetry is not healthy or unhealthy", "series": [], "checks": [check(None)]},
+            {"name": "Both health and failure observations expire after two minutes",
+             "series": [row("ollama_api_up", "1 0"), row("ollama_model_loaded", "0", model="llama3")],
+             "checks": [check(1, "0m"), check(0, "1m"), check(None, "3m")]},
+            {"name": "Newest failed scraper cannot be masked by an older success for the same replica",
+             "series": [row("ollama_api_up", "1 1 1 1 _ _", job="old"),
+                        row("ollama_model_loaded", "1 1 1 1 _ _", job="old", model="llama3"),
+                        row("ollama_api_up", "_ _ _ _ 0 0", job="new")],
+             "checks": [check(0)]},
+            {"name": "One observed available replica serves the model even if another fails",
+             "series": [row("ollama_api_up", "0+0x20"), row("ollama_api_up", service_instance_id="pod-b"),
+                        row("ollama_model_loaded", "0+0x20", model="llama3", service_instance_id="pod-b")],
+             "checks": [check(1)]},
+            {"name": "Another replica reporting another model does not rescue this unavailable model",
+             "series": [row("ollama_api_up", "0+0x20"), row("ollama_api_up", service_instance_id="pod-b"),
+                        row("ollama_model_loaded", model="other", service_instance_id="pod-b")],
+             "checks": [check(0)]},
+        ]
+        for dimension in ("k8s_cluster_name", "service_namespace", "service_name"):
+            cases.append({"name": "Unrelated " + dimension + " cannot supply model health",
+                          "series": [row("ollama_api_up", **{dimension: "other"}),
+                                     row("ollama_model_loaded", model="llama3", **{dimension: "other"})],
+                          "checks": [check(None)]})
+        # Clusterless inventory is supported without selecting another cluster.
+        data = record("METRICS", resource={"service.name": IDENTITY["service_name"],
+                      "service.namespace": IDENTITY["service_namespace"]},
+                      metric="ollama_model_info", attributes={"model": "llama3"})
+        model_tags = component(data, "genai served model")["tags"]
+        cases.append({"name": "A model without a cluster label only observes clusterless telemetry",
+                      "series": [row("ollama_api_up", k8s_cluster_name=""),
+                                 row("ollama_model_loaded", "0+0x20", model="llama3", k8s_cluster_name=""),
+                                 row("ollama_api_up", "0+0x20", k8s_cluster_name="other")],
+                      "checks": [{"monitor": "ollama-model-unavailable", "monitor_tags": model_tags,
+                                  "samples": [{"labels": labels({**IDENTITY, "model": "llama3"}), "value": 1}]}]})
+        result = run_promql_cases(cases)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)

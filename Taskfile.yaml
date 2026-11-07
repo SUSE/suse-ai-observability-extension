@@ -163,6 +163,8 @@ tasks:
       - >-
         '{{.PYTHON}}' -B scripts/demo-monitor-check.py
         --url '{{.DEMO_URL}}' --token-file '{{.DEMO_TOKEN_FILE}}'
+        --token-type '{{.DEMO_TOKEN_TYPE | default "service"}}'
+        --monitors '{{.DEMO_MONITORS | default ""}}'
         --output '{{.DEMO_EVIDENCE}}' --baseline '{{.DEMO_MONITOR_BASELINE}}'
 
   stackpack-validate:

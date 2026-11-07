@@ -107,6 +107,11 @@ def recipes():
     stale["values"] = "1 _x10"
     add("genai-metric-stream-active", [stale], [point("gen_ai_client_operation_duration_seconds_count", 1)],
         600, 0, eval_time="10m")
+    ollama = {**IDENTITY, "k8s_cluster_name": "cluster-a", "service_instance_id": "pod-a"}
+    add("ollama-model-unavailable", [point("ollama_api_up", 0, identity=ollama)],
+        [point("ollama_api_up", 1, identity=ollama),
+         point("ollama_model_loaded", 0, identity=ollama, model="llama3")],
+        0, 1, identity={**IDENTITY, "k8s_cluster_name": "cluster-a", "model": "llama3"})
     return result
 
 

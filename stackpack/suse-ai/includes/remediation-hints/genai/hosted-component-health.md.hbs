@@ -2,10 +2,10 @@
 Open [{{causeComponentName}}](/#/components/{{causeComponentUrnForUrl}}/highlights), the dependency contributing health to **{{componentName}}**, and inspect its failing checks and [metrics](/#/components/{{causeComponentUrnForUrl}}/metrics).
 
 ### Likely causes
-The hosting service or an underlying runtime dependency is unhealthy. This is inherited health, not evidence that the model artifact or agent implementation itself is invalid.
+The hosting service or an underlying runtime dependency is unhealthy. This is inherited health, not evidence that the agent implementation itself is invalid.
 
 ### Fix
-Resolve the contributing dependency's reported failure. Follow its own monitor guidance before changing the served model or agent, or restarting its hosting service.
+Resolve the contributing dependency's reported failure. Follow its own monitor guidance before changing the agent or restarting its hosting service.
 
 ### Verify
-Confirm the dependency recovers and the component's derived health updates. If dependency health is absent, inspect service discovery and monitoring; missing observations cannot establish healthy inference. Direct model checks take precedence over derived health.
+Confirm the dependency recovers and the agent's derived health updates. If dependency health is absent, inspect service discovery and monitoring; missing observations cannot establish healthy operation. Served models have separate checks based on their own product telemetry.
