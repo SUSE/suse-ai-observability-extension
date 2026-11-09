@@ -1,0 +1,11 @@
+nodes:
+- _type: Monitor
+  name: "AI agent dependency health"
+  identifier: urn:stackpack:suse-ai:monitor:hosted-component-health
+  description: "Shows how the hosting service and its dependencies affect an agent's health. Agents with their own observed health keep that assessment; served models use separate product checks."
+  function: urn:stackpack:common:monitor-function:derived-state-monitor
+  arguments:
+    componentTypes: genai agent
+  intervalSeconds: 30
+  status: ENABLED
+  remediationHint: !include remediation-hints/genai/hosted-component-health.md.hbs

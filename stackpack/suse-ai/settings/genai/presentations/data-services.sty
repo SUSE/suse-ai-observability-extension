@@ -4,10 +4,9 @@ nodes:
   identifier: urn:stackpack:suse-ai:component-presentation:data-services
   binding:
     _type: ComponentPresentationQueryBinding
-    query: label = "stackpack:suse-ai" and type IN ("otel service", "genai database dependency") and label IN ("suse.ai.category:vectordb",
-      "suse.ai.category:search-engine")
+    query: label = "stackpack:suse-ai" and type = "otel service" and label IN ("suse.ai.category:vectordb", "suse.ai.category:search-engine")
   rank:
-    specificity: 225
+    specificity: 1
   presentation:
     overview:
       name:
@@ -15,37 +14,36 @@ nodes:
         plural: data services
         title: Data services
       columns:
-      - columnId: health
+      - columnId: suse_ai_health
         title: Health
         projection:
           _type: HealthProjection
           value: healthState
-      - columnId: otel_name
+      - columnId: suse_ai_otel_name
         title: Name
         projection:
           _type: ComponentLinkProjection
           name: name
           identifier: identifiers[0]
-      - columnId: otel_namespace
+      - columnId: suse_ai_otel_namespace
         title: Service namespace
         projection:
           _type: TextProjection
           value: tags.singleValue('service.namespace')
-      - columnId: suse_ai_category
       - columnId: suse_ai_product
-      - columnId: suse_ai_discovery
-        title: Discovery
+        title: Product
         projection:
           _type: TextProjection
-          value: "'suse.ai.discovery' in tags ? 'Observed from client' : 'Service telemetry'"
-      - columnId: otel_k8s_cluster
-      - columnId: suse_ai_observer_service
-      - columnId: suse_ai_observer_cluster
-      - columnId: otel_k8s_namespace
+          value: '''suse.ai.product'' in tags ? tags[''suse.ai.product''].join('', '') : '''''
+      - columnId: suse_ai_otel_k8s_cluster
+        title: Cluster
+        projection:
+          _type: TextProjection
+          value: '''cluster-name'' in tags ? tags[''cluster-name''].filter(cluster, cluster != '''').join('', '')
+            : '''''
       sort:
-      - columnId: health
-      - columnId: otel_name
+      - columnId: suse_ai_otel_name
       mainMenu:
         group: SUSE AI
-        icon: !icon menu/vectordb.svg
+        icon: !icon outline/data-services.svg
         order: 60

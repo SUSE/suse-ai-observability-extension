@@ -4,12 +4,11 @@ nodes:
   identifier: urn:stackpack:suse-ai:component-presentation:product-ollama
   binding:
     _type: ComponentPresentationQueryBinding
-    query: (label = "stackpack:open-telemetry" and type in ("otel service", "otel service instance") and label = "stackpack:suse-ai")
-      and label = "suse.ai.product:ollama"
+    query: (label = "stackpack:open-telemetry" and type in ("otel service", "otel service instance") and label =
+      "stackpack:suse-ai") and label = "suse.ai.product:ollama"
   rank:
-    specificity: 240
+    specificity: 1
   presentation:
-    icon: !icon products/ollama.svg
     highlight:
       fields:
       - fieldId: suse_ai_product

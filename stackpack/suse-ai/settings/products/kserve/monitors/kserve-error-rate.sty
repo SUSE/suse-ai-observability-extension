@@ -1,10 +1,8 @@
 nodes:
 - _type: Monitor
-  name: KServe Reconcile Error Rate
+  name: "KServe deployment update errors"
   identifier: urn:stackpack:suse-ai:monitor:kserve-error-rate
-  description: |
-    Triggers when more than 5% of KServe controller reconciliations end in
-    error, averaged over 5 minutes.
+  description: "Detects failed KServe controller attempts to apply deployment changes. Repeated reconciliation errors can leave inference services unready or out of date."
   status: ENABLED
   intervalSeconds: 60
   function: urn:stackpack:common:monitor-function:threshold
@@ -18,8 +16,8 @@ nodes:
         (rate(controller_runtime_reconcile_total{suse_ai_product="kserve", service_namespace!="", service_name!=""}[5m]))))
         / clamp_min(sum by (service_namespace, service_name) (rate(controller_runtime_reconcile_total{suse_ai_product="kserve",
         service_namespace!="", service_name!=""}[5m])), 1e-9)
-      aliasTemplate: KServe Reconcile Error Rate
+      aliasTemplate: "Controller update error ratio"
       unit: percentunit
-    titleTemplate: KServe controller reconcile error rate exceeds 5%
+    titleTemplate: "Deployment update errors: ${service_name}"
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
   remediationHint: !include 'remediation-hints/kserve/remediation-error-rate.md.hbs'

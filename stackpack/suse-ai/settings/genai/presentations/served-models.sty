@@ -8,81 +8,74 @@ nodes:
   rank:
     specificity: 220
   presentation:
-    icon: !icon model.svg
+    icon: !icon outline/model.svg
     overview:
       name:
         singular: model deployment
-        plural: model deployment
-        title: Model deployment
+        plural: model deployments
+        title: Model deployments
       columns:
-      - columnId: health
+      - columnId: suse_ai_health
         title: Health
         projection:
           _type: HealthProjection
           value: healthState
-      - columnId: otel_name
+      - columnId: suse_ai_otel_name
         title: Name
         projection:
           _type: ComponentLinkProjection
           name: name
           identifier: identifiers[0]
-      - columnId: otel_namespace
+      - columnId: suse_ai_otel_namespace
         title: Service namespace
         projection:
           _type: TextProjection
           value: tags.singleValue('service.namespace')
       - columnId: suse_ai_service
-        title: Service
+        title: Inference service
+        projection:
+          _type: ComponentLinkProjection
+          name: tags.singleValue('service.name')
+          identifier: '''urn:opentelemetry:namespace/'' + tags.singleValue(''service.namespace'') + '':service/''
+            + tags.singleValue(''service.name'')'
+      - columnId: suse_ai_product
+        title: Product
         projection:
           _type: TextProjection
-          value: tags.singleValue('service.name')
-      - columnId: suse_ai_model_latency
-        title: Request latency P95
+          value: tags.singleValue('suse.ai.product')
+      - columnId: suse_ai_cluster
+        title: Cluster
         projection:
-          _type: MetricProjection
-          sparkline: true
-          decimalPlaces: 2
-          unit: s
-          query: histogram_quantile(0.95, sum by(service_namespace, service_name, model_name, le) (rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_bucket",
-            service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}",
-            model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}])))
-          metricId: suse-ai-genai-model-e2e-latency
-      - columnId: suse_ai_model_ttft
-        title: Time to first token P95
-        projection:
-          _type: MetricProjection
-          sparkline: true
-          decimalPlaces: 2
-          unit: s
-          query: histogram_quantile(0.95, sum by(service_namespace, service_name, model_name, le) (rate({__name__=~"vllm(:|_)time_to_first_token_seconds_bucket",
-            service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}",
-            model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}])))
-          metricId: suse-ai-genai-model-ttft-latency
-      - columnId: suse_ai_model_output_tokens
-        title: Output tokens / s
-        projection:
-          _type: MetricProjection
-          sparkline: true
-          decimalPlaces: 2
-          unit: short
-          query: sum by(service_namespace, service_name, model_name) (rate({__name__=~"vllm(:|_)generation_tokens_total", service_namespace="${tags.singleValue('service.namespace')}",
-            service_name="${tags.singleValue('service.name')}", model_name="${tags.singleValue('vllm.model.name')}"}[${__rate_interval}]))
-          metricId: suse-ai-genai-model-token-throughput-generation
+          _type: TextProjection
+          value: '''cluster-name'' in tags ? tags[''cluster-name''].filter(cluster, cluster != '''').join('', '')
+            : '''''
       sort:
-      - columnId: health
-      - columnId: otel_name
+      - columnId: suse_ai_otel_name
     highlight:
       title: Model deployment
+      fields:
+      - fieldId: suse_ai_served_model_health
+        title: Health
+        order: 100
+        projection:
+          _type: HealthProjection
+          value: healthState
+      - fieldId: suse_ai_served_model_host
+        title: Served by
+        order: 99
+        projection:
+          _type: ComponentLinkProjection
+          name: tags.singleValue('service.name')
+          identifier: "'urn:opentelemetry:namespace/' + tags.singleValue('service.namespace') + ':service/' + tags.singleValue('service.name')"
       relatedResources:
       - resourceId: suse_ai_service
-        title: Related services
+        title: Hosting inference engine
         order: 90
-        topologyQuery: >-
-          withNeighborsOf(direction = "both", components = (identifier = "${identifiers[0]}"), levels = "1") and type
-          = "otel service"
+        topologyQuery: withNeighborsOf(direction = "both", components = (identifier = "${identifiers[0]}"), levels
+          = "1") and type = "otel service"
         presentationIdentifier: urn:stackpack:suse-ai:component-presentation:services
       links:
       - linkId: suse_ai_model_inventory
-        title: All models
+        title: All model deployments
         target: /#/views/urn:stackpack:suse-ai:component-presentation:model-inventory
         order: 50

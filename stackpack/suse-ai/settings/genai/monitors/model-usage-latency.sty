@@ -1,8 +1,8 @@
 nodes:
 - _type: Monitor
-  name: Model request latency
+  name: "Model response time"
   identifier: urn:stackpack:suse-ai:monitor:model-usage-latency
-  description: Model client health for a specific caller, provider and endpoint; aggregates caller replicas.
+  description: "Tracks how long an application waits for model calls to complete. High response times can slow AI interactions. Evaluates the 95th percentile for the specific caller, model, provider and endpoint across caller replicas."
   intervalSeconds: 60
   status: ENABLED
   function: urn:stackpack:common:monitor-function:topological-threshold
@@ -12,13 +12,10 @@ nodes:
     failureState: DEVIATING
     queries:
       topologyQuery: type = "genai model usage" and label = "stackpack:suse-ai"
-      promqlQuery: histogram_quantile(0.95, sum by (le)
-        (rate(gen_ai_client_operation_duration_seconds_bucket{service_namespace="${tags.service.namespace}",
-        service_name="${tags.service.name}", gen_ai_request_model="${tags.gen_ai.request.model}",
-        gen_ai_provider_name="${tags.gen_ai.provider.name}", server_address=~"${tags.suse.ai.monitor.server_address}",
-        server_port=~"${tags.suse.ai.monitor.server_port}"}[5m])))
-      aliasTemplate: Model request latency
+      promqlQuery: histogram_quantile(0.95, sum by (service_namespace, service_name, gen_ai_request_model, le) (rate(gen_ai_client_operation_duration_seconds_bucket{service_namespace="${tags.service.namespace}",
+        service_name="${tags.service.name}", gen_ai_request_model="${tags.gen_ai.request.model}", gen_ai_provider_name="${tags.gen_ai.provider.name}",
+        server_address=~"${tags.suse.ai.monitor.server_address}", server_port=~"${tags.suse.ai.monitor.server_port}"}[5m])))
+      aliasTemplate: "P95 model response time"
       unit: s
-    titleTemplate: Model request latency
-  remediationHint: Inspect the application model calls and traces. Separate inference time from retries, network
-    delay and tool execution. The threshold is a latency budget for this caller and endpoint.
+    titleTemplate: "Model response time: ${gen_ai_request_model} for ${service_name}"
+  remediationHint: !include 'remediation-hints/genai/model-usage-latency.md.hbs'

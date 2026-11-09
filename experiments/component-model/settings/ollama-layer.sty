@@ -1,0 +1,25 @@
+nodes:
+- _type: OtelComponentMapping
+  name: Ollama inference server layer
+  identifier: urn:stackpack:suse-ai:otel-component-mapping:spike-ollama-layer
+  input:
+    signal: [METRICS]
+    resource:
+      condition: "'service.name' in resource.attributes && resource.attributes['service.name'] != ''"
+      scope:
+        metric:
+          condition: metric.name == 'ollama_api_up'
+          action: "'CREATE'"
+  vars:
+  - name: namespace
+    value: "'service.namespace' in resource.attributes && resource.attributes['service.namespace'] != '' ? resource.attributes['service.namespace'] : 'default'"
+  output:
+    identifier: "'urn:opentelemetry:namespace/' + vars.namespace + ':service/' + resource.attributes['service.name']"
+    name: resource.attributes['service.name']
+    typeName: "'otel service'"
+    domainName: "'SUSE AI'"
+    domainIdentifier: "'urn:stackpack:suse-ai:domain:suse-ai'"
+    layerName: "'Inference Servers'"
+    layerIdentifier: "'urn:stackpack:suse-ai:layer:inference'"
+  rank: {specificity: 200}
+  expireAfter: 900000

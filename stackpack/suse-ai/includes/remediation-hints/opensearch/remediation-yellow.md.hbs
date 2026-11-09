@@ -1,23 +1,11 @@
-# OpenSearch Cluster YELLOW Status
+### Check first
+Open [this component](/#/components/{{componentUrnForUrl}}/highlights) and its [metrics](/#/components/{{componentUrnForUrl}}/metrics). Inspect unassigned replica shards and the cluster node count. The configured threshold is **{{threshold}}** in the monitor chart's unit.
 
-This monitor detects YELLOW cluster status for [{{labels.service_name}}](/#/components/{{componentUrnForUrl}}): all primary shards are assigned, but at least one replica shard is unassigned.
+### Likely causes
+Insufficient eligible nodes, allocation constraints or disk watermarks.
 
-Compare the metric and threshold in this monitor's chart at the time of the alert.
+### Fix
+Restore replica capacity or adjust the intended replica policy for this deployment.
 
-## Potential Impacts
-- Reduced data redundancy.
-- Potential performance impact if a node fails.
-
-## Diagnosis Steps
-1. **Check Cluster Health API**:
-   `GET /_cluster/health?pretty`
-2. **Identify Unassigned Replica Shards**:
-   `GET /_cat/shards?v&h=index,shard,prirep,state,unassigned.reason&s=state | grep UNASSIGNED`
-3. **Check Node Count**:
-   Ensure you have enough nodes to satisfy your replica requirements.
-
-## Remediation Actions
-1. **Wait for Recovery**: If the cluster was recently restarted, it might still be allocating shards.
-2. **Add Nodes**: If you don't have enough nodes to hold all replicas, add more nodes.
-3. **Reduce Replicas**: If you intentionally have fewer nodes than replicas, adjust the index settings:
-   `PUT /my-index/_settings { "index": { "number_of_replicas": 1 } }`
+### Verify
+Replica shards are assigned and cluster health becomes green. If samples are absent, investigate the exporter and Collector: this threshold check cannot establish healthy operation without data.

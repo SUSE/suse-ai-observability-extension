@@ -1,8 +1,8 @@
 nodes:
 - _type: Monitor
-  name: Model end-to-end latency
+  name: "vLLM model response time"
   identifier: urn:stackpack:suse-ai:monitor:vllm-high-e2e-latency
-  description: P99 latency for each vLLM model deployment, aggregated across its runtime replicas.
+  description: "Tracks the 99th-percentile time to complete requests for each vLLM model across runtime replicas. Slow completions can delay AI responses; investigate queueing and generation time."
   intervalSeconds: 60
   status: ENABLED
   function: urn:stackpack:common:monitor-function:topological-threshold
@@ -12,13 +12,9 @@ nodes:
     failureState: DEVIATING
     queries:
       topologyQuery: type = "genai served model" and label = "stackpack:suse-ai" and label = "suse.ai.product:vllm"
-      promqlQuery: histogram_quantile(0.99, sum by (le)
-        (rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_bucket",
-        service_namespace="${tags.service.namespace}", service_name="${tags.service.name}",
-        model_name="${tags.vllm.model.name}"}[5m])))
-      aliasTemplate: Model end-to-end latency
+      promqlQuery: histogram_quantile(0.99, sum by (service_namespace, service_name, model_name, le) (rate({__name__=~"vllm(:|_)e2e_request_latency_seconds_bucket",
+        service_namespace="${tags.service.namespace}", service_name="${tags.service.name}", model_name="${tags.vllm.model.name}"}[5m])))
+      aliasTemplate: "P99 model response time"
       unit: s
-    titleTemplate: Model end-to-end latency
-  remediationHint: Inspect model latency and throughput, then open the inference service to check its queue and GPU
-    cache. Compare traces for slow requests. Tune the model, token limits or serving capacity for the application
-    latency budget.
+    titleTemplate: "Model response time: ${model_name} on ${service_name}"
+  remediationHint: !include 'remediation-hints/genai/vllm-high-e2e-latency.md.hbs'

@@ -1,10 +1,8 @@
 nodes:
 - _type: Monitor
-  name: Kubeflow Model Registry API Unavailable
+  name: "Model Registry API availability"
   identifier: urn:stackpack:suse-ai:monitor:kubeflow-model-registry-unavailable
-  description: |
-    Triggers when the authenticated registered-models API check does not
-    return a 2xx response.
+  description: "Checks whether the authenticated registered-models endpoint returns a successful HTTP response. Failures can prevent clients from accessing model metadata; inspect connectivity, credentials and the API response."
   status: ENABLED
   intervalSeconds: 60
   function: urn:stackpack:common:monitor-function:threshold
@@ -13,12 +11,12 @@ nodes:
     failureState: CRITICAL
     threshold: 1
     metric:
-      query: min by (service_namespace, service_name) (httpcheck_status{suse_ai_product="kubeflow-model-registry", service_namespace!="",
-        service_name!="", http_status_class="2xx"} and topk by (service_namespace, service_name, service_instance_id,
-        http_url) (1, timestamp(httpcheck_status{suse_ai_product="kubeflow-model-registry", service_namespace!="", service_name!="",
-        http_status_class="2xx"})))
-      aliasTemplate: Kubeflow Model Registry API Unavailable
+      query: min by (service_namespace, service_name) (httpcheck_status{suse_ai_product="kubeflow-model-registry",
+        service_namespace!="", service_name!="", http_status_class="2xx"} and topk by (service_namespace, service_name,
+        service_instance_id, http_url) (1, timestamp(httpcheck_status{suse_ai_product="kubeflow-model-registry",
+        service_namespace!="", service_name!="", http_status_class="2xx"})))
+      aliasTemplate: "Model Registry API check success"
       unit: short
-    titleTemplate: Kubeflow Model Registry API is unavailable
+    titleTemplate: "Model Registry API availability: ${service_name}"
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
   remediationHint: !include 'remediation-hints/kubeflow-model-registry/remediation-unavailable.md.hbs'

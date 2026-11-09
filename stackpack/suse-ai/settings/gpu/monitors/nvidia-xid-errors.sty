@@ -1,8 +1,8 @@
 nodes:
 - _type: Monitor
-  name: GPU Node NVIDIA XID Errors
+  name: "NVIDIA GPU errors"
   identifier: urn:stackpack:suse-ai:monitor:nvidia-xid-errors
-  description: Detects NVIDIA XID errors on a GPU node. Uses the exporter windowed error count when available and falls back to the last XID code for older exporters.
+  description: "Detects NVIDIA XID errors that may disrupt workloads on a GPU node. Uses the recent error count when available and the last reported XID code for older exporters; inspect the code to determine its impact."
   intervalSeconds: 60
   status: ENABLED
   function: urn:stackpack:common:monitor-function:threshold
@@ -11,15 +11,12 @@ nodes:
     comparator: GTE
     failureState: CRITICAL
     metric:
-      aliasTemplate: NVIDIA XID error
-      query: >-
-        max by (k8s_cluster_name, k8s_node_name) (
-          max_over_time(DCGM_EXP_XID_ERRORS_COUNT{k8s_cluster_name!="", k8s_node_name!="", xid!="0"}[5m])
-          or (0 * max_over_time(DCGM_EXP_XID_ERRORS_COUNT{k8s_cluster_name!="", k8s_node_name!="", xid="0"}[5m]))
-        )
-        or max by (k8s_cluster_name, k8s_node_name) (
-          max_over_time(DCGM_FI_DEV_XID_ERRORS{k8s_cluster_name!="", k8s_node_name!=""}[5m])
-        )
+      aliasTemplate: "NVIDIA XID errors"
+      query: "max by (k8s_cluster_name, k8s_node_name) (\n  max_over_time(DCGM_EXP_XID_ERRORS_COUNT{k8s_cluster_name!=\"\
+        \", k8s_node_name!=\"\", xid!=\"0\"}[5m])\n  or (0 * max_over_time(DCGM_EXP_XID_ERRORS_COUNT{k8s_cluster_name!=\"\
+        \", k8s_node_name!=\"\", xid=\"0\"}[5m]))\n) or max by (k8s_cluster_name, k8s_node_name) (\n  max_over_time(DCGM_FI_DEV_XID_ERRORS{k8s_cluster_name!=\"\
+        \", k8s_node_name!=\"\"}[5m])\n)"
       unit: short
-    titleTemplate: NVIDIA XID error
+    titleTemplate: "GPU errors: ${k8s_node_name}"
     urnTemplate: urn:kubernetes:/${k8s_cluster_name}:node/${k8s_node_name}
+  remediationHint: !include 'remediation-hints/gpu/nvidia-xid-errors.md.hbs'

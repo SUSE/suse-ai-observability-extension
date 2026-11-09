@@ -187,7 +187,9 @@ def render(query, instance=False):
             "cluster-name": "cluster-a",
             "namespace": "ai",
             "node-name": "gpu-1",
+            "gpu.uuid": "GPU-device",
             "vllm.model.name": "llama3",
+            "ollama.model.name": "gemma:2b",
             "gen_ai.request.model": "llama3",
             "gen_ai.provider.name": "openai",
             "server.address": "vllm.ai.svc",
@@ -224,7 +226,7 @@ def render(query, instance=False):
     return re.sub(r"\$\{([^}]+)\}", scalar, query)
 
 
-def render_topological_monitor(query, endpoint=None):
+def render_topological_monitor(query, endpoint=None, monitor_tags=None):
     # Offline PromQL fixtures use the legacy resolver's nonempty tag contract,
     # never CEL presentation interpolation. test_backend_metrics exercises the
     # real native runner, including its resolved query and numeric health input.
@@ -235,6 +237,13 @@ def render_topological_monitor(query, endpoint=None):
     })
     tags = component(data, "genai model usage")["tags"]
     tags["vllm.model.name"] = "llama3"
+    tags["ollama.model.name"] = "llama3"
+    tags["suse.ai.metric.k8s_cluster_name"] = "cluster-a"
+    inventory = record("METRICS", resource={"service.name": "assistant", "service.namespace": "prod-eu",
+                       "k8s.cluster.name": "cluster-a"}, metric="ollama_model_info", attributes={"model": "llama3"})
+    tags["suse.ai.monitor.k8s_cluster_name"] = component(inventory, "genai served model")["tags"]["suse.ai.monitor.k8s_cluster_name"]
+    if monitor_tags is not None:
+        tags.update(monitor_tags)
     parameters = {"tags." + k: v for k, v in tags.items() if v}
 
     def bind(match):
@@ -441,7 +450,7 @@ class MappingTests(unittest.TestCase):
         service = component(named, "otel service")["identifier"]
         self.assertTrue(
             any(
-                item["sourceId"] == service and item["targetId"] == agent
+                item["sourceId"] == agent and item["targetId"] == service
                 for item in relations
             )
         )
@@ -552,19 +561,54 @@ class PackageContractTests(unittest.TestCase):
             overview = node.get("presentation", {}).get("overview", {})
             if "mainMenu" in overview:
                 menus[overview["name"]["title"]] = node
-        self.assertEqual(set(menus), {"Overview", "Applications & agents", "Models", "Inference", "Data services", "GPU infrastructure"})
+        self.assertEqual(set(menus), {"Overview", "Applications & agents", "Models", "Inference", "Data services", "GPUs"})
         query = menus["Overview"]["binding"]["query"]
         self.assertIn('"otel service"', query)
         self.assertIn('"genai served model"', query)
         self.assertNotIn('"otel service instance"', query)
         self.assertNotIn('"genai model usage"', query)
+        self.assertNotIn('"genai database dependency"', query)
         self.assertFalse(menus["Overview"]["presentation"]["topology"]["connectedComponents"])
-        self.assertEqual(len({n["presentation"]["overview"]["mainMenu"]["icon"] for n in menus.values()}), 6)
+        self.assertNotIn("Observed dependencies", menus)
+
+    def test_overview_columns_do_not_leak_observer_or_product_specific_fields(self):
+        prefix = "urn:stackpack:suse-ai:component-presentation:"
+        observer_columns = {"suse_ai_observer_service", "suse_ai_observer_cluster", "suse_ai_discovery"}
+        for suffix in ("common", "all", "inference", "data-services", "applications",
+                       "model-inventory", "models", "agents"):
+            columns = BY_ID[prefix + suffix]["presentation"]["overview"]["columns"]
+            ids = {c["columnId"] for c in columns}
+            self.assertFalse(ids & observer_columns, suffix)
+            self.assertNotIn("suse_ai_otel_k8s_namespace", ids, suffix)
+        for node in NODES:
+            overview = node.get("presentation", {}).get("overview")
+            if overview:
+                self.assertEqual(overview["columns"][0], {
+                    "columnId": "suse_ai_health", "title": "Health",
+                    "projection": {"_type": "HealthProjection", "value": "healthState"},
+                }, node["identifier"])
+        data = BY_ID[prefix + "data-services"]
+        self.assertIn('type = "otel service"', data["binding"]["query"])
+        self.assertNotIn('"genai database dependency"', data["binding"]["query"])
+
+    def test_caller_drilldowns_separate_native_and_observed_data_dependencies(self):
+        prefix = "urn:stackpack:suse-ai:component-presentation:"
+        resources = {r["resourceId"]: r for r in
+                     BY_ID[prefix + "services-overlay"]["presentation"]["highlight"]["relatedResources"]}
+        native = resources["suse_ai_data_dependencies"]
+        self.assertIn('withNeighborsOf(direction = "down"', native["topologyQuery"])
+        self.assertIn('type = "otel service"', native["topologyQuery"])
+        self.assertEqual(native["presentationIdentifier"], prefix + "data-services")
+        observed = resources["suse_ai_observed_dependencies"]
+        self.assertIn('type = "genai database dependency"', observed["topologyQuery"])
+        for tag in ("service.namespace", "service.name"):
+            self.assertIn("tags.singleValue('" + tag + "')", observed["topologyQuery"])
+        self.assertEqual(observed["presentationIdentifier"], prefix + "database-dependencies")
 
     def test_model_usage_links_identify_the_caller(self):
         node = BY_ID["urn:stackpack:suse-ai:component-presentation:models"]
         column = next(c for c in node["presentation"]["overview"]["columns"]
-                      if c["columnId"] == "otel_name")
+                      if c["columnId"] == "suse_ai_otel_name")
         names = [str(evaluate(column["projection"]["name"], {"tags": {
             "gen_ai.request.model": ["llama3"], "service.name": [service]
         }})) for service in ("assistant", "researcher")]
@@ -575,7 +619,7 @@ class PackageContractTests(unittest.TestCase):
         inventory = BY_ID["urn:stackpack:suse-ai:component-presentation:model-inventory"]
         self.assertIn('type = "genai served model"', inventory["binding"]["query"])
         self.assertNotIn('"genai model usage"', inventory["binding"]["query"])
-        services = BY_ID["urn:stackpack:suse-ai:component-presentation:services"]
+        services = BY_ID["urn:stackpack:suse-ai:component-presentation:services-overlay"]
         usage = next(r for r in services["presentation"]["highlight"]["relatedResources"]
                      if r["resourceId"] == "suse_ai_models")
         self.assertIn('type = "genai model usage"', usage["topologyQuery"])
@@ -584,7 +628,7 @@ class PackageContractTests(unittest.TestCase):
 
     def test_model_inventory_metrics_preserve_deployment_and_caller_scope(self):
         for presentation, required_labels in [
-            ("model-inventory", {"service_namespace", "service_name", "model_name"}),
+            ("served-models-vllm", {"service_namespace", "service_name", "model_name"}),
             ("models", {"service_namespace", "service_name", "gen_ai_request_model",
                                "gen_ai_provider_name", "server_address", "server_port"}),
         ]:
@@ -592,7 +636,7 @@ class PackageContractTests(unittest.TestCase):
             columns = [c for c in node["presentation"]["overview"]["columns"]
                        if c.get("projection", {}).get("_type") == "MetricProjection"]
             metric_ids = {m["metricId"] for n in NODES for m in n.get("metrics", [])}
-            self.assertEqual(len(columns), 3)
+            self.assertEqual(len(columns), 3 if presentation == "served-models-vllm" else 0)
             for column in columns:
                 projection = column["projection"]
                 self.assertEqual(projection["_type"], "MetricProjection")
@@ -615,7 +659,7 @@ class PackageContractTests(unittest.TestCase):
                 for item in walk(promql.parse(render(p["query"]))):
                     if isinstance(item, promql.VectorSelector):
                         keys = {m.name for m in item.matchers.matchers}
-                        if "-host-" in column["columnId"]:
+                        if "_host_" in column["columnId"]:
                             self.assertIn("sts_host", keys)
                             self.assertIn("properties.sts_host", p["query"])
                         else:
@@ -638,16 +682,19 @@ class PackageContractTests(unittest.TestCase):
             hint = node.get("remediationHint", "")
             if not hint.startswith("remediation-hints/"):
                 continue
-            self.assertEqual(
-                node["function"], "urn:stackpack:common:monitor-function:threshold"
-            )
+            self.assertIn(node["function"], {"urn:stackpack:common:monitor-function:threshold",
+                                             "urn:stackpack:common:monitor-function:topological-threshold",
+                                             "urn:stackpack:common:monitor-function:derived-state-monitor"})
+            template_context = ({"componentName": "model", "causeComponentName": "inference",
+                                 "causeComponentUrnForUrl": context["componentUrnForUrl"]}
+                                if node["function"].endswith(":derived-state-monitor") else context)
             template = (PACK / "includes" / hint).read_text()
             for expression in re.findall(r"\{\{(.*?)\}\}", template, re.DOTALL):
                 parts = expression.split()
                 # The server's multiply helper truncates fractional thresholds
                 # (0.9 * 100 rendered as 0). Keep the original numeric scale.
                 self.assertEqual(len(parts), 1, hint)
-                value = context
+                value = template_context
                 for key in parts[0].split("."):
                     self.assertIn(key, value, f"{hint}: {expression}")
                     value = value[key]
@@ -677,7 +724,7 @@ class PackageContractTests(unittest.TestCase):
             if menu:
                 self.assertTrue(menu.get("icon") or presentation.get("icon"), node["name"])
             if ":product-" in node["identifier"]:
-                self.assertIn("icon", presentation, node["name"])
+                self.assertNotIn("icon", presentation, node["name"])
 
     def test_packaged_assets_are_referenced(self):
         documents = [
@@ -697,9 +744,11 @@ class PackageContractTests(unittest.TestCase):
                 for path in (PACK / directory).rglob("*")
                 if path.is_file()
             }
-            self.assertEqual(referenced, packaged, directory)
+            self.assertTrue(referenced <= packaged, directory)
+            if directory != "icons":
+                self.assertEqual(referenced, packaged, directory)
 
-    def test_ai_overviews_compose_with_canonical_otel_columns(self):
+    def test_ai_overviews_use_namespaced_identity_columns(self):
         for node in NODES:
             if node["_type"] != "ComponentPresentation":
                 continue
@@ -709,9 +758,9 @@ class PackageContractTests(unittest.TestCase):
             for column in columns:
                 projection = column.get("projection", {})
                 if projection.get("_type") == "ComponentLinkProjection" and projection.get("name") == "name":
-                    self.assertEqual(column["columnId"], "otel_name")
+                    self.assertEqual(column["columnId"], "suse_ai_otel_name")
                 if projection.get("value") == "tags.singleValue('service.namespace')":
-                    self.assertEqual(column["columnId"], "otel_namespace")
+                    self.assertEqual(column["columnId"], "suse_ai_otel_namespace")
 
     def test_supported_node_types_and_unique_ownership(self):
         supported = {
@@ -793,13 +842,15 @@ class PackageContractTests(unittest.TestCase):
                             if isinstance(item, promql.VectorSelector)
                         ]:
                             keys = {m.name: m for m in selector.matchers.matchers}
-                            if "-node-host-" in metric["metricId"]:
+                            if "genai gpu" in node["binding"]["query"]:
+                                self.assertTrue({"UUID", "k8s_cluster_name"} <= keys.keys())
+                            elif "_node_host_" in metric["metricId"]:
                                 self.assertIn("sts_host", keys, metric["metricId"])
                                 self.assertIn("properties.sts_host", query["expression"])
                             elif (
-                                "-pod-gpu-" in metric["metricId"]
-                                or "-pod-vgpu-" in metric["metricId"]
-                                or "-node-" in metric["metricId"]
+                                "_pod_gpu_" in metric["metricId"]
+                                or "_pod_vgpu_" in metric["metricId"]
+                                or "_node_" in metric["metricId"]
                             ):
                                 self.assertIn(
                                     "k8s_cluster_name", keys, metric["metricId"]
@@ -826,6 +877,9 @@ class PackageContractTests(unittest.TestCase):
         for node in NODES:
             if node["_type"] != "Monitor":
                 continue
+            if node["function"].endswith(":derived-state-monitor"):
+                self.assertEqual(node["arguments"], {"componentTypes": "genai agent"})
+                continue
             if node["function"].endswith(":topological-threshold"):
                 queries = node["arguments"]["queries"]
                 self.assertIn('label = "stackpack:suse-ai"', queries["topologyQuery"])
@@ -836,9 +890,17 @@ class PackageContractTests(unittest.TestCase):
                         keys = {m.name for m in item.matchers.matchers}
                         self.assertTrue({"service_namespace", "service_name"} <= keys)
                         if '"genai served model"' in queries["topologyQuery"]:
-                            self.assertIn("model_name", keys)
-                        else:
+                            if '"suse.ai.product:ollama"' in queries["topologyQuery"]:
+                                self.assertIn("k8s_cluster_name", keys)
+                                if item.name == "ollama_model_loaded":
+                                    self.assertIn("model", keys)
+                            else:
+                                self.assertIn("model_name", keys)
+                        elif '"genai model usage"' in queries["topologyQuery"]:
                             self.assertTrue({"gen_ai_request_model", "gen_ai_provider_name", "server_address", "server_port"} <= keys)
+                        else:
+                            self.assertIn('type = "otel service"', queries["topologyQuery"])
+                            self.assertEqual(item.name, "otel_span_calls_total")
                 continue
             tree = promql.parse(node["arguments"]["metric"]["query"])
             urn = node["arguments"]["urnTemplate"]

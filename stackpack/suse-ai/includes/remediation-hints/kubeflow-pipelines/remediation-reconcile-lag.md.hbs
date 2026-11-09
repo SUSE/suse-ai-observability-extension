@@ -1,13 +1,11 @@
-# Kubeflow Workflow Queue Lag
+### Check first
+Open [this component](/#/components/{{componentUrnForUrl}}/highlights) and its [metrics](/#/components/{{componentUrnForUrl}}/metrics). Compare the oldest queued workflow item with controller logs and active reconciliation. The configured threshold is **{{threshold}}** in the monitor chart's unit.
 
-This monitor detects an Argo controller queue item waiting longer than **{{threshold}} seconds** for [{{labels.service_name}}](/#/components/{{componentUrnForUrl}}).
+### Likely causes
+A blocked reconciliation, insufficient controller capacity or an unavailable dependency.
 
-Compare the metric and threshold in this monitor's chart at the time of the alert.
+### Fix
+Resolve the blocking dependency and confirm new workflow items progress.
 
-Triage:
-
-1. Identify the affected `queue_name` in `argo_workflows_queue_longest_running` and compare its depth and unfinished-work metrics.
-2. Inspect workflow-controller logs for API throttling, repeated reconciliation errors, or unavailable dependencies.
-3. Check controller CPU and memory: `kubectl top pod -n <kubeflow-namespace> -l app=workflow-controller`.
-4. Inspect workflows stuck in Pending or Running: `kubectl get workflows -A`.
-5. Resolve the blocking workflow or dependency before restarting the controller; a restart alone does not remove poisoned work.
+### Verify
+The oldest queue item age falls below the threshold and pending workflows advance. If samples are absent, investigate the exporter and Collector: this threshold check cannot establish healthy operation without data.

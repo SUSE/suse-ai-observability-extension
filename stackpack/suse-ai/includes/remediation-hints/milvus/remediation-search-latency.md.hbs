@@ -1,49 +1,11 @@
-# Milvus High Search Latency
+### Check first
+Open [this component](/#/components/{{componentUrnForUrl}}/highlights) and its [metrics](/#/components/{{componentUrnForUrl}}/metrics). Check P99 search latency, loaded indexes, search parameters and query-node resources. The configured threshold is **{{threshold}}** in the monitor chart's unit.
 
-This monitor detects high P99 search/query latency for [{{labels.service_name}}](/#/components/{{componentUrnForUrl}}). The threshold is **{{threshold}} seconds**.
+### Likely causes
+Unloaded indexes, large search breadth or query-node contention.
 
-Compare the metric and threshold in this monitor's chart at the time of the alert.
+### Fix
+Load the intended indexes and tune search parameters within the required recall budget.
 
-## Potential Impacts
-- Slow vector similarity searches
-- Delayed query results
-- Application timeouts
-
-## Diagnosis Steps
-1. **Analyze Search Patterns**:
-   - Check the `query_type` label to identify slow query types (Search vs Query)
-   - Review search parameters (`topK`, `nprobe`, `ef`)
-2. **Check Collection Size and Segments**:
-   ```bash
-   # Check collection statistics in Milvus
-   # Large collections may need better indexing
-   ```
-3. **Verify Index Status**:
-   - Ensure indexes are built and loaded
-   - Check if indexes are in memory or need loading
-4. **Monitor QueryNode Performance**:
-   ```bash
-   kubectl logs -l component=querynode --tail=50
-   ```
-
-## Remediation Actions
-1. **Optimize Search Parameters**:
-   - Reduce `topK` if returning too many results
-   - Adjust `nprobe` (for IVF indexes) or `ef` (for HNSW) to balance accuracy vs speed
-2. **Improve Index Strategy**:
-   - Use HNSW index for faster searches (trades memory for speed)
-   - Consider IVF_PQ for large datasets to reduce memory usage
-   - Ensure indexes are loaded in QueryNode memory
-3. **Scale QueryNodes**:
-   ```bash
-   kubectl scale deployment/milvus-querynode --replicas=5
-   ```
-4. **Partition Data**:
-   - Use partitions to limit search scope
-   - Search specific partitions instead of entire collection
-5. **Cache Frequently Searched Vectors**:
-   - Implement application-level caching for common queries
-   - Use Milvus collection-level properties for query result caching
-6. **Review Hardware**:
-   - Ensure sufficient memory for indexes
-   - Consider GPU-accelerated search if available
+### Verify
+P99 search latency returns below the threshold under representative searches. If samples are absent, investigate the exporter and Collector: this threshold check cannot establish healthy operation without data.

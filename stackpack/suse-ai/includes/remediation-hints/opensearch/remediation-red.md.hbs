@@ -1,25 +1,11 @@
-# OpenSearch Cluster RED Status
+### Check first
+Open [this component](/#/components/{{componentUrnForUrl}}/highlights) and its [metrics](/#/components/{{componentUrnForUrl}}/metrics). Inspect cluster health and allocation explanations for unassigned primary shards. The configured threshold is **{{threshold}}** in the monitor chart's unit.
 
-This monitor detects RED cluster status for [{{labels.service_name}}](/#/components/{{componentUrnForUrl}}): at least one primary shard is unassigned.
+### Likely causes
+A missing data node, unavailable storage or allocation constraints.
 
-Compare the metric and threshold in this monitor's chart at the time of the alert.
+### Fix
+Restore the affected node/storage or correct allocation constraints; preserve index data and recovery options.
 
-## Potential Impacts
-- Data is missing or inaccessible.
-- Indexing and search operations may fail.
-
-## Diagnosis Steps
-1. **Check Cluster Health API**:
-   `GET /_cluster/health?pretty`
-2. **Identify Unassigned Shards**:
-   `GET /_cat/shards?v&h=index,shard,prirep,state,unassigned.reason&s=state`
-3. **Check Node Status**:
-   Verify if any nodes have recently left the cluster or are failing.
-4. **Check Disk Space**:
-   Low disk space (high watermark) can prevent shard allocation.
-
-## Remediation Actions
-1. **Restart Failed Nodes**: If nodes are down, restart them.
-2. **Free up Disk Space**: If disk space is the issue, delete old indices or increase disk capacity.
-3. **Manually Assign Shards**: If shards are unassigned due to max retries, you may need to retry allocation:
-   `POST /_cluster/reroute?retry_failed=true`
+### Verify
+All primary shards are assigned and cluster health leaves red. If samples are absent, investigate the exporter and Collector: this threshold check cannot establish healthy operation without data.

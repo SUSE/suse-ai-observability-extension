@@ -174,7 +174,7 @@ class IdentityTests(unittest.TestCase):
             relations = [
                 r
                 for r in mapped(data, "OtelRelationMapping")
-                if r["typeName"] == "contains-agent"
+                if r["typeName"] == "is-hosted-on"
             ]
             with self.subTest(canonical=canonical, legacy=legacy, kind=kind):
                 self.assertEqual(len(agents), int(bool(expected)))
@@ -182,9 +182,9 @@ class IdentityTests(unittest.TestCase):
                 if expected:
                     self.assertEqual(agents[0]["name"], expected)
                     self.assertEqual(agents[0]["tags"]["gen_ai.agent.name"], expected)
-                    self.assertEqual(relations[0]["targetId"], agents[0]["identifier"])
+                    self.assertEqual(relations[0]["sourceId"], agents[0]["identifier"])
                     self.assertEqual(
-                        relations[0]["sourceId"],
+                        relations[0]["targetId"],
                         component(data, "otel service")["identifier"],
                     )
 
@@ -274,11 +274,9 @@ class IdentityTests(unittest.TestCase):
                 if kind in ("genai agent", "genai served model"):
                     relations = mapped(data, "OtelRelationMapping")
                     self.assertEqual(len(relations), 1)
-                    self.assertEqual(relations[0]["targetId"], identifier)
-                    self.assertEqual(
-                        relations[0]["sourceId"],
-                        component(data, "otel service")["identifier"],
-                    )
+                    host = component(data, "otel service")["identifier"]
+                    expected = (identifier, host) if kind == "genai agent" else (host, identifier)
+                    self.assertEqual((relations[0]["sourceId"], relations[0]["targetId"]), expected)
             self.assertEqual(len(set(identifiers)), len(identifiers))
 
         # Model mappings read different fields; both must preserve the same
@@ -317,7 +315,7 @@ class IdentityTests(unittest.TestCase):
         columns = BY_ID["urn:stackpack:suse-ai:component-presentation:common"][
             "presentation"
         ]["overview"]["columns"]
-        expressions = {c["columnId"]: c["projection"]["value"] for c in columns}
+        expressions = {c["columnId"]: c["projection"]["value"] for c in columns if "value" in c["projection"]}
         category = expressions["suse_ai_category"]
         product = expressions["suse_ai_product"]
         tags = {
@@ -340,7 +338,7 @@ class IdentityTests(unittest.TestCase):
             with self.subTest(clusters=clusters):
                 tags = {} if clusters is None else {"cluster-name": clusters}
                 self.assertEqual(
-                    evaluate(expressions["otel_k8s_cluster"], {"tags": tags}),
+                    evaluate(expressions["suse_ai_otel_k8s_cluster"], {"tags": tags}),
                     expected,
                 )
 

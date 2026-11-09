@@ -2,6 +2,9 @@ version: '3'
 
 dotenv: ['./.env']
 
+includes:
+  dashboards: Taskfile.dashboards-icons.yaml
+
 vars:
   RUNTIME: '{{.CONTAINER_RUNTIME | default "podman"}}'
   PYTHON: '{{.PYTHON | default "python3"}}'
@@ -38,6 +41,21 @@ tasks:
     desc: Test deterministic packaging, version updates and installer state transitions
     cmds:
       - '{{.PYTHON}} -B -m unittest discover -s tests -p "test_*.py" -v'
+
+  stackpack-presentation-test:
+    desc: Test table contracts and optional read-only live presentation checks
+    cmds:
+      - '{{.PYTHON}} -B -m unittest discover -s tests/suse-ai -p test_presentation_tables.py -v'
+
+  stackpack-review-package:
+    desc: Package a temporary review version without changing the release manifest (REVIEW_VERSION required)
+    requires:
+      vars: [REVIEW_VERSION]
+    env:
+      REVIEW_VERSION: '{{.REVIEW_VERSION}}'
+      REVIEW_OUTPUT: '{{.REVIEW_OUTPUT | default "dist/review"}}'
+    cmds:
+      - '{{.PYTHON}} -B scripts/package-review.py'
 
   stackpack-package:
     aliases: [stackpack-build]
@@ -112,6 +130,115 @@ tasks:
     env:
       STS_CONTEXT: '{{.STS_CONTEXT}}'
 
+  demo-deploy:
+    desc: Validate and deploy a fresh 3.0.0-dev.N through an explicit demo port-forward; never restore
+    requires:
+      vars: [DEMO_URL, DEMO_TOKEN_FILE, DEMO_STATE_DIR]
+    env:
+      CONTAINER_RUNTIME: '{{.RUNTIME}}'
+    cmds:
+      - >-
+        '{{.PYTHON}}' -B scripts/demo-deploy.py
+        --url '{{.DEMO_URL}}' --token-file '{{.DEMO_TOKEN_FILE}}'
+        --token-type '{{.DEMO_TOKEN_TYPE | default "service"}}'
+        --state-dir '{{.DEMO_STATE_DIR}}' --cluster '{{.DEMO_CLUSTER | default "suse-ai"}}'
+        --version '{{.DEMO_VERSION | default ""}}'
+        --name '{{.DEMO_PACK_NAME | default "suse-ai"}}'
+        --source '{{.DEMO_SOURCE | default "stackpack/suse-ai"}}'
+
+  demo-comparison-build:
+    desc: Stage an isolated GitHub release comparison using live telemetry and captured node metadata
+    requires:
+      vars: [COMPARISON_OUTPUT, COMPARISON_OTEL_SOURCE, COMPARISON_TOPOLOGY]
+    cmds:
+      - >-
+        '{{.PYTHON}}' -B scripts/build-release-comparison.py
+        --release-ref '{{.COMPARISON_REF | default "v3.0.0"}}'
+        --otel-source '{{.COMPARISON_OTEL_SOURCE}}'
+        --topology '{{.COMPARISON_TOPOLOGY}}'
+        --output '{{.COMPARISON_OUTPUT}}'
+
+  demo-refresh-topology:
+    desc: Recreate the explicit demo backend Collector pod after a mapping-cache refresh gap
+    requires:
+      vars: [DEMO_MGMT_KUBECONFIG]
+    cmds:
+      - >-
+        kubectl --kubeconfig '{{.DEMO_MGMT_KUBECONFIG}}' -n suse-observability
+        delete pod suse-observability-otel-collector-0 --wait --timeout=60s
+      - >-
+        kubectl --kubeconfig '{{.DEMO_MGMT_KUBECONFIG}}' -n suse-observability
+        wait --for=create pod/suse-observability-otel-collector-0 --timeout=180s
+      - >-
+        kubectl --kubeconfig '{{.DEMO_MGMT_KUBECONFIG}}' -n suse-observability
+        wait --for=condition=Ready pod/suse-observability-otel-collector-0 --timeout=180s
+
+  demo-import-images:
+    desc: Import local development images into every explicitly selected RKE2 demo node
+    requires:
+      vars: [DEMO_KUBECONFIG, DEMO_EVIDENCE, DEMO_IMAGES_FILE]
+    cmds:
+      - >-
+        '{{.PYTHON}}' -B scripts/demo-import-images.py
+        --kubeconfig '{{.DEMO_KUBECONFIG}}' --output '{{.DEMO_EVIDENCE}}'
+        --runtime '{{.RUNTIME}}' --images-file '{{.DEMO_IMAGES_FILE}}'
+
+  demo-ollama-deploy:
+    desc: Import a tested branch-built exporter into every RKE2 demo node and roll out Ollama
+    requires:
+      vars: [DEMO_KUBECONFIG, DEMO_EVIDENCE, OLLAMA_IMAGE]
+    cmds:
+      - >-
+        '{{.PYTHON}}' -B scripts/demo-ollama-deploy.py
+        --kubeconfig '{{.DEMO_KUBECONFIG}}' --output '{{.DEMO_EVIDENCE}}'
+        --runtime '{{.RUNTIME}}' --image '{{.OLLAMA_IMAGE}}'
+
+  demo-kubeflow-install:
+    desc: Install the reviewed Kubeflow demo values into an explicitly selected cluster
+    requires:
+      vars: [DEMO_KUBECONFIG, KUBEFLOW_CHART, KUBEFLOW_VALUES]
+    cmds:
+      - >-
+        helm upgrade --install kubeflow '{{.KUBEFLOW_CHART}}'
+        --kubeconfig '{{.DEMO_KUBECONFIG}}' --namespace kubeflow
+        --values '{{.KUBEFLOW_VALUES}}' --wait --timeout 15m
+
+  demo-kubeflow-pin-driver:
+    desc: Pin the demo KFP driver to the API server version when the chart omits V2_DRIVER_IMAGE
+    requires:
+      vars: [DEMO_KUBECONFIG, KUBEFLOW_DRIVER_IMAGE]
+    cmds:
+      - >-
+        kubectl --kubeconfig '{{.DEMO_KUBECONFIG}}' --namespace kubeflow
+        set env deployment/ml-pipeline V2_DRIVER_IMAGE='{{.KUBEFLOW_DRIVER_IMAGE}}'
+      - >-
+        kubectl --kubeconfig '{{.DEMO_KUBECONFIG}}' --namespace kubeflow
+        rollout status deployment/ml-pipeline --timeout=5m
+
+  demo-kubeflow-traffic-enable:
+    desc: Enable existing demo prediction and registry scenarios after the Iris lifecycle succeeds
+    requires:
+      vars: [DEMO_KUBECONFIG]
+    cmds:
+      - >-
+        kubectl --kubeconfig '{{.DEMO_KUBECONFIG}}' --namespace suse-ai-demo
+        set env deployment/traffic-gen ENABLE_KUBEFLOW_SCENARIOS=true
+      - >-
+        kubectl --kubeconfig '{{.DEMO_KUBECONFIG}}' --namespace suse-ai-demo
+        rollout status deployment/traffic-gen --timeout=5m
+
+  demo-monitor-test:
+    desc: Preview threshold monitors in three states and capture derived-health dry runs; never persist test states
+    requires:
+      vars: [DEMO_URL, DEMO_TOKEN_FILE, DEMO_EVIDENCE, DEMO_MONITOR_BASELINE]
+    cmds:
+      - >-
+        '{{.PYTHON}}' -B scripts/demo-monitor-check.py
+        --url '{{.DEMO_URL}}' --token-file '{{.DEMO_TOKEN_FILE}}'
+        --token-type '{{.DEMO_TOKEN_TYPE | default "service"}}'
+        --monitors '{{.DEMO_MONITORS | default ""}}'
+        --output '{{.DEMO_EVIDENCE}}' --baseline '{{.DEMO_MONITOR_BASELINE}}'
+
   stackpack-validate:
     desc: Validate native settings with the pinned server and reject an invalid CEL control
     env:
@@ -131,3 +258,48 @@ tasks:
     desc: Runs a Groovy script from a file (use FILE=path/to/script.groovy)
     cmds:
       - sts script run --file "{{.FILE}}"
+
+  component-model-build:
+    desc: Stage an isolated Ollama spike (control or overlay); release sources stay unchanged
+    requires:
+      vars: [SPIKE_VERSION, SPIKE_OUTPUT, SPIKE_MODE]
+    cmds:
+      - >-
+        '{{.PYTHON}}' -B experiments/component-model/build.py
+        --version '{{.SPIKE_VERSION}}' --output '{{.SPIKE_OUTPUT}}'
+        --mode '{{.SPIKE_MODE}}' {{.SPIKE_FLAGS | default ""}}
+
+  component-model-validate:
+    desc: Validate a staged component model spike with the pinned native validator
+    requires:
+      vars: [SPIKE_OUTPUT]
+    env:
+      CONTAINER_RUNTIME: '{{.RUNTIME}}'
+      SPIKE_PACK: '{{.SPIKE_OUTPUT}}/suse-ai'
+    cmds:
+      - bash -c 'source scripts/ci/stackpack-images.env; bash scripts/ci/validate_stackpack.sh "$SPIKE_PACK"'
+
+  component-model-package:
+    desc: Package an already staged spike without uploading it
+    requires:
+      vars: [SPIKE_OUTPUT, SPIKE_VERSION]
+    cmds:
+      - sts stackpack package -d '{{.SPIKE_OUTPUT}}/suse-ai' -f '{{.SPIKE_OUTPUT}}/suse-ai-{{.SPIKE_VERSION}}.sts'
+
+  component-model-test:
+    desc: Exercise spike GPU identity and workload attribution against the actual CEL mappings
+    cmds:
+      - '{{.PYTHON}} -B experiments/component-model/test_spike.py -v'
+
+  component-model-inspect:
+    aliases: [demo-inspect]
+    desc: Read-only snapshots through an explicit local demo port-forward; never uses a default context
+    requires:
+      vars: [SPIKE_URL, SPIKE_TOKEN_FILE, SPIKE_EVIDENCE, SPIKE_STAGE]
+    cmds:
+      - >-
+        '{{.PYTHON}}' -B experiments/component-model/inspect.py
+        --url '{{.SPIKE_URL}}' --token-file '{{.SPIKE_TOKEN_FILE}}'
+        --token-type '{{.SPIKE_TOKEN_TYPE | default "service"}}'
+        --name '{{.SPIKE_PACK_NAME | default "suse-ai"}}'
+        --output '{{.SPIKE_EVIDENCE}}' --stage '{{.SPIKE_STAGE}}'

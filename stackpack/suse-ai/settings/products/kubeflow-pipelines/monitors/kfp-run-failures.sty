@@ -1,9 +1,8 @@
 nodes:
 - _type: Monitor
-  name: Kubeflow Recent Pipeline Run Failures
+  name: "Pipeline workflow failures"
   identifier: urn:stackpack:suse-ai:monitor:kfp-run-failures
-  description: |
-    Triggers when an Argo workflow enters Failed during the last 15 minutes.
+  description: "Detects pipeline workflows that entered the Failed state in the last 15 minutes. Use the affected run's logs to identify which step failed and whether its outputs need to be regenerated."
   status: ENABLED
   intervalSeconds: 60
   function: urn:stackpack:common:monitor-function:threshold
@@ -15,8 +14,8 @@ nodes:
       query: sum by (service_namespace, service_name) (increase(argo_workflows_count_total{suse_ai_product="kubeflow-pipelines",
         service_namespace!="", service_name!="", phase="Failed"}[15m])) or (0 * sum by (service_namespace, service_name)
         (increase(argo_workflows_count_total{suse_ai_product="kubeflow-pipelines", service_namespace!="", service_name!=""}[15m])))
-      aliasTemplate: Kubeflow Recent Pipeline Run Failures
+      aliasTemplate: "Recent failed workflows"
       unit: short
-    titleTemplate: Kubeflow pipeline runs failed recently
+    titleTemplate: "Pipeline workflow failures: ${service_name}"
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
   remediationHint: !include 'remediation-hints/kubeflow-pipelines/remediation-run-failures.md.hbs'

@@ -1,0 +1,11 @@
+### Check first
+Open [this inference server](/#/components/{{ componentUrnForUrl }}/highlights) and check runtime API read success and its pod readiness. Check the exporter logs for failures reading `/api/tags` or `/api/ps`.
+
+### Likely causes
+Ollama is restarting, the runtime API is unreachable, or the exporter cannot decode a response. An API read failure does not by itself prove inference requests fail.
+
+### Fix
+Restore access from the exporter to the configured Ollama URL. Correct the endpoint or network policy and wait for the runtime to become ready. Keep both endpoints read-only; do not delete or reload models as an initial remedy.
+
+### Verify
+Confirm the next scrape reports `ollama_api_up = 1`, the [server's](/#/components/{{ componentUrnForUrl }}/highlights) Models list refreshes, and this check clears. If no samples arrive, investigate the Collector/exporter; absence is not covered by this threshold monitor.

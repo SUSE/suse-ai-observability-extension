@@ -1,10 +1,8 @@
 nodes:
 - _type: Monitor
-  name: Kubeflow Workflow Queue Lag
+  name: "Workflow controller processing time"
   identifier: urn:stackpack:suse-ai:monitor:kfp-workflow-queue-lag
-  description: |
-    Triggers when an Argo controller queue item remains active for more than
-    five minutes.
+  description: "Tracks the longest-running task in the workflow controller. Slow processing can delay pipeline scheduling or status updates; inspect the controller for blocked work."
   status: ENABLED
   intervalSeconds: 60
   function: urn:stackpack:common:monitor-function:threshold
@@ -15,8 +13,8 @@ nodes:
     metric:
       query: max by (service_namespace, service_name) (argo_workflows_queue_longest_running{suse_ai_product="kubeflow-pipelines",
         service_namespace!="", service_name!=""})
-      aliasTemplate: Kubeflow Workflow Queue Lag
+      aliasTemplate: "Longest-running workflow controller task"
       unit: s
-    titleTemplate: Kubeflow workflow queue lag exceeds five minutes
+    titleTemplate: "Workflow processing time: ${service_name}"
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
   remediationHint: !include 'remediation-hints/kubeflow-pipelines/remediation-reconcile-lag.md.hbs'

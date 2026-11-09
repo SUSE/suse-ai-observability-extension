@@ -1,44 +1,11 @@
-# Qdrant High Memory Usage
+### Check first
+Open [this component](/#/components/{{componentUrnForUrl}}/highlights) and its [metrics](/#/components/{{componentUrnForUrl}}/metrics). Compare active memory with pod limits, collection size and indexing activity. The configured threshold is **{{threshold}}** in the monitor chart's unit.
 
-This monitor detects active memory usage above **{{threshold}} bytes** for [{{labels.service_name}}](/#/components/{{componentUrnForUrl}}).
+### Likely causes
+Growing collections, indexing or payload/vector storage exceeding the memory budget.
 
-Compare the metric and threshold in this monitor's chart at the time of the alert.
+### Fix
+Review indexing and storage options; adjust resource limits only after confirming node capacity.
 
-## Potential Impacts
-- OOM kills by the container runtime
-- Degraded search and indexing performance
-- Potential data loss if Qdrant is killed during write operations
-- Inability to load new collections or vectors
-
-## Diagnosis Steps
-1. **Check Memory Breakdown**:
-   ```bash
-   curl http://<qdrant-host>:6333/metrics | grep memory
-   ```
-   Review `memory_active_bytes`, `memory_allocated_bytes`, and `memory_resident_bytes`.
-2. **Review Collection Sizes**:
-   ```bash
-   curl http://<qdrant-host>:6333/collections
-   ```
-   Identify which collections consume the most memory.
-3. **Check Container Limits**:
-   ```bash
-   kubectl describe pod -l app=qdrant | grep -A5 Limits
-   ```
-
-## Remediation Actions
-1. **Enable On-Disk Storage**:
-   - Move large or infrequently accessed collections to disk: set `on_disk: true` in collection configuration
-   - Use memory-mapped files for vector storage
-2. **Enable Quantization**:
-   - Scalar quantization can reduce memory usage by ~4x
-   - Product quantization can reduce further at the cost of accuracy
-3. **Increase Memory Limits**:
-   - Adjust container memory limits in the Kubernetes deployment
-   - Ensure the node has sufficient available memory
-4. **Optimize Indexing**:
-   - Reduce HNSW `m` parameter (lower values use less memory)
-   - Use on-disk HNSW indexes for large collections
-5. **Distribute Data**:
-   - In distributed mode, shard collections across multiple nodes
-   - Configure replication factor based on available resources
+### Verify
+Active memory fits the budget and pods stop restarting or approaching their limits. If samples are absent, investigate the exporter and Collector: this threshold check cannot establish healthy operation without data.

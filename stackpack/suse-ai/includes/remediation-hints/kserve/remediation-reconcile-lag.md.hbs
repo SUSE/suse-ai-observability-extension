@@ -1,22 +1,11 @@
-# KServe Controller Reconcile Lag
+### Check first
+Open [this component](/#/components/{{componentUrnForUrl}}/highlights) and its [metrics](/#/components/{{componentUrnForUrl}}/metrics). Inspect the longest-running workqueue item and controller logs. The configured threshold is **{{threshold}}** in the monitor chart's unit.
 
-This monitor detects controller reconcile lag above **{{threshold}} seconds** for [{{labels.service_name}}](/#/components/{{componentUrnForUrl}}).
+### Likely causes
+A blocked dependency or a reconciliation operation that does not complete.
 
-Compare the metric and threshold in this monitor's chart at the time of the alert.
+### Fix
+Resolve the blocked dependency and confirm the controller can process subsequent items.
 
-Triage:
-
-1. Inspect the controller for errors or throttling:
-   `kubectl logs -n <kserve-namespace> deploy/kserve-controller-manager -c manager --tail=100`.
-2. Check the controller pod for CPU/memory pressure:
-   `kubectl top pod -n <kserve-namespace> -l control-plane=kserve-controller-manager`.
-3. Inspect the KServe workqueues in Prometheus, selecting `suse_ai_product="kserve"`
-   and the affected `service_namespace` and `service_name`. Group by `name`:
-   `workqueue_depth` shows waiting work and
-   `workqueue_longest_running_processor_seconds` shows the longest active item.
-   `workqueue_unfinished_work_seconds` sums time across all active items and can
-   exceed the alert threshold even when no individual item is stuck.
-4. Confirm the InferenceServices it reconciles are healthy (stuck resources drive requeues):
-   `kubectl get isvc -A`.
-5. Restart the controller if it is wedged:
-   `kubectl rollout restart deploy/kserve-controller-manager -n <kserve-namespace>`.
+### Verify
+Longest-running workqueue processing time returns below the threshold. If samples are absent, investigate the exporter and Collector: this threshold check cannot establish healthy operation without data.

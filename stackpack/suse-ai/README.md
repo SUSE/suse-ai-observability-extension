@@ -2,7 +2,7 @@
 
 StackPacks 2.0 implementation of the SUSE AI extension. AI settings compose with
 the Open Telemetry StackPack on its existing services and service instances.
-Named agents, requested models, and served vLLM models have their own scoped
+Named agents, requested models, and served vLLM and Ollama models have their own scoped
 identities. Kubernetes GPU charts extend existing pods and nodes.
 
 The package contains independent `settings/genai`, `settings/products`, and
@@ -25,6 +25,42 @@ memory residency and context length; request and token charts still require
 GenAI instrumentation. Runtime model values are shown only for a successful,
 current API observation. These exporter metrics are separate from Ollama's
 HTTP endpoint checks.
+
+With the inventory-capable exporter and StackPack 3.0.0, `ollama_model_info` from
+`/api/tags` adds available models to the Models page, with a link to the hosting
+Ollama service.
+Idle unloading does not remove them. Models and serving relations expire after
+15 minutes without an inventory observation (deletion or sustained API failure).
+Ollama IDs include cluster when present and preserve model tags such as `:latest`.
+Native service IDs still omit cluster; use distinct logical namespaces for
+same-named services in different clusters. Ordinary colons and slashes are valid,
+but embedded field separators such as `:service/` retain the documented collision
+limitation in the example README.
+
+Open a model for its product charts: Ollama reports loaded state, disk size,
+VRAM, loaded allocation and context; vLLM retains its latency, scheduler, cache
+and token charts. Shared tables show component health and identity; product
+metrics stay on the appropriate component. Client-side
+requests and latency stay on caller model-usage views: model names and endpoint
+strings alone do not establish a verified serving-service identity.
+
+### Reading model connections
+
+The arrow **inference service → served model** means **serves model**. For example,
+`ollama → llama3.2:latest` places the model below its serving engine in topology.
+Earlier previews reversed this edge to inherit engine health; models now receive
+health from their own product checks instead.
+
+Ollama model availability combines `ollama_model_loaded` with `ollama_api_up` from
+the same fresh runtime snapshot. Both loaded and available-but-unloaded models
+are healthy. A failed API or a model missing from every observed replica's latest
+inventory is unhealthy. Samples older than two minutes produce no check, so
+missing telemetry cannot assert health. This measures inventory availability,
+not inference correctness or latency. vLLM models keep their direct latency
+checks. Agents retain their separate hosting-service health inheritance.
+
+Model highlights show **Served by** and **Hosting inference service** links. Existing
+model and service identities are retained when upgrading between these previews.
 
 From the public extension repository root, install test dependencies and run:
 
@@ -50,7 +86,7 @@ For comparison, CLI 3.9.2 can package the same file contents:
 STS_EXPERIMENTAL_STACKPACKS=1 sts stackpack package -d stackpack/suse-ai -f /tmp/suse-ai-cli.sts
 ```
 
-The public extension release uses version 3.0.0. Its native settings come from
+The public extension release uses version 3.0.0. Its original native settings came from
 StackVista/suse-stackpacks 34c1246 (upstream package version 3.0.1).
 See the [release and migration record](../../knowledge/NATIVE_STACKPACK_RELEASE.md)
 for the exact import inventory, adaptations and setup-container contract.

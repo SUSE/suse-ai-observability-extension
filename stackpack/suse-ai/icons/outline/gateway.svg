@@ -1,0 +1,9 @@
+<!-- SPDX-License-Identifier: Apache-2.0; original repository artwork, 2026. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 40 40" role="img" aria-labelledby="gateway-title gateway-description">
+  <title id="gateway-title">Gateway</title>
+  <desc id="gateway-description">Requests pass through a central gateway.</desc>
+  <rect width="40" height="40" rx="8" fill="#E4F5EB"/>
+  <g fill="none" stroke="#30BA78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M15 9h10v22H15zM7 16h12m-3-3 3 3-3 3m5 5h12m-3-3 3 3-3 3"/>
+  </g>
+</svg>

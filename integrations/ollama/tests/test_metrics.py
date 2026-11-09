@@ -18,14 +18,16 @@ class Api(BaseHTTPRequestHandler):
     body = b'{"models": []}'
     delay = 0
     paths = []
+    responses = {}
 
     def do_GET(self):
         self.paths.append(self.path)
         time.sleep(self.delay)
-        self.send_response(self.status)
+        status, body = self.responses.get(self.path, (self.status, self.body))
+        self.send_response(status)
         self.end_headers()
         try:
-            self.wfile.write(self.body)
+            self.wfile.write(body)
         except BrokenPipeError:
             pass
 
@@ -36,6 +38,7 @@ class Api(BaseHTTPRequestHandler):
 class MetricsTest(unittest.TestCase):
     def setUp(self):
         Api.status, Api.body, Api.delay, Api.paths = 200, b'{"models": []}', 0, []
+        Api.responses = {}
         self.api = self.server(Api)
         self.endpoint = f"http://127.0.0.1:{self.api.server_port}/api/ps"
 
@@ -51,7 +54,7 @@ class MetricsTest(unittest.TestCase):
         self.assertIn("ollama_api_up 1\n", text)
         self.assertIn("ollama_loaded_models 0\n", text)
         self.assertNotIn('model="', text)
-        self.assertEqual(Api.paths, ["/api/ps"])
+        self.assertEqual(Api.paths, ["/api/ps", "/api/tags"])
 
     def test_reported_allocations_and_model_label_escaping(self):
         Api.body = json.dumps({"models": [{"name": 'model"\\\n', "size": 100, "size_vram": 0, "context_length": 4096}]}).encode()
@@ -66,7 +69,50 @@ class MetricsTest(unittest.TestCase):
         Api.body = b'{"models": [{"model": "small-model"}]}'
         text = metrics.collect(self.endpoint).decode()
         self.assertIn("ollama_loaded_models 1\n", text)
-        self.assertNotIn('model="small-model"', text)
+        self.assertNotIn('ollama_model_size_bytes{model="small-model"', text)
+        self.assertNotIn('ollama_model_context_length{model="small-model"', text)
+        self.assertNotIn('ollama_model_vram_bytes{model="small-model"', text)
+        self.assertIn('ollama_model_loaded{model="small-model"} 1', text)
+
+    def test_idle_unloaded_models_remain_available_then_deleted_models_disappear(self):
+        available = {"models": [{"name": "gemma:2b", "size": 42, "details": {
+            "family": "gemma", "parameter_size": "2B", "quantization_level": 'Q4"\\\n',
+        }}]}
+        Api.responses["/api/tags"] = (200, json.dumps(available).encode())
+        Api.body = b'{"models": [{"name": "gemma:2b", "size_vram": 30, "context_length": 4096}]}'
+        self.assertIn('ollama_model_loaded{model="gemma:2b"} 1', metrics.collect(self.endpoint).decode())
+        Api.body = b'{"models": []}'
+        text = metrics.collect(self.endpoint).decode()
+        self.assertIn('ollama_model_info{model="gemma:2b",family="gemma",parameter_size="2B",quantization="Q4\\"\\\\\\n"} 1', text)
+        self.assertIn('ollama_model_loaded{model="gemma:2b"} 0', text)
+        self.assertIn('ollama_model_vram_bytes{model="gemma:2b"} 0', text)
+        self.assertIn('ollama_model_disk_size_bytes{model="gemma:2b"} 42', text)
+        self.assertNotIn('ollama_model_context_length{', text)
+        Api.responses["/api/tags"] = (200, b'{"models": []}')
+        self.assertNotIn('model="gemma:2b"', metrics.collect(self.endpoint).decode())
+
+    def test_either_endpoint_failure_discards_the_entire_snapshot(self):
+        Api.body = b'{"models": [{"name": "gemma:2b", "size": 42}]}'
+        for endpoint in ("/api/ps", "/api/tags"):
+            for status, body in ((503, Api.body), (200, b"bad"), (200, b"{}"),
+                                 (200, b" " * (metrics.MAX_RESPONSE_BYTES + 1))):
+                with self.subTest(endpoint=endpoint, status=status, body=body[:20]):
+                    Api.responses = {}
+                    self.assertIn(b"ollama_model_info{", metrics.collect(self.endpoint))
+                    Api.responses[endpoint] = (status, body)
+                    result = metrics.collect(self.endpoint)
+                    self.assertIn(b"ollama_api_up 0\n", result)
+                    self.assertNotIn(b"ollama_model_", result)
+                    self.assertNotIn(b"ollama_loaded_models", result)
+
+    def test_invalid_inventory_metadata_fails_without_partial_model_data(self):
+        for model in ({"name": "gemma:2b", "details": None},
+                      {"name": "gemma:2b", "details": {"family": ["gemma"]}},
+                      {"name": "gemma:2b", "size": -1}):
+            Api.responses["/api/tags"] = (200, json.dumps({"models": [model]}).encode())
+            result = metrics.collect(self.endpoint)
+            self.assertIn(b"ollama_api_up 0\n", result)
+            self.assertNotIn(b"ollama_model_", result)
 
     def test_invalid_snapshots_do_not_turn_into_empty_successes(self):
         for payload in (None, {}, {"models": None}, {"models": [None]}, {"models": [{"name": ""}]},

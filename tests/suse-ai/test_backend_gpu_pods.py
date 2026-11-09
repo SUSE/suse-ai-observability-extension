@@ -75,7 +75,7 @@ class BackendGpuPodsTest(BackendTestCase):
                 charts = self.capture(case["cluster"] + "-" + case["pod"] + "-charts", self.api(
                     f"/api/components/{data['id']}/metricPerspectiveData?startTime={now - 600000}&endTime={now}"
                 ))
-                tabs = [t for t in charts["tabs"] if t["tabId"] == "suse-ai-gpu"]
+                tabs = [t for t in charts["tabs"] if t["tabId"] == "suse_ai_gpu"]
                 summary = [m for m in full["summary"]["metrics"]
                            if m["boundMetricId"].get("metricId", "").startswith("suse-ai-common-pod-")]
                 self.assertEqual(bool(tabs), case["gpu"])

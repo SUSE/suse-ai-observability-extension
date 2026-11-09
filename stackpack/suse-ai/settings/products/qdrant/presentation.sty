@@ -4,96 +4,65 @@ nodes:
   identifier: urn:stackpack:suse-ai:component-presentation:product-qdrant
   binding:
     _type: ComponentPresentationQueryBinding
-    query: (label = "stackpack:open-telemetry" and type in ("otel service", "otel service instance") and label = "stackpack:suse-ai")
-      and label = "suse.ai.product:qdrant"
+    query: (label = "stackpack:open-telemetry" and type in ("otel service", "otel service instance") and label =
+      "stackpack:suse-ai") and label = "suse.ai.product:qdrant"
   rank:
-    specificity: 240
+    specificity: 1
   presentation:
     highlight:
       metrics:
-      - sectionId: suse-ai-product-qdrant
+      - sectionId: suse_ai_product_qdrant
         title: Qdrant
         order: 200
         metrics:
-        - metricId: suse-ai-qdrant-vectordb-collections-total
+        - metricId: suse_ai_qdrant_vectordb_collections_total
           order: 100
-        - metricId: suse-ai-qdrant-vectordb-vectors-total
+        - metricId: suse_ai_qdrant_vectordb_vectors_total
           order: 99
-        - metricId: suse-ai-qdrant-vectordb-rest-responses-total
+        - metricId: suse_ai_qdrant_vectordb_rest_responses_total
           order: 98
-    icon: !icon products/qdrant.svg
     metricPerspective:
       tabs:
-      - tabId: suse-ai-vectordb
+      - tabId: suse_ai_vectordb
         title: VectorDB
         order: 50
         sections:
-        - sectionId: suse-ai-vectordb-collections
+        - sectionId: suse_ai_vectordb_collections
           title: Collections
           order: 50
           metrics:
-          - metricId: suse-ai-qdrant-vectordb-collections-total
+          - metricId: suse_ai_qdrant_vectordb_collections_total
             order: 100
-          - metricId: suse-ai-qdrant-vectordb-vectors-total
+          - metricId: suse_ai_qdrant_vectordb_vectors_total
             order: 99
-        - sectionId: suse-ai-vectordb-rest-api
+        - sectionId: suse_ai_vectordb_rest_api
           title: REST API
           order: 49
           metrics:
-          - metricId: suse-ai-qdrant-vectordb-rest-responses-total
+          - metricId: suse_ai_qdrant_vectordb_rest_responses_total
             order: 98
-          - metricId: suse-ai-qdrant-vectordb-rest-responses-fail
+          - metricId: suse_ai_qdrant_vectordb_rest_responses_fail
             order: 97
-          - metricId: suse-ai-qdrant-vectordb-rest-responses-avg-duration
+          - metricId: suse_ai_qdrant_vectordb_rest_responses_avg_duration
             order: 96
-        - sectionId: suse-ai-vectordb-grpc-api
+        - sectionId: suse_ai_vectordb_grpc_api
           title: gRPC API
           order: 48
           metrics:
-          - metricId: suse-ai-qdrant-vectordb-grpc-responses-total
+          - metricId: suse_ai_qdrant_vectordb_grpc_responses_total
             order: 95
-          - metricId: suse-ai-qdrant-vectordb-grpc-responses-fail
+          - metricId: suse_ai_qdrant_vectordb_grpc_responses_fail
             order: 94
-          - metricId: suse-ai-qdrant-vectordb-grpc-responses-avg-duration
+          - metricId: suse_ai_qdrant_vectordb_grpc_responses_avg_duration
             order: 93
-        - sectionId: suse-ai-vectordb-hardware
+        - sectionId: suse_ai_vectordb_hardware
           title: Hardware
           order: 47
           metrics:
-          - metricId: suse-ai-qdrant-vectordb-memory-active
+          - metricId: suse_ai_qdrant_vectordb_memory_active
             order: 91
-    summary:
-      metrics:
-      - summaryMetricId: suse-ai-qdrant-vectordb-collections-total-summary
-        name: Collections Total
-        metricId: suse-ai-qdrant-vectordb-collections-total
-        order: 100
-        unit: short
-        decimalPlaces: 2
-        query: collections_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}
-      - summaryMetricId: suse-ai-qdrant-vectordb-vectors-total-summary
-        name: Vectors Total
-        metricId: suse-ai-qdrant-vectordb-vectors-total
-        order: 99
-        unit: short
-        decimalPlaces: 2
-        query: collections_vector_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}
-      - summaryMetricId: suse-ai-qdrant-vectordb-rest-responses-total-summary
-        name: REST Responses Rate
-        metricId: suse-ai-qdrant-vectordb-rest-responses-total
-        order: 98
-        unit: reqps
-        decimalPlaces: 2
-        query: sum(rate(rest_responses_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
-      - summaryMetricId: suse-ai-qdrant-vectordb-rest-responses-fail-summary
-        name: REST Responses Failure Rate
-        metricId: suse-ai-qdrant-vectordb-rest-responses-fail
-        order: 97
-        unit: reqps
-        decimalPlaces: 2
-        query: sum(rate(rest_responses_total{status=~"[45][0-9][0-9]", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])) or (0 * sum(rate(rest_responses_total{status=~"[1-5][0-9][0-9]", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))
   metrics:
-  - metricId: suse-ai-qdrant-vectordb-collections-total
+  - metricId: suse_ai_qdrant_vectordb_collections_total
     name: Collections Total
     metricQueries:
     - expression: collections_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}
@@ -102,7 +71,7 @@ nodes:
     chart:
       _type: TimeSeriesChart
       unit: short
-  - metricId: suse-ai-qdrant-vectordb-vectors-total
+  - metricId: suse_ai_qdrant_vectordb_vectors_total
     name: Vectors Total
     metricQueries:
     - expression: collections_vector_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}
@@ -111,7 +80,7 @@ nodes:
     chart:
       _type: TimeSeriesChart
       unit: short
-  - metricId: suse-ai-qdrant-vectordb-rest-responses-total
+  - metricId: suse_ai_qdrant_vectordb_rest_responses_total
     name: REST Responses Rate
     metricQueries:
     - expression: sum(rate(rest_responses_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
@@ -120,16 +89,17 @@ nodes:
     chart:
       _type: TimeSeriesChart
       unit: reqps
-  - metricId: suse-ai-qdrant-vectordb-rest-responses-fail
+  - metricId: suse_ai_qdrant_vectordb_rest_responses_fail
     name: REST Responses Failure Rate
     metricQueries:
-    - expression: sum(rate(rest_responses_total{status=~"[45][0-9][0-9]", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])) or (0 * sum(rate(rest_responses_total{status=~"[1-5][0-9][0-9]", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))
+    - expression: sum(rate(rest_responses_total{status=~"[45][0-9][0-9]", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
+        or (0 * sum(rate(rest_responses_total{status=~"[1-5][0-9][0-9]", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))
       alias: Failures/s
       primary: true
     chart:
       _type: TimeSeriesChart
       unit: reqps
-  - metricId: suse-ai-qdrant-vectordb-rest-responses-avg-duration
+  - metricId: suse_ai_qdrant_vectordb_rest_responses_avg_duration
     name: REST Average Response Duration
     metricQueries:
     - expression: rest_responses_avg_duration_seconds{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}
@@ -138,7 +108,7 @@ nodes:
     chart:
       _type: TimeSeriesChart
       unit: s
-  - metricId: suse-ai-qdrant-vectordb-grpc-responses-total
+  - metricId: suse_ai_qdrant_vectordb_grpc_responses_total
     name: gRPC Responses Rate
     metricQueries:
     - expression: sum(rate(grpc_responses_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
@@ -147,16 +117,17 @@ nodes:
     chart:
       _type: TimeSeriesChart
       unit: reqps
-  - metricId: suse-ai-qdrant-vectordb-grpc-responses-fail
+  - metricId: suse_ai_qdrant_vectordb_grpc_responses_fail
     name: gRPC Responses Failure Rate
     metricQueries:
-    - expression: sum(rate(grpc_responses_total{status=~"[1-9][0-9]*", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])) or (0 * sum(rate(grpc_responses_total{status=~"[0-9]+", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))
+    - expression: sum(rate(grpc_responses_total{status=~"[1-9][0-9]*", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
+        or (0 * sum(rate(grpc_responses_total{status=~"[0-9]+", __multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))
       alias: Failures/s
       primary: true
     chart:
       _type: TimeSeriesChart
       unit: reqps
-  - metricId: suse-ai-qdrant-vectordb-grpc-responses-avg-duration
+  - metricId: suse_ai_qdrant_vectordb_grpc_responses_avg_duration
     name: gRPC Average Response Duration
     metricQueries:
     - expression: grpc_responses_avg_duration_seconds{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}
@@ -165,7 +136,7 @@ nodes:
     chart:
       _type: TimeSeriesChart
       unit: s
-  - metricId: suse-ai-qdrant-vectordb-memory-active
+  - metricId: suse_ai_qdrant_vectordb_memory_active
     name: Memory Active
     metricQueries:
     - expression: memory_active_bytes{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}

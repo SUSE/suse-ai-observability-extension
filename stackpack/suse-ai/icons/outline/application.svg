@@ -1,0 +1,9 @@
+<!-- SPDX-License-Identifier: Apache-2.0; original repository artwork, 2026. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 40 40" role="img" aria-labelledby="application-title application-description">
+  <title id="application-title">Application</title>
+  <desc id="application-description">An application window with a request path.</desc>
+  <rect width="40" height="40" rx="8" fill="#E4F5EB"/>
+  <g fill="none" stroke="#30BA78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="8" y="10" width="24" height="21" rx="3"/><path d="M8 16h24M13 13h.01M17 13h.01m-4 11h4l3-5 3 9 3-4h2"/>
+  </g>
+</svg>

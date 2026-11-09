@@ -4,201 +4,166 @@ nodes:
   identifier: urn:stackpack:suse-ai:component-presentation:example-application-metrics
   binding:
     _type: ComponentPresentationQueryBinding
-    query: >-
-      label = "stackpack:open-telemetry" and label = "stackpack:suse-ai" and type in ("otel service", "otel service instance")
-      and label = "suse.ai.demo:true"
+    query: label = "stackpack:open-telemetry" and label = "stackpack:suse-ai" and type in ("otel service", "otel
+      service instance") and label = "suse.ai.demo:true"
   rank:
-    specificity: 240
+    specificity: 1
   presentation:
     metricPerspective:
       tabs:
-      - tabId: suse-ai-agent
+      - tabId: suse_ai_agent
         title: Agent
         order: 50
         sections:
-        - sectionId: suse-ai-agent-tools
+        - sectionId: suse_ai_agent_tools
           title: Tools
           order: 50
           metrics:
-          - metricId: suse-ai-demo-agent-tool-call-rate
+          - metricId: suse_ai_demo_agent_tool_call_rate
             order: 100
-          - metricId: suse-ai-demo-agent-tool-duration-p95
+          - metricId: suse_ai_demo_agent_tool_duration_p95
             order: 99
-        - sectionId: suse-ai-agent-execution
+        - sectionId: suse_ai_agent_execution
           title: Execution
           order: 49
           metrics:
-          - metricId: suse-ai-demo-agent-iterations
+          - metricId: suse_ai_demo_agent_iterations
             order: 98
-          - metricId: suse-ai-demo-agent-run-rate
+          - metricId: suse_ai_demo_agent_run_rate
             order: 97
-      - tabId: suse-ai-rag
+      - tabId: suse_ai_rag
         title: RAG
         order: 49
         sections:
-        - sectionId: suse-ai-rag-retrieval-quality
+        - sectionId: suse_ai_rag_retrieval_quality
           title: Retrieval Quality
           order: 50
           metrics:
-          - metricId: suse-ai-demo-rag-retrieved-documents
+          - metricId: suse_ai_demo_rag_retrieved_documents
             order: 96
-          - metricId: suse-ai-demo-rag-no-hit-rate
+          - metricId: suse_ai_demo_rag_no_hit_rate
             order: 95
-        - sectionId: suse-ai-rag-context
+        - sectionId: suse_ai_rag_context
           title: Context
           order: 49
           metrics:
-          - metricId: suse-ai-demo-rag-context-size-p95
+          - metricId: suse_ai_demo_rag_context_size_p95
             order: 94
-        - sectionId: suse-ai-rag-performance
+        - sectionId: suse_ai_rag_performance
           title: Performance
           order: 48
           metrics:
-          - metricId: suse-ai-demo-rag-request-duration-p95
+          - metricId: suse_ai_demo_rag_request_duration_p95
             order: 93
-      - tabId: suse-ai-demo
+      - tabId: suse_ai_demo
         title: SUSE AI Demo
         order: 48
         sections:
-        - sectionId: suse-ai-demo-scenarios
+        - sectionId: suse_ai_demo_scenarios
           title: Scenarios
           order: 50
           metrics:
-          - metricId: suse-ai-demo-scenario-rate
+          - metricId: suse_ai_demo_scenario_rate
             order: 92
-          - metricId: suse-ai-demo-scenario-duration-p95
+          - metricId: suse_ai_demo_scenario_duration_p95
             order: 91
-    summary:
-      metrics:
-      - summaryMetricId: suse-ai-demo-agent-tool-call-rate-summary
-        name: Agent Tool Call Rate
-        metricId: suse-ai-demo-agent-tool-call-rate
-        order: 100
-        unit: cps
-        decimalPlaces: 2
-        query: |-
-          sum by (tool_name, outcome) (rate(suse_ai_agent_tool_calls_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
-      - summaryMetricId: suse-ai-demo-agent-tool-duration-p95-summary
-        name: Agent Tool Duration P95
-        metricId: suse-ai-demo-agent-tool-duration-p95
-        order: 99
-        unit: s
-        decimalPlaces: 2
-        query: |-
-          histogram_quantile(0.95, sum by (le, tool_name) (rate(suse_ai_agent_tool_duration_seconds_bucket{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))
-      - summaryMetricId: suse-ai-demo-rag-retrieved-documents-summary
-        name: Retrieved Documents per Request
-        metricId: suse-ai-demo-rag-retrieved-documents
-        order: 96
-        unit: short
-        decimalPlaces: 2
-        query: |-
-          sum(rate(suse_ai_rag_retrieval_documents_sum{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])) / clamp_min(sum(rate(suse_ai_rag_retrieval_documents_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])), 0.001)
-      - summaryMetricId: suse-ai-demo-rag-no-hit-rate-summary
-        name: RAG No-Hit Rate
-        metricId: suse-ai-demo-rag-no-hit-rate
-        order: 95
-        unit: reqps
-        decimalPlaces: 2
-        query: |-
-          sum(rate(suse_ai_rag_retrieval_no_hits_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
   metrics:
-  - metricId: suse-ai-demo-agent-tool-call-rate
+  - metricId: suse_ai_demo_agent_tool_call_rate
     name: Agent Tool Call Rate
     metricQueries:
-    - expression: |-
-        sum by (tool_name, outcome) (rate(suse_ai_agent_tool_calls_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
+    - expression: sum by (tool_name, outcome) (rate(suse_ai_agent_tool_calls_total{__multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"}[${__rate_interval}]))
       alias: ${tool_name} ${outcome}
       primary: true
     chart:
       _type: TimeSeriesChart
       unit: cps
-  - metricId: suse-ai-demo-agent-tool-duration-p95
+  - metricId: suse_ai_demo_agent_tool_duration_p95
     name: Agent Tool Duration P95
     metricQueries:
-    - expression: |-
-        histogram_quantile(0.95, sum by (le, tool_name) (rate(suse_ai_agent_tool_duration_seconds_bucket{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))
+    - expression: histogram_quantile(0.95, sum by (le, tool_name) (rate(suse_ai_agent_tool_duration_seconds_bucket{__multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"}[${__rate_interval}])))
       alias: ${tool_name}
       primary: true
     chart:
       _type: TimeSeriesChart
       unit: s
       decimals: 2
-  - metricId: suse-ai-demo-agent-iterations
+  - metricId: suse_ai_demo_agent_iterations
     name: Agent Iterations per Run
     metricQueries:
-    - expression: |-
-        sum(rate(suse_ai_agent_iterations_sum{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])) / clamp_min(sum(rate(suse_ai_agent_iterations_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])), 0.001)
+    - expression: sum(rate(suse_ai_agent_iterations_sum{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
+        / clamp_min(sum(rate(suse_ai_agent_iterations_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])),
+        0.001)
       alias: iterations
       primary: true
     chart:
       _type: TimeSeriesChart
       unit: short
-  - metricId: suse-ai-demo-agent-run-rate
+  - metricId: suse_ai_demo_agent_run_rate
     name: Agent Run Rate
     metricQueries:
-    - expression: |-
-        sum by (outcome, truncated) (rate(suse_ai_agent_runs_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
+    - expression: sum by (outcome, truncated) (rate(suse_ai_agent_runs_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
       alias: ${outcome} truncated=${truncated}
       primary: true
     chart:
       _type: TimeSeriesChart
       unit: reqps
-  - metricId: suse-ai-demo-rag-retrieved-documents
+  - metricId: suse_ai_demo_rag_retrieved_documents
     name: Retrieved Documents per Request
     metricQueries:
-    - expression: |-
-        sum(rate(suse_ai_rag_retrieval_documents_sum{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])) / clamp_min(sum(rate(suse_ai_rag_retrieval_documents_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])), 0.001)
+    - expression: sum(rate(suse_ai_rag_retrieval_documents_sum{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
+        / clamp_min(sum(rate(suse_ai_rag_retrieval_documents_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])),
+        0.001)
       alias: documents
       primary: true
     chart:
       _type: TimeSeriesChart
       unit: short
-  - metricId: suse-ai-demo-rag-no-hit-rate
+  - metricId: suse_ai_demo_rag_no_hit_rate
     name: RAG No-Hit Rate
     metricQueries:
-    - expression: |-
-        sum(rate(suse_ai_rag_retrieval_no_hits_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
+    - expression: sum(rate(suse_ai_rag_retrieval_no_hits_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
       alias: no hits
       primary: true
     chart:
       _type: TimeSeriesChart
       unit: reqps
-  - metricId: suse-ai-demo-rag-context-size-p95
+  - metricId: suse_ai_demo_rag_context_size_p95
     name: RAG Context Size P95
     metricQueries:
-    - expression: |-
-        histogram_quantile(0.95, sum by (le) (rate(suse_ai_rag_context_size_bytes_bucket{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))
+    - expression: histogram_quantile(0.95, sum by (le) (rate(suse_ai_rag_context_size_bytes_bucket{__multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"}[${__rate_interval}])))
       alias: P95
       primary: true
     chart:
       _type: TimeSeriesChart
       unit: bytes
-  - metricId: suse-ai-demo-rag-request-duration-p95
+  - metricId: suse_ai_demo_rag_request_duration_p95
     name: RAG Request Duration P95
     metricQueries:
-    - expression: |-
-        histogram_quantile(0.95, sum by (le) (rate(suse_ai_rag_request_duration_seconds_bucket{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))
+    - expression: histogram_quantile(0.95, sum by (le) (rate(suse_ai_rag_request_duration_seconds_bucket{__multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"}[${__rate_interval}])))
       alias: P95
       primary: true
     chart:
       _type: TimeSeriesChart
       unit: s
-  - metricId: suse-ai-demo-scenario-rate
+  - metricId: suse_ai_demo_scenario_rate
     name: Demo Scenario Rate
     metricQueries:
-    - expression: |-
-        sum by (scenario, outcome) (rate(suse_ai_demo_scenario_runs_total{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}]))
+    - expression: sum by (scenario, outcome) (rate(suse_ai_demo_scenario_runs_total{__multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"}[${__rate_interval}]))
       alias: ${scenario} ${outcome}
       primary: true
     chart:
       _type: TimeSeriesChart
       unit: reqps
-  - metricId: suse-ai-demo-scenario-duration-p95
+  - metricId: suse_ai_demo_scenario_duration_p95
     name: Demo Scenario Duration P95
     metricQueries:
-    - expression: |-
-        histogram_quantile(0.95, sum by (le, scenario) (rate(suse_ai_demo_scenario_duration_seconds_bucket{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[${__rate_interval}])))
+    - expression: histogram_quantile(0.95, sum by (le, scenario) (rate(suse_ai_demo_scenario_duration_seconds_bucket{__multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"}[${__rate_interval}])))
       alias: ${scenario}
       primary: true
     chart:

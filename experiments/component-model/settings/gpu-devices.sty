@@ -1,0 +1,70 @@
+nodes:
+- _type: OtelComponentMapping
+  name: DCGM GPU devices
+  identifier: urn:stackpack:suse-ai:otel-component-mapping:spike-gpu-devices
+  input: &gpu_input
+    signal: [METRICS]
+    resource:
+      condition: >-
+        'k8s.cluster.name' in resource.attributes && resource.attributes['k8s.cluster.name'] != '' &&
+        'k8s.node.name' in resource.attributes && resource.attributes['k8s.node.name'] != ''
+      scope:
+        metric:
+          condition: metric.name == 'DCGM_FI_DEV_GPU_UTIL'
+          datapoint:
+            condition: "'UUID' in datapoint.attributes && datapoint.attributes['UUID'] != ''"
+            action: "'CREATE'"
+  output:
+    identifier: "'urn:suse-ai:/' + resource.attributes['k8s.cluster.name'] + ':gpu/' + datapoint.attributes['UUID']"
+    name: datapoint.attributes['UUID']
+    typeName: "'genai gpu'"
+    domainName: "'SUSE AI'"
+    domainIdentifier: "'urn:stackpack:suse-ai:domain:suse-ai'"
+    layerName: "'GPUs'"
+    layerIdentifier: "'urn:stackpack:suse-ai:layer:gpus'"
+    required:
+      tags:
+      - {source: "'suse-ai'", target: stackpack}
+      - {source: "'gpu'", target: suse.ai.category}
+      - {source: "resource.attributes['k8s.cluster.name']", target: cluster-name}
+      - {source: "resource.attributes['k8s.node.name']", target: gpu.node}
+      - {source: "datapoint.attributes['UUID']", target: gpu.uuid}
+    optional:
+      tags:
+      - {source: "datapoint.attributes['modelName']", target: gpu.model}
+      - {source: "datapoint.attributes['gpu']", target: gpu.index}
+      - {source: "datapoint.attributes['pci_bus_id']", target: gpu.pci_bus_id}
+  expireAfter: 300000
+  rank: {specificity: 150}
+- _type: OtelRelationMapping
+  name: GPU runs on node
+  identifier: urn:stackpack:suse-ai:otel-relation-mapping:spike-gpu-node
+  input: *gpu_input
+  output:
+    sourceId: "'urn:suse-ai:/' + resource.attributes['k8s.cluster.name'] + ':gpu/' + datapoint.attributes['UUID']"
+    targetId: "'urn:kubernetes:/' + resource.attributes['k8s.cluster.name'] + ':node/' + resource.attributes['k8s.node.name']"
+    typeName: "'runs on'"
+    dependencyType: "'UNCLASSIFIED'"
+  expireAfter: 300000
+- _type: OtelRelationMapping
+  name: GPU allocated to workload pod
+  identifier: urn:stackpack:suse-ai:otel-relation-mapping:spike-gpu-pod
+  input:
+    signal: [METRICS]
+    resource:
+      condition: "'k8s.cluster.name' in resource.attributes && resource.attributes['k8s.cluster.name'] != ''"
+      scope:
+        metric:
+          condition: metric.name == 'DCGM_FI_DEV_GPU_UTIL'
+          datapoint:
+            condition: >-
+              'UUID' in datapoint.attributes && datapoint.attributes['UUID'] != '' &&
+              'pod_namespace' in datapoint.attributes && datapoint.attributes['pod_namespace'] != '' &&
+              'pod_name' in datapoint.attributes && datapoint.attributes['pod_name'] != ''
+            action: "'CREATE'"
+  output:
+    sourceId: "'urn:suse-ai:/' + resource.attributes['k8s.cluster.name'] + ':gpu/' + datapoint.attributes['UUID']"
+    targetId: "'urn:kubernetes:/' + resource.attributes['k8s.cluster.name'] + ':' + datapoint.attributes['pod_namespace'] + ':pod/' + datapoint.attributes['pod_name']"
+    typeName: "'allocated to'"
+    dependencyType: "'UNCLASSIFIED'"
+  expireAfter: 300000

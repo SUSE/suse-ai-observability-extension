@@ -1,13 +1,11 @@
-# Kubeflow Model Registry API Slow
+### Check first
+Open [this component](/#/components/{{componentUrnForUrl}}/highlights) and its [metrics](/#/components/{{componentUrnForUrl}}/metrics). Compare probe duration in milliseconds with readiness and dependency latency. The configured threshold is **{{threshold}}** in the monitor chart's unit.
 
-This monitor detects a Model Registry API check duration above **{{threshold}} milliseconds** for [{{labels.service_name}}](/#/components/{{componentUrnForUrl}}).
+### Likely causes
+Registry/database contention, network delay or a slow endpoint.
 
-Compare the metric and threshold in this monitor's chart at the time of the alert.
+### Fix
+Resolve the measured dependency bottleneck and keep the probe endpoint representative.
 
-Triage:
-
-1. Compare registry pod CPU, memory, and restart counts with the alert interval.
-2. Inspect registry logs for slow database calls, connection-pool exhaustion, or retries.
-3. Check database latency and storage pressure.
-4. Measure the registered-models response size; large unpaginated responses can increase latency.
-5. Repeat the authenticated request from the collector pod to separate service latency from network latency.
+### Verify
+Probe duration returns below the threshold; confirm a real registry operation also succeeds. If samples are absent, investigate the exporter and Collector: this threshold check cannot establish healthy operation without data.

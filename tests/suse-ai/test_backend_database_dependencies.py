@@ -55,10 +55,11 @@ class BackendDatabaseDependenciesTest(BackendTestCase):
             edges = [r for r in topology["relations"] if r["target"] == dependency["id"]]
             self.assertEqual(len(edges), 1)
             self.assertEqual(edges[0]["source"], services[0]["id"])
+        expected = {c["id"] for c in dependencies}
+        self.wait_for(lambda: expected.issubset(self.inventory_ids("database-dependencies")),
+                      "observed dependency inventory membership")
         for inventory in ("all", "data-services"):
-            expected = {c["id"] for c in dependencies}
-            self.wait_for(lambda: expected.issubset(self.inventory_ids(inventory)),
-                          "database inventory membership in " + inventory)
+            self.assertFalse(expected & self.inventory_ids(inventory), inventory)
         known = next(c for c in dependencies if "db.system.name:milvus" in c["tags"]
                      and "server.port:19530" in c["tags"] and "server.address:database.example" in c["tags"])
         unknown = next(c for c in dependencies if "server.port:" in c["tags"])

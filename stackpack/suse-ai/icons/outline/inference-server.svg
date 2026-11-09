@@ -1,0 +1,9 @@
+<!-- SPDX-License-Identifier: Apache-2.0; original repository artwork, 2026. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 40 40" role="img" aria-labelledby="inference-server-title inference-server-description">
+  <title id="inference-server-title">Inference server</title>
+  <desc id="inference-server-description">Two connected serving racks.</desc>
+  <rect width="40" height="40" rx="8" fill="#E4F5EB"/>
+  <g fill="none" stroke="#30BA78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="9" y="9" width="22" height="9" rx="2"/><rect x="9" y="22" width="22" height="9" rx="2"/><path d="M14 13.5h.01M14 26.5h.01M21 13.5h5M21 26.5h5M20 18v4"/>
+  </g>
+</svg>

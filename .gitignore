@@ -16,3 +16,6 @@ conf_ravsts.yaml
 /.resources/
 /dist/
 __pycache__/
+
+# Local validation captures and logs; never publish with the source.
+/knowledge/evidence/

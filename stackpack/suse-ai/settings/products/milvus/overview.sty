@@ -1,0 +1,73 @@
+nodes:
+- _type: ComponentPresentation
+  name: Milvus inventory
+  identifier: urn:stackpack:suse-ai:component-presentation:product-milvus-overview
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: label = "stackpack:suse-ai" and type = "otel service" and label = "suse.ai.product:milvus"
+  rank:
+    specificity: 1
+  presentation:
+    overview:
+      name:
+        singular: Milvus service
+        plural: Milvus services
+        title: Milvus
+      columns:
+      - columnId: suse_ai_health
+        title: Health
+        projection:
+          _type: HealthProjection
+          value: healthState
+      - columnId: suse_ai_otel_name
+        title: Name
+        projection:
+          _type: ComponentLinkProjection
+          name: name
+          identifier: identifiers[0]
+      - columnId: suse_ai_otel_namespace
+        title: Service namespace
+        projection:
+          _type: TextProjection
+          value: tags.singleValue('service.namespace')
+      - columnId: suse_ai_otel_k8s_cluster
+        title: Cluster
+        projection:
+          _type: TextProjection
+          value: '''cluster-name'' in tags ? tags[''cluster-name''].filter(cluster, cluster != '''').join('', '')
+            : '''''
+      - columnId: suse_ai_milvus_vectordb_system_search_latency_column
+        title: Search Latency (P99)
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_milvus_vectordb_system_search_latency
+          query: max by (service_namespace, service_name) ((histogram_quantile(0.99, sum by (le, service_namespace,
+            service_name) (rate(milvus_proxy_sq_latency_bucket{service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}"}[${__rate_interval}])))) / 1000)
+          unit: s
+          decimalPlaces: 2
+      - columnId: suse_ai_milvus_vectordb_system_request_success_rate_column
+        title: Request Success Rate
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_milvus_vectordb_system_request_success_rate
+          query: sum by (service_namespace, service_name) (sum by (function_name, service_namespace, service_name)
+            (rate(milvus_proxy_req_count_total{status="success", service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}", function_name=~".*"}[${__rate_interval}])))
+          unit: reqps
+          decimalPlaces: 2
+      - columnId: suse_ai_milvus_vectordb_system_request_failed_rate_column
+        title: Request Failed Rate
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_milvus_vectordb_system_request_failed_rate
+          query: sum by (service_namespace, service_name) (sum by (function_name, service_namespace, service_name)
+            (rate(milvus_proxy_req_count_total{status=~"fail|fail_input|fail_system", service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}", function_name=~".*"}[${__rate_interval}])) or (0
+            * sum by (function_name, service_namespace, service_name) (rate(milvus_proxy_req_count_total{status=~"total|success",
+            service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}",
+            function_name=~".*"}[${__rate_interval}]))))
+          unit: reqps
+          decimalPlaces: 2
+      sort:
+      - columnId: suse_ai_otel_name

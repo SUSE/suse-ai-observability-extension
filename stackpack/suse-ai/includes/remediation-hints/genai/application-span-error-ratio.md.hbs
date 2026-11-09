@@ -1,0 +1,15 @@
+### Check first
+
+Open [the application's traces](#/components/{{componentUrnForUrl}}/traces) and filter for errors. Compare inbound requests, outbound model/tool/database calls and internal work to identify which operation is failing.
+
+### Likely causes
+
+An unavailable dependency, timeout, rejected credentials, invalid request or failed background operation can raise the error ratio. A trace can contain several operations, so the ratio is not the percentage of failed user requests. Idle or absent telemetry produces no check rather than a healthy zero.
+
+### Fix
+
+Use the failing span's error and downstream service to correct the endpoint, credentials, request, resource constraint or dependency outage. Preserve exception and span status reporting so the repair can be verified.
+
+### Verify
+
+Repeat the affected operation and confirm successful spans. Once new successful traffic fills the five-minute window, this check should recover below 5%. Confirm that the application's normal work continues and that telemetry has not simply stopped.

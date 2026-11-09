@@ -1,9 +1,8 @@
 nodes:
 - _type: Monitor
-  name: Kubeflow Pipelines gRPC Error Ratio
+  name: "Pipeline API request reliability"
   identifier: urn:stackpack:suse-ai:monitor:kfp-grpc-error-ratio
-  description: |
-    Triggers when more than 5% of KFP gRPC calls return non-OK status codes.
+  description: "Detects unsuccessful gRPC calls to the pipeline API. An elevated error ratio can indicate problems in pipeline management operations; inspect response codes and API logs."
   status: ENABLED
   intervalSeconds: 60
   function: urn:stackpack:common:monitor-function:threshold
@@ -12,12 +11,16 @@ nodes:
     failureState: DEVIATING
     threshold: 0.05
     metric:
-      query: |-
-        (sum by (service_namespace, service_name) (rate(grpc_server_handled_total{suse_ai_product="kubeflow-pipelines", service_namespace!="", service_name!="", grpc_code!="OK"}[5m]))
-        or (0 * sum by (service_namespace, service_name) (rate(grpc_server_handled_total{suse_ai_product="kubeflow-pipelines", service_namespace!="", service_name!=""}[5m]))))
-        / clamp_min(sum by (service_namespace, service_name) (rate(grpc_server_handled_total{suse_ai_product="kubeflow-pipelines", service_namespace!="", service_name!=""}[5m])), 0.001)
-      aliasTemplate: Kubeflow Pipelines gRPC Error Ratio
+      query: '(sum by (service_namespace, service_name) (rate(grpc_server_handled_total{suse_ai_product="kubeflow-pipelines",
+        service_namespace!="", service_name!="", grpc_code!="OK"}[5m]))
+
+        or (0 * sum by (service_namespace, service_name) (rate(grpc_server_handled_total{suse_ai_product="kubeflow-pipelines",
+        service_namespace!="", service_name!=""}[5m]))))
+
+        / clamp_min(sum by (service_namespace, service_name) (rate(grpc_server_handled_total{suse_ai_product="kubeflow-pipelines",
+        service_namespace!="", service_name!=""}[5m])), 0.001)'
+      aliasTemplate: "Pipeline API gRPC error ratio"
       unit: percentunit
-    titleTemplate: Kubeflow Pipelines gRPC error ratio exceeds 5%
+    titleTemplate: "Pipeline API request reliability: ${service_name}"
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
   remediationHint: !include 'remediation-hints/kubeflow-pipelines/remediation-grpc-errors.md.hbs'

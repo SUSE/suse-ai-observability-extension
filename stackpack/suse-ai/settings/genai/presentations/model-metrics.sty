@@ -10,9 +10,9 @@ nodes:
   presentation:
     summary:
       metrics:
-      - summaryMetricId: suse-ai-requests-summary
+      - summaryMetricId: suse_ai_requests_summary
         name: Requests / s
-        metricId: suse-ai-requests
+        metricId: suse_ai_requests
         order: 100
         unit: reqps
         decimalPlaces: 2
@@ -20,9 +20,9 @@ nodes:
           service_name="${tags.singleValue('service.name')}", gen_ai_request_model="${tags.singleValue('gen_ai.request.model')}",
           gen_ai_provider_name="${tags.singleValue('gen_ai.provider.name')}", server_address="${tags.singleValue('server.address')}",
           server_port="${tags.singleValue('server.port')}"}[${__rate_interval}]))
-      - summaryMetricId: suse-ai-latency-summary
+      - summaryMetricId: suse_ai_latency_summary
         name: Duration P95
-        metricId: suse-ai-latency
+        metricId: suse_ai_latency
         order: 99
         unit: s
         decimalPlaces: 2
@@ -30,9 +30,9 @@ nodes:
           service_name="${tags.singleValue('service.name')}", gen_ai_request_model="${tags.singleValue('gen_ai.request.model')}",
           gen_ai_provider_name="${tags.singleValue('gen_ai.provider.name')}", server_address="${tags.singleValue('server.address')}",
           server_port="${tags.singleValue('server.port')}"}[${__rate_interval}])))
-      - summaryMetricId: suse-ai-tokens-summary
+      - summaryMetricId: suse_ai_tokens_summary
         name: Tokens / s
-        metricId: suse-ai-tokens
+        metricId: suse_ai_tokens
         order: 98
         unit: short
         decimalPlaces: 2
@@ -42,125 +42,155 @@ nodes:
           server_port="${tags.singleValue('server.port')}"}[${__rate_interval}]))
     highlight:
       metrics:
-      - sectionId: suse-ai-model-usage
+      - sectionId: suse_ai_model_usage
         title: Model usage
         order: 200
         metrics:
-        - metricId: suse-ai-requests
+        - metricId: suse_ai_requests
           order: 100
-        - metricId: suse-ai-latency
+        - metricId: suse_ai_latency
           order: 99
-        - metricId: suse-ai-tokens
+        - metricId: suse_ai_tokens
           order: 98
     metricPerspective:
       tabs:
-      - tabId: suse-ai-ai
+      - tabId: suse_ai_ai
         title: AI
         order: 50
         sections:
-        - sectionId: suse-ai-ai-performance
+        - sectionId: suse_ai_ai_performance
           title: Performance
           order: 50
           metrics:
-          - metricId: suse-ai-requests
+          - metricId: suse_ai_requests
             order: 100
-          - metricId: suse-ai-latency
+          - metricId: suse_ai_latency
             order: 99
-          - metricId: suse-ai-tokens
+          - metricId: suse_ai_tokens
             order: 98
-          - metricId: suse-ai-tokens-per-request
+          - metricId: suse_ai_tokens_per_request
             order: 97
-          - metricId: suse-ai-reported-cost
+          - metricId: suse_ai_reported_cost
             order: 96
-          - metricId: suse-ai-cost-per-request
+          - metricId: suse_ai_cost_per_request
             order: 95
-          - metricId: suse-ai-cost-per-1k-tokens
+          - metricId: suse_ai_cost_per_1k_tokens
             order: 94
-          - metricId: suse-ai-top-models
+          - metricId: suse_ai_top_models
             order: 93
-          - metricId: suse-ai-first-chunk
+          - metricId: suse_ai_first_chunk
             order: 92
   metrics:
-  - metricId: suse-ai-requests
+  - metricId: suse_ai_requests
     name: LLM request rate
     metricQueries:
-    - expression: |-
-        sum by (gen_ai_request_model) (rate(gen_ai_client_operation_duration_seconds_count{service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}", gen_ai_request_model="${tags.singleValue('gen_ai.request.model')}", gen_ai_provider_name="${tags.singleValue('gen_ai.provider.name')}", server_address="${tags.singleValue('server.address')}", server_port="${tags.singleValue('server.port')}"}[${__rate_interval}]))
+    - expression: sum by (gen_ai_request_model) (rate(gen_ai_client_operation_duration_seconds_count{service_namespace="${tags.singleValue('service.namespace')}",
+        service_name="${tags.singleValue('service.name')}", gen_ai_request_model="${tags.singleValue('gen_ai.request.model')}",
+        gen_ai_provider_name="${tags.singleValue('gen_ai.provider.name')}", server_address="${tags.singleValue('server.address')}",
+        server_port="${tags.singleValue('server.port')}"}[${__rate_interval}]))
       alias: ${gen_ai_request_model}
     chart:
       _type: TimeSeriesChart
       unit: reqps
-  - metricId: suse-ai-latency
+  - metricId: suse_ai_latency
     name: Operation duration P95
     metricQueries:
-    - expression: |-
-        histogram_quantile(0.95, sum by (gen_ai_request_model, le) (rate(gen_ai_client_operation_duration_seconds_bucket{service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}", gen_ai_request_model="${tags.singleValue('gen_ai.request.model')}", gen_ai_provider_name="${tags.singleValue('gen_ai.provider.name')}", server_address="${tags.singleValue('server.address')}", server_port="${tags.singleValue('server.port')}"}[${__rate_interval}])))
+    - expression: histogram_quantile(0.95, sum by (gen_ai_request_model, le) (rate(gen_ai_client_operation_duration_seconds_bucket{service_namespace="${tags.singleValue('service.namespace')}",
+        service_name="${tags.singleValue('service.name')}", gen_ai_request_model="${tags.singleValue('gen_ai.request.model')}",
+        gen_ai_provider_name="${tags.singleValue('gen_ai.provider.name')}", server_address="${tags.singleValue('server.address')}",
+        server_port="${tags.singleValue('server.port')}"}[${__rate_interval}])))
       alias: ${gen_ai_request_model}
     chart:
       _type: TimeSeriesChart
       unit: s
-  - metricId: suse-ai-tokens
+  - metricId: suse_ai_tokens
     name: Token throughput
     metricQueries:
-    - expression: |-
-        sum by (gen_ai_request_model, gen_ai_token_type) (rate({__name__=~"gen_ai_client_token_usage(_tokens)?_sum", service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}", gen_ai_request_model="${tags.singleValue('gen_ai.request.model')}", gen_ai_provider_name="${tags.singleValue('gen_ai.provider.name')}", server_address="${tags.singleValue('server.address')}", server_port="${tags.singleValue('server.port')}"}[${__rate_interval}]))
+    - expression: sum by (gen_ai_request_model, gen_ai_token_type) (rate({__name__=~"gen_ai_client_token_usage(_tokens)?_sum",
+        service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}",
+        gen_ai_request_model="${tags.singleValue('gen_ai.request.model')}", gen_ai_provider_name="${tags.singleValue('gen_ai.provider.name')}",
+        server_address="${tags.singleValue('server.address')}", server_port="${tags.singleValue('server.port')}"}[${__rate_interval}]))
       alias: ${gen_ai_request_model} ${gen_ai_token_type}
     chart:
       _type: TimeSeriesChart
       unit: short
     description: Tokens per second; requires reported usage.
-  - metricId: suse-ai-tokens-per-request
+  - metricId: suse_ai_tokens_per_request
     name: Average tokens per request
     metricQueries:
-    - expression: |-
-        sum by (gen_ai_request_model) (rate({__name__=~"gen_ai_client_token_usage(_tokens)?_sum", service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}", gen_ai_request_model="${tags.singleValue('gen_ai.request.model')}", gen_ai_provider_name="${tags.singleValue('gen_ai.provider.name')}", server_address="${tags.singleValue('server.address')}", server_port="${tags.singleValue('server.port')}"}[5m])) / sum by (gen_ai_request_model) (rate(gen_ai_client_operation_duration_seconds_count{service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}", gen_ai_request_model="${tags.singleValue('gen_ai.request.model')}", gen_ai_provider_name="${tags.singleValue('gen_ai.provider.name')}", server_address="${tags.singleValue('server.address')}", server_port="${tags.singleValue('server.port')}"}[5m]))
+    - expression: sum by (gen_ai_request_model) (rate({__name__=~"gen_ai_client_token_usage(_tokens)?_sum", service_namespace="${tags.singleValue('service.namespace')}",
+        service_name="${tags.singleValue('service.name')}", gen_ai_request_model="${tags.singleValue('gen_ai.request.model')}",
+        gen_ai_provider_name="${tags.singleValue('gen_ai.provider.name')}", server_address="${tags.singleValue('server.address')}",
+        server_port="${tags.singleValue('server.port')}"}[5m])) / sum by (gen_ai_request_model) (rate(gen_ai_client_operation_duration_seconds_count{service_namespace="${tags.singleValue('service.namespace')}",
+        service_name="${tags.singleValue('service.name')}", gen_ai_request_model="${tags.singleValue('gen_ai.request.model')}",
+        gen_ai_provider_name="${tags.singleValue('gen_ai.provider.name')}", server_address="${tags.singleValue('server.address')}",
+        server_port="${tags.singleValue('server.port')}"}[5m]))
       alias: ${gen_ai_request_model}
     chart:
       _type: TimeSeriesChart
       unit: short
-  - metricId: suse-ai-reported-cost
+  - metricId: suse_ai_reported_cost
     name: Reported model cost per hour
     metricQueries:
-    - expression: |-
-        sum by (gen_ai_request_model) (rate({__name__=~"gen_ai_client_operation_cost_USD_sum|gen_ai_usage_cost_USD_sum", service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}", gen_ai_request_model="${tags.singleValue('gen_ai.request.model')}", gen_ai_provider_name="${tags.singleValue('gen_ai.provider.name')}", server_address="${tags.singleValue('server.address')}", server_port="${tags.singleValue('server.port')}"}[5m])) * 3600
+    - expression: sum by (gen_ai_request_model) (rate({__name__=~"gen_ai_client_operation_cost_USD_sum|gen_ai_usage_cost_USD_sum",
+        service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}",
+        gen_ai_request_model="${tags.singleValue('gen_ai.request.model')}", gen_ai_provider_name="${tags.singleValue('gen_ai.provider.name')}",
+        server_address="${tags.singleValue('server.address')}", server_port="${tags.singleValue('server.port')}"}[5m]))
+        * 3600
       alias: ${gen_ai_request_model}
     chart:
       _type: TimeSeriesChart
       unit: currencyUSD
     description: Estimate from optional SDK cost histograms; excludes infrastructure allocation and is not a billing
       total.
-  - metricId: suse-ai-cost-per-request
+  - metricId: suse_ai_cost_per_request
     name: Reported model cost per request
     metricQueries:
-    - expression: |-
-        sum by (gen_ai_request_model) (rate({__name__=~"gen_ai_client_operation_cost_USD_sum|gen_ai_usage_cost_USD_sum", service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}", gen_ai_request_model="${tags.singleValue('gen_ai.request.model')}", gen_ai_provider_name="${tags.singleValue('gen_ai.provider.name')}", server_address="${tags.singleValue('server.address')}", server_port="${tags.singleValue('server.port')}"}[5m])) / sum by (gen_ai_request_model) (rate(gen_ai_client_operation_duration_seconds_count{service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}", gen_ai_request_model="${tags.singleValue('gen_ai.request.model')}", gen_ai_provider_name="${tags.singleValue('gen_ai.provider.name')}", server_address="${tags.singleValue('server.address')}", server_port="${tags.singleValue('server.port')}"}[5m]))
+    - expression: sum by (gen_ai_request_model) (rate({__name__=~"gen_ai_client_operation_cost_USD_sum|gen_ai_usage_cost_USD_sum",
+        service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}",
+        gen_ai_request_model="${tags.singleValue('gen_ai.request.model')}", gen_ai_provider_name="${tags.singleValue('gen_ai.provider.name')}",
+        server_address="${tags.singleValue('server.address')}", server_port="${tags.singleValue('server.port')}"}[5m]))
+        / sum by (gen_ai_request_model) (rate(gen_ai_client_operation_duration_seconds_count{service_namespace="${tags.singleValue('service.namespace')}",
+        service_name="${tags.singleValue('service.name')}", gen_ai_request_model="${tags.singleValue('gen_ai.request.model')}",
+        gen_ai_provider_name="${tags.singleValue('gen_ai.provider.name')}", server_address="${tags.singleValue('server.address')}",
+        server_port="${tags.singleValue('server.port')}"}[5m]))
       alias: ${gen_ai_request_model}
     chart:
       _type: TimeSeriesChart
       unit: currencyUSD
-  - metricId: suse-ai-cost-per-1k-tokens
+  - metricId: suse_ai_cost_per_1k_tokens
     name: Reported cost per 1,000 tokens
     metricQueries:
-    - expression: |-
-        1000 * sum by (gen_ai_request_model) (rate({__name__=~"gen_ai_client_operation_cost_USD_sum|gen_ai_usage_cost_USD_sum", service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}", gen_ai_request_model="${tags.singleValue('gen_ai.request.model')}", gen_ai_provider_name="${tags.singleValue('gen_ai.provider.name')}", server_address="${tags.singleValue('server.address')}", server_port="${tags.singleValue('server.port')}"}[5m])) / sum by (gen_ai_request_model) (rate({__name__=~"gen_ai_client_token_usage(_tokens)?_sum", service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}", gen_ai_request_model="${tags.singleValue('gen_ai.request.model')}", gen_ai_provider_name="${tags.singleValue('gen_ai.provider.name')}", server_address="${tags.singleValue('server.address')}", server_port="${tags.singleValue('server.port')}"}[5m]))
+    - expression: 1000 * sum by (gen_ai_request_model) (rate({__name__=~"gen_ai_client_operation_cost_USD_sum|gen_ai_usage_cost_USD_sum",
+        service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}",
+        gen_ai_request_model="${tags.singleValue('gen_ai.request.model')}", gen_ai_provider_name="${tags.singleValue('gen_ai.provider.name')}",
+        server_address="${tags.singleValue('server.address')}", server_port="${tags.singleValue('server.port')}"}[5m]))
+        / sum by (gen_ai_request_model) (rate({__name__=~"gen_ai_client_token_usage(_tokens)?_sum", service_namespace="${tags.singleValue('service.namespace')}",
+        service_name="${tags.singleValue('service.name')}", gen_ai_request_model="${tags.singleValue('gen_ai.request.model')}",
+        gen_ai_provider_name="${tags.singleValue('gen_ai.provider.name')}", server_address="${tags.singleValue('server.address')}",
+        server_port="${tags.singleValue('server.port')}"}[5m]))
       alias: ${gen_ai_request_model}
     chart:
       _type: TimeSeriesChart
       unit: currencyUSD
-  - metricId: suse-ai-top-models
+  - metricId: suse_ai_top_models
     name: Top models by request rate
     metricQueries:
-    - expression: |-
-        topk(5, sum by (gen_ai_request_model) (rate(gen_ai_client_operation_duration_seconds_count{service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}", gen_ai_request_model="${tags.singleValue('gen_ai.request.model')}", gen_ai_provider_name="${tags.singleValue('gen_ai.provider.name')}", server_address="${tags.singleValue('server.address')}", server_port="${tags.singleValue('server.port')}"}[5m])))
+    - expression: topk(5, sum by (gen_ai_request_model) (rate(gen_ai_client_operation_duration_seconds_count{service_namespace="${tags.singleValue('service.namespace')}",
+        service_name="${tags.singleValue('service.name')}", gen_ai_request_model="${tags.singleValue('gen_ai.request.model')}",
+        gen_ai_provider_name="${tags.singleValue('gen_ai.provider.name')}", server_address="${tags.singleValue('server.address')}",
+        server_port="${tags.singleValue('server.port')}"}[5m])))
       alias: ${gen_ai_request_model}
     chart:
       _type: TimeSeriesChart
       unit: reqps
-  - metricId: suse-ai-first-chunk
+  - metricId: suse_ai_first_chunk
     name: Client time to first chunk P95
     metricQueries:
-    - expression: |-
-        histogram_quantile(0.95, sum by (gen_ai_request_model, le) (rate(gen_ai_client_operation_time_to_first_chunk_seconds_bucket{service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}", gen_ai_request_model="${tags.singleValue('gen_ai.request.model')}", gen_ai_provider_name="${tags.singleValue('gen_ai.provider.name')}", server_address="${tags.singleValue('server.address')}", server_port="${tags.singleValue('server.port')}"}[5m])))
+    - expression: histogram_quantile(0.95, sum by (gen_ai_request_model, le) (rate(gen_ai_client_operation_time_to_first_chunk_seconds_bucket{service_namespace="${tags.singleValue('service.namespace')}",
+        service_name="${tags.singleValue('service.name')}", gen_ai_request_model="${tags.singleValue('gen_ai.request.model')}",
+        gen_ai_provider_name="${tags.singleValue('gen_ai.provider.name')}", server_address="${tags.singleValue('server.address')}",
+        server_port="${tags.singleValue('server.port')}"}[5m])))
       alias: ${gen_ai_request_model}
     chart:
       _type: TimeSeriesChart

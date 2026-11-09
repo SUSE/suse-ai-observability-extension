@@ -31,3 +31,8 @@ This document records the architectural and implementation decisions made for th
 ## 7. Component Identity Promotion
 *   **Decision**: Move name and type promotion logic from Handlebars templates into the Groovy `ComponentMappingFunction`.
 *   **Rationale**: Keeps templates clean and allows for complex fallback logic (e.g., checking `suse.ai.component.name` then `service.name` then `externalId`) in a more readable script format.
+
+## 8. 3.0 Component Model and Visual Identity (proposed)
+*   **Decision**: Keep one merged component for AI workloads that are the same as their OTel service, contribute to it only through low-specificity overlays, model distinct concepts (served models, model usage, agents, tools, GPU devices) as own components with relations, and add an own domain, layers, icon family and operator-oriented monitors.
+*   **Rationale**: 3.0 replaced the Open Telemetry StackPack's presentation for shared components and had no topology structure or consistent icons. SUSE Virtualization and SUSE AI Factory show the overlay and layering patterns.
+*   **Details**: [DESIGN_V3_COMPONENT_MODEL.md](DESIGN_V3_COMPONENT_MODEL.md), including the spike that must validate overlay behavior first.

@@ -1,0 +1,91 @@
+nodes:
+- _type: ComponentPresentation
+  name: vLLM inventory
+  identifier: urn:stackpack:suse-ai:component-presentation:product-vllm-overview
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: label = "stackpack:suse-ai" and type = "otel service" and label = "suse.ai.product:vllm"
+  rank:
+    specificity: 1
+  presentation:
+    overview:
+      name:
+        singular: vLLM service
+        plural: vLLM services
+        title: vLLM
+      columns:
+      - columnId: suse_ai_health
+        title: Health
+        projection:
+          _type: HealthProjection
+          value: healthState
+      - columnId: suse_ai_otel_name
+        title: Name
+        projection:
+          _type: ComponentLinkProjection
+          name: name
+          identifier: identifiers[0]
+      - columnId: suse_ai_otel_namespace
+        title: Service namespace
+        projection:
+          _type: TextProjection
+          value: tags.singleValue('service.namespace')
+      - columnId: suse_ai_otel_k8s_cluster
+        title: Cluster
+        projection:
+          _type: TextProjection
+          value: '''cluster-name'' in tags ? tags[''cluster-name''].filter(cluster, cluster != '''').join('', '')
+            : '''''
+      - columnId: suse_ai_vllm_request_rate_column
+        title: Finished request rate
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_vllm_request_rate
+          query: sum by (service_namespace, service_name) (sum by (model_name, service_namespace, service_name)
+            (rate({__name__=~"vllm:request_success_total|vllm_request_success_total", service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}", model_name=~".*"}[${__rate_interval}])))
+          unit: reqps
+          decimalPlaces: 2
+      - columnId: suse_ai_vllm_e2e_latency_column
+        title: End-to-End Request Latency
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_vllm_e2e_latency
+          query: max by (service_namespace, service_name) (histogram_quantile(0.95, sum by (le, service_namespace,
+            service_name) (rate({__name__=~"vllm:e2e_request_latency_seconds_bucket|vllm_e2e_request_latency_seconds_bucket",
+            service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}"}[${__rate_interval}]))))
+          unit: s
+          decimalPlaces: 2
+      - columnId: suse_ai_vllm_ttft_latency_column
+        title: Time To First Token Latency
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_vllm_ttft_latency
+          query: max by (service_namespace, service_name) (histogram_quantile(0.95, sum by (le, service_namespace,
+            service_name) (rate({__name__=~"vllm:time_to_first_token_seconds_bucket|vllm_time_to_first_token_seconds_bucket",
+            service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}"}[${__rate_interval}]))))
+          unit: s
+          decimalPlaces: 2
+      - columnId: suse_ai_vllm_token_throughput_generation_column
+        title: Token Throughput (Generation)
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_vllm_token_throughput_generation
+          query: sum by (service_namespace, service_name) (sum by (model_name, service_namespace, service_name)(rate({__name__=~"vllm:generation_tokens_total|vllm_generation_tokens_total",
+            service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}",
+            model_name=~".*"}[${__rate_interval}])))
+          unit: short
+          decimalPlaces: 2
+      - columnId: suse_ai_vllm_req_waiting_column
+        title: Number of Requests Waiting
+        projection:
+          _type: MetricProjection
+          metricId: suse_ai_vllm_req_waiting
+          query: sum by (service_namespace, service_name) (sum by (model_name, service_namespace, service_name)(vllm_num_requests_waiting{model_name=~".+",
+            service_namespace="${tags.singleValue('service.namespace')}", service_name="${tags.singleValue('service.name')}"}
+            or vllm:num_requests_waiting{model_name=~".+", service_namespace="${tags.singleValue('service.namespace')}",
+            service_name="${tags.singleValue('service.name')}"}))
+          unit: short
+          decimalPlaces: 2
+      sort:
+      - columnId: suse_ai_otel_name

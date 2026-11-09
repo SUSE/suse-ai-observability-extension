@@ -4,47 +4,45 @@ nodes:
   identifier: urn:stackpack:suse-ai:component-presentation:genai-highlights
   binding:
     _type: ComponentPresentationQueryBinding
-    query: >-
-      label = "stackpack:suse-ai" and type in ("otel service", "otel service instance")
-      and (label IN ("suse.ai.category:application", "suse.ai.category:agent", "suse.ai.category:ui", "suse.ai.category:model-proxy")
-      or not label IN ("suse.ai.category:application", "suse.ai.category:agent", "suse.ai.category:ui", "suse.ai.category:inference-engine", "suse.ai.category:model-proxy", "suse.ai.category:vectordb", "suse.ai.category:search-engine", "suse.ai.category:mcp-server", "suse.ai.category:workflow-engine", "suse.ai.category:ml-registry"))
-      and not label = "suse.ai.product:litellm"
+    query: label = "stackpack:suse-ai" and type in ("otel service", "otel service instance") and (label IN ("suse.ai.category:application",
+      "suse.ai.category:agent", "suse.ai.category:ui", "suse.ai.category:model-proxy") or not label IN ("suse.ai.category:application",
+      "suse.ai.category:agent", "suse.ai.category:ui", "suse.ai.category:inference-engine", "suse.ai.category:model-proxy",
+      "suse.ai.category:vectordb", "suse.ai.category:search-engine", "suse.ai.category:mcp-server", "suse.ai.category:workflow-engine",
+      "suse.ai.category:ml-registry")) and not label = "suse.ai.product:litellm"
   rank:
-    specificity: 221
+    specificity: 1
   presentation:
     highlight:
       metrics:
-      - sectionId: suse-ai-genai-metrics
+      - sectionId: suse_ai_genai_metrics
         title: GenAI
         order: 200
         metrics:
-        - metricId: suse-ai-requests
+        - metricId: suse_ai_requests
           order: 100
-        - metricId: suse-ai-latency
+        - metricId: suse_ai_latency
           order: 99
-        - metricId: suse-ai-tokens
+        - metricId: suse_ai_tokens
           order: 98
 - _type: ComponentPresentation
   name: Agent highlights
   identifier: urn:stackpack:suse-ai:component-presentation:agent-highlights
   binding:
     _type: ComponentPresentationQueryBinding
-    query: >-
-      label = "stackpack:suse-ai" and type in ("otel service", "otel service instance")
-      and label = "suse.ai.category:agent"
+    query: label = "stackpack:suse-ai" and type in ("otel service", "otel service instance") and label = "suse.ai.category:agent"
       and label = "suse.ai.demo:true"
   rank:
-    specificity: 241
+    specificity: 1
   presentation:
     highlight:
       metrics:
-      - sectionId: suse-ai-agent-execution
+      - sectionId: suse_ai_agent_execution
         title: Agent
         order: 210
         metrics:
-        - metricId: suse-ai-demo-agent-tool-call-rate
+        - metricId: suse_ai_demo_agent_tool_call_rate
           order: 100
-        - metricId: suse-ai-demo-agent-tool-duration-p95
+        - metricId: suse_ai_demo_agent_tool_duration_p95
           order: 99
-        - metricId: suse-ai-demo-agent-run-rate
+        - metricId: suse_ai_demo_agent_run_rate
           order: 98

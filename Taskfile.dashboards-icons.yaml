@@ -1,0 +1,62 @@
+version: '3'
+
+vars:
+  PYTHON: '{{.PYTHON | default "python3"}}'
+  RUNTIME: '{{.CONTAINER_RUNTIME | default "podman"}}'
+
+tasks:
+  generate:
+    desc: Regenerate the four native dashboards from verified metric names
+    cmds:
+      - '{{.PYTHON}} -B scripts/dashboards-icons/build_dashboards.py'
+
+  check:
+    desc: Check metric allowlist, PromQL, layout, links and the SVG family
+    cmds:
+      - '{{.PYTHON}} -B scripts/dashboards-icons/check.py'
+
+  validate:
+    desc: Run the repository pinned native validator and its negative control
+    cmds:
+      - task -t Taskfile.yaml stackpack-validate CONTAINER_RUNTIME='{{.RUNTIME}}'
+
+  query-test:
+    desc: Evaluate duplicate scrapes, replicas, missing data, device identity and hour offsets with pinned Prometheus
+    env:
+      CONTAINER_RUNTIME: '{{.RUNTIME}}'
+    cmds:
+      - bash -c 'source scripts/ci/stackpack-images.env; exec "{{.PYTHON}}" -B scripts/dashboards-icons/test_queries.py'
+
+  inventory:
+    desc: Read metric names through an explicit sts wrapper; save private evidence in a new directory
+    requires:
+      vars: [STS_BIN, EVIDENCE_DIR]
+    cmds:
+      - >-
+        '{{.PYTHON}}' -B scripts/dashboards-icons/read_metrics.py
+        --sts '{{.STS_BIN}}' --output '{{.EVIDENCE_DIR}}' --inventory
+
+  live:
+    desc: Read every dashboard query and its hour-ago comparison through an explicit sts wrapper
+    requires:
+      vars: [STS_BIN, EVIDENCE_DIR]
+    cmds:
+      - >-
+        '{{.PYTHON}}' -B scripts/dashboards-icons/read_metrics.py
+        --sts '{{.STS_BIN}}' --output '{{.EVIDENCE_DIR}}' --cluster '{{.CLUSTER | default "suse-ai"}}'
+
+  sync:
+    desc: Read all synchronization statuses through an explicit sts wrapper
+    requires:
+      vars: [STS_BIN]
+    env:
+      STS_BIN: '{{.STS_BIN}}'
+    cmds:
+      - task -t Taskfile.yaml stackpack-sync-status
+
+  preview:
+    desc: Create an offline SVG review gallery in a new HTML file
+    requires:
+      vars: [OUTPUT]
+    cmds:
+      - '{{.PYTHON}} -B scripts/dashboards-icons/preview_icons.py --output "{{.OUTPUT}}"'

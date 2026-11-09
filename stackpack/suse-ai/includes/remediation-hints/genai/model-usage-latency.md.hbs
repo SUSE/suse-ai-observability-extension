@@ -1,0 +1,11 @@
+### Check first
+Open [this component](/#/components/{{componentUrnForUrl}}/highlights) and its [metrics](/#/components/{{componentUrnForUrl}}/metrics). Compare caller-side P95 duration with traces for inference, retries and tool execution. The configured threshold is **{{threshold}}** in the monitor chart's unit.
+
+### Likely causes
+Slow inference, network delay, retries or tool/dependency latency.
+
+### Fix
+Address the slow trace segment and align request limits with the caller latency budget.
+
+### Verify
+Caller-side P95 duration falls below the threshold during comparable traffic. If samples are absent, investigate the exporter and Collector: this threshold check cannot establish healthy operation without data.

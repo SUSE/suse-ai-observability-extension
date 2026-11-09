@@ -1,0 +1,48 @@
+nodes:
+- _type: ComponentPresentation
+  name: Inference servers spike
+  identifier: urn:stackpack:suse-ai:component-presentation:spike-inference-servers
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: type = "otel service" and label = "stackpack:suse-ai" and label = "suse.ai.category:inference-engine" and label = "suse.ai.product:ollama"
+  rank:
+    specificity: 10
+  presentation:
+    overview:
+      name:
+        singular: inference server
+        plural: inference servers
+        title: Inference servers
+      mainMenu:
+        group: SUSE AI
+        icon: !icon inference-server.svg
+        order: 75
+      columns:
+      - columnId: health
+        title: Health
+        projection: {_type: HealthProjection, value: healthState}
+      - columnId: otel_name
+        title: Name
+        projection: {_type: ComponentLinkProjection, name: name, identifier: 'identifiers[0]'}
+      - columnId: suse_ai_spike_product
+        title: AI product
+        projection: {_type: TextProjection, value: "tags.singleValue('suse.ai.product')"}
+      - columnId: suse_ai_spike_models
+        title: Available models
+        projection:
+          _type: MetricProjection
+          unit: short
+          decimalPlaces: 0
+          query: count(max by (model) (ollama_model_info{model!="",service_namespace="${tags.singleValue('service.namespace')}",service_name="${tags.singleValue('service.name')}"}))
+      - columnId: suse_ai_spike_loaded
+        title: Loaded model copies
+        projection:
+          _type: MetricProjection
+          unit: short
+          decimalPlaces: 0
+          query: sum(max by (k8s_cluster_name, service_namespace, service_name, service_instance_id) (ollama_loaded_models{k8s_cluster_name!="",service_instance_id!="",service_namespace="${tags.singleValue('service.namespace')}",service_name="${tags.singleValue('service.name')}"}))
+      - columnId: suse_ai_spike_cluster
+        title: Cluster
+        projection: {_type: TextProjection, value: "tags['cluster-name'].join(', ')"}
+      sort:
+      - columnId: otel_name

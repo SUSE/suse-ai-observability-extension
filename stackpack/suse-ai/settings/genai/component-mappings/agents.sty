@@ -55,3 +55,7 @@ nodes:
           ? {'cluster-name': resource.attributes['k8s.cluster.name']} : {}
         pattern: '^(.*)$'
         target: '${1}'
+    optional:
+      tags:
+      - source: string(resource.attributes['suse.ai.demo'])
+        target: suse.ai.demo

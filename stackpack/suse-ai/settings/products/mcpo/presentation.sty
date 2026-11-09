@@ -1,0 +1,69 @@
+nodes:
+- _type: ComponentPresentation
+  name: mcpo product
+  identifier: urn:stackpack:suse-ai:component-presentation:product-mcpo
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: label = "stackpack:open-telemetry" and label = "stackpack:suse-ai" and type in ("otel service", "otel
+      service instance") and label = "suse.ai.product:mcpo"
+  rank:
+    specificity: 1
+  presentation:
+    highlight:
+      metrics:
+      - sectionId: suse_ai_mcpo_operations
+        title: mcpo HTTP operations
+        order: 180
+        metrics:
+        - metricId: suse_ai_mcpo_http_requests
+          order: 100
+        - metricId: suse_ai_mcpo_http_latency_p95
+          order: 99
+        - metricId: suse_ai_mcpo_http_errors
+          order: 98
+    metricPerspective:
+      tabs:
+      - tabId: suse_ai_mcpo_operations
+        title: mcpo
+        order: 54
+        sections:
+        - sectionId: suse_ai_mcpo_operations
+          title: mcpo HTTP operations
+          order: 180
+          metrics:
+          - metricId: suse_ai_mcpo_http_requests
+            order: 100
+          - metricId: suse_ai_mcpo_http_latency_p95
+            order: 99
+          - metricId: suse_ai_mcpo_http_errors
+            order: 98
+  metrics:
+  - metricId: suse_ai_mcpo_http_requests
+    name: HTTP request rate
+    metricQueries:
+    - expression: sum(rate(http_server_duration_milliseconds_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[5m]))
+      alias: mcpo
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: reqps
+  - metricId: suse_ai_mcpo_http_latency_p95
+    name: HTTP request latency P95
+    metricQueries:
+    - expression: histogram_quantile(0.95, sum by (le) (rate(http_server_duration_milliseconds_bucket{__multi__="${selectPrefix(tags,
+        'suse.ai.metric.')}"}[5m])))
+      alias: mcpo
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: ms
+  - metricId: suse_ai_mcpo_http_errors
+    name: HTTP server error rate
+    metricQueries:
+    - expression: (sum(rate(http_server_duration_milliseconds_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}",http_status_code=~"5.."}[5m])))
+        or (0 * sum(rate(http_server_duration_milliseconds_count{__multi__="${selectPrefix(tags, 'suse.ai.metric.')}"}[5m])))
+      alias: mcpo
+      primary: true
+    chart:
+      _type: TimeSeriesChart
+      unit: reqps
