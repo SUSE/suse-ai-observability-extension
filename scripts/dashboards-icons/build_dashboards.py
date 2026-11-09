@@ -145,6 +145,14 @@ def short_identity(expression, source, target, pattern="(.{8}).*"):
     return 'label_replace(' + expression + ', "' + target + '", "$1", "' + source + '", "' + pattern + '")'
 
 
+def gateway_model_legend(expression):
+    # Add display metadata after aggregation, preserving original labels and values.
+    # Non-model routes such as /metrics may omit requested_model entirely.
+    return (f'label_replace(label_replace({expression}, '
+            '"suse_ai_requested_model", "$1", "requested_model", "(.+)"), '
+            '"suse_ai_requested_model", "Model not reported", "requested_model", "^$")')
+
+
 def dashboard(slug, about, how, stats, charts, note, matchers):
     nav = " · ".join("**" + name + "**" if slug == key else "[" + name + "](/#/dashboards/" + PREFIX + key + ")"
                      for key, name in NAMES.items())
@@ -283,7 +291,7 @@ def build():
         ["DCGM_FI_DEV_GPU_UTIL"])
 
     gateway_group = "service_namespace, service_name, requested_model"
-    gateway_alias = "${service_namespace}/${service_name} · ${requested_model}"
+    gateway_alias = "${service_namespace}/${service_name} · ${suse_ai_requested_model}"
     gateway = dashboard("gateway-spend",
         "Track LiteLLM gateway demand, failures, latency and reported spend by requested model.",
         "All rates use five minutes. Spend / h extrapolates the reported five-minute cost rate; it is not a bill or "
@@ -298,19 +306,20 @@ def build():
             ("gateway-spend", stat("Reported spend / h (USD)", spend_rate(), "currencyUSD", 4,
                 "3600 × the five-minute rate of LiteLLM reported spend. Counter resets are handled before aggregation.")),
         ], [
-            ("requests-compare", trend("Requests / min by outcome", lambda past: gateway_rate(past, gateway_group + ", status_code"),
+            ("requests-compare", trend("Requests / min by outcome", lambda past: gateway_model_legend(gateway_rate(past, gateway_group + ", status_code")),
                 "short", gateway_alias + " · HTTP ${status_code}", "Compare model routes and status codes before examining the backend.")),
-            ("latency-compare", trend("Gateway duration p95", lambda past: gateway_p95(past, gateway_group), "s", gateway_alias,
+            ("latency-compare", trend("Gateway duration p95", lambda past: gateway_model_legend(gateway_p95(past, gateway_group)), "s", gateway_alias,
                 "Measured total request latency by requested model.", 2)),
-            ("spend-compare", trend("Reported spend / h (USD)", lambda past: spend_rate(past, gateway_group), "currencyUSD", gateway_alias,
+            ("spend-compare", trend("Reported spend / h (USD)", lambda past: gateway_model_legend(spend_rate(past, gateway_group)), "currencyUSD", gateway_alias,
                 "Configured model prices determine reported spend; this does not include GPU infrastructure costs.", 4)),
             ("tokens-compare", trend("Gateway tokens / s",
-                lambda past: product_rate("litellm_tokens_metric_total", LITELLM_ID, past, gateway_group), "short", gateway_alias,
+                lambda past: gateway_model_legend(product_rate("litellm_tokens_metric_total", LITELLM_ID, past, gateway_group)), "short", gateway_alias,
                 "LiteLLM token observations, separate from client and inference-server counters.")),
         ], "**Investigate:** high failure rates → inspect status codes and the routed model; high latency → compare with "
            "Model serving. Rising reported spend → compare tokens and model pricing.\n\n"
            "**Aggregation:** native request dimensions and serving replica identity survive scrape deduplication, "
            "then totals are grouped by service and requested model. No per-user or API-key values appear in chart legends. "
+           "Model not reported means the series has no requested model, including non-model endpoints. "
            "Missing data remains unknown; zero spend reflects only what LiteLLM reported.",
         ["litellm_proxy_requests_metric_total"])
     return {"overview": overview, "model-serving": serving, "gateway-spend": gateway, "gpu-fleet": gpus}
