@@ -2,15 +2,23 @@
 
 The new demo retains the development SUSE AI instance and adds a separate copy of the published GitHub `v3.0.0` for comparison. The published tag is `03a8701a0289525a2038d0c2653c2e2068058260`; it was not moved or replaced. Only the newly supplied demo was changed.
 
-The development menu is **SUSE AI**. The comparison menu is **SUSE AI 3.0 release** (`suse-ai-v300`). Both have live telemetry. The comparison's development packaging version identifies the isolation adapter, not a different upstream release. Final installed versions are **3.0.0-dev.993** for development and **3.0.0-dev.996** for the release comparison. Both are INSTALLED; the original development instance ID `198933190161282` is preserved, and the comparison instance is `124073120293639`.
+The development menu is **SUSE AI**. The comparison menu is **SUSE AI 3.0 release** (`suse-ai-v300`). Both have live telemetry. The comparison's development packaging version identifies the isolation adapter, not a different upstream release. Final installed versions are **3.0.0-dev.997** for development (after the icon-scope clarification below) and **3.0.0-dev.996** for the release comparison. Both are INSTALLED; the original development instance ID `198933190161282` is preserved, and the comparison instance is `124073120293639`.
 
 ## Icons and native pages
 
-The user superseded the decision to retain native OpenTelemetry icons. Twenty-four icon-only presentations now select an AI service fallback, ten roles and thirteen products. Product logos are restored from the published release; mcpo uses the original tool glyph. All service and instance icon overrides require the `stackpack:suse-ai` label.
+The user authorized custom icons for recognized products and clarified that generic OpenTelemetry services must retain their native icons. Thirteen product-specific, icon-only presentations remain; the catch-all AI service icon and ten category-based overrides are removed. An AI category alone does not replace the native service or instance icon. Product logos are restored from the published release; mcpo uses the original tool glyph. All overrides require the `stackpack:suse-ai` label and an explicit supported `suse.ai.product` match.
 
 The product drawings retain their original viewBoxes within a light-green tile. Intrinsic dimensions are 16×16. The tile fixes a dark-header contrast issue caught during review; the UI renders the header image at 18×18 and the body image at 16×16. The supplied SUSE chameleon remains the menu icon. ComponentType `iconbase64` fields were not changed.
 
 Native Services columns and layout remain unchanged. Ollama's fields, highlight metrics, links, related resources, actions and type are unchanged; its resolved icon changes intentionally. [Presentation composition](https://integration.suse.com/cloudnative/suse-observability/latest/en/setup/custom-integrations/presentation/concepts.html) supports partial contributions; the preservation result here was also checked against actual before/after API responses and screenshots.
+
+### Follow-up verification: product-only overrides
+
+Development `3.0.0-dev.997` was uploaded once and overwrite-upgraded in place. The release comparison remains on `.996`. The native validator accepts 132 settings and rejects the invalid-CEL control; seven local presentation/overlay checks pass, with five opt-in live table tests skipped. All 190 packaged files match the working source apart from the staged development version.
+
+Before/after component API checks covered 69 surviving services and instances: 22 regained native icons, 40 retained their product icons, and seven native controls were unchanged. One short-lived training instance expired between captures. Product labels without a configured icon, such as `pytorch`, also retain native icons. Highlight metrics, links, related resources, actions and type names compare equal; seven components' field differences are live values, labels or health states.
+
+All 21 observed SUSE mappings return empty error details. Both topology synchronizations remain Running; Agent retains its baseline 75 errors and Kubernetes has zero. Evidence is under `/home/thbertoldi/suse/qa/product-icons-20261109-pkg62gr7/`, with the immutable upload and validator receipts in the shared deployment ledger's `3.0.0-dev.997/` directory.
 
 ## Released 3.0.0 versus development
 
@@ -73,7 +81,7 @@ Reproduction uses `task demo-comparison-build` with an explicit source ref, extr
 
 Private evidence is under `/home/thbertoldi/suse/qa/demo-release-comparison-20261109-us_4fm7v/`. `baseline/` contains before snapshots; `sources/` contains the verified release sources. `ux/monitor-audit/REVIEW.md` records the independent health audit; `ux/before-icons/`, `ux/after-icons/` and `ux/final/` contain actual UI captures. The intermediate icon contrast finding is retained rather than replacing its evidence.
 
-The native suite ran 110 tests with 18 opt-in live tests skipped and no failures; the release/deployment suite passed 26, and three additional comparison-isolation tests passed. Actual CEL tests verified disjoint primary/comparison identities and missing optional metadata. The development package validates 143 nodes. The invalid-CEL negative control was rejected. No Groovy source changed.
+The initial `.993` native suite ran 110 tests with 18 opt-in live tests skipped and no failures; the release/deployment suite passed 26, and three additional comparison-isolation tests passed. Actual CEL tests verified disjoint primary/comparison identities and missing optional metadata. That development package validated 143 nodes; removing eleven generic icon overrides reduces `.997` to 132. The invalid-CEL negative control was rejected. No Groovy source changed.
 
 A known topology-mapping cache refresh gap initially delayed comparison discovery. Recreating only the demo backend Collector pod refreshed observations; its StatefulSet specification compared equal before/after. Application deployments and their data were not changed.
 

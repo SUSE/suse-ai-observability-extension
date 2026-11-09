@@ -120,9 +120,10 @@ and after.
 ## Decision update — shared product icons (2026-11-09)
 
 The user superseded D1's prohibition on custom icons for merged OpenTelemetry
-services and instances. Product logos and generic role glyphs now intentionally
-appear on those components in both SUSE AI and Open Telemetry. Dedicated icon-only
-presentations outrank native icons; the namespaced fields, native layout and
+services and instances, then clarified that overrides apply only when a supported
+product is identified. Generic services and instances retain their native icons,
+including components with an AI category but no recognized product. Dedicated
+product-specific, icon-only presentations outrank native icons; the namespaced fields, native layout and
 separate inventory tables retain the existing composition rules. Direct
 ComponentType icon mutations are not needed. Product SVGs use 16×16 intrinsic
 dimensions, preserving their original drawing viewBoxes within a light-green

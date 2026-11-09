@@ -20,7 +20,7 @@
 
 *   **Type Safety**: StackState Groovy APIs are strict. Convert all URNs and Names to raw Strings using `.toString()`.
 *   **Template Resolution**: The `resolve` and `get` helpers in Handlebars will cause synchronization errors if the target URN does not exist. Use `resolveOrCreate` if the URN might be missing.
-*   Custom product/role icons are authorized on shared OpenTelemetry components (user decision, 2026-11-09). Use icon-only ComponentPresentations so native fields and layout still compose; direct ComponentType iconbase64 edits are unnecessary.
+*   Custom icons are authorized only for explicitly recognized products on shared OpenTelemetry services and instances (user clarification, 2026-11-09). Generic services, including those with only an AI category, retain their native icons. Use product-specific, icon-only ComponentPresentations so native fields and layout still compose; direct ComponentType iconbase64 edits are unnecessary.
 
 ## 5. Tooling & Validation
 *   **Groovy Linting**: Always use `npm-groovy-lint` before finalizing changes to Groovy scripts to ensure syntax and style compliance.
