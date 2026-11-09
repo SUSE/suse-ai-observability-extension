@@ -59,9 +59,10 @@ def check_installed(instances, version):
         return None
     current = instances[0]
     match = DEV.fullmatch(current["stackPackVersion"])
-    if current["status"] != "INSTALLED" or not match:
-        raise ValueError("Expected a ready dev instance or a confirmed clean install; no automatic removal")
-    if int(match[1]) >= int(DEV.fullmatch(version)[1]):
+    legacy = re.fullmatch(r"2\.[0-9]+\.[0-9]+", current["stackPackVersion"])
+    if current["status"] != "INSTALLED" or not (match or legacy):
+        raise ValueError("Expected a ready 2.x/dev instance or a confirmed clean install; no automatic removal")
+    if match and int(match[1]) >= int(DEV.fullmatch(version)[1]):
         raise ValueError("Refusing a downgrade or reuse of the installed version")
     return current
 

@@ -145,6 +145,16 @@ tasks:
         --version '{{.DEMO_VERSION | default ""}}'
         --source '{{.DEMO_SOURCE | default "stackpack/suse-ai"}}'
 
+  demo-import-images:
+    desc: Import local development images into every explicitly selected RKE2 demo node
+    requires:
+      vars: [DEMO_KUBECONFIG, DEMO_EVIDENCE, DEMO_IMAGES_FILE]
+    cmds:
+      - >-
+        '{{.PYTHON}}' -B scripts/demo-import-images.py
+        --kubeconfig '{{.DEMO_KUBECONFIG}}' --output '{{.DEMO_EVIDENCE}}'
+        --runtime '{{.RUNTIME}}' --images-file '{{.DEMO_IMAGES_FILE}}'
+
   demo-ollama-deploy:
     desc: Import a tested branch-built exporter into every RKE2 demo node and roll out Ollama
     requires:

@@ -126,6 +126,15 @@ class DemoDeploymentTest(unittest.TestCase):
             self.deploy()
         self.assertFalse(any(c[1] in ("upload", "install", "upgrade", "uninstall") for c in self.client.calls))
 
+    def test_legacy_instance_upgrades_in_place_without_removal(self):
+        self.client.instances = [{"id": 123, "status": "INSTALLED", "stackPackVersion": "2.0.0"}]
+        self.deploy()
+        self.assertEqual(self.client.instances[0]["id"], 123)
+        self.assertEqual(self.client.instances[0]["stackPackVersion"], "3.0.0-dev.1")
+        mutations = [c for c in self.client.calls if c[1] in ("install", "upgrade", "uninstall", "downgrade")]
+        self.assertEqual([c[1] for c in mutations], ["upgrade"])
+        self.assertIn("overwrite", mutations[0])
+
     def test_unexpected_server_upgrade_target_is_rejected_without_downgrade_or_restore(self):
         self.deploy()
         self.client.offered = "3.0.1"
