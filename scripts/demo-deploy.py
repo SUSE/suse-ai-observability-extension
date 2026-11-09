@@ -94,19 +94,19 @@ class Client:
         return json.loads(raw) if raw.strip() else None
 
 
-def install(client, version, current):
+def install(client, version, current, name="suse-ai"):
     if current is None:
-        client.cli("stackpack", "install", "--name", "suse-ai", "--stackpack-version", version,
+        client.cli("stackpack", "install", "--name", name, "--stackpack-version", version,
                    "--unlocked-strategy", "overwrite", "--wait", "--timeout", "300s")
     else:
         packs = client.cli("stackpack", "list")["stackpacks"]
-        pack = next(p for p in packs if p["name"] == "suse-ai")
+        pack = next(p for p in packs if p["name"] == name)
         offered = (pack.get("nextVersion") or {}).get("version")
         if offered != version:
             raise ValueError(f"Server offers {offered}, not {version}; refusing an unpinned upgrade")
-        client.cli("stackpack", "upgrade", "--name", "suse-ai", "--unlocked-strategy", "overwrite",
+        client.cli("stackpack", "upgrade", "--name", name, "--unlocked-strategy", "overwrite",
                    "--wait", "--timeout", "300s")
-    result = client.cli("stackpack", "list-instances", "--name", "suse-ai")
+    result = client.cli("stackpack", "list-instances", "--name", name)
     instances = result["instances"]
     if (len(instances) != 1 or instances[0]["status"] != "INSTALLED"
             or instances[0]["stackPackVersion"] != version):
@@ -125,15 +125,25 @@ def main():
     parser.add_argument("--cluster", default="suse-ai")
     parser.add_argument("--version", default="")
     parser.add_argument("--source", type=Path, default=ROOT / "stackpack/suse-ai")
+    parser.add_argument("--name", default="suse-ai")
     args = parser.parse_args()
+    if not re.fullmatch(r"suse-ai(?:-[a-z0-9-]+)?", args.name):
+        parser.error("Only SUSE AI and explicitly named SUSE AI comparison packs are supported")
+    source_manifest = (args.source / "stackpack.yaml").read_text()
+    if not re.search(r"^name: " + re.escape(args.name) + r"\s*$", source_manifest, re.MULTILINE):
+        parser.error("The source manifest must match --name")
     os.umask(0o077)
     state = args.state_dir.resolve()
     state.mkdir(parents=True, exist_ok=True)
     with (state / "deploy.lock").open("a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         client = Client(args.url, args.token_file, args.token_type)
-        catalog = client.cli("stackpack", "list-versions", "--name", "suse-ai")
-        before = client.cli("stackpack", "list-instances", "--name", "suse-ai")
+        # An absent comparison name has no catalog endpoint yet.
+        names = {p["name"] for p in client.cli("stackpack", "list")["stackpacks"]}
+        catalog = (client.cli("stackpack", "list-versions", "--name", args.name)
+                   if args.name in names else {"versions": []})
+        before = (client.cli("stackpack", "list-instances", "--name", args.name)
+                  if args.name in names else {"instances": []})
         versions = state / "versions"
         versions.mkdir(exist_ok=True)
         used = {v["version"] for v in catalog["versions"]} | {p.name for p in versions.iterdir()}
@@ -153,13 +163,13 @@ def main():
 
         attempt = versions / version
         attempt.mkdir()  # This reservation is never removed, even when validation/upload fails.
-        record = {"version": version, "url": args.url, "status": "reserved", "tokenType": args.token_type,
+        record = {"name": args.name, "version": version, "url": args.url, "status": "reserved", "tokenType": args.token_type,
                   "createdUTC": datetime.now(timezone.utc).isoformat(),
                   "sourceCommit": client.run(["git", "rev-parse", "HEAD"]).strip()}
         save(attempt / "record.json", record)
         save(attempt / "instances-before.json", before)
         save(attempt / "catalog-before.json", catalog)
-        pack = attempt / "source" / "stackpack" / "suse-ai"
+        pack = attempt / "source" / "stackpack" / args.name
         shutil.copytree(args.source.resolve(), pack)
         manifest = pack / "stackpack.yaml"
         text, count = re.subn(r"^version:.*$", "version: " + version, manifest.read_text(), flags=re.MULTILINE)
@@ -170,7 +180,7 @@ def main():
         output = client.run(["task", "stackpack-validate"],
                             env=dict(os.environ, STACKPACK_SOURCE=str(pack)))
         (attempt / "validation.log").write_text(output)
-        archive = attempt / f"suse-ai-{version}.sts"
+        archive = attempt / f"{args.name}-{version}.sts"
         client.run(["sts", "stackpack", "package", "-d", str(pack), "-f", str(archive)])
         record.update(status="upload-attempted", sha256=hashlib.sha256(archive.read_bytes()).hexdigest())
         save(attempt / "record.json", record)  # Consume the version before a potentially ambiguous upload.
@@ -178,12 +188,13 @@ def main():
         client.cli("stackpack", "upload", "--file", str(archive))
         record["status"] = "uploaded"
         save(attempt / "record.json", record)
-        save(attempt / "instances-after.json", install(client, version, current))
+        save(attempt / "instances-after.json", install(client, version, current, args.name))
         record["status"] = "installed"
         save(attempt / "record.json", record)
         client.run(["task", "demo-inspect", "SPIKE_URL=" + args.url,
                     "SPIKE_TOKEN_FILE=" + str(args.token_file.resolve()),
                     "SPIKE_TOKEN_TYPE=" + args.token_type,
+                    "SPIKE_PACK_NAME=" + args.name,
                     "SPIKE_EVIDENCE=" + str(attempt / "verification"), "SPIKE_STAGE=deployed"])
         print(f"Installed {version}; synchronization and mapping snapshots: {attempt / 'verification'}", flush=True)
 

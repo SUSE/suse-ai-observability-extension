@@ -1,0 +1,28 @@
+nodes:
+- _type: Monitor
+  name: AI application operation reliability
+  identifier: urn:stackpack:suse-ai:monitor:application-span-error-ratio
+  description: Tracks failed traced operations in AI applications, agents and interfaces, including outbound calls and background work. More than 5% failed spans indicates an unreliable operation path; this measures traced operations, not unique user requests.
+  function: urn:stackpack:common:monitor-function:topological-threshold
+  intervalSeconds: 60
+  status: ENABLED
+  arguments:
+    threshold: 0.05
+    comparator: GT
+    failureState: DEVIATING
+    queries:
+      topologyQuery: >-
+        type = "otel service" and label = "stackpack:suse-ai" and
+        (label IN ("suse.ai.category:application", "suse.ai.category:agent", "suse.ai.category:ui")
+        or not label IN ("suse.ai.category:application", "suse.ai.category:agent", "suse.ai.category:ui",
+        "suse.ai.category:inference-engine", "suse.ai.category:model-proxy", "suse.ai.category:vectordb",
+        "suse.ai.category:search-engine", "suse.ai.category:mcp-server", "suse.ai.category:workflow-engine",
+        "suse.ai.category:ml-registry"))
+      promqlQuery: >-
+        (sum by (service_namespace, service_name) (rate(otel_span_calls_total{service_namespace="${tags.service.namespace}", service_name="${tags.service.name}", status_code="STATUS_CODE_ERROR"}[5m]))
+        or 0 * sum by (service_namespace, service_name) (rate(otel_span_calls_total{service_namespace="${tags.service.namespace}", service_name="${tags.service.name}"}[5m])))
+        / (sum by (service_namespace, service_name) (rate(otel_span_calls_total{service_namespace="${tags.service.namespace}", service_name="${tags.service.name}"}[5m])) > 0)
+      aliasTemplate: Failed traced operations
+      unit: percentunit
+    titleTemplate: 'Operation reliability: ${service_name}'
+  remediationHint: !include remediation-hints/genai/application-span-error-ratio.md.hbs

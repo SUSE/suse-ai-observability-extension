@@ -143,7 +143,35 @@ tasks:
         --token-type '{{.DEMO_TOKEN_TYPE | default "service"}}'
         --state-dir '{{.DEMO_STATE_DIR}}' --cluster '{{.DEMO_CLUSTER | default "suse-ai"}}'
         --version '{{.DEMO_VERSION | default ""}}'
+        --name '{{.DEMO_PACK_NAME | default "suse-ai"}}'
         --source '{{.DEMO_SOURCE | default "stackpack/suse-ai"}}'
+
+  demo-comparison-build:
+    desc: Stage an isolated GitHub release comparison using live telemetry and captured node metadata
+    requires:
+      vars: [COMPARISON_OUTPUT, COMPARISON_OTEL_SOURCE, COMPARISON_TOPOLOGY]
+    cmds:
+      - >-
+        '{{.PYTHON}}' -B scripts/build-release-comparison.py
+        --release-ref '{{.COMPARISON_REF | default "v3.0.0"}}'
+        --otel-source '{{.COMPARISON_OTEL_SOURCE}}'
+        --topology '{{.COMPARISON_TOPOLOGY}}'
+        --output '{{.COMPARISON_OUTPUT}}'
+
+  demo-refresh-topology:
+    desc: Recreate the explicit demo backend Collector pod after a mapping-cache refresh gap
+    requires:
+      vars: [DEMO_MGMT_KUBECONFIG]
+    cmds:
+      - >-
+        kubectl --kubeconfig '{{.DEMO_MGMT_KUBECONFIG}}' -n suse-observability
+        delete pod suse-observability-otel-collector-0 --wait --timeout=60s
+      - >-
+        kubectl --kubeconfig '{{.DEMO_MGMT_KUBECONFIG}}' -n suse-observability
+        wait --for=create pod/suse-observability-otel-collector-0 --timeout=180s
+      - >-
+        kubectl --kubeconfig '{{.DEMO_MGMT_KUBECONFIG}}' -n suse-observability
+        wait --for=condition=Ready pod/suse-observability-otel-collector-0 --timeout=180s
 
   demo-import-images:
     desc: Import local development images into every explicitly selected RKE2 demo node
@@ -273,4 +301,5 @@ tasks:
         '{{.PYTHON}}' -B experiments/component-model/inspect.py
         --url '{{.SPIKE_URL}}' --token-file '{{.SPIKE_TOKEN_FILE}}'
         --token-type '{{.SPIKE_TOKEN_TYPE | default "service"}}'
+        --name '{{.SPIKE_PACK_NAME | default "suse-ai"}}'
         --output '{{.SPIKE_EVIDENCE}}' --stage '{{.SPIKE_STAGE}}'

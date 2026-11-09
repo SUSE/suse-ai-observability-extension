@@ -1,0 +1,241 @@
+nodes:
+- _type: ComponentPresentation
+  name: AI service icon
+  identifier: urn:stackpack:suse-ai:component-presentation:icon-service
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: 'label = "stackpack:suse-ai" and type in ("otel service", "otel service instance")'
+  rank:
+    specificity: 100
+  presentation:
+    icon: !icon outline/application.svg
+- _type: ComponentPresentation
+  name: application icon
+  identifier: urn:stackpack:suse-ai:component-presentation:icon-role-application
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: 'label = "stackpack:suse-ai" and type in ("otel service", "otel service instance") and label = "suse.ai.category:application"'
+  rank:
+    specificity: 110
+  presentation:
+    icon: !icon outline/application.svg
+- _type: ComponentPresentation
+  name: agent icon
+  identifier: urn:stackpack:suse-ai:component-presentation:icon-role-agent
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: 'label = "stackpack:suse-ai" and type in ("otel service", "otel service instance") and label = "suse.ai.category:agent"'
+  rank:
+    specificity: 110
+  presentation:
+    icon: !icon outline/agent.svg
+- _type: ComponentPresentation
+  name: ui icon
+  identifier: urn:stackpack:suse-ai:component-presentation:icon-role-ui
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: 'label = "stackpack:suse-ai" and type in ("otel service", "otel service instance") and label = "suse.ai.category:ui"'
+  rank:
+    specificity: 110
+  presentation:
+    icon: !icon outline/ui.svg
+- _type: ComponentPresentation
+  name: inference-engine icon
+  identifier: urn:stackpack:suse-ai:component-presentation:icon-role-inference-engine
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: 'label = "stackpack:suse-ai" and type in ("otel service", "otel service instance") and label = "suse.ai.category:inference-engine"'
+  rank:
+    specificity: 110
+  presentation:
+    icon: !icon outline/inference-server.svg
+- _type: ComponentPresentation
+  name: model-proxy icon
+  identifier: urn:stackpack:suse-ai:component-presentation:icon-role-model-proxy
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: 'label = "stackpack:suse-ai" and type in ("otel service", "otel service instance") and label = "suse.ai.category:model-proxy"'
+  rank:
+    specificity: 110
+  presentation:
+    icon: !icon outline/gateway.svg
+- _type: ComponentPresentation
+  name: vectordb icon
+  identifier: urn:stackpack:suse-ai:component-presentation:icon-role-vectordb
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: 'label = "stackpack:suse-ai" and type in ("otel service", "otel service instance") and label = "suse.ai.category:vectordb"'
+  rank:
+    specificity: 110
+  presentation:
+    icon: !icon outline/vector-database.svg
+- _type: ComponentPresentation
+  name: search-engine icon
+  identifier: urn:stackpack:suse-ai:component-presentation:icon-role-search-engine
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: 'label = "stackpack:suse-ai" and type in ("otel service", "otel service instance") and label = "suse.ai.category:search-engine"'
+  rank:
+    specificity: 110
+  presentation:
+    icon: !icon outline/search-engine.svg
+- _type: ComponentPresentation
+  name: mcp-server icon
+  identifier: urn:stackpack:suse-ai:component-presentation:icon-role-mcp-server
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: 'label = "stackpack:suse-ai" and type in ("otel service", "otel service instance") and label = "suse.ai.category:mcp-server"'
+  rank:
+    specificity: 110
+  presentation:
+    icon: !icon outline/tool.svg
+- _type: ComponentPresentation
+  name: workflow-engine icon
+  identifier: urn:stackpack:suse-ai:component-presentation:icon-role-workflow-engine
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: 'label = "stackpack:suse-ai" and type in ("otel service", "otel service instance") and label = "suse.ai.category:workflow-engine"'
+  rank:
+    specificity: 110
+  presentation:
+    icon: !icon outline/workflow.svg
+- _type: ComponentPresentation
+  name: ml-registry icon
+  identifier: urn:stackpack:suse-ai:component-presentation:icon-role-ml-registry
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: 'label = "stackpack:suse-ai" and type in ("otel service", "otel service instance") and label = "suse.ai.category:ml-registry"'
+  rank:
+    specificity: 110
+  presentation:
+    icon: !icon outline/registry.svg
+- _type: ComponentPresentation
+  name: elasticsearch icon
+  identifier: urn:stackpack:suse-ai:component-presentation:icon-product-elasticsearch
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: 'label = "stackpack:suse-ai" and type in ("otel service", "otel service instance") and label = "suse.ai.product:elasticsearch"'
+  rank:
+    specificity: 120
+  presentation:
+    icon: !icon products/elasticsearch.svg
+- _type: ComponentPresentation
+  name: kserve icon
+  identifier: urn:stackpack:suse-ai:component-presentation:icon-product-kserve
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: 'label = "stackpack:suse-ai" and type in ("otel service", "otel service instance") and label = "suse.ai.product:kserve"'
+  rank:
+    specificity: 120
+  presentation:
+    icon: !icon products/kserve.svg
+- _type: ComponentPresentation
+  name: kubeflow-model-registry icon
+  identifier: urn:stackpack:suse-ai:component-presentation:icon-product-kubeflow-model-registry
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: 'label = "stackpack:suse-ai" and type in ("otel service", "otel service instance") and label = "suse.ai.product:kubeflow-model-registry"'
+  rank:
+    specificity: 120
+  presentation:
+    icon: !icon products/kubeflow-model-registry.svg
+- _type: ComponentPresentation
+  name: kubeflow-pipelines icon
+  identifier: urn:stackpack:suse-ai:component-presentation:icon-product-kubeflow-pipelines
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: 'label = "stackpack:suse-ai" and type in ("otel service", "otel service instance") and label = "suse.ai.product:kubeflow-pipelines"'
+  rank:
+    specificity: 120
+  presentation:
+    icon: !icon products/kubeflow-pipelines.svg
+- _type: ComponentPresentation
+  name: litellm icon
+  identifier: urn:stackpack:suse-ai:component-presentation:icon-product-litellm
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: 'label = "stackpack:suse-ai" and type in ("otel service", "otel service instance") and label = "suse.ai.product:litellm"'
+  rank:
+    specificity: 120
+  presentation:
+    icon: !icon products/litellm.svg
+- _type: ComponentPresentation
+  name: milvus icon
+  identifier: urn:stackpack:suse-ai:component-presentation:icon-product-milvus
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: 'label = "stackpack:suse-ai" and type in ("otel service", "otel service instance") and label = "suse.ai.product:milvus"'
+  rank:
+    specificity: 120
+  presentation:
+    icon: !icon products/milvus.svg
+- _type: ComponentPresentation
+  name: mlflow icon
+  identifier: urn:stackpack:suse-ai:component-presentation:icon-product-mlflow
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: 'label = "stackpack:suse-ai" and type in ("otel service", "otel service instance") and label = "suse.ai.product:mlflow"'
+  rank:
+    specificity: 120
+  presentation:
+    icon: !icon products/mlflow.svg
+- _type: ComponentPresentation
+  name: ollama icon
+  identifier: urn:stackpack:suse-ai:component-presentation:icon-product-ollama
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: 'label = "stackpack:suse-ai" and type in ("otel service", "otel service instance") and label = "suse.ai.product:ollama"'
+  rank:
+    specificity: 120
+  presentation:
+    icon: !icon products/ollama.svg
+- _type: ComponentPresentation
+  name: open-webui icon
+  identifier: urn:stackpack:suse-ai:component-presentation:icon-product-open-webui
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: 'label = "stackpack:suse-ai" and type in ("otel service", "otel service instance") and label = "suse.ai.product:open-webui"'
+  rank:
+    specificity: 120
+  presentation:
+    icon: !icon products/open-webui.svg
+- _type: ComponentPresentation
+  name: opensearch icon
+  identifier: urn:stackpack:suse-ai:component-presentation:icon-product-opensearch
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: 'label = "stackpack:suse-ai" and type in ("otel service", "otel service instance") and label = "suse.ai.product:opensearch"'
+  rank:
+    specificity: 120
+  presentation:
+    icon: !icon products/opensearch.svg
+- _type: ComponentPresentation
+  name: qdrant icon
+  identifier: urn:stackpack:suse-ai:component-presentation:icon-product-qdrant
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: 'label = "stackpack:suse-ai" and type in ("otel service", "otel service instance") and label = "suse.ai.product:qdrant"'
+  rank:
+    specificity: 120
+  presentation:
+    icon: !icon products/qdrant.svg
+- _type: ComponentPresentation
+  name: vllm icon
+  identifier: urn:stackpack:suse-ai:component-presentation:icon-product-vllm
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: 'label = "stackpack:suse-ai" and type in ("otel service", "otel service instance") and label = "suse.ai.product:vllm"'
+  rank:
+    specificity: 120
+  presentation:
+    icon: !icon products/vllm.svg
+- _type: ComponentPresentation
+  name: mcpo icon
+  identifier: urn:stackpack:suse-ai:component-presentation:icon-product-mcpo
+  binding:
+    _type: ComponentPresentationQueryBinding
+    query: 'label = "stackpack:suse-ai" and type in ("otel service", "otel service instance") and label = "suse.ai.product:mcpo"'
+  rank:
+    specificity: 120
+  presentation:
+    icon: !icon outline/tool.svg

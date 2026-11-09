@@ -80,6 +80,7 @@ def recipes():
             [point("up", 1, "kubeflow-pipelines", identity=identity)], 0, 1, identity=identity)
 
     for key, metric, product, dimension, bad, good, extra, identity in (
+        ("application-span-error-ratio", "otel_span_calls_total", "", "status_code", "STATUS_CODE_ERROR", "STATUS_CODE_OK", {"span_kind": "SPAN_KIND_CLIENT"}, IDENTITY),
         ("kfp-grpc-error-ratio", "grpc_server_handled_total", "kubeflow-pipelines", "grpc_code", "Internal", "OK", {}, IDENTITY),
         ("kserve-error-rate", "controller_runtime_reconcile_total", "kserve", "result", "error", "success", {}, IDENTITY),
         ("model-usage-errors", "gen_ai_client_operation_duration_seconds_count", "", "error_type", "TimeoutError", "", MODEL,

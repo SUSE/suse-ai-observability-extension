@@ -17,6 +17,7 @@ def main():
     parser.add_argument('--output', required=True, type=Path)
     parser.add_argument('--stage', required=True)
     parser.add_argument('--sts', default='sts')
+    parser.add_argument('--name', default='suse-ai')
     args = parser.parse_args()
     if urlparse(args.url).hostname not in ('127.0.0.1', 'localhost', '::1'):
         parser.error('Use the explicit local demo port-forward; this harness never targets the SA instance')
@@ -48,8 +49,8 @@ def main():
             return json.load(response)
 
     for name, command in (
-        ('instances', ['stackpack', 'list-instances', '--name', 'suse-ai']),
-        ('versions', ['stackpack', 'list-versions', '--name', 'suse-ai']),
+        ('instances', ['stackpack', 'list-instances', '--name', args.name]),
+        ('versions', ['stackpack', 'list-versions', '--name', args.name]),
         ('monitors', ['monitor', 'list']),
         ('domains', ['settings', 'list', '--type', 'Domain']),
         ('layers', ['settings', 'list', '--type', 'Layer']),
@@ -63,10 +64,10 @@ def main():
         save(kind + '-mapping-status', [
             {'identifier': entry['identifier'],
              'result': cli('otel-' + kind + '-mapping', 'status', '--identifier', entry['identifier'])}
-            for entry in entries['otel_' + kind + '_mappings'] if ':suse-ai:' in entry['identifier']
+            for entry in entries['otel_' + kind + '_mappings'] if ':' + args.name + ':' in entry['identifier']
         ])
     save('topology', api('/api/snapshot', {
-        'query': 'label = "stackpack:suse-ai" or type in ("node", "pod")',
+        'query': 'label = "stackpack:' + args.name + '" or type in ("node", "pod")',
         'queryVersion': '0.0.1',
         'metadata': {'groupingEnabled': False, 'showIndirectRelations': False,
                      'minGroupSize': 0, 'groupedByLayer': False, 'groupedByDomain': False,

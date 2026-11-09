@@ -143,6 +143,23 @@ class DemoDeploymentTest(unittest.TestCase):
         self.assertEqual(self.client.instances[0]["stackPackVersion"], "3.0.0-dev.1")
         self.assertFalse(any(c[1] in ("upgrade", "downgrade", "uninstall") for c in self.client.calls))
 
+    def test_comparison_install_targets_only_the_explicit_pack(self):
+        name = "suse-ai-v300"
+        class ComparisonClient:
+            def __init__(self):
+                self.calls = []
+
+            def cli(self, *args):
+                self.calls.append(args)
+                if args[:2] == ("stackpack", "list-instances"):
+                    return {"instances": [{"id": 456, "status": "INSTALLED", "stackPackVersion": "3.0.0-dev.992"}]}
+
+        client = ComparisonClient()
+        DEMO.install(client, "3.0.0-dev.992", None, name)
+        self.assertEqual(len(client.calls), 2)
+        self.assertTrue(all(c[c.index("--name") + 1] == name for c in client.calls))
+        self.assertIn("overwrite", client.calls[0])
+
     def test_version_sequence_obeys_numeric_and_demo_catalog_order(self):
         used = {"3.0.0-dev.2", "3.0.0-dev.10", "2.0.0"}
         self.assertEqual(DEMO.choose_version(used), "3.0.0-dev.20")

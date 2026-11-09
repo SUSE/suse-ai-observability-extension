@@ -1,4 +1,4 @@
-"""Protect native OTel ownership and namespaced presentation composition."""
+"""Protect native fields while allowing the approved shared product icons."""
 
 import unittest
 
@@ -25,7 +25,7 @@ class OverlayContractTest(unittest.TestCase):
                 for identifier in identifiers(node):
                     self.assertTrue(identifier.startswith("suse_ai_"), identifier)
 
-    def test_otel_overlays_and_explicit_lists_do_not_override_native_presentation(self):
+    def test_icon_overrides_do_not_replace_native_fields_or_layout(self):
         for node in NODES:
             if node["_type"] != "ComponentPresentation":
                 continue
@@ -33,6 +33,11 @@ class OverlayContractTest(unittest.TestCase):
             if '"otel service' not in query and not node["identifier"].endswith(":common"):
                 continue
             presentation = node["presentation"]
+            if ":component-presentation:icon-" in node["identifier"]:
+                self.assertEqual(set(presentation), {"icon"}, node["identifier"])
+                self.assertIn('label = "stackpack:suse-ai"', query)
+                self.assertGreater(node["rank"]["specificity"], 10)
+                continue
             self.assertLess(node["rank"]["specificity"], 2, node["identifier"])
             for key in ("icon", "name", "summary", "tracesPerspective"):
                 self.assertNotIn(key, presentation, node["identifier"])

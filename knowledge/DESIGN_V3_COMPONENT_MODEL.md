@@ -116,3 +116,20 @@ and after.
 - Document identifier and view changes in the release notes and the monitoring guide.
 - Keep the Collector contract unchanged where possible; new attributes (for example GPU device identity)
   are added in a Collector release before the StackPack depends on them.
+
+## Decision update — shared product icons (2026-11-09)
+
+The user superseded D1's prohibition on custom icons for merged OpenTelemetry
+services and instances. Product logos and generic role glyphs now intentionally
+appear on those components in both SUSE AI and Open Telemetry. Dedicated icon-only
+presentations outrank native icons; the namespaced fields, native layout and
+separate inventory tables retain the existing composition rules. Direct
+ComponentType icon mutations are not needed. Product SVGs use 16×16 intrinsic
+dimensions, preserving their original drawing viewBoxes within a light-green
+backing tile for contrast on both light and dark UI surfaces.
+
+A separately named, isolated copy of the published GitHub v3.0.0 is used for live
+comparison, rather than changing the installed development instance back to an
+older version. Its settings and component identities are namespaced, including
+its OTel companion contributions. The release comparison is demo tooling, not a
+second shipping product or a change to the published GitHub tag.

@@ -57,6 +57,31 @@ class MonitorContractTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     @unittest.skipUnless(os.environ.get("AI_PROMETHEUS_IMAGE"), "Set AI_PROMETHEUS_IMAGE for query evaluation")
+    def test_application_reliability_covers_background_work_without_inventing_idle_health(self):
+        def check(value):
+            return {"monitor": "application-span-error-ratio", "samples": [] if value is None else [
+                {"labels": labels(IDENTITY), "value": value}]}
+
+        cases = []
+        for kind in ("SPAN_KIND_CLIENT", "SPAN_KIND_INTERNAL", "SPAN_KIND_SERVER"):
+            cases.append({"name": "Observed " + kind + " failures",
+                          "series": [point("otel_span_calls_total", 6, counter=True, span_kind=kind, status_code="STATUS_CODE_ERROR"),
+                                     point("otel_span_calls_total", 54, counter=True, span_kind=kind, status_code="STATUS_CODE_OK")],
+                          "checks": [check(0.1)]})
+        cases.extend([
+            {"name": "Observed successful operations without an error series", "series": [
+                point("otel_span_calls_total", 60, counter=True, status_code="STATUS_CODE_OK")], "checks": [check(0)]},
+            {"name": "Idle counters supply no health assertion", "series": [
+                point("otel_span_calls_total", 5, status_code="STATUS_CODE_OK")], "checks": [check(None)]},
+            {"name": "Unrelated services and namespaces cannot supply health", "series": [
+                point("otel_span_calls_total", 60, counter=True, identity={**IDENTITY, "service_name": "other"}),
+                point("otel_span_calls_total", 60, counter=True, identity={**IDENTITY, "service_namespace": "other"})],
+             "checks": [check(None)]},
+        ])
+        result = run_promql_cases(cases)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    @unittest.skipUnless(os.environ.get("AI_PROMETHEUS_IMAGE"), "Set AI_PROMETHEUS_IMAGE for query evaluation")
     def test_ollama_health_requires_fresh_model_evidence_and_preserves_idle_availability(self):
         identity = {**IDENTITY, "k8s_cluster_name": "cluster-a", "service_instance_id": "pod-a"}
 

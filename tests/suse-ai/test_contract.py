@@ -896,8 +896,11 @@ class PackageContractTests(unittest.TestCase):
                                     self.assertIn("model", keys)
                             else:
                                 self.assertIn("model_name", keys)
-                        else:
+                        elif '"genai model usage"' in queries["topologyQuery"]:
                             self.assertTrue({"gen_ai_request_model", "gen_ai_provider_name", "server_address", "server_port"} <= keys)
+                        else:
+                            self.assertIn('type = "otel service"', queries["topologyQuery"])
+                            self.assertEqual(item.name, "otel_span_calls_total")
                 continue
             tree = promql.parse(node["arguments"]["metric"]["query"])
             urn = node["arguments"]["urnTemplate"]
