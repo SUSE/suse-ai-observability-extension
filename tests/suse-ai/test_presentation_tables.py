@@ -1,7 +1,8 @@
 """Health and identity columns plus optional read-only tests of installed tables.
 
 AI_PRESENTATION_URL, AI_PRESENTATION_TOKEN_FILE and AI_PRESENTATION_EVIDENCE
-enable the backend checks. No telemetry, settings or workloads are mutated.
+enable the backend checks. AI_PRESENTATION_TOKEN_TYPE selects service (default)
+or api authentication. No telemetry, settings or workloads are mutated.
 """
 
 import json
@@ -82,6 +83,10 @@ class BackendPresentationTableTest(unittest.TestCase):
     def setUpClass(cls):
         cls.url = os.environ["AI_PRESENTATION_URL"].rstrip("/")
         cls.token = Path(os.environ["AI_PRESENTATION_TOKEN_FILE"]).read_text().strip()
+        token_type = os.environ.get("AI_PRESENTATION_TOKEN_TYPE", "service")
+        if token_type not in ("service", "api"):
+            raise ValueError("AI_PRESENTATION_TOKEN_TYPE must be service or api")
+        cls.token_header = "X-API-Key" if token_type == "service" else "X-API-Token"
         cls.evidence = Path(os.environ["AI_PRESENTATION_EVIDENCE"])
         cls.evidence.mkdir(parents=True, exist_ok=True)
 
@@ -92,7 +97,7 @@ class BackendPresentationTableTest(unittest.TestCase):
             body = {"filters": {"tagFilters": [], "columnFilters": {}},
                     "sorting": [], "pagination": {"limit": 100}}
         request = Request(self.url + path, None if body is None else json.dumps(body).encode(),
-                          {"X-API-Key": self.token, "Content-Type": "application/json"})
+                          {self.token_header: self.token, "Content-Type": "application/json"})
         with urlopen(request, timeout=30) as response:
             return json.load(response)
 
