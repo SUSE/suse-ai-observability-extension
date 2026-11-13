@@ -23,12 +23,21 @@ def validate_images(images):
     return images
 
 
+def bounded_stdin(command, size):
+    """Close the remote reader after the archive bytes, without awaiting exec EOF."""
+    if size <= 0:
+        raise ValueError("The image archive must not be empty")
+    return ["sh", "-c", 'size=$1; shift; head -c "$size" | "$@"',
+            "bounded-stdin", str(size), *command]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--kubeconfig", required=True, type=Path)
     parser.add_argument("--images-file", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--runtime", choices=("docker", "podman"), default="docker")
+    parser.add_argument("--node", help="Import into one named node when resuming an interrupted import")
     args = parser.parse_args()
     if not args.kubeconfig.is_file():
         parser.error("An explicit downstream demo kubeconfig is required")
@@ -45,6 +54,10 @@ def main():
         return result.stdout
 
     nodes = json.loads(run(kube + ["get", "nodes", "-o", "json"]))
+    if args.node:
+        nodes["items"] = [node for node in nodes["items"] if node["metadata"]["name"] == args.node]
+        if not nodes["items"]:
+            raise ValueError("The requested node does not exist in the selected cluster")
     local = json.loads(run([args.runtime, "image", "inspect", *images]))
     (output / "nodes.json").write_text(json.dumps(nodes, indent=2))
     (output / "images.json").write_text(json.dumps(local, indent=2))
@@ -98,7 +111,8 @@ def main():
             ctr = ["/host-bin/ctr", "--address", "/run/k3s/containerd/containerd.sock",
                    "--namespace", "k8s.io", "images"]
             with archive.open("rb") as source:
-                result = run(command + ["exec", "-i", name, "--", *ctr, "import", "-"], stdin=source)
+                result = run(command + ["exec", "-i", name, "--",
+                                       *bounded_stdin([*ctr, "import", "-"], archive.stat().st_size)], stdin=source)
             (output / f"import-{index}.log").write_bytes(result)
             imported = run(command + ["exec", name, "--", *ctr, "list", "-q"]).decode().splitlines()
             if not set(images).issubset(imported):
