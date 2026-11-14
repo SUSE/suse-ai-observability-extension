@@ -47,6 +47,19 @@ tasks:
     cmds:
       - '{{.PYTHON}} -B -m unittest discover -s tests/suse-ai -p test_presentation_tables.py -v'
 
+  demo-presentation-test:
+    desc: Check live table columns, component links and product metrics without changing the demo
+    requires:
+      vars: [DEMO_URL, DEMO_TOKEN_FILE, DEMO_EVIDENCE]
+    env:
+      AI_PRESENTATION_URL: '{{.DEMO_URL}}'
+      AI_PRESENTATION_TOKEN_FILE: '{{.DEMO_TOKEN_FILE}}'
+      AI_PRESENTATION_TOKEN_TYPE: '{{.DEMO_TOKEN_TYPE | default "service"}}'
+      AI_PRESENTATION_EVIDENCE: '{{.DEMO_EVIDENCE}}'
+      AI_PRESENTATION_CALLER: '{{.DEMO_CALLER | default ""}}'
+    cmds:
+      - '{{.PYTHON}} -B -m unittest discover -s tests/suse-ai -p test_presentation_tables.py -v'
+
   stackpack-review-package:
     desc: Package a temporary review version without changing the release manifest (REVIEW_VERSION required)
     requires:
@@ -182,6 +195,7 @@ tasks:
         '{{.PYTHON}}' -B scripts/demo-import-images.py
         --kubeconfig '{{.DEMO_KUBECONFIG}}' --output '{{.DEMO_EVIDENCE}}'
         --runtime '{{.RUNTIME}}' --images-file '{{.DEMO_IMAGES_FILE}}'
+        {{if .DEMO_NODE}}--node '{{.DEMO_NODE}}'{{end}}
 
   demo-ollama-deploy:
     desc: Import a tested branch-built exporter into every RKE2 demo node and roll out Ollama
