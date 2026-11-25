@@ -1,11 +1,11 @@
 ### Check first
-Open [this component](/#/components/{{componentUrnForUrl}}/highlights) and its [metrics](/#/components/{{componentUrnForUrl}}/metrics). Check the age of the last GenAI operation counter, exporter and Collector export errors. The configured threshold is **{{threshold}}** in the monitor chart's unit.
+Open the [caller’s metrics](/#/components/{{componentUrnForUrl}}/metrics) and inspect the last sample of each GenAI client duration count. The chart shows the largest sample age on this caller. If a sample goes stale between 15-second query steps, its displayed age can be up to 15 seconds high. A gap over **{{threshold}}** seconds triggers the check. An unchanged count, including zero, is fresh when its sample timestamp advances.
 
 ### Likely causes
-Application telemetry stopped, a broken pipeline or an exporter failure.
+The periodic metric reader or Collector stopped exporting, a filter dropped duration, or the worker or target labels changed. Token counts can continue when duration export fails. At a one-minute export interval, the five-minute allowance covers five export periods. It assumes cumulative counts continue to arrive while the caller is idle.
 
 ### Fix
-Restore metric export; an idle instrumented application should still export its cumulative counters.
+Check the metric reader’s effective export interval, temporality and delivery delay. The Pipelines SDK reader can use `OTEL_METRIC_EXPORT_INTERVAL`. Upstream Open WebUI 0.6.41 explicitly sets its host meter reader interval to 10 seconds for both OTLP/HTTP and OTLP/gRPC, so that setting has no effect on the host reader’s interval. If a producer exports only on events or exports slowly, normal idle periods can trigger this check. Restore duration export for the affected caller, instance, instrumentation scope, provider, model and endpoint.
 
 ### Verify
-Fresh counter samples arrive and their age falls below the threshold. Detection requires a previously observed operation and stops after the 15-minute lookback. If samples are absent, investigate the exporter and Collector: this threshold check cannot establish healthy operation without data.
+A new duration sample renews the target immediately on evaluation. If duration stays absent for fifteen minutes, that target drops out of the check. Other observations can keep the service visible. An empty chart supplies no health result.

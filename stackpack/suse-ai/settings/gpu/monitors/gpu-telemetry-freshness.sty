@@ -1,0 +1,34 @@
+nodes:
+- _type: Monitor
+  name: "GPU utilization telemetry freshness"
+  identifier: urn:stackpack:suse-ai:monitor:gpu-telemetry-freshness
+  description: "Counts physical GPUs on this node whose previously observed DCGM utilization samples have stopped arriving for more than five minutes."
+  intervalSeconds: 60
+  status: ENABLED
+  function: urn:stackpack:common:monitor-function:threshold
+  arguments:
+    threshold: 0.0
+    comparator: GT
+    failureState: DEVIATING
+    metric:
+      aliasTemplate: "Silent physical GPUs"
+      unit: short
+      # A fresh source wins the union with 0. A source seen only in the longer window yields 1.
+      # Range selectors exclude the left endpoint; include the millisecond at exactly five minutes.
+      query: >-
+        sum by (k8s_cluster_name, k8s_node_name) (
+          0 * group by (k8s_cluster_name, k8s_node_name, UUID) (
+            present_over_time(DCGM_FI_DEV_GPU_UTIL{
+              k8s_cluster_name!="", k8s_node_name!="", UUID!="", GPU_I_ID="", GPU_I_PROFILE="", suse_ai_managed!="false"
+            }[5m1ms])
+          )
+          or
+          group by (k8s_cluster_name, k8s_node_name, UUID) (
+            present_over_time(DCGM_FI_DEV_GPU_UTIL{
+              k8s_cluster_name!="", k8s_node_name!="", UUID!="", GPU_I_ID="", GPU_I_PROFILE="", suse_ai_managed!="false"
+            }[15m])
+          )
+        )
+    titleTemplate: "GPU telemetry freshness: ${k8s_node_name}"
+    urnTemplate: urn:kubernetes:/${k8s_cluster_name}:node/${k8s_node_name}
+  remediationHint: !include 'remediation-hints/gpu/gpu-telemetry-freshness.md.hbs'

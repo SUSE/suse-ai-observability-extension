@@ -904,10 +904,14 @@ class PackageContractTests(unittest.TestCase):
                 continue
             tree = promql.parse(node["arguments"]["metric"]["query"])
             urn = node["arguments"]["urnTemplate"]
-            if "nvidia-xid" in node["identifier"]:
+            if node["identifier"].rsplit(":", 1)[-1] in {"nvidia-xid-errors", "gpu-telemetry-freshness"}:
                 self.assertEqual(
                     urn, "urn:kubernetes:/${k8s_cluster_name}:node/${k8s_node_name}"
                 )
+                for item in walk(tree):
+                    if isinstance(item, promql.VectorSelector):
+                        self.assertTrue({"k8s_cluster_name", "k8s_node_name"} <=
+                                        {m.name for m in item.matchers.matchers})
                 continue
             self.assertEqual(
                 urn,
@@ -921,6 +925,12 @@ class PackageContractTests(unittest.TestCase):
                         required.add("suse_ai_observation_kind")
                         self.assertTrue(any(
                             m.name == "suse_ai_observation_kind" and m.value == "http-probe"
+                            for m in item.matchers.matchers
+                        ))
+                    elif node["identifier"].endswith(":http-probe-freshness"):
+                        self.assertTrue(any(
+                            (m.name, m.value) in {("suse_ai_observation_kind", "http-probe"),
+                                                  ("suse_ai_product", "kubeflow-model-registry")}
                             for m in item.matchers.matchers
                         ))
                     elif "genai-metric-stream-active" not in node["identifier"]:

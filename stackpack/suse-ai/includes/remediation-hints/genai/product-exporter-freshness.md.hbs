@@ -1,0 +1,11 @@
+### Check first
+Open the [service metrics](/#/components/{{componentUrnForUrl}}/metrics). Inspect `ollama_api_up`, `elasticsearch_cluster_health`, `memory_active_bytes`, or the vLLM waiting-request gauge for the affected runtime and replica.
+
+### Likely causes
+The exporter stopped delivering its periodic gauge, a collection filter changed, or the source was removed. A fresh zero on the Ollama API gauge still reports an observation and can accompany an API failure.
+
+### Fix
+Check the product receiver or exporter and its resource labels. For vLLM check the scheduler gauge even with an empty queue. For OpenSearch and Elasticsearch check when the last cluster status was collected.
+
+### Verify
+The next gauge sample renews its runtime. A source absent for fifteen minutes drops out. An empty result means no qualifying runtime remains in the observation window.

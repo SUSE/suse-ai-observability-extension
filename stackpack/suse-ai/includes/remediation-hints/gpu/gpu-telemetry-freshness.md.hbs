@@ -1,0 +1,11 @@
+### Check first
+Open the [node metrics](/#/components/{{componentUrnForUrl}}/metrics) and compare `DCGM_FI_DEV_GPU_UTIL` timestamps by physical GPU UUID. A zero utilization sample is fresh during idle periods.
+
+### Likely causes
+DCGM exporter stopped, device discovery changed, or the collection pipeline lost one GPU. A GPU removed from the node also stops reporting.
+
+### Fix
+Compare the node inventory with exporter targets. Verify the cluster, node and UUID labels and check that physical device samples reach the backend.
+
+### Verify
+A new utilization sample renews that GPU. A device absent for fifteen minutes expires from the check. An empty result means there is no recent physical GPU observation.

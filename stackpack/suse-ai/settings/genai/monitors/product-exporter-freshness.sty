@@ -1,0 +1,68 @@
+nodes:
+- _type: Monitor
+  name: "Product runtime metric freshness"
+  identifier: urn:stackpack:suse-ai:monitor:product-exporter-freshness
+  description: "Counts previously observed product runtimes whose periodic gauge has stopped arriving for more than five minutes."
+  intervalSeconds: 60
+  status: ENABLED
+  function: urn:stackpack:common:monitor-function:threshold
+  arguments:
+    threshold: 0.0
+    comparator: GT
+    failureState: DEVIATING
+    metric:
+      aliasTemplate: "Silent product runtimes"
+      unit: short
+      # A fresh source wins the union with 0. A source seen only in the longer window yields 1.
+      # Range selectors exclude the left endpoint; include the millisecond at exactly five minutes.
+      query: >-
+        sum by (service_namespace, service_name) (
+          0 * group by (service_namespace, service_name, suse_ai_product,
+                        k8s_cluster_name, service_instance_id, instance, elasticsearch_cluster_name) (
+            present_over_time(ollama_api_up{
+              suse_ai_product="ollama", service_namespace!="", service_name!="", suse_ai_managed!="false"
+            }[5m1ms])
+            or
+            present_over_time(elasticsearch_cluster_health{
+              suse_ai_product=~"elasticsearch|opensearch", service_namespace!="", service_name!="", suse_ai_managed!="false"
+            }[5m1ms])
+            or
+            present_over_time(memory_active_bytes{
+              suse_ai_product="qdrant", service_namespace!="", service_name!="", suse_ai_managed!="false"
+            }[5m1ms])
+            or
+            present_over_time(vllm:num_requests_waiting{
+              suse_ai_product="vllm", service_namespace!="", service_name!="", suse_ai_managed!="false"
+            }[5m1ms])
+            or
+            present_over_time(vllm_num_requests_waiting{
+              suse_ai_product="vllm", service_namespace!="", service_name!="", suse_ai_managed!="false"
+            }[5m1ms])
+          )
+          or
+          group by (service_namespace, service_name, suse_ai_product,
+                    k8s_cluster_name, service_instance_id, instance, elasticsearch_cluster_name) (
+            present_over_time(ollama_api_up{
+              suse_ai_product="ollama", service_namespace!="", service_name!="", suse_ai_managed!="false"
+            }[15m])
+            or
+            present_over_time(elasticsearch_cluster_health{
+              suse_ai_product=~"elasticsearch|opensearch", service_namespace!="", service_name!="", suse_ai_managed!="false"
+            }[15m])
+            or
+            present_over_time(memory_active_bytes{
+              suse_ai_product="qdrant", service_namespace!="", service_name!="", suse_ai_managed!="false"
+            }[15m])
+            or
+            present_over_time(vllm:num_requests_waiting{
+              suse_ai_product="vllm", service_namespace!="", service_name!="", suse_ai_managed!="false"
+            }[15m])
+            or
+            present_over_time(vllm_num_requests_waiting{
+              suse_ai_product="vllm", service_namespace!="", service_name!="", suse_ai_managed!="false"
+            }[15m])
+          )
+        )
+    titleTemplate: "Runtime metric freshness: ${service_name}"
+    urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
+  remediationHint: !include 'remediation-hints/genai/product-exporter-freshness.md.hbs'

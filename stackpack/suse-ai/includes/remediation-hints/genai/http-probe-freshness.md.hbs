@@ -1,0 +1,11 @@
+### Check first
+Open the [service metrics](/#/components/{{componentUrnForUrl}}/metrics) and compare the last `httpcheck_status` samples for each configured probe endpoint and replica. A reported HTTP failure still proves that the probe is running.
+
+### Likely causes
+The probe receiver stopped, endpoint discovery changed, or probe status is no longer exported.
+
+### Fix
+Verify the probe schedule, target identity and delivery path. Investigate a reported endpoint failure using the endpoint availability check.
+
+### Verify
+A new probe status renews that endpoint. A probe absent for fifteen minutes drops out. An empty result means there is no recently observed probe.

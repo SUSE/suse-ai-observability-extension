@@ -3,8 +3,10 @@
 import os
 import unittest
 
-from monitor_cases import IDENTITY, PREFIX, labels, matrix_cases, point, recipes
-from test_contract import BY_ID, NODES, PACK, component, mapped, record
+import promql_parser as promql
+
+from monitor_cases import IDENTITY, MODEL, PREFIX, labels, matrix_cases, point, recipes
+from test_contract import BY_ID, NODES, PACK, component, mapped, record, walk
 from test_promql import run_promql_cases
 
 
@@ -54,6 +56,181 @@ class MonitorContractTest(unittest.TestCase):
     @unittest.skipUnless(os.environ.get("AI_PROMETHEUS_IMAGE"), "Set AI_PROMETHEUS_IMAGE for query evaluation")
     def test_all_monitor_queries_in_failing_recovering_and_no_data_states(self):
         result = run_promql_cases(matrix_cases())
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_freshness_observation_and_service_mapping_contract(self):
+        monitor = BY_ID[PREFIX + "genai-metric-stream-active"]
+        args = monitor["arguments"]
+        self.assertEqual((monitor["intervalSeconds"], args["comparator"], args["threshold"],
+                          args["failureState"]), (60, "GT", 300, "DEVIATING"))
+        mapping = BY_ID["urn:stackpack:suse-ai:otel-component-mapping:services-metrics"]
+        self.assertEqual(mapping["expireAfter"], 900_000)
+        urn = args["urnTemplate"].replace("${service_namespace}", "ai").replace("${service_name}", "ui")
+        for cluster in ("east", "west"):
+            resource = {"service.namespace": "ai", "service.name": "ui", "k8s.cluster.name": cluster}
+            for metric in ("gen_ai.client.operation.duration", "gen_ai.client.token.usage"):
+                with self.subTest(metric=metric, cluster=cluster):
+                    service = component(record("METRICS", resource=resource, metric=metric), "otel service")
+                    self.assertEqual(service["identifier"], urn)
+        # More than one source can maintain this service. Only duration enrolls its freshness check.
+        query = promql.parse(args["metric"]["query"])
+        self.assertEqual({s.name for s in walk(query) if isinstance(s, promql.VectorSelector)},
+                         {"gen_ai_client_operation_duration_seconds_count"})
+
+    @unittest.skipUnless(os.environ.get("AI_PROMETHEUS_IMAGE"), "Set AI_PROMETHEUS_IMAGE for query evaluation")
+    def test_observed_duration_lifecycle(self):
+        duration = "gen_ai_client_operation_duration_seconds_count"
+        tokens = "gen_ai_client_token_usage_tokens_count"
+        producer = {**MODEL, "gen_ai_provider_name": "ollama",
+                    "otel_scope_name": "suse.ai.open_webui.ollama",
+                    "service_instance_id": "pod-1", "k8s_cluster_name": "cluster-a"}
+
+        def row(metric, values="1+0x30", **tags):
+            series = point(metric, 1, **{**producer, **tags})
+            series["values"] = values
+            return series
+
+        def age(when, seconds=None, identity=IDENTITY):
+            return {"monitor": "genai-metric-stream-active", "eval_time": when,
+                    "samples": [] if seconds is None else [{"labels": labels(identity), "value": seconds}]}
+
+        def errors(value, when="20m"):
+            return {"monitor": "model-usage-errors", "monitor_tags": {"gen_ai.provider.name": "ollama"},
+                    "eval_time": when, "samples": [] if value is None else [
+                        {"labels": labels({**IDENTITY, "gen_ai_request_model": MODEL["gen_ai_request_model"]}),
+                         "value": value}]}
+
+        cases = [
+            {"name": "Token-only, trace, reachability, excluded and unidentified callers",
+             "series": [row(tokens), row("gen_ai_client_token_usage_count", gen_ai_token_type="output"),
+                        point("up", 1),
+                        point("otel_span_calls_total", 1), row(duration, suse_ai_managed="false"),
+                        row(duration, service_namespace=""), row(duration, service_name="")],
+             "checks": [age("0m"), age("10m"), age("25m")]},
+            {"name": "Both streams stop after an off-grid duration sample; lookback cannot renew it",
+             "interval": "1s",
+             "series": [row(duration, "_x7 0"), row(tokens, "_x7 3 stale")],
+             "checks": [age("6s"), age("7s", 0), age("306s999ms", 299.999),
+                        age("307s", 300), age("307s1ms", 300.001), age("906s999ms", 899.999),
+                        age("907s"), age("907s1ms")]},
+            {"name": "Sample and stale marker between timestamp steps still enroll and expire",
+             "interval": "1s", "series": [row(duration, "_x7 0 stale")],
+             "checks": [age("6s"), age("7s", 0), age("8s", 15),
+                        age("307s", 300), age("307s1ms", 307.001), age("906s999ms", 900), age("907s")]},
+            {"name": "Both streams marked stale; counter restarts before and after expiry",
+             "series": [row(duration, "7 stale _x5 0 stale _x14 0"), row(tokens, "3 stale")],
+             "checks": [age("6m", 360), age("7m", 0), age("21m59s", 899),
+                        age("22m"), age("23m", 0)]},
+            {"name": "Continuous tokens cannot extend a previously observed duration",
+             "series": [row(tokens), row(duration, "9+0x2 stale _x20 9")],
+             "checks": [age("7m", 300), age("8m", 360), age("16m59s", 899),
+                        age("17m"), age("23m"), age("24m", 0)]},
+            {"name": "Tokens continue for the silent target while its sibling still exports duration",
+             "series": [row(tokens), row(duration, "1 stale"), row(duration, server_address="other")],
+             "checks": [age("6m", 360), age("14m59s", 899), age("15m", 0)]},
+            {"name": "Fresh idle zero has no model error ratio",
+             "series": [row(duration, "0+0x30")], "checks": [age("20m", 0), errors(None)]},
+            {"name": "Fresh duration across failed calls and subsequent successful calls",
+             "series": [row(duration, "0+60x20 1200+0x10", error_type="TimeoutError"),
+                        row(duration, "0+0x20 60+60x9")],
+             "checks": [age("20m", 0), errors(1), age("26m", 0), errors(0, "26m")]},
+            {"name": "Fresh same-target duration recovers across outcome and scrape labels",
+             "series": [row(duration, "1 stale", error_type="TimeoutError"),
+                        row(duration, "_x7 0", job="replacement")],
+             "checks": [age("6m", 360), age("7m", 0)]},
+            {"name": "A missing port is distinct from a known port even without token evidence",
+             "series": [row(duration, "1 stale", server_port=""), row(duration)],
+             "checks": [age("6m", 360), age("15m", 0)]},
+        ]
+        for dimension in ("server_address", "server_port", "gen_ai_request_model", "k8s_cluster_name",
+                          "service_instance_id", "otel_scope_name", "gen_ai_provider_name"):
+            cases.append({"name": "Active sibling differs in " + dimension,
+                          "series": [row(duration, "1 stale"), row(duration, **{dimension: "other"})],
+                          "checks": [age("6m", 360), age("14m59s", 899), age("15m", 0)]})
+        for dimension in ("service_namespace", "service_name"):
+            other = {**IDENTITY, dimension: "other"}
+            check = age("6m", 360)
+            check["samples"] += age("6m", 0, other)["samples"]
+            cases.append({"name": "Distinct service attachment by " + dimension,
+                          "series": [row(duration, "1 stale"), row(duration, **other)],
+                          "checks": [check, age("15m", 0, other)]})
+        result = run_promql_cases(cases)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    @unittest.skipUnless(os.environ.get("AI_PROMETHEUS_IMAGE"), "Set AI_PROMETHEUS_IMAGE for query evaluation")
+    def test_periodic_sources_enroll_deviate_expire_and_recover_independently(self):
+        scrape = "product-scrape-freshness"
+        runtime = "product-exporter-freshness"
+        probe = "http-probe-freshness"
+        gpu = "gpu-telemetry-freshness"
+        node = {"k8s_cluster_name": "east", "k8s_node_name": "worker"}
+        cases = []
+
+        def check(key, when, count, owner=IDENTITY):
+            samples = [] if count is None else [{"labels": labels(owner), "value": count}]
+            return {"monitor": key, "eval_time": when, "samples": samples}
+
+        def enroll(name, key, sample, owner=IDENTITY):
+            cases.append({
+                "name": name, "interval": "1s", "series": [{**sample, "values": "_x7 0 stale _x903 1"}],
+                "checks": [check(key, "6s", None, owner), check(key, "7s", 0, owner),
+                           check(key, "307s", 0, owner), check(key, "307s1ms", 1, owner),
+                           check(key, "906s999ms", 1, owner), check(key, "907s", None, owner),
+                           check(key, "911s", None, owner), check(key, "912s", 0, owner),
+                           check(key, "16m", 0, owner)]})
+
+        for product in ("kserve", "kubeflow-pipelines", "litellm", "milvus", "qdrant", "vllm"):
+            enroll(product + " scrape result", scrape, point("up", 0, product))
+        for product, metric in (("ollama", "ollama_api_up"), ("elasticsearch", "elasticsearch_cluster_health"),
+                                ("opensearch", "elasticsearch_cluster_health"), ("qdrant", "memory_active_bytes"),
+                                ("vllm", "vllm:num_requests_waiting"), ("vllm", "vllm_num_requests_waiting")):
+            enroll(product + " " + metric, runtime, point(metric, 0, product))
+        enroll("Identified AI endpoint probe", probe, point("httpcheck_status", 0, suse_ai_observation_kind="http-probe"))
+        enroll("Model Registry receiver", probe, point("httpcheck_status", 0, "kubeflow-model-registry"))
+        enroll("Physical GPU utilization", gpu, point("DCGM_FI_DEV_GPU_UTIL", 0, identity=node, UUID="GPU-a"), node)
+
+        for key, metric, product, first, sibling, owner in (
+            (scrape, "up", "milvus", {"instance": "first"}, {"instance": "second"}, IDENTITY),
+            (scrape, "up", "kserve", {"job": "controller"}, {"job": "model"}, IDENTITY),
+            (runtime, "ollama_api_up", "ollama", {"service_instance_id": "a"}, {"service_instance_id": "b"}, IDENTITY),
+            (runtime, "memory_active_bytes", "qdrant", {"k8s_cluster_name": "a"}, {"k8s_cluster_name": "b"}, IDENTITY),
+            (probe, "httpcheck_status", "kubeflow-model-registry", {"http_url": "/a"}, {"http_url": "/b"}, IDENTITY),
+            (gpu, "DCGM_FI_DEV_GPU_UTIL", "", {"UUID": "GPU-a"}, {"UUID": "GPU-b"}, node),
+        ):
+            stopped = point(metric, 1, product, identity=owner, **first)
+            live = point(metric, 0, product, identity=owner, **sibling)
+            cases.append({"name": key + " isolates " + next(iter(sibling)),
+                          "series": [{**stopped, "values": "1 stale"}, live],
+                          "checks": [check(key, "6m", 1, owner), check(key, "15m", 0, owner)]})
+
+        def switched(key, before, after):
+            cases.append({"name": key + " continues across changing sample labels or metric spelling",
+                          "series": [{**before, "values": "1 stale"}, {**after, "values": "_ 0+0x20"}],
+                          "checks": [check(key, "6m", 0)]})
+
+        switched(runtime, point("elasticsearch_cluster_health", 1, "opensearch", status="green"),
+                 point("elasticsearch_cluster_health", 1, "opensearch", status="red"))
+        switched(runtime, point("vllm_num_requests_waiting", 1, "vllm"), point("vllm:num_requests_waiting", 0, "vllm"))
+        switched(probe, point("httpcheck_status", 1, "kubeflow-model-registry", http_status_code="200"),
+                 point("httpcheck_status", 0, "kubeflow-model-registry", http_status_code="503"))
+        cases.append({"name": "A successful Qdrant scrape cannot renew the runtime gauge",
+                      "series": [point("up", 1, "qdrant"), {**point("memory_active_bytes", 1, "qdrant"), "values": "1 stale"}],
+                      "checks": [check(scrape, "6m", 0), check(runtime, "6m", 1)]})
+        other_service = {**IDENTITY, "service_namespace": "other"}
+        counts = check(scrape, "6m", 2)
+        counts["samples"] += check(scrape, "6m", 0, other_service)["samples"]
+        cases.append({"name": "Count two silent targets only on their owning service",
+                      "series": [{**point("up", 1, "milvus", instance=i), "values": "1 stale"} for i in ("a", "b")] +
+                                [point("up", 1, "milvus", identity=other_service)],
+                      "checks": [counts, check(scrape, "15m", 0, other_service)]})
+        cases.append({"name": "Only identified sources and explicit AI probes enroll",
+                      "series": [point("up", 1, "unrelated"), point("up", 1, "kserve", suse_ai_managed="false"),
+                                 point("ollama_api_up", 1, "qdrant"), point("up", 1, "milvus", service_name=""),
+                                 point("httpcheck_status", 1), point("http_server_duration_milliseconds_count", 10, "mlflow"),
+                                 point("DCGM_FI_DEV_GPU_UTIL", 1, identity=node),
+                                 point("DCGM_FI_DEV_GPU_UTIL", 1, identity=node, UUID="GPU-a", GPU_I_ID="2")],
+                      "checks": [check(key, "6m", None) for key in (scrape, runtime, probe, gpu)]})
+        result = run_promql_cases(cases)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     @unittest.skipUnless(os.environ.get("AI_PROMETHEUS_IMAGE"), "Set AI_PROMETHEUS_IMAGE for query evaluation")

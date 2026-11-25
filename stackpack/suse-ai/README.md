@@ -62,6 +62,31 @@ checks. Agents retain their separate hosting-service health inheritance.
 Model highlights show **Served by** and **Hosting inference service** links. Existing
 model and service identities are retained when upgrading between these previews.
 
+### Telemetry freshness
+
+The first sample from a source starts its freshness check. A sample with value
+zero renews it. Checks run every minute. More than five minutes of silence
+produces a deviation. At fifteen minutes the source expires. When the last
+source expires, its check returns no observation. Another replica can continue
+reporting while a silent replica is deviating. The collection interval plus
+delivery delay should stay below five minutes, including when the workload is idle.
+
+| Source | Periodic signal | Where to look |
+| --- | --- | --- |
+| Instrumented GenAI client, including Open WebUI with the Ollama filter | GenAI client operation duration count, exported periodically even when idle | Calling service, scoped by client target |
+| Prometheus scrapes for KServe, Kubeflow Pipelines, LiteLLM, Milvus, Qdrant and vLLM | `up` for the identified product and scrape target | Scraped service |
+| Ollama, OpenSearch/Elasticsearch, Qdrant and vLLM runtimes | Respectively `ollama_api_up`, `elasticsearch_cluster_health`, `memory_active_bytes` and `vllm:num_requests_waiting` (also `vllm_num_requests_waiting`) | Product service and its reporting replicas |
+| Configured AI endpoint probes, including the profiles for MCPO, MLflow, Ollama, OpenSearch and Kubeflow Model Registry | `httpcheck_status`, per endpoint and replica | Probed service |
+| NVIDIA DCGM | `DCGM_FI_DEV_GPU_UTIL` for each physical GPU UUID | Kubernetes node |
+
+A fresh `up=0` or failed HTTP status confirms delivery of a failure observation.
+Kubeflow Pipelines scrape availability and HTTP endpoint availability have
+separate checks for those values. Traffic, token counts, model
+activity and traces can have natural gaps. A request on the client and a scrape
+on the server renew their respective checks independently.
+
+### Package validation
+
 From the public extension repository root, install test dependencies and run:
 
 ```sh

@@ -108,6 +108,13 @@ def recipes():
     stale["values"] = "1 _x10"
     add("genai-metric-stream-active", [stale], [point("gen_ai_client_operation_duration_seconds_count", 1)],
         600, 0, eval_time="10m")
+    for key, sample, owner in (
+        ("product-scrape-freshness", point("up", 0, "kubeflow-pipelines"), IDENTITY),
+        ("product-exporter-freshness", point("ollama_api_up", 0, "ollama"), IDENTITY),
+        ("http-probe-freshness", point("httpcheck_status", 0, suse_ai_observation_kind="http-probe"), IDENTITY),
+        ("gpu-telemetry-freshness", point("DCGM_FI_DEV_GPU_UTIL", 0, identity=node, UUID="GPU-a"), node),
+    ):
+        add(key, [{**sample, "values": "0 stale"}], [sample], 1, 0, identity=owner, eval_time="6m")
     ollama = {**IDENTITY, "k8s_cluster_name": "cluster-a", "service_instance_id": "pod-a"}
     add("ollama-model-unavailable", [point("ollama_api_up", 0, identity=ollama)],
         [point("ollama_api_up", 1, identity=ollama),
