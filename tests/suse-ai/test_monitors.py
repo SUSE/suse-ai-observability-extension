@@ -3,7 +3,7 @@
 import os
 import unittest
 
-from monitor_cases import IDENTITY, PREFIX, labels, matrix_cases, point, recipes
+from monitor_cases import IDENTITY, MODEL, PREFIX, labels, matrix_cases, point, recipes
 from test_contract import BY_ID, NODES, PACK, component, mapped, record
 from test_promql import run_promql_cases
 
@@ -54,6 +54,65 @@ class MonitorContractTest(unittest.TestCase):
     @unittest.skipUnless(os.environ.get("AI_PROMETHEUS_IMAGE"), "Set AI_PROMETHEUS_IMAGE for query evaluation")
     def test_all_monitor_queries_in_failing_recovering_and_no_data_states(self):
         result = run_promql_cases(matrix_cases())
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    @unittest.skipUnless(os.environ.get("AI_PROMETHEUS_IMAGE"), "Set AI_PROMETHEUS_IMAGE for query evaluation")
+    def test_duration_freshness_with_independent_token_observations(self):
+        duration = "gen_ai_client_operation_duration_seconds_count"
+        tokens = "gen_ai_client_token_usage_tokens_count"
+        producer = {**MODEL, "gen_ai_provider_name": "ollama",
+                    "otel_scope_name": "suse.ai.open_webui.ollama",
+                    "service_instance_id": "pod-1", "k8s_cluster_name": "cluster-a"}
+
+        def row(metric, values="1+0x30", **tags):
+            series = point(metric, 1, **{**producer, **tags})
+            series["values"] = values
+            return series
+
+        def age(minute, samples):
+            return {"monitor": "genai-metric-stream-active", "eval_time": f"{minute}m",
+                    "samples": [{"labels": labels(identity), "value": seconds} for identity, seconds in samples]}
+
+        cases = [
+            {"name": "A new token stream gives its first duration export five minutes to arrive",
+             "series": [row(tokens, "_x20 4+0x10")],
+             "checks": [age(20, []), age(25, []), age(26, [(IDENTITY, 360)])]},
+            {"name": "Constant token and duration counts, silence past expiry, then resumption",
+             "series": [row(tokens), row(duration, "9+0x2 stale _x20 9")],
+             "checks": [age(t, [(IDENTITY, seconds)]) for t, seconds in
+                        ((2, 0), (7, 300), (8, 360), (17, 900), (23, 900), (24, 0))]},
+            {"name": "Expected duration never arrived; same service name in another namespace is healthy",
+             "series": [row("gen_ai_client_token_usage_count"), row(duration, service_namespace="other")],
+             "checks": [age(25, [(IDENTITY, 900), ({**IDENTITY, "service_namespace": "other"}, 0)])]},
+            {"name": "Losing the last independent observation ends the assertion",
+             "series": [row(tokens, "1+0x24 stale"), row(duration, "1 stale")],
+             "checks": [age(24, [(IDENTITY, 900)]), age(25, [])]},
+            {"name": "Other telemetry cannot establish an expected duration",
+             "series": [point("up", 1), point("otel_span_calls_total", 1), row(tokens, otel_scope_name="other"),
+                        row(tokens, suse_ai_managed="false"), row(tokens, gen_ai_provider_name="other"),
+                        row(tokens, service_namespace=""), row(tokens, service_name=""),
+                        row(tokens, gen_ai_request_model=""), row(tokens, "1 stale")],
+             "checks": [age(20, [])]},
+            {"name": "Fresh failed calls supply both duration evidence and real model errors",
+             "series": [row(tokens), row(duration, "0+60x30", error_type="TimeoutError")],
+             "checks": [age(20, [(IDENTITY, 0)]),
+                        {"monitor": "model-usage-errors", "monitor_tags": {"gen_ai.provider.name": "ollama"},
+                         "eval_time": "20m", "samples": [
+                            {"labels": labels({**IDENTITY, "gen_ai_request_model": MODEL["gen_ai_request_model"]}),
+                             "value": 1}]}]},
+            {"name": "A missing endpoint port matches only another missing port; token types share one target",
+             "series": [row(tokens, server_port="", gen_ai_token_type="input"),
+                        row(tokens, server_port="", gen_ai_token_type="output"),
+                        row(duration), row(duration, "_x25 7", server_port="")],
+             "checks": [age(24, [(IDENTITY, 900)]), age(25, [(IDENTITY, 0)])]},
+        ]
+        for dimension in ("server_address", "server_port", "gen_ai_request_model", "k8s_cluster_name",
+                          "service_instance_id", "otel_scope_name", "gen_ai_provider_name", "suse_ai_managed"):
+            other = "false" if dimension == "suse_ai_managed" else "other"
+            cases.append({"name": "A different " + dimension + " cannot recover a silent target",
+                          "series": [row(tokens), row(duration, "1 stale"), row(duration, **{dimension: other})],
+                          "checks": [age(6, [(IDENTITY, 360)]), age(25, [(IDENTITY, 900)])]})
+        result = run_promql_cases(cases)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     @unittest.skipUnless(os.environ.get("AI_PROMETHEUS_IMAGE"), "Set AI_PROMETHEUS_IMAGE for query evaluation")

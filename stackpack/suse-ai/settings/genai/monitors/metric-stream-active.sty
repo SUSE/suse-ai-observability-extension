@@ -2,7 +2,7 @@ nodes:
 - _type: Monitor
   name: "AI telemetry freshness"
   identifier: urn:stackpack:suse-ai:monitor:genai-metric-stream-active
-  description: "Identifies gaps in AI monitoring when a previously observed metric stream stops reporting for five minutes. An idle application remains healthy while it sends samples. The check stops emitting a result after the 15-minute observation window expires."
+  description: "Detects gaps over five minutes in GenAI client duration samples. Reporting Open WebUI Ollama token counters also identify targets that should have duration samples. The chart shows the largest gap on the caller, up to 900 seconds."
   intervalSeconds: 60
   status: ENABLED
   function: urn:stackpack:common:monitor-function:threshold
@@ -11,9 +11,44 @@ nodes:
     comparator: GT
     failureState: DEVIATING
     metric:
-      aliasTemplate: "Age of last AI metric sample"
-      query: time() - (max by (service_namespace, service_name) (max_over_time(timestamp(gen_ai_client_operation_duration_seconds_count{service_namespace!="",
-        service_name!="", suse_ai_managed!="false"})[15m:15s])) > time() - 900)
+      aliasTemplate: "Duration sample age (capped at 900 s)"
+      # Preserve service-wide coverage for every previously observed client.
+      # Within a reporting Ollama target, prefer the actual last duration sample.
+      # If it is missing, measure from the oldest token evidence in the window;
+      # a newly observed target gets five minutes for its first duration export.
+      query: >-
+        max by (service_namespace, service_name) (
+          (time() - (max by (service_namespace, service_name) (
+            max_over_time(timestamp(gen_ai_client_operation_duration_seconds_count{
+              service_namespace!="", service_name!="", suse_ai_managed!="false"
+            })[15m:15s])
+          ) > time() - 900))
+          or
+          (
+            (
+              clamp_max(time() - max by (service_namespace, service_name, k8s_cluster_name, service_instance_id,
+                                         gen_ai_request_model, server_address, server_port) (
+                max_over_time(timestamp(gen_ai_client_operation_duration_seconds_count{
+                  service_namespace!="", service_name!="", suse_ai_managed!="false",
+                  otel_scope_name="suse.ai.open_webui.ollama", gen_ai_provider_name="ollama", gen_ai_request_model!=""
+                })[15m:15s])
+              ), 900)
+              or
+              (clamp_max(time() - min by (service_namespace, service_name, k8s_cluster_name, service_instance_id,
+                                          gen_ai_request_model, server_address, server_port) (
+                min_over_time(timestamp({__name__=~"gen_ai_client_token_usage(_tokens)?_count",
+                  service_namespace!="", service_name!="", suse_ai_managed!="false",
+                  otel_scope_name="suse.ai.open_webui.ollama", gen_ai_provider_name="ollama", gen_ai_request_model!=""
+                })[15m:15s])
+              ), 900) > 300)
+            )
+            and on (service_namespace, service_name, k8s_cluster_name, service_instance_id,
+                    gen_ai_request_model, server_address, server_port)
+            {__name__=~"gen_ai_client_token_usage(_tokens)?_count", service_namespace!="", service_name!="",
+             suse_ai_managed!="false", otel_scope_name="suse.ai.open_webui.ollama",
+             gen_ai_provider_name="ollama", gen_ai_request_model!=""}
+          )
+        )
       unit: s
     titleTemplate: "AI telemetry freshness: ${service_name}"
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}

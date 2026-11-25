@@ -1,11 +1,11 @@
 ### Check first
-Open [this component](/#/components/{{componentUrnForUrl}}/highlights) and its [metrics](/#/components/{{componentUrnForUrl}}/metrics). Check the age of the last GenAI operation counter, exporter and Collector export errors. The configured threshold is **{{threshold}}** in the monitor chart's unit.
+Check the timestamps of GenAI duration and token counters in the [caller’s metrics](/#/components/{{componentUrnForUrl}}/metrics). The threshold is **{{threshold}}** seconds. For an Open WebUI Ollama target with token samples alone, the gap is measured from the earliest token evidence in the observation window. The [caller](/#/components/{{componentUrnForUrl}}/highlights) shows the largest gap, capped at 900 seconds.
 
 ### Likely causes
-Application telemetry stopped, a broken pipeline or an exporter failure.
+The SDK or Collector stopped exporting duration samples. A metric filter or a change in cluster, instance, model or endpoint labels can also separate a duration counter from its token counter.
 
 ### Fix
-Restore metric export; an idle instrumented application should still export its cumulative counters.
+Restore export of the duration histogram with the same caller and target labels. An idle client can continue exporting unchanged cumulative counts.
 
 ### Verify
-Fresh counter samples arrive and their age falls below the threshold. Detection requires a previously observed operation and stops after the 15-minute lookback. If samples are absent, investigate the exporter and Collector: this threshold check cannot establish healthy operation without data.
+Confirm that a fresh duration sample reaches each reporting target and the age falls below the threshold. If both duration and qualifying token counters are absent, the check can disappear after the observation window. Verify the exporter independently in that case.
