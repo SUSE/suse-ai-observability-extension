@@ -74,7 +74,7 @@ def run_promql_cases(cases):
         tests.append(
             {
                 "name": case["name"],
-                "interval": "1m",
+                "interval": case.get("interval", "1m"),
                 "input_series": case["series"],
                 "promql_expr_test": checks,
             }

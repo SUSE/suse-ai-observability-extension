@@ -3,8 +3,10 @@
 import os
 import unittest
 
+import promql_parser as promql
+
 from monitor_cases import IDENTITY, MODEL, PREFIX, labels, matrix_cases, point, recipes
-from test_contract import BY_ID, NODES, PACK, component, mapped, record
+from test_contract import BY_ID, NODES, PACK, component, mapped, record, walk
 from test_promql import run_promql_cases
 
 
@@ -56,8 +58,27 @@ class MonitorContractTest(unittest.TestCase):
         result = run_promql_cases(matrix_cases())
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
+    def test_freshness_observation_and_service_mapping_contract(self):
+        monitor = BY_ID[PREFIX + "genai-metric-stream-active"]
+        args = monitor["arguments"]
+        self.assertEqual((monitor["intervalSeconds"], args["comparator"], args["threshold"],
+                          args["failureState"]), (60, "GT", 300, "DEVIATING"))
+        mapping = BY_ID["urn:stackpack:suse-ai:otel-component-mapping:services-metrics"]
+        self.assertEqual(mapping["expireAfter"], 900_000)
+        urn = args["urnTemplate"].replace("${service_namespace}", "ai").replace("${service_name}", "ui")
+        for cluster in ("east", "west"):
+            resource = {"service.namespace": "ai", "service.name": "ui", "k8s.cluster.name": cluster}
+            for metric in ("gen_ai.client.operation.duration", "gen_ai.client.token.usage"):
+                with self.subTest(metric=metric, cluster=cluster):
+                    service = component(record("METRICS", resource=resource, metric=metric), "otel service")
+                    self.assertEqual(service["identifier"], urn)
+        # More than one source can maintain this service. Only duration enrolls its freshness check.
+        query = promql.parse(args["metric"]["query"])
+        self.assertEqual({s.name for s in walk(query) if isinstance(s, promql.VectorSelector)},
+                         {"gen_ai_client_operation_duration_seconds_count"})
+
     @unittest.skipUnless(os.environ.get("AI_PROMETHEUS_IMAGE"), "Set AI_PROMETHEUS_IMAGE for query evaluation")
-    def test_duration_freshness_with_independent_token_observations(self):
+    def test_observed_duration_lifecycle(self):
         duration = "gen_ai_client_operation_duration_seconds_count"
         tokens = "gen_ai_client_token_usage_tokens_count"
         producer = {**MODEL, "gen_ai_provider_name": "ollama",
@@ -69,49 +90,70 @@ class MonitorContractTest(unittest.TestCase):
             series["values"] = values
             return series
 
-        def age(minute, samples):
-            return {"monitor": "genai-metric-stream-active", "eval_time": f"{minute}m",
-                    "samples": [{"labels": labels(identity), "value": seconds} for identity, seconds in samples]}
+        def age(when, seconds=None, identity=IDENTITY):
+            return {"monitor": "genai-metric-stream-active", "eval_time": when,
+                    "samples": [] if seconds is None else [{"labels": labels(identity), "value": seconds}]}
+
+        def errors(value, when="20m"):
+            return {"monitor": "model-usage-errors", "monitor_tags": {"gen_ai.provider.name": "ollama"},
+                    "eval_time": when, "samples": [] if value is None else [
+                        {"labels": labels({**IDENTITY, "gen_ai_request_model": MODEL["gen_ai_request_model"]}),
+                         "value": value}]}
 
         cases = [
-            {"name": "A new token stream gives its first duration export five minutes to arrive",
-             "series": [row(tokens, "_x20 4+0x10")],
-             "checks": [age(20, []), age(25, []), age(26, [(IDENTITY, 360)])]},
-            {"name": "Constant token and duration counts, silence past expiry, then resumption",
+            {"name": "Token-only, trace, reachability, excluded and unidentified callers",
+             "series": [row(tokens), row("gen_ai_client_token_usage_count", gen_ai_token_type="output"),
+                        point("up", 1),
+                        point("otel_span_calls_total", 1), row(duration, suse_ai_managed="false"),
+                        row(duration, service_namespace=""), row(duration, service_name="")],
+             "checks": [age("0m"), age("10m"), age("25m")]},
+            {"name": "Both streams stop after an off-grid duration sample; lookback cannot renew it",
+             "interval": "1s",
+             "series": [row(duration, "_x7 0"), row(tokens, "_x7 3 stale")],
+             "checks": [age("6s"), age("7s", 0), age("306s999ms", 299.999),
+                        age("307s", 300), age("307s1ms", 300.001), age("906s999ms", 899.999),
+                        age("907s"), age("907s1ms")]},
+            {"name": "Sample and stale marker between timestamp steps still enroll and expire",
+             "interval": "1s", "series": [row(duration, "_x7 0 stale")],
+             "checks": [age("6s"), age("7s", 0), age("8s", 15),
+                        age("307s", 300), age("307s1ms", 307.001), age("906s999ms", 900), age("907s")]},
+            {"name": "Both streams marked stale; counter restarts before and after expiry",
+             "series": [row(duration, "7 stale _x5 0 stale _x14 0"), row(tokens, "3 stale")],
+             "checks": [age("6m", 360), age("7m", 0), age("21m59s", 899),
+                        age("22m"), age("23m", 0)]},
+            {"name": "Continuous tokens cannot extend a previously observed duration",
              "series": [row(tokens), row(duration, "9+0x2 stale _x20 9")],
-             "checks": [age(t, [(IDENTITY, seconds)]) for t, seconds in
-                        ((2, 0), (7, 300), (8, 360), (17, 900), (23, 900), (24, 0))]},
-            {"name": "Expected duration never arrived; same service name in another namespace is healthy",
-             "series": [row("gen_ai_client_token_usage_count"), row(duration, service_namespace="other")],
-             "checks": [age(25, [(IDENTITY, 900), ({**IDENTITY, "service_namespace": "other"}, 0)])]},
-            {"name": "Losing the last independent observation ends the assertion",
-             "series": [row(tokens, "1+0x24 stale"), row(duration, "1 stale")],
-             "checks": [age(24, [(IDENTITY, 900)]), age(25, [])]},
-            {"name": "Other telemetry cannot establish an expected duration",
-             "series": [point("up", 1), point("otel_span_calls_total", 1), row(tokens, otel_scope_name="other"),
-                        row(tokens, suse_ai_managed="false"), row(tokens, gen_ai_provider_name="other"),
-                        row(tokens, service_namespace=""), row(tokens, service_name=""),
-                        row(tokens, gen_ai_request_model=""), row(tokens, "1 stale")],
-             "checks": [age(20, [])]},
-            {"name": "Fresh failed calls supply both duration evidence and real model errors",
-             "series": [row(tokens), row(duration, "0+60x30", error_type="TimeoutError")],
-             "checks": [age(20, [(IDENTITY, 0)]),
-                        {"monitor": "model-usage-errors", "monitor_tags": {"gen_ai.provider.name": "ollama"},
-                         "eval_time": "20m", "samples": [
-                            {"labels": labels({**IDENTITY, "gen_ai_request_model": MODEL["gen_ai_request_model"]}),
-                             "value": 1}]}]},
-            {"name": "A missing endpoint port matches only another missing port; token types share one target",
-             "series": [row(tokens, server_port="", gen_ai_token_type="input"),
-                        row(tokens, server_port="", gen_ai_token_type="output"),
-                        row(duration), row(duration, "_x25 7", server_port="")],
-             "checks": [age(24, [(IDENTITY, 900)]), age(25, [(IDENTITY, 0)])]},
+             "checks": [age("7m", 300), age("8m", 360), age("16m59s", 899),
+                        age("17m"), age("23m"), age("24m", 0)]},
+            {"name": "Tokens continue for the silent target while its sibling still exports duration",
+             "series": [row(tokens), row(duration, "1 stale"), row(duration, server_address="other")],
+             "checks": [age("6m", 360), age("14m59s", 899), age("15m", 0)]},
+            {"name": "Fresh idle zero has no model error ratio",
+             "series": [row(duration, "0+0x30")], "checks": [age("20m", 0), errors(None)]},
+            {"name": "Fresh duration across failed calls and subsequent successful calls",
+             "series": [row(duration, "0+60x20 1200+0x10", error_type="TimeoutError"),
+                        row(duration, "0+0x20 60+60x9")],
+             "checks": [age("20m", 0), errors(1), age("26m", 0), errors(0, "26m")]},
+            {"name": "Fresh same-target duration recovers across outcome and scrape labels",
+             "series": [row(duration, "1 stale", error_type="TimeoutError"),
+                        row(duration, "_x7 0", job="replacement")],
+             "checks": [age("6m", 360), age("7m", 0)]},
+            {"name": "A missing port is distinct from a known port even without token evidence",
+             "series": [row(duration, "1 stale", server_port=""), row(duration)],
+             "checks": [age("6m", 360), age("15m", 0)]},
         ]
         for dimension in ("server_address", "server_port", "gen_ai_request_model", "k8s_cluster_name",
-                          "service_instance_id", "otel_scope_name", "gen_ai_provider_name", "suse_ai_managed"):
-            other = "false" if dimension == "suse_ai_managed" else "other"
-            cases.append({"name": "A different " + dimension + " cannot recover a silent target",
-                          "series": [row(tokens), row(duration, "1 stale"), row(duration, **{dimension: other})],
-                          "checks": [age(6, [(IDENTITY, 360)]), age(25, [(IDENTITY, 900)])]})
+                          "service_instance_id", "otel_scope_name", "gen_ai_provider_name"):
+            cases.append({"name": "Active sibling differs in " + dimension,
+                          "series": [row(duration, "1 stale"), row(duration, **{dimension: "other"})],
+                          "checks": [age("6m", 360), age("14m59s", 899), age("15m", 0)]})
+        for dimension in ("service_namespace", "service_name"):
+            other = {**IDENTITY, dimension: "other"}
+            check = age("6m", 360)
+            check["samples"] += age("6m", 0, other)["samples"]
+            cases.append({"name": "Distinct service attachment by " + dimension,
+                          "series": [row(duration, "1 stale"), row(duration, **other)],
+                          "checks": [check, age("15m", 0, other)]})
         result = run_promql_cases(cases)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 

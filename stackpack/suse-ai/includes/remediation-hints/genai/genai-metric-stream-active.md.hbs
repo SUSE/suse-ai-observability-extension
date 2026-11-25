@@ -1,11 +1,11 @@
 ### Check first
-Check the timestamps of GenAI duration and token counters in the [caller’s metrics](/#/components/{{componentUrnForUrl}}/metrics). The threshold is **{{threshold}}** seconds. For an Open WebUI Ollama target with token samples alone, the gap is measured from the earliest token evidence in the observation window. The [caller](/#/components/{{componentUrnForUrl}}/highlights) shows the largest gap, capped at 900 seconds.
+Open the [caller’s metrics](/#/components/{{componentUrnForUrl}}/metrics) and inspect the last sample of each GenAI client duration count. The chart shows the largest sample age on this caller. If a sample goes stale between 15-second query steps, its displayed age can be up to 15 seconds high. A gap over **{{threshold}}** seconds triggers the check. An unchanged count, including zero, is fresh when its sample timestamp advances.
 
 ### Likely causes
-The SDK or Collector stopped exporting duration samples. A metric filter or a change in cluster, instance, model or endpoint labels can also separate a duration counter from its token counter.
+The periodic metric reader or Collector stopped exporting, a filter dropped duration, or the worker or target labels changed. Token counts can continue when duration export fails. At a one-minute export interval, the five-minute allowance covers five export periods. It assumes cumulative counts continue to arrive while the caller is idle.
 
 ### Fix
-Restore export of the duration histogram with the same caller and target labels. An idle client can continue exporting unchanged cumulative counts.
+Check the metric reader’s effective export interval, temporality and delivery delay. The Pipelines SDK reader can use `OTEL_METRIC_EXPORT_INTERVAL`. Upstream Open WebUI 0.6.41 explicitly sets its host meter reader interval to 10 seconds for both OTLP/HTTP and OTLP/gRPC, so that setting has no effect on the host reader’s interval. If a producer exports only on events or exports slowly, normal idle periods can trigger this check. Restore duration export for the affected caller, instance, instrumentation scope, provider, model and endpoint.
 
 ### Verify
-Confirm that a fresh duration sample reaches each reporting target and the age falls below the threshold. If both duration and qualifying token counters are absent, the check can disappear after the observation window. Verify the exporter independently in that case.
+A new duration sample renews the target immediately on evaluation. If duration stays absent for fifteen minutes, that target drops out of the check. Other observations can keep the service visible. An empty chart supplies no health result.
