@@ -158,6 +158,82 @@ class MonitorContractTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     @unittest.skipUnless(os.environ.get("AI_PROMETHEUS_IMAGE"), "Set AI_PROMETHEUS_IMAGE for query evaluation")
+    def test_periodic_sources_enroll_deviate_expire_and_recover_independently(self):
+        scrape = "product-scrape-freshness"
+        runtime = "product-exporter-freshness"
+        probe = "http-probe-freshness"
+        gpu = "gpu-telemetry-freshness"
+        node = {"k8s_cluster_name": "east", "k8s_node_name": "worker"}
+        cases = []
+
+        def check(key, when, count, owner=IDENTITY):
+            samples = [] if count is None else [{"labels": labels(owner), "value": count}]
+            return {"monitor": key, "eval_time": when, "samples": samples}
+
+        def enroll(name, key, sample, owner=IDENTITY):
+            cases.append({
+                "name": name, "interval": "1s", "series": [{**sample, "values": "_x7 0 stale _x903 1"}],
+                "checks": [check(key, "6s", None, owner), check(key, "7s", 0, owner),
+                           check(key, "307s", 0, owner), check(key, "307s1ms", 1, owner),
+                           check(key, "906s999ms", 1, owner), check(key, "907s", None, owner),
+                           check(key, "911s", None, owner), check(key, "912s", 0, owner),
+                           check(key, "16m", 0, owner)]})
+
+        for product in ("kserve", "kubeflow-pipelines", "litellm", "milvus", "qdrant", "vllm"):
+            enroll(product + " scrape result", scrape, point("up", 0, product))
+        for product, metric in (("ollama", "ollama_api_up"), ("elasticsearch", "elasticsearch_cluster_health"),
+                                ("opensearch", "elasticsearch_cluster_health"), ("qdrant", "memory_active_bytes"),
+                                ("vllm", "vllm:num_requests_waiting"), ("vllm", "vllm_num_requests_waiting")):
+            enroll(product + " " + metric, runtime, point(metric, 0, product))
+        enroll("Identified AI endpoint probe", probe, point("httpcheck_status", 0, suse_ai_observation_kind="http-probe"))
+        enroll("Model Registry receiver", probe, point("httpcheck_status", 0, "kubeflow-model-registry"))
+        enroll("Physical GPU utilization", gpu, point("DCGM_FI_DEV_GPU_UTIL", 0, identity=node, UUID="GPU-a"), node)
+
+        for key, metric, product, first, sibling, owner in (
+            (scrape, "up", "milvus", {"instance": "first"}, {"instance": "second"}, IDENTITY),
+            (scrape, "up", "kserve", {"job": "controller"}, {"job": "model"}, IDENTITY),
+            (runtime, "ollama_api_up", "ollama", {"service_instance_id": "a"}, {"service_instance_id": "b"}, IDENTITY),
+            (runtime, "memory_active_bytes", "qdrant", {"k8s_cluster_name": "a"}, {"k8s_cluster_name": "b"}, IDENTITY),
+            (probe, "httpcheck_status", "kubeflow-model-registry", {"http_url": "/a"}, {"http_url": "/b"}, IDENTITY),
+            (gpu, "DCGM_FI_DEV_GPU_UTIL", "", {"UUID": "GPU-a"}, {"UUID": "GPU-b"}, node),
+        ):
+            stopped = point(metric, 1, product, identity=owner, **first)
+            live = point(metric, 0, product, identity=owner, **sibling)
+            cases.append({"name": key + " isolates " + next(iter(sibling)),
+                          "series": [{**stopped, "values": "1 stale"}, live],
+                          "checks": [check(key, "6m", 1, owner), check(key, "15m", 0, owner)]})
+
+        def switched(key, before, after):
+            cases.append({"name": key + " continues across changing sample labels or metric spelling",
+                          "series": [{**before, "values": "1 stale"}, {**after, "values": "_ 0+0x20"}],
+                          "checks": [check(key, "6m", 0)]})
+
+        switched(runtime, point("elasticsearch_cluster_health", 1, "opensearch", status="green"),
+                 point("elasticsearch_cluster_health", 1, "opensearch", status="red"))
+        switched(runtime, point("vllm_num_requests_waiting", 1, "vllm"), point("vllm:num_requests_waiting", 0, "vllm"))
+        switched(probe, point("httpcheck_status", 1, "kubeflow-model-registry", http_status_code="200"),
+                 point("httpcheck_status", 0, "kubeflow-model-registry", http_status_code="503"))
+        cases.append({"name": "A successful Qdrant scrape cannot renew the runtime gauge",
+                      "series": [point("up", 1, "qdrant"), {**point("memory_active_bytes", 1, "qdrant"), "values": "1 stale"}],
+                      "checks": [check(scrape, "6m", 0), check(runtime, "6m", 1)]})
+        other_service = {**IDENTITY, "service_namespace": "other"}
+        counts = check(scrape, "6m", 2)
+        counts["samples"] += check(scrape, "6m", 0, other_service)["samples"]
+        cases.append({"name": "Count two silent targets only on their owning service",
+                      "series": [{**point("up", 1, "milvus", instance=i), "values": "1 stale"} for i in ("a", "b")] +
+                                [point("up", 1, "milvus", identity=other_service)],
+                      "checks": [counts, check(scrape, "15m", 0, other_service)]})
+        cases.append({"name": "Only identified sources and explicit AI probes enroll",
+                      "series": [point("up", 1, "unrelated"), point("up", 1, "kserve", suse_ai_managed="false"),
+                                 point("ollama_api_up", 1, "qdrant"), point("up", 1, "milvus", service_name=""),
+                                 point("httpcheck_status", 1), point("http_server_duration_milliseconds_count", 10, "mlflow"),
+                                 point("DCGM_FI_DEV_GPU_UTIL", 1, identity=node),
+                                 point("DCGM_FI_DEV_GPU_UTIL", 1, identity=node, UUID="GPU-a", GPU_I_ID="2")],
+                      "checks": [check(key, "6m", None) for key in (scrape, runtime, probe, gpu)]})
+        result = run_promql_cases(cases)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    @unittest.skipUnless(os.environ.get("AI_PROMETHEUS_IMAGE"), "Set AI_PROMETHEUS_IMAGE for query evaluation")
     def test_application_reliability_covers_background_work_without_inventing_idle_health(self):
         def check(value):
             return {"monitor": "application-span-error-ratio", "samples": [] if value is None else [

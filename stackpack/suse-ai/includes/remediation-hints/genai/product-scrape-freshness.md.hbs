@@ -1,0 +1,11 @@
+### Check first
+Open the [service metrics](/#/components/{{componentUrnForUrl}}/metrics) and look for the last `up` sample for each previously observed scrape target. A fresh zero means that the Collector attempted the scrape and reported a failure.
+
+### Likely causes
+Target discovery changed, the Collector stopped running, or its export path dropped scrape results.
+
+### Fix
+Compare the discovered targets with the expected replicas and check the scraper and its export pipeline. Check the target endpoint separately when `up` is zero.
+
+### Verify
+The next delivered scrape result renews that target. After fifteen minutes absent, its observation expires. An empty result means there is no recent qualifying target.

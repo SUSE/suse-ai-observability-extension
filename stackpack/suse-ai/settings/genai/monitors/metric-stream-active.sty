@@ -1,6 +1,6 @@
 nodes:
 - _type: Monitor
-  name: "AI telemetry freshness"
+  name: "GenAI client duration freshness"
   identifier: urn:stackpack:suse-ai:monitor:genai-metric-stream-active
   description: "Checks periodically exported GenAI client duration counts after their first sample. The caller deviates when any observed target has been silent for over five minutes. Its duration evidence expires at fifteen minutes."
   intervalSeconds: 60
@@ -53,6 +53,6 @@ nodes:
           )
         ), 900)
       unit: s
-    titleTemplate: "AI telemetry freshness: ${service_name}"
+    titleTemplate: "Client duration freshness: ${service_name}"
     urnTemplate: urn:opentelemetry:namespace/${service_namespace}:service/${service_name}
   remediationHint: !include 'remediation-hints/genai/genai-metric-stream-active.md.hbs'
