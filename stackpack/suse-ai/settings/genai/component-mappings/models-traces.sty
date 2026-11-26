@@ -92,3 +92,16 @@ nodes:
       tags:
       - source: string(span.attributes['gen_ai.provider.name'])
         target: suse.ai.trace.gen_ai.provider.name
+      # Trace filters only narrow on reported endpoint fields. An unreported
+      # endpoint stays part of the usage identifier and tags, but must not
+      # become an empty matcher that hides every span lacking the attribute.
+      - source: >-
+          'server.address' in span.attributes && string(span.attributes['server.address']) != ''
+          ? {'server.address': span.attributes['server.address']} : {}
+        pattern: '^(.*)$'
+        target: 'suse.ai.trace.${1}'
+      - source: >-
+          'server.port' in span.attributes && string(span.attributes['server.port']) != ''
+          ? {'server.port': span.attributes['server.port']} : {}
+        pattern: '^(.*)$'
+        target: 'suse.ai.trace.${1}'

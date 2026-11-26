@@ -34,7 +34,9 @@ urn:suse-ai:namespace/prod:service/inference:served-model/llama3
 ```
 
 Model usage retains its provider and both endpoint fields, including empty values
-for unknown endpoints. Metrics and traces use the same identity. Values are not
+for unknown endpoints. Metrics and traces use the same identity. Model detail
+trace filters narrow only on endpoint fields the span reports; an unreported
+field stays in the identity and tags but does not become an empty matcher. Values are not
 escaped: embedded field separators such as `:service/` or `:agent/` can cause
 collisions. Avoiding these sequences in names is an instrumentation convention,
 not an enforced validation rule. Ordinary colons and slashes remain usable.

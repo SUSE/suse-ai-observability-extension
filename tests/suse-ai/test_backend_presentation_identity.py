@@ -135,17 +135,23 @@ class BackendPresentationIdentityTest(BackendTestCase):
             {"server.address": "other.example", "server.port": 11434},
         ]
         expected = {}
+        cases_by_service = {}
         rows = []
         now = time.time_ns()
         for ns, name in itertools.product(("one", "two"), ("caller", "other")):
             namespace, service = self.prefix + "-" + ns, self.prefix + "-" + name
             spans = []
+            service_cases = cases_by_service.setdefault((namespace, service), [])
             for endpoint in endpoints:
                 address, port = str(endpoint.get("server.address", "")), str(endpoint.get("server.port", ""))
                 identifier = (f"urn:suse-ai:namespace/{namespace}:service/{service}"
                               f":provider/ollama:address/{address}:port/{port}:model/test-model")
                 trace_id = uuid.uuid4().hex
-                expected.setdefault(identifier, {"traces": set(), "address": address, "port": port})["traces"].add(trace_id)
+                expected.setdefault(identifier, {
+                    "traces": set(), "address": address, "port": port,
+                    "service": (namespace, service),
+                })["traces"].add(trace_id)
+                service_cases.append((address, port, trace_id))
                 spans.append({
                     "traceId": trace_id, "spanId": uuid.uuid4().hex[:16],
                     "name": "presentation-endpoint-test", "kind": 3,
@@ -169,18 +175,33 @@ class BackendPresentationIdentityTest(BackendTestCase):
             case = expected[identity]
             detail = self.capture(str(component["id"]) + "-detail", self.api(f'/api/components/{component["id"]}'))
             bound = detail["boundTraces"]["filter"]
-            self.assertEqual(bound["attributes"]["server.address"], [case["address"]])
-            self.assertEqual(bound["attributes"]["server.port"], [case["port"]])
+            # Unreported endpoint fields must not become empty matchers. They
+            # stay in the identifier and tags, but the trace filter narrows on
+            # the reported fields only.
+            self.assertEqual(bound["attributes"].get("server.address"),
+                             [case["address"]] if case["address"] else None)
+            self.assertEqual(bound["attributes"].get("server.port"),
+                             [case["port"]] if case["port"] else None)
+            if case["address"]:
+                self.assertEqual(self.tag_values(component, "server.address"), {case["address"]})
+            if case["port"]:
+                self.assertEqual(self.tag_values(component, "server.port"), {case["port"]})
             self.assertEqual(self.tag_values(component, "cluster-name"), {self.k8s["k8s.cluster.name"]})
+            matched = {
+                trace_id
+                for address, port, trace_id in cases_by_service[case["service"]]
+                if (not case["address"] or address == case["address"])
+                and (not case["port"] or port == case["port"])
+            }
 
             def matching_traces():
                 end = int(time.time() * 1000)
                 result = self.api(f'/api/traces/query?start={end - 600000}&end={end}&page=0&pageSize=100', {
                     "primarySpanFilter": bound, "secondarySpanFilter": {"attributes": {}}, "sortBy": [],
                 })
-                return result if {r["traceId"] for r in result["traces"]} == case["traces"] else False
+                return result if {r["traceId"] for r in result["traces"]} == matched else False
 
-            self.capture(str(component["id"]) + "-traces", self.wait_for(matching_traces, "exact endpoint trace matches"))
+            self.capture(str(component["id"]) + "-traces", self.wait_for(matching_traces, "endpoint trace matches"))
 
     def test_ordinary_agent_does_not_bind_demo_only_highlights(self):
         name = self.prefix + "-ordinary-agent"

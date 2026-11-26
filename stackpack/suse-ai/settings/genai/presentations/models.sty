@@ -105,9 +105,8 @@ nodes:
           - ${tags.singleValue('service.namespace')}
           gen_ai.request.model:
           - ${tags.singleValue('gen_ai.request.model')}
-          server.address:
-          - ${tags.singleValue('server.address')}
-          server.port:
-          - ${tags.singleValue('server.port')}
+          # Endpoint matchers come from suse.ai.trace.* tags, which exist only
+          # for reported address/port values. Explicit empty matchers exclude
+          # spans that omit the attribute, producing an empty trace panel.
           __multi__:
           - ${selectPrefix(tags, 'suse.ai.trace.')}
