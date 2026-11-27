@@ -211,6 +211,26 @@ def error_type(error):
     return f"http_{code}" if isinstance(code, int) else type(error).__name__
 
 
+def _provider_signature(original):
+    if not inspect.iscoroutinefunction(original):
+        return None, "is not an async function"
+    try:
+        signature = inspect.signature(original)
+    except (TypeError, ValueError) as failure:
+        return None, f"signature cannot be inspected ({type(failure).__name__})"
+    parameters = signature.parameters
+    url = parameters.get("url")
+    payload = parameters.get("payload")
+    variadic = (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD)
+    if url is None or url.kind in variadic:
+        return None, "has no explicit url parameter"
+    if url.default is not inspect.Parameter.empty:
+        return None, "url is not required"
+    if payload is None or payload.kind in variadic:
+        return None, "has no explicit payload parameter"
+    return signature, None
+
+
 def wrap_provider(original, current, tracer=None, meter=None, active=None):
     try:
         signature = inspect.signature(original)
@@ -318,23 +338,46 @@ def install(router, tracer=None, meter=None):
     active = ContextVar("suse_ai_ollama_active", default=False)
     router._suse_ai_ollama_current = current
     router._suse_ai_ollama_active = active
-    wrapped = set()
+    wrappers = {}
+    seen = False
     for name in ("send_request", "send_post_request"):
         original = getattr(router, name, None)
-        if not callable(original) or id(original) in wrapped:
+        if not callable(original):
             continue
-        wrapped.add(id(original))
+        seen = True
+        if id(original) in wrappers:
+            try:
+                setattr(router, name, wrappers[id(original)])
+            except Exception as failure:
+                _diagnose(
+                    f"alias:{name}",
+                    f"cannot assign the shared wrapper to router.{name} "
+                    f"({type(failure).__name__}); this alias stays uninstrumented",
+                )
+            continue
+        _, reason = _provider_signature(original)
+        if reason:
+            _diagnose(
+                f"signature:{name}",
+                f"router.{name} {reason}; leaving it untouched. Expected the async "
+                "url/payload interface from Open WebUI 0.6.41 or 0.13.0. Chat "
+                "continues without telemetry on this surface.",
+            )
+            continue
         try:
-            setattr(router, name, wrap_provider(
+            wrapper = wrap_provider(
                 original, current, tracer=tracer, meter=meter, active=active,
-            ))
+            )
+            setattr(router, name, wrapper)
         except Exception as failure:
             _diagnose(
-                "wrap",
+                f"wrap:{name}",
                 f"cannot instrument router.{name} ({type(failure).__name__}); "
                 "chat is left untouched",
             )
-    if not wrapped:
+            continue
+        wrappers[id(original)] = wrapper
+    if not wrappers and not seen:
         _diagnose(
             "unsupported",
             "no supported Ollama provider function found; expected router.send_request "

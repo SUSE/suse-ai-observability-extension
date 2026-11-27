@@ -473,6 +473,72 @@ class ProviderTests(unittest.IsolatedAsyncioTestCase):
                          ["nested", "direct"])
         self.assertIs(integration.install(router), settings)
 
+    async def test_install_skips_wrong_signature_and_non_async_callables(self):
+        integration._DIAGNOSTICS.clear()
+        calls = []
+
+        async def send_request(endpoint, *, data):
+            calls.append((endpoint, data))
+            return {"done": True}
+
+        def send_post_request(url, payload):
+            return {"done": True}
+
+        router = SimpleNamespace(send_request=send_request,
+                                 send_post_request=send_post_request)
+        with self.assertLogs(integration.LOGGER, level="WARNING") as captured:
+            settings = integration.install(router)
+        settings.set(integration.Filter.Valves())
+
+        self.assertIs(router.send_request, send_request)
+        self.assertIs(router.send_post_request, send_post_request)
+        self.assertEqual(await router.send_request("http://ollama:11434/api/chat",
+                                                   data='{"model":"ordinary"}'),
+                         {"done": True})
+        self.assertEqual(calls, [("http://ollama:11434/api/chat", '{"model":"ordinary"}')])
+        self.assertEqual(self.operations(), [])
+        self.assertEqual(len(captured.records), 2)
+        output = "\n".join(captured.output)
+        self.assertIn("send_request", output)
+        self.assertIn("explicit url", output)
+        self.assertIn("send_post_request", output)
+        self.assertIn("not an async function", output)
+        integration._DIAGNOSTICS.clear()
+
+    async def test_install_instruments_aliased_names_with_the_same_wrapper(self):
+        async def provider(url, payload, stream=False):
+            return {"done": True, "model": "alias", "eval_count": 1}
+
+        router = SimpleNamespace(send_request=provider, send_post_request=provider)
+        settings = integration.install(router, self.tracer, self.meter)
+        settings.set(integration.Filter.Valves())
+
+        self.assertIsNot(router.send_request, provider)
+        self.assertIs(router.send_request, router.send_post_request)
+        await router.send_request("http://ollama:11434/api/chat", '{"model":"one"}')
+        await router.send_post_request("http://ollama:11434/api/chat", '{"model":"two"}')
+        self.assertEqual([s.attributes["gen_ai.request.model"] for s in self.operations()],
+                         ["one", "two"])
+
+    async def test_independent_stream_background_task_is_still_run(self):
+        ran = []
+
+        async def body():
+            yield b'{"done":true}\n'
+
+        async def background():
+            ran.append("original")
+
+        async def original(url, payload):
+            return StreamingResponse(body(), background=BackgroundTask(background))
+
+        response = await self.wrap(original)("http://ollama:11434/api/chat",
+                                             '{"model":"background"}')
+        self.assertEqual([chunk async for chunk in response.body_iterator], [b'{"done":true}\n'])
+        await response.background()
+        self.assertEqual(ran, ["original"])
+        self.assertEqual(len(self.operations()), 1)
+
     async def test_unsupported_router_warns_once_and_leaves_chat_untouched(self):
         integration._DIAGNOSTICS.clear()
         router = SimpleNamespace()

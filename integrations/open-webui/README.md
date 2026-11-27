@@ -27,11 +27,14 @@ closed. Open WebUI 0.6.41 returns the parsed JSON object or a
 cleanup task. The adapter observes both shapes without changing status,
 headers, body bytes, stream framing or cancellation.
 
-On an unsupported router the Filter leaves chat untouched and logs one bounded
-warning listing the expected provider functions. Instrumentation failures never
-fail a chat request; they only suppress telemetry for that call. Check the
-Open WebUI version against this document, update the integration, then restart
-every worker.
+At install time the adapter verifies that each candidate is an async function
+with an explicit required `url` and an explicit `payload` parameter. A name that
+does not match is left untouched and produces one bounded diagnostic. If two
+names alias the same callable, both names receive the same wrapper instead of
+leaving one silently uninstrumented. If no candidate is usable, chat continues
+without telemetry. Instrumentation failures never fail a chat request; they
+only suppress telemetry for that call. Check the Open WebUI version against
+this document, update the integration, then restart every worker.
 
 ## Installation
 
