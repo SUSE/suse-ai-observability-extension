@@ -84,14 +84,46 @@ def ollama(metric, offset=False, by_model=False):
     return "max by (" + group + ") (" + selector(metric, offset=offset) + ")"
 
 
-def device(metric, offset=False):
+# DCGM Exporter 4.9.0 (bundled by GPU Operator 26.7.3) renamed default fields
+# and changed some units. Read both generations so dashboards and alerts keep
+# working before, during and after an exporter rollout. Each entry is:
+# new field, legacy field, new-to-display factor, legacy-to-display factor.
+DCGM_FIELDS = {
+    "utilization": ("DCGM_FI_DEV_GPU_UTIL_RATIO", "DCGM_FI_DEV_GPU_UTIL", 100, 1),
+    "temperature": ("DCGM_FI_DEV_GPU_TEMP_CELSIUS", "DCGM_FI_DEV_GPU_TEMP", 1, 1),
+    "power": ("DCGM_FI_DEV_BOARD_POWER_WATTS", "DCGM_FI_DEV_POWER_USAGE", 1, 1),
+    "fb_used": ("DCGM_FI_DEV_FB_USED_BYTES", "DCGM_FI_DEV_FB_USED", 1, 1048576),
+    "fb_free": ("DCGM_FI_DEV_FB_FREE_BYTES", "DCGM_FI_DEV_FB_FREE", 1, 1048576),
+}
+
+
+def scaled_selector(metric, factor, extra="", offset=False):
+    value = selector(metric, extra, offset)
+    return value if factor == 1 else "(" + str(factor) + " * " + value + ")"
+
+
+def collapse(kind, labels, metric, factor, extra="", offset=False):
+    # Reduce each exporter generation to the stable identity before combining.
+    # This drops generation-specific labels such as the renamed driver-version
+    # label, so a stale legacy sample cannot be preferred over a newer one.
+    return kind + " by (" + labels + ") (" + scaled_selector(metric, factor, extra, offset) + ")"
+
+
+def dcgm(key, extra="", offset=False):
+    new, old, new_factor, old_factor = DCGM_FIELDS[key]
+    kind = "min" if key == "fb_free" else "max"
+    return ("(" + collapse(kind, DEVICE_ID, new, new_factor, extra, offset) + " or "
+            + collapse(kind, DEVICE_ID, old, old_factor, extra, offset) + ")")
+
+
+def device(key, offset=False):
     # Whole physical GPUs only. UUID is verified in the demo; exclude missing IDs and MIG slices.
-    return "max by (" + DEVICE_ID + ") (" + selector(metric, 'UUID!="", GPU_I_ID=""', offset) + ")"
+    return dcgm(key, 'UUID!="", GPU_I_ID="", GPU_I_PROFILE=""', offset)
 
 
 def memory_percent(offset=False):
-    used = device("DCGM_FI_DEV_FB_USED", offset)
-    free = device("DCGM_FI_DEV_FB_FREE", offset)
+    used = device("fb_used", offset)
+    free = device("fb_free", offset)
     return "100 * " + used + " / ((" + used + " + " + free + ") > 0)"
 
 
@@ -204,7 +236,7 @@ def build():
                 "LiteLLM failures divided by proxy requests. Idle traffic has no error percentage.")),
             ("client-latency", stat("Client duration p95", client_p95(), "s", 2,
                 "P95 of observed client operations, including failed calls; not server TTFT.")),
-            ("gpu-util", stat("Mean GPU utilization", "avg(" + device("DCGM_FI_DEV_GPU_UTIL") + ")", "percent", 1,
+            ("gpu-util", stat("Mean GPU utilization", "avg(" + device("utilization") + ")", "percent", 1,
                 "Equal-weight average of reported physical GPUs, deduplicated by cluster and device.")),
         ], [
             ("calls-compare", comparison("Client calls / min", client_rate, description=client_scope)),
@@ -213,9 +245,10 @@ def build():
                 description="Server-side output throughput, separate from caller token observations.")),
             ("models-compare", comparison("Ollama loaded model replicas", lambda past: "sum(" + ollama("ollama_loaded_models", past) + ")",
                 description="Loaded models summed across serving replicas; the same model on two replicas counts twice.", decimals=0)),
-            ("gpu-compare", comparison("Mean GPU utilization", lambda past: "avg(" + device("DCGM_FI_DEV_GPU_UTIL", past) + ")", "percent",
+            ("gpu-compare", comparison("Mean GPU utilization", lambda past: "avg(" + device("utilization", past) + ")", "percent",
                 description="Compare utilization with calls and latency before deciding to add capacity.")),
-        ], coverage, [CLIENT_COUNT, "ollama_api_up", "DCGM_FI_DEV_GPU_UTIL", "litellm_proxy_requests_metric_total", "vllm:generation_tokens_total"])
+        ], coverage, [CLIENT_COUNT, "ollama_api_up", "DCGM_FI_DEV_GPU_UTIL", "DCGM_FI_DEV_GPU_UTIL_RATIO",
+                       "litellm_proxy_requests_metric_total", "vllm:generation_tokens_total"])
 
     callers = "service_namespace, service_name, gen_ai_provider_name, gen_ai_request_model"
     caller_alias = "${service_namespace}/${service_name} · ${gen_ai_provider_name}/${gen_ai_request_model}"
@@ -264,31 +297,36 @@ def build():
         "Locate busy, memory-constrained or hot physical GPUs using DCGM telemetry.",
         "Each device is identified by cluster and UUID; repeated pod/scrape copies are deduplicated. "
         "MIG slices and missing UUIDs are excluded. Legends show node and the first eight GPU UUID characters. "
+        "Legacy and DCGM 4.7 exporter names are both read, so a mixed rollout does not create duplicate devices. "
         "Use Overview for the fleet's hour-ago utilization comparison. "
         "Utilization is a capacity signal, not a health verdict.",
         [
-            ("gpu-count", stat("Reported physical GPUs", "count(" + device("DCGM_FI_DEV_GPU_UTIL") + ")", decimals=0,
+            ("gpu-count", stat("Reported physical GPUs", "count(" + device("utilization") + ")", decimals=0,
                 description="Distinct reporting device identities. Missing exporters are not counted as healthy or as zero devices.")),
-            ("gpu-util", stat("Mean GPU utilization", "avg(" + device("DCGM_FI_DEV_GPU_UTIL") + ")", "percent", 1,
+            ("gpu-util", stat("Mean GPU utilization", "avg(" + device("utilization") + ")", "percent", 1,
                 "Average of reported physical-device utilization percentages.")),
-            ("gpu-temp", stat("Highest GPU temperature", "max(" + device("DCGM_FI_DEV_GPU_TEMP") + ")", "celsius", 1,
+            ("gpu-temp", stat("Highest GPU temperature", "max(" + device("temperature") + ")", "celsius", 1,
                 "Highest reported temperature. Thermal limits vary by hardware; no universal alarm threshold is assumed.")),
-            ("gpu-power", stat("Fleet power", "sum(" + device("DCGM_FI_DEV_POWER_USAGE") + ")", "watt", 1,
+            ("gpu-power", stat("Fleet power", "sum(" + device("power") + ")", "watt", 1,
                 "Sum after physical-device deduplication, in watts; this is not an electricity bill.")),
         ], [
-            ("util-by-gpu", trend("GPU utilization", lambda past: gpu_trend(device("DCGM_FI_DEV_GPU_UTIL", past)), "percent", gpu_alias,
+            ("util-by-gpu", trend("GPU utilization", lambda past: gpu_trend(device("utilization", past)), "percent", gpu_alias,
                 "Per-device utilization. Pod attribution does not provide hardware isolation.")),
             ("memory-by-gpu", trend("Framebuffer used", lambda past: gpu_trend(memory_percent(past)), "percent", gpu_alias,
-                "100 × used / (used + free), using DCGM MiB gauges. Reserved memory is outside this denominator.")),
-            ("temp-by-gpu", trend("GPU temperature", lambda past: gpu_trend(device("DCGM_FI_DEV_GPU_TEMP", past)), "celsius", gpu_alias,
+                "100 × used / (used + free). Legacy exporters report MiB and DCGM Exporter 4.9+ reports bytes; both are "
+                "normalized. Reserved memory is outside this denominator.")),
+            ("temp-by-gpu", trend("GPU temperature", lambda past: gpu_trend(device("temperature", past)), "celsius", gpu_alias,
                 "Check cooling and vendor limits when temperature rises with load.")),
-            ("power-by-gpu", trend("GPU power", lambda past: gpu_trend(device("DCGM_FI_DEV_POWER_USAGE", past)), "watt", gpu_alias,
+            ("power-by-gpu", trend("GPU power", lambda past: gpu_trend(device("power", past)), "watt", gpu_alias,
                 "Compare power with utilization before investigating idle allocation.")),
         ], "**Readout:** compare rising memory usage with loaded models, then temperature with power. "
-           "Open the GPU inventory to inspect workload allocation.\n\n**Coverage:** these panels use verified DCGM device gauges. "
-           "The demo did not report XID or ECC series, so this dashboard makes no claim that hardware errors are absent. "
-           "This family expects the verified uppercase UUID label; a different exporter label contract needs validation.",
-        ["DCGM_FI_DEV_GPU_UTIL"])
+           "Open the GPU inventory to inspect workload allocation.\n\n**Coverage:** these panels read both the legacy "
+           "DCGM Exporter field names/units and the DCGM 4.7 field names shipped by GPU Operator 26.7.3 "
+           "(DCGM Exporter 4.9.0): utilization percent vs 0–1 ratio and framebuffer MiB vs bytes are normalized before "
+           "deduplication. The demo did not report XID or ECC series, so this dashboard makes no claim that hardware "
+           "errors are absent. This family expects the verified uppercase UUID label; a different exporter label "
+           "contract needs validation.",
+        ["DCGM_FI_DEV_GPU_UTIL", "DCGM_FI_DEV_GPU_UTIL_RATIO"])
 
     gateway_group = "service_namespace, service_name, requested_model"
     gateway_alias = "${service_namespace}/${service_name} · ${suse_ai_requested_model}"

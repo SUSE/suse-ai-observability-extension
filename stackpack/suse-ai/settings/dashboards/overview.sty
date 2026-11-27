@@ -136,8 +136,9 @@ nodes:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
-                    query: avg(max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_GPU_UTIL{k8s_cluster_name=~"${cluster}",
-                      UUID!="", GPU_I_ID=""}))
+                    query: avg((max by (k8s_cluster_name, UUID, k8s_node_name) ((100 * DCGM_FI_DEV_GPU_UTIL_RATIO{k8s_cluster_name=~"${cluster}",
+                      UUID!="", GPU_I_ID="", GPU_I_PROFILE=""})) or max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_GPU_UTIL{k8s_cluster_name=~"${cluster}",
+                      UUID!="", GPU_I_ID="", GPU_I_PROFILE=""})))
                     alias: Now
             links: []
         calls-compare:
@@ -287,16 +288,19 @@ nodes:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
-                    query: avg(max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_GPU_UTIL{k8s_cluster_name=~"${cluster}",
-                      UUID!="", GPU_I_ID=""} offset 1h))
+                    query: avg((max by (k8s_cluster_name, UUID, k8s_node_name) ((100 * DCGM_FI_DEV_GPU_UTIL_RATIO{k8s_cluster_name=~"${cluster}",
+                      UUID!="", GPU_I_ID="", GPU_I_PROFILE=""} offset 1h)) or max by (k8s_cluster_name, UUID, k8s_node_name)
+                      (DCGM_FI_DEV_GPU_UTIL{k8s_cluster_name=~"${cluster}", UUID!="", GPU_I_ID="", GPU_I_PROFILE=""} offset
+                      1h)))
                     alias: 1h ago
             - kind: TimeSeriesQuery
               spec:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
-                    query: avg(max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_GPU_UTIL{k8s_cluster_name=~"${cluster}",
-                      UUID!="", GPU_I_ID=""}))
+                    query: avg((max by (k8s_cluster_name, UUID, k8s_node_name) ((100 * DCGM_FI_DEV_GPU_UTIL_RATIO{k8s_cluster_name=~"${cluster}",
+                      UUID!="", GPU_I_ID="", GPU_I_PROFILE=""})) or max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_GPU_UTIL{k8s_cluster_name=~"${cluster}",
+                      UUID!="", GPU_I_ID="", GPU_I_PROFILE=""})))
                     alias: Now
             links: []
         coverage:
@@ -395,5 +399,6 @@ nodes:
               - gen_ai_client_operation_duration_seconds_count
               - ollama_api_up
               - DCGM_FI_DEV_GPU_UTIL
+              - DCGM_FI_DEV_GPU_UTIL_RATIO
               - litellm_proxy_requests_metric_total
               - vllm:generation_tokens_total

@@ -333,6 +333,10 @@ Reproduction setup and validation boundaries are in [REGRESSION_TESTS.md](REGRES
 *   **Fact**: The branch-built inventory exporter remains imported on all four demo nodes and deployed with `imagePullPolicy: Never`. Three available Ollama models and the vLLM model remain visible. No SA operation, registry push, Go/Groovy source change or ComponentType icon-field edit occurred. Private final evidence is `/home/thbertoldi/suse/qa/demo-v3-iterations-1-2-20261106-v3k4wh25/`.
 
 
+## DCGM Exporter metric families
+
+DCGM Exporter 4.9.0 reports GPU utilization as a ratio and framebuffer memory in bytes. The GPU views normalize these and the older percent/MiB fields. Selecting between families after grouping by device identity preserves a current zero during an exporter upgrade that changes the driver label. Device discovery requires a cluster and UUID. Node table metrics also accept a GPU index. [Operator defaults and DCGM field names](DCGM_METRIC_COMPATIBILITY.md)
+
 ## Grouped Navigation, Hosting Health and Restored GPU Context (2026-11-06)
 
 *   **Fact**: Forward upgrades `3.0.0-dev.7` and `.8` were each uploaded once with overwrite. Instance `261989587621111` is `INSTALLED` at `.8` with configuration `{}`; archive SHA-256 is `f66076c0cd47192d5d77c5f8c92f6f4873ed3f105b99abdd954e87d0069d5604`. All 173 source package files match the deployed staging copy except the development manifest version. No older deployment was restored.

@@ -7,8 +7,8 @@ from test_contract import component, mapped, record
 
 
 class GpuDeviceTest(unittest.TestCase):
-    def observation(self):
-        return record(signal="METRICS", metric="DCGM_FI_DEV_GPU_UTIL",
+    def observation(self, metric="DCGM_FI_DEV_GPU_UTIL"):
+        return record(signal="METRICS", metric=metric,
                       resource={"service.name": "dcgm", "service.namespace": "gpu-operator",
                                 "k8s.cluster.name": "east", "k8s.node.name": "worker",
                                 "k8s.pod.name": "exporter"},
@@ -26,6 +26,24 @@ class GpuDeviceTest(unittest.TestCase):
             self.assertEqual(component(changed, "genai gpu")["identifier"], expected)
         data["resource"]["attributes"]["k8s.cluster.name"] = "west"
         self.assertEqual(component(data, "genai gpu")["identifier"], "urn:suse-ai:/west:gpu/GPU-device")
+
+    def test_legacy_and_renamed_utilization_share_one_device_identity(self):
+        expected = "urn:suse-ai:/east:gpu/GPU-device"
+        for metric in ("DCGM_FI_DEV_GPU_UTIL", "DCGM_FI_DEV_GPU_UTIL_RATIO"):
+            data = self.observation(metric)
+            with self.subTest(metric=metric):
+                self.assertEqual(component(data, "genai gpu")["identifier"], expected)
+                relations = mapped(data, "OtelRelationMapping")
+                self.assertEqual({r["typeName"]: r["targetId"] for r in relations}, {
+                    "allocated to": "urn:kubernetes:/east:ai:pod/inference",
+                    "runs on": "urn:kubernetes:/east:node/worker",
+                })
+        # Both generations for the same UUID map to one component, so the
+        # backend deduplicates the simultaneous legacy and renamed series.
+        self.assertEqual(
+            component(self.observation("DCGM_FI_DEV_GPU_UTIL"), "genai gpu")["identifier"],
+            component(self.observation("DCGM_FI_DEV_GPU_UTIL_RATIO"), "genai gpu")["identifier"],
+        )
 
     def test_relations_use_the_workload_and_native_node_identities(self):
         relations = mapped(self.observation(), "OtelRelationMapping")
@@ -46,11 +64,13 @@ class GpuDeviceTest(unittest.TestCase):
                     del data[location]["attributes"][key]
                 self.assertFalse(any(r["typeName"] == "genai gpu" for r in mapped(data)))
                 self.assertEqual(mapped(data, "OtelRelationMapping"), [])
-        for key, value in (("GPU_I_ID", "0"), ("GPU_I_ID", 1), ("GPU_I_PROFILE", "1g.5gb")):
-            data = self.observation()
-            data["datapoint"]["attributes"][key] = value
-            self.assertFalse(any(r["typeName"] == "genai gpu" for r in mapped(data)))
-            self.assertEqual(mapped(data, "OtelRelationMapping"), [])
+        for metric in ("DCGM_FI_DEV_GPU_UTIL", "DCGM_FI_DEV_GPU_UTIL_RATIO"):
+            for key, value in (("GPU_I_ID", "0"), ("GPU_I_ID", 1), ("GPU_I_PROFILE", "1g.5gb")):
+                data = self.observation(metric)
+                data["datapoint"]["attributes"][key] = value
+                with self.subTest(metric=metric, key=key):
+                    self.assertFalse(any(r["typeName"] == "genai gpu" for r in mapped(data)))
+                    self.assertEqual(mapped(data, "OtelRelationMapping"), [])
 
     def test_unallocated_device_remains_visible_without_inventing_an_exporter_allocation(self):
         data = self.observation()

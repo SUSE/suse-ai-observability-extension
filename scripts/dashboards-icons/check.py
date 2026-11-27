@@ -29,7 +29,8 @@ def selectors(expression):
 
 
 def main():
-    allowlist = json.loads((ROOT / "knowledge/DASHBOARD_METRIC_INVENTORY_20261105.json").read_text())["metrics"]
+    inventory = json.loads((ROOT / "knowledge/DASHBOARD_METRIC_INVENTORY_20261105.json").read_text())
+    allowlist = set(inventory["metrics"]) | set(inventory.get("forward_compatible_metrics", {}).get("metrics", {}))
     expected = build()
     used = set()
     query_count = 0

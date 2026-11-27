@@ -70,32 +70,28 @@ nodes:
         order: 100
         unit: celsius
         decimalPlaces: 2
-        query: avg(DCGM_FI_DEV_GPU_TEMP{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}"
-          })
+        query: avg((max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_GPU_TEMP_CELSIUS{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }) or max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_GPU_TEMP{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" })))
       - summaryMetricId: suse_ai_common_node_gpu_power_total_summary
         name: GPU Power Total
         metricId: suse_ai_common_node_gpu_power_total
         order: 99
         unit: watt
         decimalPlaces: 2
-        query: sum(DCGM_FI_DEV_POWER_USAGE{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}"
-          })
+        query: sum((max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_BOARD_POWER_WATTS{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }) or max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_POWER_USAGE{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" })))
       - summaryMetricId: suse_ai_common_node_gpu_temperature_summary
         name: GPU Temperature
         metricId: suse_ai_common_node_gpu_temperature
         order: 98
         unit: celsius
         decimalPlaces: 2
-        query: DCGM_FI_DEV_GPU_TEMP{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}"
-          }
+        query: (max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_GPU_TEMP_CELSIUS{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }) or max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_GPU_TEMP{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }))
       - summaryMetricId: suse_ai_common_node_gpu_power_usage_summary
         name: GPU Power Usage
         metricId: suse_ai_common_node_gpu_power_usage
         order: 97
         unit: watt
         decimalPlaces: 2
-        query: DCGM_FI_DEV_POWER_USAGE{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}"
-          }
+        query: (max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_BOARD_POWER_WATTS{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }) or max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_POWER_USAGE{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }))
     overview:
       name:
         singular: GPU node
@@ -166,8 +162,7 @@ nodes:
           sparkline: true
           decimalPlaces: 1
           unit: percent
-          query: avg by (k8s_cluster_name, k8s_node_name) (DCGM_FI_DEV_GPU_UTIL{k8s_cluster_name="${tags.singleValue('cluster-name')}",
-            k8s_node_name="${name}"})
+          query: avg by (k8s_cluster_name, k8s_node_name) ((max by (k8s_cluster_name, k8s_node_name, gpu, UUID) ((100 * DCGM_FI_DEV_GPU_UTIL_RATIO{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" })) or max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_GPU_UTIL{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" })))
           metricId: suse_ai_common_node_gpu_utilization
       - columnId: suse_ai_gpu_memory_utilization
         title: GPU memory utilization
@@ -176,10 +171,7 @@ nodes:
           sparkline: true
           decimalPlaces: 1
           unit: percent
-          query: 100 * sum by (k8s_cluster_name, k8s_node_name) (DCGM_FI_DEV_FB_USED{k8s_cluster_name="${tags.singleValue('cluster-name')}",
-            k8s_node_name="${name}"}) / sum by (k8s_cluster_name, k8s_node_name) (DCGM_FI_DEV_FB_USED{k8s_cluster_name="${tags.singleValue('cluster-name')}",
-            k8s_node_name="${name}"} + DCGM_FI_DEV_FB_FREE{k8s_cluster_name="${tags.singleValue('cluster-name')}",
-            k8s_node_name="${name}"})
+          query: 100 * sum by (k8s_cluster_name, k8s_node_name) ((max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_FB_USED_BYTES{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }) or max by (k8s_cluster_name, k8s_node_name, gpu, UUID) ((1048576 * DCGM_FI_DEV_FB_USED{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" })))) / (sum by (k8s_cluster_name, k8s_node_name) ((max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_FB_USED_BYTES{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }) or max by (k8s_cluster_name, k8s_node_name, gpu, UUID) ((1048576 * DCGM_FI_DEV_FB_USED{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" })))) + sum by (k8s_cluster_name, k8s_node_name) ((min by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_FB_FREE_BYTES{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }) or min by (k8s_cluster_name, k8s_node_name, gpu, UUID) ((1048576 * DCGM_FI_DEV_FB_FREE{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" })))))
           metricId: suse_ai_common_node_gpu_memory_utilization
       - columnId: suse_ai_gpu_temperature
         title: GPU temperature average
@@ -188,8 +180,7 @@ nodes:
           sparkline: true
           decimalPlaces: 1
           unit: celsius
-          query: avg by (k8s_cluster_name, k8s_node_name) (DCGM_FI_DEV_GPU_TEMP{k8s_cluster_name="${tags.singleValue('cluster-name')}",
-            k8s_node_name="${name}"})
+          query: avg by (k8s_cluster_name, k8s_node_name) ((max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_GPU_TEMP_CELSIUS{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }) or max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_GPU_TEMP{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" })))
           metricId: suse_ai_common_node_gpu_avg_temp
       - columnId: suse_ai_gpu_power
         title: GPU power total
@@ -198,8 +189,7 @@ nodes:
           sparkline: true
           decimalPlaces: 1
           unit: watt
-          query: sum by (k8s_cluster_name, k8s_node_name) (DCGM_FI_DEV_POWER_USAGE{k8s_cluster_name="${tags.singleValue('cluster-name')}",
-            k8s_node_name="${name}"})
+          query: sum by (k8s_cluster_name, k8s_node_name) ((max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_BOARD_POWER_WATTS{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }) or max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_POWER_USAGE{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" })))
           metricId: suse_ai_common_node_gpu_power_total
       - columnId: suse_ai_common_node_host_cpu
         title: Host CPU usage
@@ -309,8 +299,7 @@ nodes:
   - metricId: suse_ai_common_node_gpu_avg_temp
     name: GPU Temperature Average
     metricQueries:
-    - expression: avg(DCGM_FI_DEV_GPU_TEMP{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}"
-        })
+    - expression: avg((max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_GPU_TEMP_CELSIUS{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }) or max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_GPU_TEMP{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" })))
       alias: Temperature
       primary: true
     chart:
@@ -319,8 +308,7 @@ nodes:
   - metricId: suse_ai_common_node_gpu_power_total
     name: GPU Power Total
     metricQueries:
-    - expression: sum(DCGM_FI_DEV_POWER_USAGE{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}"
-        })
+    - expression: sum((max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_BOARD_POWER_WATTS{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }) or max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_POWER_USAGE{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" })))
       alias: Power
       primary: true
     chart:
@@ -329,8 +317,7 @@ nodes:
   - metricId: suse_ai_common_node_gpu_temperature
     name: GPU Temperature
     metricQueries:
-    - expression: DCGM_FI_DEV_GPU_TEMP{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}"
-        }
+    - expression: (max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_GPU_TEMP_CELSIUS{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }) or max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_GPU_TEMP{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }))
       alias: GPU ${gpu}
       primary: true
     chart:
@@ -339,8 +326,7 @@ nodes:
   - metricId: suse_ai_common_node_gpu_power_usage
     name: GPU Power Usage
     metricQueries:
-    - expression: DCGM_FI_DEV_POWER_USAGE{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}"
-        }
+    - expression: (max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_BOARD_POWER_WATTS{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }) or max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_POWER_USAGE{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }))
       alias: GPU ${gpu}
       primary: true
     chart:
@@ -349,8 +335,7 @@ nodes:
   - metricId: suse_ai_common_node_gpu_sm_clocks
     name: GPU SM Clocks
     metricQueries:
-    - expression: DCGM_FI_DEV_SM_CLOCK{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}"
-        } * 1000000
+    - expression: (max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_SM_CLOCK_HERTZ{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }) or max by (k8s_cluster_name, k8s_node_name, gpu, UUID) ((1000000 * DCGM_FI_DEV_SM_CLOCK{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" })))
       alias: GPU ${gpu}
       primary: true
     chart:
@@ -359,8 +344,7 @@ nodes:
   - metricId: suse_ai_common_node_gpu_utilization
     name: GPU Utilization
     metricQueries:
-    - expression: DCGM_FI_DEV_GPU_UTIL{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}"
-        }
+    - expression: (max by (k8s_cluster_name, k8s_node_name, gpu, UUID) ((100 * DCGM_FI_DEV_GPU_UTIL_RATIO{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" })) or max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_GPU_UTIL{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }))
       alias: GPU ${gpu}
       primary: true
     chart:
@@ -369,8 +353,7 @@ nodes:
   - metricId: suse_ai_common_node_gpu_tensor_core_utilization
     name: Tensor Core Utilization
     metricQueries:
-    - expression: DCGM_FI_PROF_PIPE_TENSOR_ACTIVE{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}"
-        }
+    - expression: (max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_PROF_TENSOR_UTIL_RATIO{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }) or max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_PROF_PIPE_TENSOR_ACTIVE{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }))
       alias: GPU ${gpu}
       primary: true
     chart:
@@ -379,8 +362,7 @@ nodes:
   - metricId: suse_ai_common_node_gpu_framebuffer_mem_used
     name: GPU Framebuffer Mem Used
     metricQueries:
-    - expression: DCGM_FI_DEV_FB_USED{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}"
-        } * 1048576
+    - expression: (max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_FB_USED_BYTES{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }) or max by (k8s_cluster_name, k8s_node_name, gpu, UUID) ((1048576 * DCGM_FI_DEV_FB_USED{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" })))
       alias: GPU ${gpu}
       primary: true
     chart:
@@ -389,8 +371,7 @@ nodes:
   - metricId: suse_ai_common_node_gpu_average_utilization
     name: Average GPU Utilization
     metricQueries:
-    - expression: avg_over_time(DCGM_FI_DEV_GPU_UTIL{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}"
-        }[${__rate_interval}])
+    - expression: (max by (k8s_cluster_name, k8s_node_name, gpu, UUID) ((100 * avg_over_time(DCGM_FI_DEV_GPU_UTIL_RATIO{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }[${__rate_interval}]))) or max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (avg_over_time(DCGM_FI_DEV_GPU_UTIL{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }[${__rate_interval}])))
       alias: GPU ${gpu}
       primary: true
     chart:
@@ -399,10 +380,7 @@ nodes:
   - metricId: suse_ai_common_node_gpu_memory_utilization
     name: GPU Memory Utilisation (%)
     metricQueries:
-    - expression: 100 * (DCGM_FI_DEV_FB_USED{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}"
-        }) / (DCGM_FI_DEV_FB_USED{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}"
-        } + DCGM_FI_DEV_FB_FREE{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}"
-        })
+    - expression: 100 * ((max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_FB_USED_BYTES{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }) or max by (k8s_cluster_name, k8s_node_name, gpu, UUID) ((1048576 * DCGM_FI_DEV_FB_USED{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" })))) / (((max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_FB_USED_BYTES{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }) or max by (k8s_cluster_name, k8s_node_name, gpu, UUID) ((1048576 * DCGM_FI_DEV_FB_USED{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" })))) + ((min by (k8s_cluster_name, k8s_node_name, gpu, UUID) (DCGM_FI_DEV_FB_FREE_BYTES{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }) or min by (k8s_cluster_name, k8s_node_name, gpu, UUID) ((1048576 * DCGM_FI_DEV_FB_FREE{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" })))))
       alias: GPU ${gpu}
       primary: true
     chart:
@@ -411,8 +389,7 @@ nodes:
   - metricId: suse_ai_common_node_gpu_average_power_draw
     name: Average Power Draw
     metricQueries:
-    - expression: avg_over_time(DCGM_FI_DEV_POWER_USAGE{ k8s_cluster_name="${tags.singleValue('cluster-name')}",
-        k8s_node_name="${name}" }[${__rate_interval}])
+    - expression: (max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (avg_over_time(DCGM_FI_DEV_BOARD_POWER_WATTS{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }[${__rate_interval}])) or max by (k8s_cluster_name, k8s_node_name, gpu, UUID) (avg_over_time(DCGM_FI_DEV_POWER_USAGE{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", UUID=~".*", GPU_I_ID="", GPU_I_PROFILE="" }[${__rate_interval}])))
       alias: GPU ${gpu}
       primary: true
     chart:
@@ -421,8 +398,7 @@ nodes:
   - metricId: suse_ai_common_node_vgpu_utilization
     name: vGPU Utilization
     metricQueries:
-    - expression: DCGM_FI_DEV_GPU_UTIL{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}",
-        vgpu!="" }
+    - expression: (max by (k8s_cluster_name, k8s_node_name, pod_namespace, pod_name, gpu, vgpu) ((100 * DCGM_FI_DEV_GPU_UTIL_RATIO{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", vgpu!="" })) or max by (k8s_cluster_name, k8s_node_name, pod_namespace, pod_name, gpu, vgpu) (DCGM_FI_DEV_GPU_UTIL{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", vgpu!="" }))
       alias: GPU ${gpu} / vGPU ${vgpu}
       primary: true
     chart:
@@ -431,8 +407,7 @@ nodes:
   - metricId: suse_ai_common_node_vgpu_utilization_by_container
     name: vGPU Utilization by Container
     metricQueries:
-    - expression: max by (pod_namespace, pod_name, container_name, gpu, vgpu) (DCGM_FI_DEV_GPU_UTIL{ k8s_cluster_name="${tags.singleValue('cluster-name')}",
-        k8s_node_name="${name}", vgpu!="" })
+    - expression: (max by (k8s_cluster_name, k8s_node_name, pod_namespace, pod_name, gpu, vgpu, container_name) ((100 * DCGM_FI_DEV_GPU_UTIL_RATIO{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", container_name=~".*", vgpu!="" })) or max by (k8s_cluster_name, k8s_node_name, pod_namespace, pod_name, gpu, vgpu, container_name) (DCGM_FI_DEV_GPU_UTIL{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", container_name=~".*", vgpu!="" }))
       alias: ${pod_namespace}/${pod_name}/${container_name} (GPU ${gpu} / vGPU ${vgpu})
       primary: true
     chart:
@@ -441,8 +416,7 @@ nodes:
   - metricId: suse_ai_common_node_vgpu_memory_usage
     name: vGPU Memory Usage
     metricQueries:
-    - expression: DCGM_FI_DEV_FB_USED{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}",
-        vgpu!="" } * 1048576
+    - expression: (max by (k8s_cluster_name, k8s_node_name, pod_namespace, pod_name, gpu, vgpu) (DCGM_FI_DEV_FB_USED_BYTES{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", vgpu!="" }) or max by (k8s_cluster_name, k8s_node_name, pod_namespace, pod_name, gpu, vgpu) ((1048576 * DCGM_FI_DEV_FB_USED{ k8s_cluster_name="${tags.singleValue('cluster-name')}", k8s_node_name="${name}", gpu=~".*", vgpu!="" })))
       alias: GPU ${gpu} / vGPU ${vgpu}
       primary: true
     chart:
