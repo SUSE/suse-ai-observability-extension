@@ -241,7 +241,7 @@ The `knowledge/` directory contains detailed documentation on the project archit
 
 The [Open WebUI Ollama integration](integrations/open-webui/README.md) describes
 the in-process provider adapter, native trace correlation and explicitly resolved
-client dependencies for Open WebUI 0.6.41.
+client dependencies for Open WebUI 0.6.41 and 0.13.0.
 
 ## License
 

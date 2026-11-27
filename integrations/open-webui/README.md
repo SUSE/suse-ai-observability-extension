@@ -6,11 +6,32 @@ It reuses Open WebUI's native OpenTelemetry providers, service identity and
 request context. The GenAI CLIENT span contains the native aiohttp CLIENT span;
 it does not invent an Ollama SERVER span.
 
-The supported integration boundary is Open WebUI **0.6.41**,
-`open_webui.routers.ollama.send_post_request`, with its bundled OTel Python
-SDK **1.33.1**. This is a version-specific adapter to an internal function, not
-a promise that newer Open WebUI releases preserve that interface. Re-run the
-provider lifecycle tests and a real chat before changing application versions.
+The supported integration boundaries are:
+
+- **0.6.41**: `open_webui.routers.ollama.send_post_request`, tested with its
+  OTel Python SDK **1.33.1** baseline.
+- **0.13.0**: `open_webui.routers.ollama.send_request`, tested with its OTel
+  Python SDK **1.42.1**.
+
+This is a version-specific adapter to internal functions, not a promise that
+newer Open WebUI releases preserve those interfaces. Re-run the provider
+lifecycle tests and a real chat before changing application versions.
+
+Open WebUI 0.13.0 changed both response lifecycles. Its `send_request` takes
+keyword-only `payload`, `stream`, `passthrough`, `api_config`, `request` and
+related arguments, returns the parsed JSON object for nonstreaming chat, and
+returns a `StreamingResponse` backed by `stream_wrapper` for streaming chat.
+The upstream session pool releases the response when the stream ends or is
+closed. Open WebUI 0.6.41 returns the parsed JSON object or a
+`StreamingResponse` backed by the upstream `aiohttp` content with a background
+cleanup task. The adapter observes both shapes without changing status,
+headers, body bytes, stream framing or cancellation.
+
+On an unsupported router the Filter leaves chat untouched and logs one bounded
+warning listing the expected provider functions. Instrumentation failures never
+fail a chat request; they only suppress telemetry for that call. Check the
+Open WebUI version against this document, update the integration, then restart
+every worker.
 
 ## Installation
 
@@ -78,7 +99,10 @@ completion callbacks. Duration is measured in seconds from provider request to
 nonstreaming response, stream exhaustion, failure or cancellation. HTTP errors,
 truncated streams and cancellation produce error outcomes. Only reported token
 usage is recorded; missing usage is omitted. Streaming content is forwarded
-unchanged, with a bounded buffer for reading final Ollama NDJSON usage.
+unchanged, with a bounded buffer for reading final Ollama NDJSON usage. On
+0.13.0, nonstreaming responses are parsed before the adapter finalizes the
+operation; on both surfaces, a stream that is never consumed is finalized as a
+cancellation by the response background cleanup.
 
 The adapter records model, provider, endpoint, operation, outcome and reported
 usage. It does not capture prompts, generated content, credentials, chat/message
@@ -102,15 +126,33 @@ enabling both exporters for the same calls.
 
 ## Validation
 
+Run the same lifecycle suite against both supported SDK baselines:
+
 ```bash
-python3 -m venv /tmp/webui-integration-tests
-/tmp/webui-integration-tests/bin/pip install -r integrations/open-webui/tests/requirements.txt
-PATH=/tmp/webui-integration-tests/bin:$PATH task open-webui-test
+python3 -m venv /tmp/webui-integration-tests-0.6
+/tmp/webui-integration-tests-0.6/bin/pip install -r integrations/open-webui/tests/requirements.txt
+PATH=/tmp/webui-integration-tests-0.6/bin:$PATH task open-webui-test
+
+python3 -m venv /tmp/webui-integration-tests-0.13
+/tmp/webui-integration-tests-0.13/bin/pip install -r integrations/open-webui/tests/requirements-0.13.0.txt
+PATH=/tmp/webui-integration-tests-0.13/bin:$PATH task open-webui-test-0.13
 ```
 
 The tests use real OTel SDKs, native aiohttp instrumentation and streaming
-responses. They cover exact operation/token totals, native parent-child spans,
-overlap, cancellation, repeated cleanup, invalid/unknown endpoints and scoped
-resolution. Live acceptance additionally requires backend relation composition,
-idle expiry, actual monitor evaluation and browser/API chats. Client telemetry
-does not populate Ollama's own server metrics or create its missing instance.
+responses. They cover both `send_post_request` and `send_request`: exact
+operation/token totals, nonstreaming and streaming success, native parent-child
+spans, overlap, cancellation, repeated cleanup, unconsumed and truncated
+streams, HTTP errors, optional future keyword arguments, unsupported routers,
+invalid/unknown endpoints and scoped resolution. Live acceptance additionally
+requires backend relation composition, idle expiry, actual monitor evaluation
+and browser/API chats. Client telemetry does not populate Ollama's own server
+metrics or create its missing instance.
+
+For a 0.13.0 acceptance check, send one nonstreaming and one streaming chat,
+then cancel a streaming answer and trigger one provider error (for example,
+stop the Ollama backend or request an unknown model). Verify one
+`chat <model>` CLIENT span and one duration count per real `/api/chat` call,
+token attributes only when Ollama reports them, no prompt/completion/credential
+attributes, and unchanged client-visible status, body and stream. Repeat after
+a worker restart and with one background title/tag request. Instrumentation is
+scoped to POST `/api/chat`; other Ollama endpoints and methods are untouched.

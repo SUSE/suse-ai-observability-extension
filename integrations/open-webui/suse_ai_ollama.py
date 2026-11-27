@@ -1,8 +1,8 @@
 """
 title: SUSE AI Ollama observability
 author: SUSE
-version: 0.1.1
-description: Correlated provider telemetry for Open WebUI 0.6.41 and Ollama.
+version: 0.2.0
+description: Correlated provider telemetry for Open WebUI 0.6.41 and 0.13.0 with Ollama.
 required_open_webui_version: 0.6.41
 """
 
@@ -11,6 +11,7 @@ from contextvars import ContextVar
 from functools import wraps
 import inspect
 import json
+import logging
 import time
 from urllib.parse import urlsplit
 
@@ -20,7 +21,16 @@ from pydantic import BaseModel, Field
 
 
 SCOPE = "suse.ai.open_webui.ollama"
-VERSION = "0.1.1"
+VERSION = "0.2.0"
+LOGGER = logging.getLogger(SCOPE)
+_DIAGNOSTICS = set()
+
+
+def _diagnose(key, message):
+    if key in _DIAGNOSTICS:
+        return
+    _DIAGNOSTICS.add(key)
+    LOGGER.warning("SUSE AI Ollama adapter: %s", message)
 
 
 class Endpoint(BaseModel):
@@ -184,6 +194,16 @@ class Operation:
         self.span.end()
 
 
+def _finish(operation, error=None):
+    try:
+        operation.finish(error)
+    except Exception as failure:
+        _diagnose(
+            "finish",
+            f"cannot finalize provider observation ({type(failure).__name__}); chat continues",
+        )
+
+
 def error_type(error):
     if isinstance(error, (asyncio.CancelledError, GeneratorExit)):
         return "cancelled"
@@ -191,39 +211,72 @@ def error_type(error):
     return f"http_{code}" if isinstance(code, int) else type(error).__name__
 
 
-def wrap_provider(original, current, tracer=None, meter=None):
-    signature = inspect.signature(original)
+def wrap_provider(original, current, tracer=None, meter=None, active=None):
+    try:
+        signature = inspect.signature(original)
+    except (TypeError, ValueError) as failure:
+        _diagnose(
+            "signature",
+            f"cannot inspect {getattr(original, '__name__', 'provider function')} "
+            f"({type(failure).__name__}); chat continues without telemetry",
+        )
+        return original
+    active = active or ContextVar("suse_ai_ollama_active", default=False)
 
     @wraps(original)
-    async def send_post_request(*args, **kwargs):
+    async def observed_provider(*args, **kwargs):
         settings = current.get()
-        if settings is None or not settings.enabled:
-            return await original(*args, **kwargs)
-        bound = signature.bind(*args, **kwargs)
-        url = bound.arguments.get("url", "")
-        if urlsplit(url).path.rstrip("/") != "/api/chat":
+        if settings is None or not settings.enabled or active.get():
             return await original(*args, **kwargs)
         try:
-            payload = json.loads(bound.arguments["payload"])
-        except (TypeError, ValueError, KeyError):
+            bound = signature.bind(*args, **kwargs)
+            bound.apply_defaults()
+        except TypeError as failure:
+            _diagnose(
+                "bind",
+                f"provider call signature changed ({type(failure).__name__}); chat "
+                "continues without telemetry. Verify the Open WebUI version against "
+                "integrations/open-webui/README.md",
+            )
+            return await original(*args, **kwargs)
+        url = bound.arguments.get("url", "")
+        method = bound.arguments.get("method", "POST")
+        if not isinstance(method, str) or method.upper() != "POST":
+            return await original(*args, **kwargs)
+        if not isinstance(url, str) or urlsplit(url).path.rstrip("/") != "/api/chat":
+            return await original(*args, **kwargs)
+        try:
+            payload = json.loads(bound.arguments.get("payload") or "")
+        except (TypeError, ValueError):
             return await original(*args, **kwargs)
         if not isinstance(payload, dict) or not isinstance(payload.get("model"), str) or not payload["model"]:
             return await original(*args, **kwargs)
-        operation = Operation(
-            payload, url, settings,
-            tracer or trace.get_tracer(SCOPE, VERSION),
-            meter or metrics.get_meter(SCOPE, VERSION),
-        )
+        try:
+            operation = Operation(
+                payload, url, settings,
+                tracer or trace.get_tracer(SCOPE, VERSION),
+                meter or metrics.get_meter(SCOPE, VERSION),
+            )
+        except Exception as failure:
+            _diagnose(
+                "operation",
+                f"cannot start provider observation ({type(failure).__name__}); "
+                "chat continues without telemetry",
+            )
+            return await original(*args, **kwargs)
+        token = active.set(True)
         try:
             with trace.use_span(operation.span, end_on_exit=False,
                                 record_exception=False, set_status_on_exception=False):
                 response = await original(*args, **kwargs)
         except BaseException as error:
-            operation.finish(error_type(error))
+            _finish(operation, error_type(error))
             raise
+        finally:
+            active.reset(token)
         if not hasattr(response, "body_iterator"):
             operation.observe(response)
-            operation.finish()
+            _finish(operation)
             return response
 
         iterator = response.body_iterator
@@ -234,13 +287,13 @@ def wrap_provider(original, current, tracer=None, meter=None):
                     operation.chunk(chunk)
                     yield chunk
             except BaseException as error:
-                operation.finish(error_type(error))
+                _finish(operation, error_type(error))
                 raise
             finally:
-                operation.finish()
+                _finish(operation)
 
         response.body_iterator = observed_body()
-        original_background = response.background
+        original_background = getattr(response, "background", None)
 
         async def cleanup():
             try:
@@ -248,21 +301,48 @@ def wrap_provider(original, current, tracer=None, meter=None):
                     await original_background()
             finally:
                 # Covers a response that was closed before the iterator started.
-                operation.finish("cancelled" if not operation.complete else None)
+                _finish(operation, "cancelled" if not operation.complete else None)
 
         response.background = cleanup
         return response
 
-    return send_post_request
+    return observed_provider
 
 
-def install(router):
+def install(router, tracer=None, meter=None):
     """Install once per worker; changing wrapper code requires a worker restart."""
-    if not hasattr(router, "_suse_ai_ollama_current"):
-        current = ContextVar("suse_ai_ollama_current", default=None)
-        router._suse_ai_ollama_current = current
-        router.send_post_request = wrap_provider(router.send_post_request, current)
-    return router._suse_ai_ollama_current
+    existing = getattr(router, "_suse_ai_ollama_current", None)
+    if existing is not None:
+        return existing
+    current = ContextVar("suse_ai_ollama_current", default=None)
+    active = ContextVar("suse_ai_ollama_active", default=False)
+    router._suse_ai_ollama_current = current
+    router._suse_ai_ollama_active = active
+    wrapped = set()
+    for name in ("send_request", "send_post_request"):
+        original = getattr(router, name, None)
+        if not callable(original) or id(original) in wrapped:
+            continue
+        wrapped.add(id(original))
+        try:
+            setattr(router, name, wrap_provider(
+                original, current, tracer=tracer, meter=meter, active=active,
+            ))
+        except Exception as failure:
+            _diagnose(
+                "wrap",
+                f"cannot instrument router.{name} ({type(failure).__name__}); "
+                "chat is left untouched",
+            )
+    if not wrapped:
+        _diagnose(
+            "unsupported",
+            "no supported Ollama provider function found; expected router.send_request "
+            "(Open WebUI >= 0.13.0) or router.send_post_request (0.6.x). Chat is left "
+            "untouched. Check integrations/open-webui/README.md and restart workers "
+            "after updating the integration.",
+        )
+    return current
 
 
 class Filter:
@@ -277,7 +357,14 @@ class Filter:
         self.valves = self.Valves()
 
     async def inlet(self, body: dict) -> dict:
-        from open_webui.routers import ollama
+        try:
+            from open_webui.routers import ollama
 
-        install(ollama).set(self.valves.model_copy(deep=True))
+            install(ollama).set(self.valves.model_copy(deep=True))
+        except Exception as failure:
+            _diagnose(
+                "install",
+                f"cannot install provider adapter ({type(failure).__name__}); "
+                "chat continues without telemetry",
+            )
         return body

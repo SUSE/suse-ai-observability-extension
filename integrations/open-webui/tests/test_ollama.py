@@ -8,6 +8,7 @@ from pathlib import Path
 import sys
 from types import SimpleNamespace
 import unittest
+from urllib.parse import urlsplit
 
 import aiohttp
 from aiohttp import web
@@ -277,6 +278,214 @@ class ProviderTests(unittest.IsolatedAsyncioTestCase):
         points = self.data("gen_ai.client.operation.duration")
         self.assertEqual(len(points), 4)
         self.assertEqual(len({(p.attributes.get("server.address"), p.attributes["gen_ai.request.model"]) for p in points}), 4)
+
+    async def test_send_request_nonstreaming_records_native_child_and_reported_usage(self):
+        async def respond(request):
+            await request.json()
+            return web.json_response({"model": "llama3.2:latest", "done": True,
+                                      "prompt_eval_count": 5, "eval_count": 8})
+        app = web.Application()
+        app.router.add_post("/api/chat", respond)
+        runner = web.AppRunner(app)
+        await runner.setup()
+        site = web.TCPSite(runner, "127.0.0.1", 0)
+        await site.start()
+        port = site._server.sockets[0].getsockname()[1]
+        AioHttpClientInstrumentor().instrument(tracer_provider=self.provider)
+
+        async def send_request(url, method="POST", *, payload=None, key=None, user=None,
+                               stream=False, passthrough=False, content_type=None,
+                               metadata=None, api_config=None, request=None, **optional):
+            self.assertEqual(optional, {"future_option": "preserved"})
+            async with aiohttp.ClientSession() as session:
+                async with session.request(method, url, data=payload) as response:
+                    response.raise_for_status()
+                    return await response.json()
+
+        try:
+            wrapped = self.wrap(send_request)
+            with self.tracer.start_as_current_span("inbound", kind=trace.SpanKind.SERVER) as inbound:
+                result = await wrapped(
+                    f"http://127.0.0.1:{port}/api/chat",
+                    payload=json.dumps({"model": "llama3.2:latest"}),
+                    stream=False,
+                    api_config={"prefix_id": None},
+                    request=SimpleNamespace(),
+                    future_option="preserved",
+                )
+            self.assertEqual(result["eval_count"], 8)
+            operation = self.operations()[0]
+            self.assertEqual(operation.parent.span_id, inbound.get_span_context().span_id)
+            clients = [s for s in self.exporter.get_finished_spans() if s.name == "POST"]
+            self.assertEqual(len(clients), 1)
+            self.assertEqual(clients[0].parent.span_id, operation.context.span_id)
+            self.assertEqual(operation.attributes["gen_ai.usage.input_tokens"], 5)
+            self.assertEqual(operation.attributes["gen_ai.usage.output_tokens"], 8)
+            self.assertEqual(sum(p.count for p in self.data("gen_ai.client.operation.duration")), 1)
+        finally:
+            AioHttpClientInstrumentor().uninstrument()
+            await runner.cleanup()
+
+    async def test_send_request_stream_is_forwarded_and_finishes_on_exhaustion(self):
+        async def respond(request):
+            await request.json()
+            response = web.StreamResponse(status=200, headers={"Content-Type": "application/x-ndjson"})
+            await response.prepare(request)
+            await response.write(b'{"message":{"content":"hi"},"done":false}\n')
+            await response.write(b'{"model":"llama3.2","done":true,"prompt_eval_count":3,"eval_count":2}\n')
+            await response.write_eof()
+            return response
+        app = web.Application()
+        app.router.add_post("/api/chat", respond)
+        runner = web.AppRunner(app)
+        await runner.setup()
+        site = web.TCPSite(runner, "127.0.0.1", 0)
+        await site.start()
+        port = site._server.sockets[0].getsockname()[1]
+
+        async def send_request(url, method="POST", *, payload=None, stream=False, **optional):
+            session = aiohttp.ClientSession()
+            response = await session.request(method, url, data=payload)
+            response.raise_for_status()
+
+            async def body():
+                try:
+                    async for chunk in response.content.iter_any():
+                        yield chunk
+                finally:
+                    response.close()
+                    await session.close()
+
+            return StreamingResponse(body(), status_code=response.status)
+
+        try:
+            response = await self.wrap(send_request)(
+                f"http://127.0.0.1:{port}/api/chat",
+                payload=json.dumps({"model": "llama3.2"}),
+                stream=True,
+            )
+            self.assertEqual(self.operations(), [])
+            chunks = [chunk async for chunk in response.body_iterator]
+            await response.background()
+            await response.background()
+            self.assertEqual(b"".join(chunks),
+                             b'{"message":{"content":"hi"},"done":false}\n'
+                             b'{"model":"llama3.2","done":true,"prompt_eval_count":3,"eval_count":2}\n')
+            operation = self.operations()[0]
+            self.assertEqual(operation.attributes["gen_ai.usage.input_tokens"], 3)
+            self.assertEqual(operation.attributes["gen_ai.usage.output_tokens"], 2)
+            self.assertEqual(sum(p.count for p in self.data("gen_ai.client.operation.duration")), 1)
+        finally:
+            await runner.cleanup()
+
+    async def test_send_request_cancelled_and_unconsumed_streams_are_finalized(self):
+        entered = asyncio.Event()
+
+        async def send_request(url, method="POST", *, payload=None, stream=False, **optional):
+            async def body():
+                yield b'{"message":{"content":"partial"},"done":false}\n'
+                entered.set()
+                await asyncio.sleep(60)
+
+            return StreamingResponse(body())
+
+        wrapper = self.wrap(send_request)
+        response = await wrapper("http://ollama:11434/api/chat", payload='{"model":"cancel"}', stream=True)
+
+        async def consume():
+            async for _ in response.body_iterator:
+                pass
+
+        task = asyncio.create_task(consume())
+        await entered.wait()
+        task.cancel()
+        with self.assertRaises(asyncio.CancelledError):
+            await task
+        await response.background()
+        self.assertEqual([s.attributes["error.type"] for s in self.operations()], ["cancelled"])
+        self.assertEqual(self.data("gen_ai.client.token.usage"), [])
+
+        entered.clear()
+        response = await wrapper("http://ollama:11434/api/chat", payload='{"model":"unconsumed"}', stream=True)
+        await response.background()
+        self.assertEqual([s.attributes["error.type"] for s in self.operations()], ["cancelled", "cancelled"])
+
+    async def test_send_request_preserves_errors_and_ignores_other_methods_and_paths(self):
+        calls = []
+
+        async def send_request(url, method="POST", *, payload=None, stream=False, **optional):
+            calls.append((url, method, payload))
+            if urlsplit(url).path == "/api/chat" and method == "POST":
+                raise HTTPException(503, "private prompt must not be recorded")
+            return {"done": True}
+
+        wrapped = self.wrap(send_request)
+        with self.assertRaises(HTTPException) as raised:
+            await wrapped("http://ollama:11434/api/chat",
+                          payload='{"model":"missing"}', stream=False)
+        self.assertEqual(raised.exception.status_code, 503)
+        span = self.operations()[0]
+        self.assertEqual(span.attributes["error.type"], "http_503")
+        self.assertEqual(span.events, ())
+        self.assertEqual(self.data("gen_ai.client.token.usage"), [])
+
+        await wrapped("http://ollama:11434/api/embeddings",
+                      payload='{"model":"embedding"}', stream=False)
+        await wrapped("http://ollama:11434/api/chat",
+                      method="GET", payload='{"model":"get"}', stream=False)
+        self.assertEqual(len(self.operations()), 1)
+        self.assertEqual(len(calls), 3)
+
+    async def test_send_request_repeated_calls_keep_operations_separate(self):
+        async def send_request(url, method="POST", *, payload=None, stream=False, **optional):
+            value = json.loads(payload)
+            return {"done": True, "model": value["model"], "eval_count": value["n"]}
+
+        wrapped = self.wrap(send_request)
+        for index in range(3):
+            await wrapped("http://ollama:11434/api/chat",
+                          payload=json.dumps({"model": f"model-{index}", "n": index}),
+                          stream=False)
+        self.assertEqual({s.name: s.attributes["gen_ai.usage.output_tokens"] for s in self.operations()},
+                         {f"chat model-{index}": index for index in range(3)})
+
+    async def test_install_instruments_both_surfaces_without_double_counting(self):
+        router = SimpleNamespace()
+
+        async def legacy(url, payload, stream=False, **optional):
+            return {"done": True, "model": "legacy", "eval_count": 1}
+
+        async def current(url, method="POST", *, payload=None, stream=False, **optional):
+            return await router.send_post_request(url, payload, stream=stream)
+
+        router.send_post_request = legacy
+        router.send_request = current
+        settings = integration.install(router, self.tracer, self.meter)
+        settings.set(integration.Filter.Valves())
+
+        result = await router.send_request("http://ollama:11434/api/chat",
+                                           payload='{"model":"nested"}', stream=False)
+        self.assertEqual(result["model"], "legacy")
+        self.assertEqual(len(self.operations()), 1)
+        await router.send_post_request("http://ollama:11434/api/chat",
+                                       '{"model":"direct"}', stream=False)
+        self.assertEqual([s.attributes["gen_ai.request.model"] for s in self.operations()],
+                         ["nested", "direct"])
+        self.assertIs(integration.install(router), settings)
+
+    async def test_unsupported_router_warns_once_and_leaves_chat_untouched(self):
+        integration._DIAGNOSTICS.clear()
+        router = SimpleNamespace()
+
+        with self.assertLogs(integration.LOGGER, level="WARNING") as captured:
+            integration.install(router)
+            integration.install(router)
+        self.assertEqual(len(captured.records), 1)
+        self.assertIn("send_request", captured.output[0])
+        self.assertIn("send_post_request", captured.output[0])
+        self.assertFalse(hasattr(router, "send_request"))
+        self.assertFalse(hasattr(router, "send_post_request"))
+        integration._DIAGNOSTICS.clear()
 
 
 if __name__ == "__main__":
