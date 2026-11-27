@@ -141,6 +141,9 @@ python3 -m venv /tmp/webui-integration-tests-0.13
 PATH=/tmp/webui-integration-tests-0.13/bin:$PATH task open-webui-test-0.13
 ```
 
+CI runs the same test suite in both pinned environments through
+`.github/workflows/open-webui-integration.yml` when this integration changes.
+
 The tests use real OTel SDKs, native aiohttp instrumentation and streaming
 responses. They cover both `send_post_request` and `send_request`: exact
 operation/token totals, nonstreaming and streaming success, native parent-child

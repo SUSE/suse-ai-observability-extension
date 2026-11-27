@@ -1,0 +1,43 @@
+name: Validate Open WebUI integration
+
+on:
+  pull_request:
+    paths:
+      - 'integrations/open-webui/**'
+      - '.github/workflows/open-webui-integration.yml'
+      - 'Taskfile.yaml'
+  push:
+    branches: [main]
+    paths:
+      - 'integrations/open-webui/**'
+      - '.github/workflows/open-webui-integration.yml'
+      - 'Taskfile.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: ${{ matrix.label }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: Open WebUI 0.6.41 / OTel 1.33.1
+            requirements: integrations/open-webui/tests/requirements.txt
+          - label: Open WebUI 0.13.0 / OTel 1.42.1
+            requirements: integrations/open-webui/tests/requirements-0.13.0.txt
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Install pinned Python SDK environment
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install --disable-pip-version-check --requirement "${{ matrix.requirements }}"
+
+      - name: Run Open WebUI provider tests
+        run: .venv/bin/python -B -m unittest discover -s integrations/open-webui/tests -v
