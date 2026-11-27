@@ -51,6 +51,26 @@ cases:
         samples:
           - labels: '{k8s_cluster_name="a",k8s_node_name="gpu-node"}'
             value: 0
+  - name: XID monitor accepts the DCGM 4.7 metric and deduplicates the legacy name
+    series:
+      - series: DCGM_FI_DEV_XID_ERROR{k8s_cluster_name="new",k8s_node_name="gpu-node"}
+        values: 31+0x10
+      - series: DCGM_FI_DEV_XID_ERROR{k8s_cluster_name="mixed",k8s_node_name="gpu-node"}
+        values: 31+0x10
+      - series: DCGM_FI_DEV_XID_ERRORS{k8s_cluster_name="mixed",k8s_node_name="gpu-node"}
+        values: 31+0x10
+      - series: DCGM_FI_DEV_XID_ERROR{k8s_cluster_name="healthy",k8s_node_name="gpu-node"}
+        values: 0+0x10
+    checks:
+      - monitor: nvidia-xid-errors
+        samples:
+          - labels: '{k8s_cluster_name="new",k8s_node_name="gpu-node"}'
+            value: 31
+          - labels: '{k8s_cluster_name="mixed",k8s_node_name="gpu-node"}'
+            value: 31
+          - labels: '{k8s_cluster_name="healthy",k8s_node_name="gpu-node"}'
+            value: 0
+
   - name: XID monitor creates no checks without exporter data
     series: []
     checks:
@@ -159,6 +179,132 @@ cases:
         samples:
           - labels: '{k8s_cluster_name="cluster-a",k8s_node_name="gpu-1",pod_namespace="ai",pod_name="component-name",gpu="0"}'
             value: 10475274240
+
+  - name: DCGM 4.7 framebuffer bytes and utilization ratios feed the node table
+    series:
+      - series: DCGM_FI_DEV_FB_USED_BYTES{k8s_cluster_name="cluster-a",k8s_node_name="component-name",UUID="GPU-device",GPU_I_ID="",GPU_I_PROFILE="",gpu="0"}
+        values: 10475274240+0x10
+      - series: DCGM_FI_DEV_GPU_UTIL_RATIO{k8s_cluster_name="cluster-a",k8s_node_name="component-name",UUID="GPU-device",GPU_I_ID="",GPU_I_PROFILE="",gpu="0"}
+        values: 0.92+0x10
+    checks:
+      - presentation: gpu-nodes
+        metric: suse_ai_common_node_gpu_framebuffer_mem_used
+        samples:
+          - labels: '{k8s_cluster_name="cluster-a",k8s_node_name="component-name",UUID="GPU-device",gpu="0"}'
+            value: 10475274240
+      - presentation: gpu-nodes
+        metric: suse_ai_common_node_gpu_utilization
+        samples:
+          - labels: '{k8s_cluster_name="cluster-a",k8s_node_name="component-name",UUID="GPU-device",gpu="0"}'
+            value: 92
+      - presentation: gpus
+        metric: suse_ai_gpu_device_utilization
+        samples:
+          - labels: '{}'
+            value: 92
+
+  - name: DCGM legacy and renamed device series are deduplicated and unit-normalized
+    series:
+      - series: DCGM_FI_DEV_FB_USED{k8s_cluster_name="cluster-a",k8s_node_name="component-name",UUID="GPU-device",GPU_I_ID="",GPU_I_PROFILE="",gpu="0"}
+        values: 5120+0x10
+      - series: DCGM_FI_DEV_FB_USED_BYTES{k8s_cluster_name="cluster-a",k8s_node_name="component-name",UUID="GPU-device",GPU_I_ID="",GPU_I_PROFILE="",gpu="0"}
+        values: 5368709120+0x10
+      - series: DCGM_FI_DEV_GPU_UTIL{k8s_cluster_name="cluster-a",k8s_node_name="component-name",UUID="GPU-device",GPU_I_ID="",GPU_I_PROFILE="",gpu="0"}
+        values: 92+0x10
+      - series: DCGM_FI_DEV_GPU_UTIL_RATIO{k8s_cluster_name="cluster-a",k8s_node_name="component-name",UUID="GPU-device",GPU_I_ID="",GPU_I_PROFILE="",gpu="0"}
+        values: 0.92+0x10
+    checks:
+      - presentation: gpu-nodes
+        metric: suse_ai_common_node_gpu_framebuffer_mem_used
+        samples:
+          - labels: '{k8s_cluster_name="cluster-a",k8s_node_name="component-name",UUID="GPU-device",gpu="0"}'
+            value: 5368709120
+      - presentation: gpu-nodes
+        metric: suse_ai_common_node_gpu_utilization
+        samples:
+          - labels: '{k8s_cluster_name="cluster-a",k8s_node_name="component-name",UUID="GPU-device",gpu="0"}'
+            value: 92
+      - presentation: gpus
+        metric: suse_ai_gpu_device_utilization
+        samples:
+          - labels: '{}'
+            value: 92
+
+  - name: DCGM rolling upgrade does not mix stale legacy values with renamed zero values
+    series:
+      - series: DCGM_FI_DEV_GPU_UTIL{k8s_cluster_name="cluster-a",k8s_node_name="component-name",UUID="GPU-device",GPU_I_ID="",GPU_I_PROFILE="",gpu="0",DCGM_FI_DRIVER_VERSION="615.71.09"}
+        values: 92+0x10
+      - series: DCGM_FI_DEV_GPU_UTIL_RATIO{k8s_cluster_name="cluster-a",k8s_node_name="component-name",UUID="GPU-device",GPU_I_ID="",GPU_I_PROFILE="",gpu="0",DCGM_FI_SYSTEM_DRIVER_VERSION="615.71.09"}
+        values: 0+0x10
+      - series: DCGM_FI_DEV_FB_USED{k8s_cluster_name="cluster-a",k8s_node_name="component-name",UUID="GPU-device",GPU_I_ID="",GPU_I_PROFILE="",gpu="0",DCGM_FI_DRIVER_VERSION="615.71.09"}
+        values: 3+0x10
+      - series: DCGM_FI_DEV_FB_FREE{k8s_cluster_name="cluster-a",k8s_node_name="component-name",UUID="GPU-device",GPU_I_ID="",GPU_I_PROFILE="",gpu="0",DCGM_FI_DRIVER_VERSION="615.71.09"}
+        values: 1+0x10
+      - series: DCGM_FI_DEV_FB_USED_BYTES{k8s_cluster_name="cluster-a",k8s_node_name="component-name",UUID="GPU-device",GPU_I_ID="",GPU_I_PROFILE="",gpu="0",DCGM_FI_SYSTEM_DRIVER_VERSION="615.71.09"}
+        values: 0+0x10
+      - series: DCGM_FI_DEV_FB_FREE_BYTES{k8s_cluster_name="cluster-a",k8s_node_name="component-name",UUID="GPU-device",GPU_I_ID="",GPU_I_PROFILE="",gpu="0",DCGM_FI_SYSTEM_DRIVER_VERSION="615.71.09"}
+        values: 4194304+0x10
+    checks:
+      - presentation: gpu-nodes
+        metric: suse_ai_common_node_gpu_utilization
+        samples:
+          - labels: '{k8s_cluster_name="cluster-a",k8s_node_name="component-name",UUID="GPU-device",gpu="0"}'
+            value: 0
+      - presentation: gpu-nodes
+        metric: suse_ai_common_node_gpu_framebuffer_mem_used
+        samples:
+          - labels: '{k8s_cluster_name="cluster-a",k8s_node_name="component-name",UUID="GPU-device",gpu="0"}'
+            value: 0
+      - presentation: gpu-nodes
+        metric: suse_ai_common_node_gpu_memory_utilization
+        samples:
+          - labels: '{k8s_cluster_name="cluster-a",k8s_node_name="component-name",UUID="GPU-device",gpu="0"}'
+            value: 0
+      - presentation: gpus
+        metric: suse_ai_gpu_device_utilization
+        samples:
+          - labels: '{}'
+            value: 0
+
+  - name: DCGM MIG markers are excluded from node metrics while index-only devices remain
+    series:
+      - series: DCGM_FI_DEV_GPU_UTIL_RATIO{k8s_cluster_name="cluster-a",k8s_node_name="component-name",UUID="GPU-device",GPU_I_ID="",GPU_I_PROFILE="",gpu="0"}
+        values: 0.5+0x10
+      - series: DCGM_FI_DEV_GPU_UTIL_RATIO{k8s_cluster_name="cluster-a",k8s_node_name="component-name",UUID="GPU-mig",GPU_I_ID="1",gpu="1"}
+        values: 0.9+0x10
+      - series: DCGM_FI_DEV_GPU_UTIL_RATIO{k8s_cluster_name="cluster-a",k8s_node_name="component-name",UUID="GPU-mig2",GPU_I_PROFILE="1g.5gb",gpu="2"}
+        values: 0.9+0x10
+      - series: DCGM_FI_DEV_GPU_UTIL_RATIO{k8s_cluster_name="cluster-a",k8s_node_name="component-name",UUID="GPU-other",GPU_I_ID="",GPU_I_PROFILE="",gpu="3"}
+        values: 0.5+0x10
+      - series: DCGM_FI_DEV_GPU_UTIL_RATIO{k8s_cluster_name="cluster-a",k8s_node_name="component-name",gpu="4"}
+        values: 0.9+0x10
+    checks:
+      - presentation: gpu-nodes
+        metric: suse_ai_common_node_gpu_utilization
+        samples:
+          - labels: '{k8s_cluster_name="cluster-a",k8s_node_name="component-name",UUID="GPU-device",gpu="0"}'
+            value: 50
+          - labels: '{k8s_cluster_name="cluster-a",k8s_node_name="component-name",UUID="GPU-other",gpu="3"}'
+            value: 50
+          - labels: '{k8s_cluster_name="cluster-a",k8s_node_name="component-name",gpu="4"}'
+            value: 90
+
+  - name: Node utilization cell groups UUID-only and index-only multi-GPU telemetry into one value
+    series:
+      - series: DCGM_FI_DEV_GPU_UTIL_RATIO{k8s_cluster_name="cluster-a",k8s_node_name="component-name",UUID="GPU-a",GPU_I_ID="",GPU_I_PROFILE=""}
+        values: 0.8+0x10
+      - series: DCGM_FI_DEV_GPU_UTIL_RATIO{k8s_cluster_name="cluster-a",k8s_node_name="component-name",UUID="GPU-b",GPU_I_ID="",GPU_I_PROFILE=""}
+        values: 0.2+0x10
+      - series: DCGM_FI_DEV_GPU_UTIL_RATIO{k8s_cluster_name="cluster-a",k8s_node_name="component-name",gpu="0"}
+        values: 0.6+0x10
+      - series: DCGM_FI_DEV_GPU_UTIL_RATIO{k8s_cluster_name="cluster-a",k8s_node_name="component-name",gpu="1"}
+        values: 0.4+0x10
+    checks:
+      - presentation: gpu-nodes
+        column: suse_ai_gpu_utilization
+        samples:
+          - labels: '{k8s_cluster_name="cluster-a",k8s_node_name="component-name"}'
+            value: 50
 
   - name: GenAI freshness distinguishes stopped telemetry from an idle application
     series:

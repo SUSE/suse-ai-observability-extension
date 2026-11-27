@@ -10,7 +10,7 @@ nodes:
         && ''k8s.node.name'' in resource.attributes && resource.attributes[''k8s.node.name''] != '''''
       scope:
         metric:
-          condition: metric.name == 'DCGM_FI_DEV_GPU_UTIL'
+          condition: metric.name in ['DCGM_FI_DEV_GPU_UTIL', 'DCGM_FI_DEV_GPU_UTIL_RATIO']
           datapoint:
             condition: '''UUID'' in datapoint.attributes && datapoint.attributes[''UUID''] != '''' && (!(''GPU_I_ID''
               in datapoint.attributes) || string(datapoint.attributes[''GPU_I_ID'']) == '''') && (!(''GPU_I_PROFILE''
@@ -64,7 +64,7 @@ nodes:
         && ''k8s.node.name'' in resource.attributes && resource.attributes[''k8s.node.name''] != '''''
       scope:
         metric:
-          condition: metric.name == 'DCGM_FI_DEV_GPU_UTIL'
+          condition: metric.name in ['DCGM_FI_DEV_GPU_UTIL', 'DCGM_FI_DEV_GPU_UTIL_RATIO']
           datapoint:
             condition: '''UUID'' in datapoint.attributes && datapoint.attributes[''UUID''] != '''' && (!(''GPU_I_ID''
               in datapoint.attributes) || string(datapoint.attributes[''GPU_I_ID'']) == '''') && (!(''GPU_I_PROFILE''

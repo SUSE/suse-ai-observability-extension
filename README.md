@@ -11,7 +11,7 @@ The extension auto-discovers GenAI components running on Kubernetes and organize
 | **Applications** | GenAI apps, agents, UIs |
 | **Services** | Inference engines, vector databases, search engines, model proxies, MCP servers, workflow engines, ML registries |
 | **Models** | LLM models (vLLM, Ollama) |
-| **GPU Nodes** | Kubernetes nodes with NVIDIA GPUs |
+| **GPU Nodes** | Kubernetes nodes with NVIDIA GPUs. [GPU Operator and DCGM Exporter compatibility](knowledge/DCGM_METRIC_COMPATIBILITY.md) |
 
 It provides out-of-the-box metric bindings and health monitors for vLLM,
 Ollama, Milvus, OpenSearch, Elasticsearch, GPU infrastructure, KServe, Kubeflow

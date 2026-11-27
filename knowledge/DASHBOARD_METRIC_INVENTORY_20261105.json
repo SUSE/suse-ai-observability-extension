@@ -139,7 +139,22 @@
     "vllm:time_to_first_token_seconds_sum": 2
   },
   "unreported_families": [],
-  "policy": "Only metric names observed in this inventory may be used in active dashboard queries or variables.",
+  "forward_compatible_metrics": {
+    "source": "NVIDIA/dcgm-exporter 4.9.0 etc/default-counters.csv, bundled by GPU Operator 26.7.3",
+    "reason": "DCGM 4.7 renamed default fields and changed several units. Queries read these alongside the legacy names above and normalize units before deduplication; no exporter version is pinned.",
+    "metrics": {
+      "DCGM_FI_DEV_BOARD_POWER_WATTS": 1,
+      "DCGM_FI_DEV_FB_FREE_BYTES": 1,
+      "DCGM_FI_DEV_FB_USED_BYTES": 1,
+      "DCGM_FI_DEV_GPU_TEMP_CELSIUS": 1,
+      "DCGM_FI_DEV_GPU_UTIL_RATIO": 1,
+      "DCGM_FI_DEV_SM_CLOCK_HERTZ": 1,
+      "DCGM_FI_DEV_XID_ERROR": 1,
+      "DCGM_FI_PROF_TENSOR_UTIL_RATIO": 1
+    }
+  },
+  "policy": "Active dashboard queries and variables may use only names observed in this inventory or listed under forward_compatible_metrics from the official upstream default counters.",
+
   "history_note": "Earlier inspection had no vLLM or LiteLLM; both appeared in the later readback. One-hour baselines may be absent.",
   "one_hour_ago_metric_count": 31,
   "seven_day_metric_count": 137

@@ -24,8 +24,10 @@ class GpuPodTest(unittest.TestCase):
 
     def test_enriches_workload_pod_not_exporter(self):
         for metric in (
-            "DCGM_FI_DEV_GPU_UTIL", "DCGM_FI_DEV_FB_USED",
-            "DCGM_FI_DEV_GPU_TEMP", "DCGM_FI_DEV_POWER_USAGE",
+            "DCGM_FI_DEV_GPU_UTIL", "DCGM_FI_DEV_GPU_UTIL_RATIO",
+            "DCGM_FI_DEV_FB_USED", "DCGM_FI_DEV_FB_USED_BYTES",
+            "DCGM_FI_DEV_GPU_TEMP", "DCGM_FI_DEV_GPU_TEMP_CELSIUS",
+            "DCGM_FI_DEV_POWER_USAGE", "DCGM_FI_DEV_BOARD_POWER_WATTS",
         ):
             data = self.observation()
             data["metric"]["name"] = metric

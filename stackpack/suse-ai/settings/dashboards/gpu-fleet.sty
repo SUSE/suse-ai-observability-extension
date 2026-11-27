@@ -23,7 +23,8 @@ nodes:
 
                   Locate busy, memory-constrained or hot physical GPUs using DCGM telemetry. **How to read:** Each device
                   is identified by cluster and UUID; repeated pod/scrape copies are deduplicated. MIG slices and missing UUIDs
-                  are excluded. Legends show node and the first eight GPU UUID characters. Use Overview for the fleet''s hour-ago
+                  are excluded. Legends show node and the first eight GPU UUID characters. Legacy and DCGM 4.7 exporter names
+                  are both read, so a mixed rollout does not create duplicate devices. Use Overview for the fleet''s hour-ago
                   utilization comparison. Utilization is a capacity signal, not a health verdict.'
             queries: []
             links: []
@@ -49,8 +50,9 @@ nodes:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
-                    query: count(max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_GPU_UTIL{k8s_cluster_name=~"${cluster}",
-                      UUID!="", GPU_I_ID=""}))
+                    query: count((max by (k8s_cluster_name, UUID, k8s_node_name) ((100 * DCGM_FI_DEV_GPU_UTIL_RATIO{k8s_cluster_name=~"${cluster}",
+                      UUID!="", GPU_I_ID="", GPU_I_PROFILE=""})) or max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_GPU_UTIL{k8s_cluster_name=~"${cluster}",
+                      UUID!="", GPU_I_ID="", GPU_I_PROFILE=""})))
                     alias: Now
             links: []
         gpu-util:
@@ -75,8 +77,9 @@ nodes:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
-                    query: avg(max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_GPU_UTIL{k8s_cluster_name=~"${cluster}",
-                      UUID!="", GPU_I_ID=""}))
+                    query: avg((max by (k8s_cluster_name, UUID, k8s_node_name) ((100 * DCGM_FI_DEV_GPU_UTIL_RATIO{k8s_cluster_name=~"${cluster}",
+                      UUID!="", GPU_I_ID="", GPU_I_PROFILE=""})) or max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_GPU_UTIL{k8s_cluster_name=~"${cluster}",
+                      UUID!="", GPU_I_ID="", GPU_I_PROFILE=""})))
                     alias: Now
             links: []
         gpu-temp:
@@ -102,8 +105,9 @@ nodes:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
-                    query: max(max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_GPU_TEMP{k8s_cluster_name=~"${cluster}",
-                      UUID!="", GPU_I_ID=""}))
+                    query: max((max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_GPU_TEMP_CELSIUS{k8s_cluster_name=~"${cluster}",
+                      UUID!="", GPU_I_ID="", GPU_I_PROFILE=""}) or max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_GPU_TEMP{k8s_cluster_name=~"${cluster}",
+                      UUID!="", GPU_I_ID="", GPU_I_PROFILE=""})))
                     alias: Now
             links: []
         gpu-power:
@@ -128,8 +132,9 @@ nodes:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
-                    query: sum(max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_POWER_USAGE{k8s_cluster_name=~"${cluster}",
-                      UUID!="", GPU_I_ID=""}))
+                    query: sum((max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_BOARD_POWER_WATTS{k8s_cluster_name=~"${cluster}",
+                      UUID!="", GPU_I_ID="", GPU_I_PROFILE=""}) or max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_POWER_USAGE{k8s_cluster_name=~"${cluster}",
+                      UUID!="", GPU_I_ID="", GPU_I_PROFILE=""})))
                     alias: Now
             links: []
         util-by-gpu:
@@ -160,16 +165,18 @@ nodes:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
-                    query: label_replace(max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_GPU_UTIL{k8s_cluster_name=~"${cluster}",
-                      UUID!="", GPU_I_ID=""}), "suse_ai_device", "$1", "UUID", "GPU-(.{8}).*")
+                    query: label_replace((max by (k8s_cluster_name, UUID, k8s_node_name) ((100 * DCGM_FI_DEV_GPU_UTIL_RATIO{k8s_cluster_name=~"${cluster}",
+                      UUID!="", GPU_I_ID="", GPU_I_PROFILE=""})) or max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_GPU_UTIL{k8s_cluster_name=~"${cluster}",
+                      UUID!="", GPU_I_ID="", GPU_I_PROFILE=""})), "suse_ai_device", "$1", "UUID", "GPU-(.{8}).*")
                     alias: ${k8s_node_name} · ${suse_ai_device}
             links: []
         memory-by-gpu:
           spec:
             display:
               name: Framebuffer used
-              description: 100 × used / (used + free), using DCGM MiB gauges. Reserved memory is outside this denominator.
-                Current selected time window; no shifted historical series.
+              description: 100 × used / (used + free). Legacy exporters report MiB and DCGM Exporter 4.9+ reports bytes; both
+                are normalized. Reserved memory is outside this denominator. Current selected time window; no shifted historical
+                series.
             plugin:
               kind: TimeSeriesChart
               spec:
@@ -192,10 +199,16 @@ nodes:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
-                    query: label_replace(100 * max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_FB_USED{k8s_cluster_name=~"${cluster}",
-                      UUID!="", GPU_I_ID=""}) / ((max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_FB_USED{k8s_cluster_name=~"${cluster}",
-                      UUID!="", GPU_I_ID=""}) + max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_FB_FREE{k8s_cluster_name=~"${cluster}",
-                      UUID!="", GPU_I_ID=""})) > 0), "suse_ai_device", "$1", "UUID", "GPU-(.{8}).*")
+                    query: label_replace(100 * (max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_FB_USED_BYTES{k8s_cluster_name=~"${cluster}",
+                      UUID!="", GPU_I_ID="", GPU_I_PROFILE=""}) or max by (k8s_cluster_name, UUID, k8s_node_name) ((1048576
+                      * DCGM_FI_DEV_FB_USED{k8s_cluster_name=~"${cluster}", UUID!="", GPU_I_ID="", GPU_I_PROFILE=""}))) /
+                      (((max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_FB_USED_BYTES{k8s_cluster_name=~"${cluster}",
+                      UUID!="", GPU_I_ID="", GPU_I_PROFILE=""}) or max by (k8s_cluster_name, UUID, k8s_node_name) ((1048576
+                      * DCGM_FI_DEV_FB_USED{k8s_cluster_name=~"${cluster}", UUID!="", GPU_I_ID="", GPU_I_PROFILE=""}))) +
+                      (min by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_FB_FREE_BYTES{k8s_cluster_name=~"${cluster}",
+                      UUID!="", GPU_I_ID="", GPU_I_PROFILE=""}) or min by (k8s_cluster_name, UUID, k8s_node_name) ((1048576
+                      * DCGM_FI_DEV_FB_FREE{k8s_cluster_name=~"${cluster}", UUID!="", GPU_I_ID="", GPU_I_PROFILE=""})))) >
+                      0), "suse_ai_device", "$1", "UUID", "GPU-(.{8}).*")
                     alias: ${k8s_node_name} · ${suse_ai_device}
             links: []
         temp-by-gpu:
@@ -226,8 +239,9 @@ nodes:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
-                    query: label_replace(max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_GPU_TEMP{k8s_cluster_name=~"${cluster}",
-                      UUID!="", GPU_I_ID=""}), "suse_ai_device", "$1", "UUID", "GPU-(.{8}).*")
+                    query: label_replace((max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_GPU_TEMP_CELSIUS{k8s_cluster_name=~"${cluster}",
+                      UUID!="", GPU_I_ID="", GPU_I_PROFILE=""}) or max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_GPU_TEMP{k8s_cluster_name=~"${cluster}",
+                      UUID!="", GPU_I_ID="", GPU_I_PROFILE=""})), "suse_ai_device", "$1", "UUID", "GPU-(.{8}).*")
                     alias: ${k8s_node_name} · ${suse_ai_device}
             links: []
         power-by-gpu:
@@ -258,8 +272,9 @@ nodes:
                 plugin:
                   kind: PrometheusTimeSeriesQuery
                   spec:
-                    query: label_replace(max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_POWER_USAGE{k8s_cluster_name=~"${cluster}",
-                      UUID!="", GPU_I_ID=""}), "suse_ai_device", "$1", "UUID", "GPU-(.{8}).*")
+                    query: label_replace((max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_BOARD_POWER_WATTS{k8s_cluster_name=~"${cluster}",
+                      UUID!="", GPU_I_ID="", GPU_I_PROFILE=""}) or max by (k8s_cluster_name, UUID, k8s_node_name) (DCGM_FI_DEV_POWER_USAGE{k8s_cluster_name=~"${cluster}",
+                      UUID!="", GPU_I_ID="", GPU_I_PROFILE=""})), "suse_ai_device", "$1", "UUID", "GPU-(.{8}).*")
                     alias: ${k8s_node_name} · ${suse_ai_device}
             links: []
         coverage:
@@ -274,9 +289,11 @@ nodes:
                   GPU inventory to inspect workload allocation.
 
 
-                  **Coverage:** these panels use verified DCGM device gauges. The demo did not report XID or ECC series, so
-                  this dashboard makes no claim that hardware errors are absent. This family expects the verified uppercase
-                  UUID label; a different exporter label contract needs validation.'
+                  **Coverage:** these panels read both the legacy DCGM Exporter field names/units and the DCGM 4.7 field names
+                  shipped by GPU Operator 26.7.3 (DCGM Exporter 4.9.0): utilization percent vs 0–1 ratio and framebuffer MiB
+                  vs bytes are normalized before deduplication. The demo did not report XID or ECC series, so this dashboard
+                  makes no claim that hardware errors are absent. This family expects the verified uppercase UUID label; a
+                  different exporter label contract needs validation.'
             queries: []
             links: []
       layouts:
@@ -359,3 +376,4 @@ nodes:
               labelName: k8s_cluster_name
               matchers:
               - DCGM_FI_DEV_GPU_UTIL
+              - DCGM_FI_DEV_GPU_UTIL_RATIO

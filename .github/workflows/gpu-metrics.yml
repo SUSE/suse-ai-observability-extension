@@ -1,0 +1,52 @@
+name: Validate GPU metric compatibility
+
+on:
+  pull_request:
+    paths:
+      - 'stackpack/suse-ai/settings/gpu/**'
+      - 'stackpack/suse-ai/settings/dashboards/**'
+      - 'scripts/dashboards-icons/**'
+      - 'tests/suse-ai/**'
+      - 'knowledge/DASHBOARD_METRIC_INVENTORY_20261105.json'
+      - '.github/workflows/gpu-metrics.yml'
+      - 'Taskfile.yaml'
+  push:
+    branches: [main]
+    paths:
+      - 'stackpack/suse-ai/settings/gpu/**'
+      - 'stackpack/suse-ai/settings/dashboards/**'
+      - 'scripts/dashboards-icons/**'
+      - 'tests/suse-ai/**'
+      - 'knowledge/DASHBOARD_METRIC_INVENTORY_20261105.json'
+      - '.github/workflows/gpu-metrics.yml'
+      - 'Taskfile.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gpu-metrics:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      AI_CONTAINER_RUNTIME: docker
+      CONTAINER_RUNTIME: docker
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Install test dependencies
+        run: python3 -m pip install --quiet --target .deps -r tests/suse-ai/requirements.txt
+
+      - name: Check generated GPU dashboards, allowlist and PromQL syntax
+        run: PYTHONPATH=.deps python3 -B scripts/dashboards-icons/check.py
+
+      - name: Evaluate GPU device, pod and old/new/mixed query fixtures
+        run: |
+          source scripts/ci/stackpack-images.env
+          PYTHONPATH=".deps:tests/suse-ai" python3 -B -m unittest test_gpu_devices test_gpu_pods test_promql -v
+
+      - name: Evaluate GPU fleet dashboard queries with pinned Prometheus
+        run: |
+          source scripts/ci/stackpack-images.env
+          PYTHONPATH=.deps python3 -B scripts/dashboards-icons/test_queries.py

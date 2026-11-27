@@ -12,10 +12,14 @@ nodes:
     failureState: CRITICAL
     metric:
       aliasTemplate: "NVIDIA XID errors"
-      query: "max by (k8s_cluster_name, k8s_node_name) (\n  max_over_time(DCGM_EXP_XID_ERRORS_COUNT{k8s_cluster_name!=\"\
-        \", k8s_node_name!=\"\", xid!=\"0\"}[5m])\n  or (0 * max_over_time(DCGM_EXP_XID_ERRORS_COUNT{k8s_cluster_name!=\"\
-        \", k8s_node_name!=\"\", xid=\"0\"}[5m]))\n) or max by (k8s_cluster_name, k8s_node_name) (\n  max_over_time(DCGM_FI_DEV_XID_ERRORS{k8s_cluster_name!=\"\
-        \", k8s_node_name!=\"\"}[5m])\n)"
+      query: >-
+        max by (k8s_cluster_name, k8s_node_name) (
+        max_over_time(DCGM_EXP_XID_ERRORS_COUNT{k8s_cluster_name!="", k8s_node_name!="", xid!="0"}[5m])
+        or (0 * max_over_time(DCGM_EXP_XID_ERRORS_COUNT{k8s_cluster_name!="", k8s_node_name!="", xid="0"}[5m]))
+        ) or (
+        max by (k8s_cluster_name, k8s_node_name) (max_over_time(DCGM_FI_DEV_XID_ERROR{k8s_cluster_name!="", k8s_node_name!=""}[5m]))
+        or max by (k8s_cluster_name, k8s_node_name) (max_over_time(DCGM_FI_DEV_XID_ERRORS{k8s_cluster_name!="", k8s_node_name!=""}[5m]))
+        )
       unit: short
     titleTemplate: "GPU errors: ${k8s_node_name}"
     urnTemplate: urn:kubernetes:/${k8s_cluster_name}:node/${k8s_node_name}

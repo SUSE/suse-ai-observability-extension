@@ -13,8 +13,10 @@ nodes:
       scope:
         metric:
           condition: >-
-            metric.name in ['DCGM_FI_DEV_GPU_UTIL', 'DCGM_FI_DEV_FB_USED',
-              'DCGM_FI_DEV_GPU_TEMP', 'DCGM_FI_DEV_POWER_USAGE']
+            metric.name in ['DCGM_FI_DEV_GPU_UTIL', 'DCGM_FI_DEV_GPU_UTIL_RATIO',
+              'DCGM_FI_DEV_FB_USED', 'DCGM_FI_DEV_FB_USED_BYTES',
+              'DCGM_FI_DEV_GPU_TEMP', 'DCGM_FI_DEV_GPU_TEMP_CELSIUS',
+              'DCGM_FI_DEV_POWER_USAGE', 'DCGM_FI_DEV_BOARD_POWER_WATTS']
           datapoint:
             # These are DCGM's workload labels, not the exporter's k8s.pod.* resource.
             condition: >-

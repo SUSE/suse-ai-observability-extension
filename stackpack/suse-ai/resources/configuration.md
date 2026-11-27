@@ -8,6 +8,12 @@
   observe. The StackPack discovers reported telemetry; it does not install these
   products.
 
+GPU Operator 26.7.2 defaults to DCGM Exporter 4.8.4, which reports utilization
+in percent and framebuffer memory in MiB. GPU Operator 26.7.3 defaults to
+Exporter 4.9.0, which reports a 0–1 ratio and bytes. These GPU views accept
+both formats. If you set `dcgmExporter.version` in the Operator chart, check
+the image running in the exporter DaemonSet. [DCGM fields and supported formats](https://github.com/SUSE/suse-ai-observability-extension/blob/main/knowledge/DCGM_METRIC_COMPATIBILITY.md)
+
 ## Get started
 
 1. **Connect telemetry.** Use the
